@@ -1401,7 +1401,8 @@ void CvUnitAI::AI_FleeingMove()
 			{
 				if (!pAdjacentPlot->isVisibleEnemyUnit(this) && !pAdjacentPlot->isCity())
 				{
-					if (generatePath(pAdjacentPlot, 0, true))
+					// WTP: one step only; a path to an unreachable neighbour (e.g. across water) searched the whole continent
+					if (canMoveInto(*pAdjacentPlot))
 					{
 						iValue = 0;
 						iRand = 100;
@@ -1410,7 +1411,7 @@ void CvUnitAI::AI_FleeingMove()
 						if (iValue > iBestValue)
 						{
 							iBestValue = iValue;
-							pBestPlot = getPathEndTurnPlot();
+							pBestPlot = pAdjacentPlot;
 						}
 					}
 				}
