@@ -4746,6 +4746,14 @@ bool CvUnitAI::AI_sailToPreferredPort(bool bMove)
 	{
 		const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 
+		// WTP: fetch farm workers from Africa if a colony needs food and slaves are the cheaper choice
+		if (AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && GET_PLAYER(getOwnerINLINE()).AI_wantsAfricaFoodWorkers())
+		{
+			if (gUnitLogLevel >= 1) logBBAI("WTP ship: Player %d (%S) ship %S sails to Africa for farm workers", getOwnerINLINE(),
+				kOwner.getCivilizationDescription(0), getName().GetCString());
+			return AI_sailToAfrica(bMove);
+		}
+
 		// In general we should prefer Europe, but we will consider going to Africa if:
 		// 1) We cannot fill our transport ship with more than half the capacity of colonists for the return journey, rounded down
 		//const bool bAfricaRatio = (kOwner.getNumEuropeUnits() / static_cast<double>(cargoSpace()) <= 0.5);
@@ -6785,6 +6793,17 @@ bool CvUnitAI::AI_africa()
 		}
 	}
 #endif
+
+	// WTP: buy farm workers for colonies short of food (at most 2 per visit)
+	for (int iBuy = 0; iBuy < 2 && cargoSpace() - getCargo() - kOwner.getNumAfricaUnits() > 0 && kOwner.AI_wantsAfricaFoodWorkers(); ++iBuy)
+	{
+		CvUnit* const pSlave = kOwner.buyAfricaUnit(kOwner.AI_africaFoodWorker(), 100);
+		if (pSlave == NULL)
+		{
+			break;
+		}
+		pSlave->AI_setUnitAIType(UNITAI_COLONIST);
+	}
 
 	//Pick up units from Africa (FIFO)
 	std::deque<CvUnit*> aUnits;
