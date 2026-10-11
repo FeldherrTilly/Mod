@@ -2794,7 +2794,7 @@
 			<bNationalWonder>0</bNationalWonder>
 			<bNeverCapture>0</bNeverCapture>
 			<bCenterInCity>1</bCenterInCity>
-			<iAIWeight>180</iAIWeight>
+			<iAIWeight>480</iAIWeight>
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
