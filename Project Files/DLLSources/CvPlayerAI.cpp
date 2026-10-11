@@ -259,6 +259,8 @@ void CvPlayerAI::AI_doTurnPre()
 
 	AI_updateYieldValues();
 
+	AI_doCitizenRelocation();
+
 	AI_logStatusSummary();
 }
 
@@ -17158,6 +17160,220 @@ int CvPlayerAI::AI_civilianExpertPriority(ProfessionTypes eProfession, UnitClass
 		iPriority /= 2;
 	}
 	return iPriority;
+}
+
+// WTP: once per turn, take one citizen out of a colony who does nothing useful (a free non-expert gathering a
+// non-essential raw material on a plot without resource), if a native village nearby can teach it a profession
+// or another colony has a free preacher, statesman or carpenter slot for it. Expert native traders always leave
+// the colonies and found trade posts.
+void CvPlayerAI::AI_doCitizenRelocation()
+{
+	if (isHuman() || isNative() || isEurope() || getParent() == NO_PLAYER || getNumCities() == 0)
+	{
+		return;
+	}
+
+	const ProfessionTypes eTraderProfession = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_NATIVE_TRADER");
+	const ProfessionTypes eDefaultProfession = GC.getCivilizationInfo(getCivilizationType()).getDefaultProfession();
+	int iLoop;
+
+	// expert native traders: never colonists
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->isExpertNativeTrader() && pLoopUnit->isOnMap() && !pLoopUnit->isCargo() && pLoopUnit->AI_getUnitAIType() != UNITAI_TRADER)
+		{
+			if (eTraderProfession != NO_PROFESSION && pLoopUnit->getProfession() != eTraderProfession && pLoopUnit->canHaveProfession(eTraderProfession, false))
+			{
+				pLoopUnit->setProfession(eTraderProfession);
+			}
+			pLoopUnit->AI_setUnitAIType(UNITAI_TRADER);
+			if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) turn %d sets %S back to native trader", getID(), getCivilizationDescription(0),
+				GC.getGameINLINE().getGameTurn(), pLoopUnit->getName().GetCString());
+		}
+	}
+	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+	{
+		if (pCity->getPopulation() <= 1)
+		{
+			continue;
+		}
+		for (int i = 0; i < pCity->getPopulation(); ++i)
+		{
+			CvUnit* const pCitizen = pCity->getPopulationUnitByIndex(i);
+			if (pCitizen != NULL && pCitizen->isExpertNativeTrader() && eTraderProfession != NO_PROFESSION && pCitizen->canHaveProfession(eTraderProfession, false))
+			{
+				if (pCity->removePopulationUnit(CREATE_ASSERT_DATA, pCitizen, false, eTraderProfession))
+				{
+					pCitizen->AI_setUnitAIType(UNITAI_TRADER);
+					if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) turn %d takes expert native trader %S out of %S",
+						getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pCitizen->getName().GetCString(), pCity->getName().GetCString());
+				}
+				break;
+			}
+		}
+	}
+
+	// starving colonies: one worker who does not produce food leaves and joins a colony where he is fed
+	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+	{
+		if (pCity->getPopulation() < 3 || pCity->foodDifference() >= -2 || pCity->getFood() > -pCity->foodDifference() * 3)
+		{
+			continue;
+		}
+		CvUnit* pLeaving = NULL;
+		for (int i = 0; i < pCity->getPopulation(); ++i)
+		{
+			CvUnit* const pCitizen = pCity->getPopulationUnitByIndex(i);
+			if (pCitizen == NULL || pCitizen->isColonistLocked() || pCitizen->getProfession() == NO_PROFESSION)
+			{
+				continue;
+			}
+			if (GC.getProfessionInfo(pCitizen->getProfession()).getYieldsProduced(0) == YIELD_FOOD)
+			{
+				continue;
+			}
+			// prefer non-experts, they lose least
+			if (pLeaving == NULL || (pLeaving->AI_getIdealProfession() != NO_PROFESSION && pCitizen->AI_getIdealProfession() == NO_PROFESSION))
+			{
+				pLeaving = pCitizen;
+			}
+		}
+		if (pLeaving != NULL && pCity->removePopulationUnit(CREATE_ASSERT_DATA, pLeaving, false, eDefaultProfession))
+		{
+			pLeaving->AI_setUnitAIType(UNITAI_COLONIST);
+			if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) turn %d takes %S out of starving %S (food %d, stored %d)",
+				getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pLeaving->getName().GetCString(),
+				pCity->getName().GetCString(), pCity->foodDifference(), pCity->getFood());
+		}
+	}
+
+	// idle citizens: at most one per turn
+	const ProfessionTypes eJobProfessions[3] = {
+		(ProfessionTypes)GC.getInfoTypeForString("PROFESSION_PREACHER"),
+		(ProfessionTypes)GC.getInfoTypeForString("PROFESSION_STATESMAN"),
+		(ProfessionTypes)GC.getInfoTypeForString("PROFESSION_CARPENTER") };
+
+	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+	{
+		if (pCity->getPopulation() < 3)
+		{
+			continue;
+		}
+		for (int i = 0; i < pCity->getPopulation(); ++i)
+		{
+			CvUnit* const pCitizen = pCity->getPopulationUnitByIndex(i);
+			if (pCitizen == NULL || pCitizen->isColonistLocked() || pCitizen->AI_hasAIChanged(5))
+			{
+				continue;
+			}
+			const ProfessionTypes eProfession = pCitizen->getProfession();
+			if (eProfession == NO_PROFESSION || !GC.getProfessionInfo(eProfession).isWorkPlot() || pCitizen->AI_getIdealProfession() != NO_PROFESSION)
+			{
+				continue;
+			}
+			// indentured and enslaved units are meant for raw materials
+			const CitizenStatusTypes eStatus = pCitizen->getUnitInfo().getCitizenStatus();
+			if (eStatus == CITIZEN_STATUS_INDENTURED || eStatus == CITIZEN_STATUS_ENSLAVED)
+			{
+				continue;
+			}
+			const CvPlot* const pWorkedPlot = pCity->getPlotWorkedByUnit(pCitizen);
+			if (pWorkedPlot == NULL || pWorkedPlot->getBonusType() != NO_BONUS)
+			{
+				continue;
+			}
+			const YieldTypes eYield = (YieldTypes)GC.getProfessionInfo(eProfession).getYieldsProduced(0);
+			if (eYield == NO_YIELD || eYield == YIELD_FOOD || eYield == YIELD_LUMBER || eYield == YIELD_ORE || eYield == YIELD_STONE || eYield == YIELD_CLAY
+				|| eYield == YIELD_HORSES || eYield == YIELD_SILVER || eYield == YIELD_GOLD || eYield == YIELD_GEMS
+				|| pCity->AI_getNeededYield(eYield) > pCity->getYieldStored(eYield))
+			{
+				continue;
+			}
+
+			// a) a native village within 8 plots that can teach it
+			bool bLearn = false;
+			if (pCitizen->getUnitInfo().getLearnTime() >= 0 && GC.getGameINLINE().AI_gameCompletePercent() < 25)
+			{
+				for (int iPlayer = 0; iPlayer < MAX_PLAYERS && !bLearn; ++iPlayer)
+				{
+					CvPlayer& kNative = GET_PLAYER((PlayerTypes)iPlayer);
+					if (!kNative.isAlive() || !kNative.isNative() || GET_TEAM(getTeam()).isAtWar(kNative.getTeam()))
+					{
+						continue;
+					}
+					int iNativeLoop;
+					for (CvCity* pVillage = kNative.firstCity(&iNativeLoop); pVillage != NULL; pVillage = kNative.nextCity(&iNativeLoop))
+					{
+						if (pVillage->getTeachUnitClass() != NO_UNITCLASS && pVillage->getTeachUnitClass() != pCitizen->getUnitClassType()
+							&& pVillage->area() == pCity->area()
+							&& plotDistance(pVillage->getX_INLINE(), pVillage->getY_INLINE(), pCity->getX_INLINE(), pCity->getY_INLINE()) <= 8)
+						{
+							bLearn = true;
+							break;
+						}
+					}
+				}
+			}
+
+			// b) another colony on the same landmass with a free preacher, statesman or carpenter slot
+			CvCity* pTargetCity = NULL;
+			if (!bLearn)
+			{
+				int iTargetLoop;
+				for (CvCity* pLoopCity = firstCity(&iTargetLoop); pLoopCity != NULL && pTargetCity == NULL; pLoopCity = nextCity(&iTargetLoop))
+				{
+					if (pLoopCity == pCity || pLoopCity->area() != pCity->area())
+					{
+						continue;
+					}
+					for (int iJob = 0; iJob < 3; ++iJob)
+					{
+						const ProfessionTypes eJob = eJobProfessions[iJob];
+						if (eJob == NO_PROFESSION || !pCitizen->canHaveProfession(eJob, true))
+						{
+							continue;
+						}
+						if (eJob == eJobProfessions[2] && pLoopCity->getYieldStored(YIELD_LUMBER) < 20)
+						{
+							continue;
+						}
+						int iUsed = 0;
+						for (int j = 0; j < pLoopCity->getPopulation(); ++j)
+						{
+							const CvUnit* const pOther = pLoopCity->getPopulationUnitByIndex(j);
+							if (pOther != NULL && pOther->getProfession() == eJob)
+							{
+								++iUsed;
+							}
+						}
+						if (pLoopCity->getNumProfessionBuildingSlots(eJob) > iUsed)
+						{
+							pTargetCity = pLoopCity;
+							break;
+						}
+					}
+				}
+			}
+
+			if (!bLearn && pTargetCity == NULL)
+			{
+				continue;
+			}
+			if (pCity->removePopulationUnit(CREATE_ASSERT_DATA, pCitizen, false, eDefaultProfession))
+			{
+				pCitizen->AI_setUnitAIType(UNITAI_COLONIST);
+				if (pTargetCity != NULL && pCitizen->getGroup() != NULL)
+				{
+					pCitizen->getGroup()->pushMission(MISSION_MOVE_TO, pTargetCity->getX_INLINE(), pTargetCity->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_FOUND, pTargetCity->plot());
+				}
+				if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) turn %d takes idle %S (%S) out of %S to %S",
+					getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pCitizen->getName().GetCString(),
+					GC.getYieldInfo(eYield).getDescription(), pCity->getName().GetCString(),
+					bLearn ? L"learn from the natives" : pTargetCity->getName().GetCString());
+			}
+			return;
+		}
+	}
 }
 
 // WTP: a colony with a food surplus below 2 and a free food plot, if no new colonies are wanted

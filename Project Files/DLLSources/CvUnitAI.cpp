@@ -1962,7 +1962,7 @@ void CvUnitAI::AI_nativeTraderMove()
 	bool bDanger = GET_PLAYER(getOwnerINLINE()).AI_getUnitDanger(this, 2, false, false);
 	if (bDanger)
 	{
-		if (pCity != NULL)
+		if (pCity != NULL && !isExpertNativeTrader()) // WTP: experts stay traders
 		{
 			if (canJoinCity(plot()))
 			{
@@ -2029,6 +2029,20 @@ void CvUnitAI::AI_nativeTraderMove()
 
 	//We should try and convert profession to something else
 	//When this is possible.
+
+	// WTP: expert native traders wait in a colony for the next trade post instead of becoming colonists
+	if (isExpertNativeTrader())
+	{
+		if (plot()->getPlotCity() == NULL || plot()->getOwnerINLINE() != getOwnerINLINE())
+		{
+			if (AI_retreatToCity())
+			{
+				return;
+			}
+		}
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
+	}
 
 	if (AI_retreatToCity())
 	{
@@ -8731,6 +8745,11 @@ bool CvUnitAI::AI_unloadWhereNeeded(int iMaxPath)
 
 bool CvUnitAI::AI_betterJob()
 {
+	// WTP: expert native traders found trade posts and never swap into a city job
+	if (isExpertNativeTrader())
+	{
+		return false;
+	}
 
 	CvCity* const pCity = plot()->getPlotCity();
 	if (pCity == NULL)
@@ -9623,7 +9642,8 @@ bool CvUnitAI::AI_spreadTradePosts()
 										int iPathTurns;
 										if (generatePath(pLoopPlot, MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns))
 										{
-											if (iPathTurns < 10)
+											// WTP: experts travel further for a trade post
+											if (iPathTurns < (isExpertNativeTrader() ? 25 : 10))
 											{
 												int iValue = pLoopCity->getPopulation();
 
@@ -15556,6 +15576,12 @@ bool CvUnitAI::AI_joinCity(int iMaxPath)
 			{
 				ProfessionTypes eProfession;
 				int iValue = pCity->AI().AI_unitJoinCityValueInternal(*this, &eProfession);
+
+				// WTP: do not crowd a starving colony with workers who do not produce food
+				if (pCity->foodDifference() < 0 && (eProfession == NO_PROFESSION || GC.getProfessionInfo(eProfession).getYieldsProduced(0) != YIELD_FOOD))
+				{
+					iValue /= 4;
+				}
 
 				const int iIncoming = kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_FOUND, getGroup());
 				// TAC - AI Economy- koma13 - START

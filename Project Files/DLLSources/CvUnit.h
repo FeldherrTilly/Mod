@@ -742,6 +742,7 @@ public:
 	int getYieldStored() const;
 	YieldTypes getYield() const;
 	bool isGoods() const;
+	bool isExpertNativeTrader() const; // WTP
 	bool hasAnyUnitInCargo() const;
 	bool isYield() const;
 
