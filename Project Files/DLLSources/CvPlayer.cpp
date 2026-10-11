@@ -8176,6 +8176,21 @@ int CvPlayer::getPower() const
 	return m_iPower;
 }
 
+// WTP: the part of the power that comes from ships (transports count a lot, but do not fight on land)
+int CvPlayer::getNavalPower() const
+{
+	int iPower = 0;
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->getDomainType() == DOMAIN_SEA)
+		{
+			iPower += pLoopUnit->getPower();
+		}
+	}
+	return iPower;
+}
+
 void CvPlayer::changePower(int iChange)
 {
 	OOS_LOG_3("Player change power A", getID(), iChange);

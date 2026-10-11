@@ -445,6 +445,7 @@ public:
 	int getAssets() const;
 	void changeAssets(int iChange);
 	int getPower() const;
+	int getNavalPower() const; // WTP: power of the ships
 	void changePower(int iChange);
 	int getPopScore() const;
 	void changePopScore(int iChange);
