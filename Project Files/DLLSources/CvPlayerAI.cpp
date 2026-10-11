@@ -9310,6 +9310,12 @@ void CvPlayerAI::AI_doEurope()
 			return;
 		}
 
+		// WTP: then at least one transport per colony (inland colonies too), before the minimum fleet warship
+		if (AI_doColonyTransportPurchase())
+		{
+			return;
+		}
+
 		// WTP, Schmiddie, AI Minimum Fleet - START
 		UnitAITypes eRequiredShipAI = NO_UNITAI;
 
@@ -18327,7 +18333,7 @@ bool CvPlayerAI::AI_isRestrictedWaterCity(const CvCity& kCity) const
 
 // WTP: best ship of a unit AI to buy in Europe. It must reach as many colonies as the best reaching ship of that
 // unit AI (all coastal ones if possible), then the cheapest one or the one with the best value per price is taken.
-UnitTypes CvPlayerAI::AI_bestShipToBuy(UnitAITypes eUnitAI, bool bCheapest)
+UnitTypes CvPlayerAI::AI_bestShipToBuy(UnitAITypes eUnitAI, bool bCheapest, TerrainTypes eRequiredTerrain)
 {
 	const CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
 	int iBestReach = 0;
@@ -18335,7 +18341,8 @@ UnitTypes CvPlayerAI::AI_bestShipToBuy(UnitAITypes eUnitAI, bool bCheapest)
 	{
 		const UnitTypes eLoopUnit = kCiv.getCivilizationUnits(eUnitClass);
 		if (eLoopUnit != NO_UNIT && GC.getUnitInfo(eLoopUnit).getDefaultUnitAIType() == eUnitAI && isUnitWithinGameYearWindow(eLoopUnit)
-			&& getEuropeUnitBuyPrice(eLoopUnit) > 0)
+			&& getEuropeUnitBuyPrice(eLoopUnit) > 0
+			&& (eRequiredTerrain == NO_TERRAIN || !GC.getUnitInfo(eLoopUnit).getTerrainImpassable(eRequiredTerrain)))
 		{
 			iBestReach = std::max(iBestReach, AI_shipReachableColonies(eLoopUnit));
 		}
@@ -18351,7 +18358,8 @@ UnitTypes CvPlayerAI::AI_bestShipToBuy(UnitAITypes eUnitAI, bool bCheapest)
 			continue;
 		}
 		const CvUnitInfo& kUnitInfo = GC.getUnitInfo(eLoopUnit);
-		if (kUnitInfo.getDefaultUnitAIType() != eUnitAI || !isUnitWithinGameYearWindow(eLoopUnit) || kUnitInfo.isHiddenNationality())
+		if (kUnitInfo.getDefaultUnitAIType() != eUnitAI || !isUnitWithinGameYearWindow(eLoopUnit) || kUnitInfo.isHiddenNationality()
+			|| (eRequiredTerrain != NO_TERRAIN && kUnitInfo.getTerrainImpassable(eRequiredTerrain)))
 		{
 			continue;
 		}
@@ -18547,6 +18555,133 @@ void CvPlayerAI::AI_clearSurplusPioneer()
 	m_iSurplusPioneerCityID = -1;
 }
 
+// WTP: water access of a colony for ships: deep water (coast, ocean), only shallow coast, only a large river, or none
+// (inland or a lake). Only water accessible from Europe counts.
+int CvPlayerAI::AI_cityWaterAccess(const CvCity& kCity)
+{
+	bool bShallow = false;
+	bool bRiver = false;
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		const CvPlot* const pAdjacent = plotDirection(kCity.getX_INLINE(), kCity.getY_INLINE(), (DirectionTypes)iI);
+		if (pAdjacent == NULL || !pAdjacent->isWater() || !pAdjacent->isEuropeAccessable())
+		{
+			continue;
+		}
+		const TerrainTypes eTerrain = pAdjacent->getTerrainType();
+		if (eTerrain == TERRAIN_COAST || eTerrain == TERRAIN_OCEAN)
+		{
+			return WATER_ACCESS_DEEP;
+		}
+		if (eTerrain == TERRAIN_SHALLOW_COAST)
+		{
+			bShallow = true;
+		}
+		else if (eTerrain == TERRAIN_LARGE_RIVERS)
+		{
+			bRiver = true;
+		}
+	}
+	return bShallow ? WATER_ACCESS_SHALLOW : (bRiver ? WATER_ACCESS_RIVER : WATER_ACCESS_NONE);
+}
+
+// WTP: the transport to buy. The transports that can enter large rivers have to match the colonies only reached over a
+// large river, those that can enter shallow coast the colonies on shallow coast or a large river; if one of them is
+// short, the next transport restores the balance (large rivers first). Otherwise the default choice.
+UnitTypes CvPlayerAI::AI_transportToBuy()
+{
+	int iRiverColonies = 0;
+	int iShallowColonies = 0;
+	int iLoop;
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	{
+		const int iAccess = AI_cityWaterAccess(*pLoopCity);
+		if (iAccess == WATER_ACCESS_RIVER)
+		{
+			++iRiverColonies;
+		}
+		else if (iAccess == WATER_ACCESS_SHALLOW)
+		{
+			++iShallowColonies;
+		}
+	}
+	int iRiverShips = 0;
+	int iShallowShips = 0;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA)
+		{
+			const CvUnitInfo& kInfo = pLoopUnit->getUnitInfo();
+			if (!kInfo.getTerrainImpassable(TERRAIN_LARGE_RIVERS))
+			{
+				++iRiverShips;
+			}
+			if (!kInfo.getTerrainImpassable(TERRAIN_SHALLOW_COAST))
+			{
+				++iShallowShips;
+			}
+		}
+	}
+
+	UnitTypes eShip = NO_UNIT;
+	if (iRiverShips < iRiverColonies)
+	{
+		eShip = AI_bestShipToBuy(UNITAI_TRANSPORT_SEA, false, TERRAIN_LARGE_RIVERS);
+	}
+	if (eShip == NO_UNIT && iShallowShips < iRiverColonies + iShallowColonies)
+	{
+		eShip = AI_bestShipToBuy(UNITAI_TRANSPORT_SEA, false, TERRAIN_SHALLOW_COAST);
+	}
+	if (eShip == NO_UNIT)
+	{
+		eShip = AI_bestShipToBuy(UNITAI_TRANSPORT_SEA, false);
+	}
+	return eShip;
+}
+
+// WTP: at least one transport per colony (inland colonies count too). Returns true while saving gold for it, then
+// nothing else is bought.
+bool CvPlayerAI::AI_doColonyTransportPurchase()
+{
+	if (getNumCities() == 0)
+	{
+		return false;
+	}
+	int iTransports = 0;
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA)
+		{
+			++iTransports;
+		}
+	}
+	if (iTransports >= getNumCities())
+	{
+		return false;
+	}
+	const UnitTypes eShip = AI_transportToBuy();
+	if (eShip == NO_UNIT)
+	{
+		return false;
+	}
+	const int iPrice = getEuropeUnitBuyPrice(eShip);
+	if (getGold() < iPrice)
+	{
+		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) saves for transport %S (%d gold, have %d): %d transports for %d colonies",
+			getID(), getCivilizationDescription(0), GC.getUnitInfo(eShip).getDescription(), iPrice, getGold(), iTransports, getNumCities());
+		return true;
+	}
+	CvUnit* const pUnit = buyEuropeUnit(eShip, 100);
+	if (pUnit != NULL)
+	{
+		pUnit->AI_setUnitAIType(UNITAI_TRANSPORT_SEA);
+		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) buys transport %S: %d transports for %d colonies",
+			getID(), getCivilizationDescription(0), pUnit->getName().GetCString(), iTransports, getNumCities());
+	}
+	return false;
+}
+
 // WTP: buy another transport if more units wait in Europe than one load of all our transports.
 // Returns true while saving gold for it, then nothing else is bought.
 bool CvPlayerAI::AI_doTransportPurchase()
@@ -18572,7 +18707,7 @@ bool CvPlayerAI::AI_doTransportPurchase()
 		return false;
 	}
 
-	const UnitTypes eShip = AI_bestShipToBuy(UNITAI_TRANSPORT_SEA, false);
+	const UnitTypes eShip = AI_transportToBuy();
 	if (eShip == NO_UNIT)
 	{
 		return false;
