@@ -80,6 +80,8 @@ void CvCityAI::AI_reset()
 	AI_resetSavedData();
 
 	m_iWorkforceHack = 0;
+	m_iCacheHammerJobMinTurn = -1;
+	m_iCacheHammerJobMinValue = 0;
 }
 
 
@@ -4347,9 +4349,50 @@ int CvCityAI::AI_citizenProfessionValue(
 				}
 			}
 		}
+		// WTP: keep a lumber stockpile of about 50; lumber may also come from other sources
+		else if (eY == YIELD_LUMBER)
+		{
+			if (getYieldStored(YIELD_LUMBER) < 50)
+			{
+				combined *= 2;
+			}
+			else
+			{
+				combined /= 2;
+			}
+		}
 		else if (AI_getNeededYield(eY) > getYieldStored(eY))
 		{
 			combined *= 3;
+		}
+	}
+
+	// WTP: as long as lumber is available, making hammers beats any non-food plot job producing fewer than 10
+	// units (precious metals and gems excepted, they keep their own value)
+	if (!isNative() && yieldsOut.count > 0)
+	{
+		if (!kProfInfo.isWorkPlot() && totalInput > 0)
+		{
+			bool bMakesHammers = false;
+			for (int j = 0; j < yieldsOut.count && j < MAX_OUTPUT_YIELDS; ++j)
+			{
+				if (yieldsOut.yields[j].eYield == YIELD_HAMMERS)
+				{
+					bMakesHammers = true;
+				}
+			}
+			if (bMakesHammers && getYieldStored(YIELD_LUMBER) + getRawYieldProduced(YIELD_LUMBER) >= totalInput)
+			{
+				combined = branchless::max(combined, AI_hammerJobMinValue());
+			}
+		}
+		else if (kProfInfo.isWorkPlot() && getYieldStored(YIELD_LUMBER) + getRawYieldProduced(YIELD_LUMBER) > 0)
+		{
+			const YieldTypes eY = yieldsOut.yields[0].eYield;
+			if (eY == YIELD_SILVER || eY == YIELD_GOLD || eY == YIELD_GEMS)
+			{
+				combined = branchless::max(combined, AI_hammerJobMinValue());
+			}
 		}
 	}
 
@@ -4778,6 +4821,41 @@ const int YIELD_TOOLS_BASE_VALUE = 10;
 
 
 
+// WTP: the value a hammer job is worth at least while lumber is available: 10 units of the most valuable
+// non-food yield found on the city's plots, precious metals and gems not counted
+int CvCityAI::AI_hammerJobMinValue() const
+{
+	// the value only depends on the city's plots and market values, so compute it once per turn
+	if (m_iCacheHammerJobMinTurn == GC.getGameINLINE().getGameTurn())
+	{
+		return m_iCacheHammerJobMinValue;
+	}
+
+	int iBestUnitValue = 0;
+	FOREACH(CityPlot)
+	{
+		const CvPlot* const pLoopPlot = getCityIndexPlot(eLoopCityPlot);
+		if (pLoopPlot == NULL || eLoopCityPlot == CITY_HOME_PLOT || pLoopPlot->getWorkingCity() != this)
+		{
+			continue;
+		}
+		for (YieldTypes eLoopYield = FIRST_YIELD; eLoopYield < NUM_YIELD_TYPES; ++eLoopYield)
+		{
+			if (eLoopYield == YIELD_FOOD || eLoopYield == YIELD_SILVER || eLoopYield == YIELD_GOLD || eLoopYield == YIELD_GEMS)
+			{
+				continue;
+			}
+			if (GC.getYieldInfo(eLoopYield).isCargo() && pLoopPlot->calculateBestNatureYield(eLoopYield, getTeam()) > 0)
+			{
+				iBestUnitValue = branchless::max(iBestUnitValue, AI_estimateYieldValue(eLoopYield, 1));
+			}
+		}
+	}
+	m_iCacheHammerJobMinTurn = GC.getGameINLINE().getGameTurn();
+	m_iCacheHammerJobMinValue = 100 * 10 * iBestUnitValue;
+	return m_iCacheHammerJobMinValue;
+}
+
 int CvCityAI::AI_estimateYieldValue(YieldTypes eYield, int iAmount) const
 {
 	int iValue = iAmount * GET_PLAYER(getOwnerINLINE()).AI_yieldValue(eYield);
@@ -4937,8 +5015,9 @@ int CvCityAI::AI_estimateYieldValue(YieldTypes eYield, int iAmount) const
 			break;
 		case YIELD_HAMMERS:
 			{
-				const int populationMultiplier = branchless::max(1U, m_aPopulationUnits.size() / 5);
-				iValue = static_cast<int>(iAmount * YIELD_HAMMERS_BASE_VALUE + populationMultiplier);
+				// WTP: a hammer is worth 1.5 times the lumber it is made of (was a flat 10 plus 1 per 5 citizens,
+				// which made carpenters worth less than the lumber they use)
+				iValue = AI_estimateYieldValue(YIELD_LUMBER, iAmount) * 3 / 2;
 
 				if (AI_isPort() || AI_isMajorCity())
 				{
