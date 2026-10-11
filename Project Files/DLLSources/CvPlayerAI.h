@@ -475,7 +475,7 @@ public:
 	bool AI_doTransportPurchase();
 	bool AI_doTreasureShipPurchase();
 	bool AI_doColonyTransportPurchase();
-	void AI_doScoutPurchase();
+	bool AI_doScoutPurchase();
 	void AI_setSavingGold();
 	bool AI_isSavingGold() const;
 	void AI_doEquipPioneersInEurope();
