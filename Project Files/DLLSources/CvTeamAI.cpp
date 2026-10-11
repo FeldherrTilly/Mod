@@ -2698,6 +2698,12 @@ void CvTeamAI::AI_doWar()
 				bMakeWarChecks = true;
 			}
 		}
+
+		// WTP: wars start about 30 % less often
+		if (bMakeWarChecks && GC.getGameINLINE().getSorenRandNum(100, "AI Declare War WTP") < 30)
+		{
+			bMakeWarChecks = false;
+		}
 		
 		int iGameTurn = GC.getGameINLINE().getGameTurn();
 		int iEndTurn = GC.getGameINLINE().getEstimateEndTurn();
