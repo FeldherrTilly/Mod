@@ -4935,6 +4935,76 @@ void CvUnitAI::AI_transportCoastMove()
 	return;
 }
 
+// WTP: an expert on its way to a far colony walks to the nearest own coastal colony, boards a transport there (or
+// waits for one) and is carried to its destination; returns false if no port is useful
+bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget)
+{
+	const int iMinOcean = GC.getMIN_WATER_SIZE_FOR_OCEAN();
+	if (!kTarget.isCoastal(iMinOcean))
+	{
+		return false;
+	}
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const int iDistance = plotDistance(getX_INLINE(), getY_INLINE(), kTarget.getX_INLINE(), kTarget.getY_INLINE());
+
+	CvCity* pPort = plot()->getPlotCity();
+	if (pPort == NULL || pPort->getOwnerINLINE() != getOwnerINLINE() || !pPort->isCoastal(iMinOcean))
+	{
+		// nearest own coastal colony (nearest ones by distance, then by path), clearly closer to us than the target
+		std::vector<std::pair<int, int> > aPorts;
+		int iLoop;
+		for (CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kOwner.nextCity(&iLoop))
+		{
+			if (pLoopCity != &kTarget && pLoopCity->isCoastal(iMinOcean) && pLoopCity->area() == area())
+			{
+				const int iPortDistance = plotDistance(getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+				if (iPortDistance < iDistance / 2)
+				{
+					aPorts.push_back(std::make_pair(iPortDistance, pLoopCity->getID()));
+				}
+			}
+		}
+		std::sort(aPorts.begin(), aPorts.end());
+		pPort = NULL;
+		int iBestTurns = MAX_INT;
+		for (uint i = 0; i < aPorts.size() && i < 3; ++i)
+		{
+			CvCity* const pLoopCity = kOwner.getCity(aPorts[i].second);
+			int iPathTurns;
+			if (pLoopCity != NULL && generatePath(pLoopCity->plot(), MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns) && iPathTurns < iBestTurns)
+			{
+				iBestTurns = iPathTurns;
+				pPort = pLoopCity;
+			}
+		}
+		if (pPort == NULL)
+		{
+			return false;
+		}
+		generatePath(pPort->plot(), MOVE_NO_ENEMY_TERRITORY, true);
+		getGroup()->pushMission(MISSION_MOVE_TO, pPort->getX_INLINE(), pPort->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_AWAIT_PICKUP, pPort->plot());
+		return true;
+	}
+
+	// in port: board an own transport with room (it delivers passengers to their destination), otherwise wait for one
+	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit != this && pLoopUnit->getOwnerINLINE() == getOwnerINLINE() && pLoopUnit->getDomainType() == DOMAIN_SEA
+			&& pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && canLoadUnit(pLoopUnit, plot(), true))
+		{
+			loadUnit(pLoopUnit);
+			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_FOUND, kTarget.plot());
+			if (gUnitLogLevel >= 1) logBBAI("WTP ship: Player %d (%S) turn %d %S boards %S in %S for its job in %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+				GC.getGameINLINE().getGameTurn(), getName().GetCString(), pLoopUnit->getName().GetCString(), pPort->getName().GetCString(), kTarget.getName().GetCString());
+			return true;
+		}
+	}
+	getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_AWAIT_PICKUP, plot());
+	return true;
+}
+
 // WTP: put passengers ashore whose destination is this plot or who have none; settlers and treasures stay aboard
 // (bAll: everybody except treasures)
 void CvUnitAI::AI_unloadPassengers(bool bAll)
@@ -20414,6 +20484,11 @@ bool CvUnitAI::AI_doWfTask()
 		{
 			// the transport takes us there
 			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_FOUND, pCity->plot());
+			return true;
+		}
+		// WTP: more than 10 plots over land is too far; the expert walks to the nearest coastal colony and takes a ship
+		if (plotDistance(getX_INLINE(), getY_INLINE(), pCity->getX_INLINE(), pCity->getY_INLINE()) > 10 && AI_wfTravelByShip(*pCity))
+		{
 			return true;
 		}
 		if (generatePath(pCity->plot(), MOVE_NO_ENEMY_TERRITORY, true))
