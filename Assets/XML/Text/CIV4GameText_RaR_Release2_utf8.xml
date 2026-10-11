@@ -1045,4 +1045,136 @@
 		<Italian>Devi riavviare il gioco affinché le modifiche abbiano effetto.</Italian>
 		<Spanish>Debes reiniciar el juego para que los cambios surtan efecto.</Spanish>
 	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_TITLE</Tag>
+		<English>[COLOR_HIGHLIGHT_TEXT]News from the Old World[COLOR_REVERT]</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_PRICE</Tag>
+		<English>[ICON_BULLET]%s1 %F2_yield: now [COLOR_POSITIVE_TEXT]%d3[COLOR_REVERT] in Europe, [COLOR_POSITIVE_TEXT]%d4[COLOR_REVERT] in Port Royal</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_FOOTER</Tag>
+		<English>Such crazes do not last forever: as more goods arrive and the novelty wears off, prices will slowly return to normal.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_MESSAGE</Tag>
+		<English>Market boom in the Old World: %s1 and %s2 fetch higher prices in Europe and Port Royal.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_SUGAR</Tag>
+		<English>The first sugar from the new islands has reached Europe, and the courts have developed a sweet tooth. Sugar, once a costly remedy sold by the apothecaries, now adorns every banquet as candied fruit and marzipan, and the confectioners want all they can get.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_COFFEE_BERRIES</Tag>
+		<English>Venetian merchants bring word of a black drink brewed from roasted beans that the Sufis of Yemen take to stay awake at prayer. Now that the Ottomans have closed the road to Mocha, the curious merchants of Europe will pay well for any beans that can be grown across the ocean.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_COCOA_FRUITS</Tag>
+		<English>Sailors from the New World tell of a bitter drink made from cocoa beans, so precious that the natives use the beans as money. The first sacks to arrive have been presented at court, and the nobles want to taste this rare delicacy.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_KAUTSCHUK</Tag>
+		<English>Explorers have brought back balls of a strange gum that bounce higher than a man can reach, used by the natives in their sacred games. Scholars and craftsmen across Europe want to know what can be made of this elastic marvel.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_LOGWOOD</Tag>
+		<English>A red dyewood from the coasts of the new lands has astonished the dyers of Flanders and Florence. It gives deep reds, purples and blacks more cheaply than any dye they know, and the guilds want it by the shipload.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_RICE</Tag>
+		<English>A failed harvest in Lombardy and Valencia has emptied the rice markets of southern Europe. Merchants are buying up whatever rice can be shipped from overseas.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_COCA_LEAVES</Tag>
+		<English>Travellers report that the natives chew the leaves of a mountain shrub to endure hunger, cold and the thin mountain air. The physicians and apothecaries of Europe are eager to study this remarkable leaf and pay generously for every bale.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_YERBA_LEAVES</Tag>
+		<English>Explorers of the southern rivers have tasted a bitter, invigorating tea that the natives brew from the leaves of a forest tree. The first bundles have caused a stir in Seville and Lisbon, and the merchants want more.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_FRUITS</Tag>
+		<English>The explorers have returned with strange fruits from the new lands: sweet pineapples, guavas and papayas that no European had ever tasted. The few that survive the voyage are the talk of every court, and the distillers are eager to try what brandy can be made from them.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_WILD_FEATHERS</Tag>
+		<English>The explorers presented the court with cloaks and headdresses of brilliant feathers, made by the natives of the new lands. Plumed hats have become the rage among the nobility, and hatters and upholsterers want every feather they can get.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_PEAT</Tag>
+		<English>Europe is shivering through the harshest winters in living memory: rivers and harbours freeze over, and the cold lingers deep into spring. Firewood has become scarce, and townsfolk and craftsmen alike will pay almost anything for peat to heat their homes and fire their kilns.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_TOBACCO</Tag>
+		<English>The explorers have brought back a sample of the dried leaves that the natives roll up, light and drink the smoke of. What first seemed a heathen oddity has enchanted the court, and now everyone wants to try the new herb.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_COTTON</Tag>
+		<English>The explorers found the natives dressed in fine cotton cloth and brought bales of it home. The weavers of Europe, who until now depended on cotton from the Levant, are eager for a new source.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_INDIGO</Tag>
+		<English>Indigo has so far reached Europe only in small amounts through the Levant, at outrageous prices. The dyers have heard that the plant grows in the new lands too and will pay well for every chest of its deep blue.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_PEANUTS</Tag>
+		<English>Among the curious foods brought back by the explorers is a nut that grows beneath the ground. Roasted, it has become a popular novelty in the market squares of Spain and Portugal, and the ship's masters prize it as a provision that keeps.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_BARLEY</Tag>
+		<English>A wet summer has ruined the barley harvest across northern Europe. The brewers fear for their beer and pay handsomely for grain from overseas.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_GRAPES</Tag>
+		<English>A late frost has destroyed the vineyards of Burgundy and the Rhine. The wine merchants are looking everywhere for grapes and wine to fill their empty cellars.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_OLIVES</Tag>
+		<English>A bitter winter has killed countless olive trees in Provence and Andalusia. Olive oil has become scarce, and the merchants pay well for every barrel.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_RED_PEPPER</Tag>
+		<English>The Ottomans and the Venetians control the spice routes, and true pepper is worth its weight in silver. The cooks of Europe have discovered the fiery red peppers brought back by the explorers as a welcome substitute.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_RAW_SALT</Tag>
+		<English>War has closed the great salt pans of the Atlantic coast. Without salt the fishermen cannot preserve their catch, nor the farmers their meat, and the price of salt has soared.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_COCHINEAL</Tag>
+		<English>Explorers have brought back a red dye of unheard-of brilliance, made from tiny insects that the natives gather from cactus plants. The dyers say no kermes or madder can match it, and every court wants to wear the new red.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_CASSAVA</Tag>
+		<English>Ship's masters have learned from the natives to bake a bread from cassava roots that keeps for months at sea. The victuallers of the ports want it for the growing number of ships that cross the ocean.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_VANILLA_PODS</Tag>
+		<English>The first vanilla pods have reached Europe, a fragrant spice the natives use to flavour their chocolate. The few pods that arrive fetch fabulous prices at the courts.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_FUR</Tag>
+		<English>Fur-lined cloaks have become the fashion of the day, and the furriers need more pelts than the forests of Muscovy can supply. They hope that the endless forests of the new lands will fill the gap.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_PREMIUM_FUR</Tag>
+		<English>The queen appeared at a feast in a cloak of the finest marten and silver fox. Every lady of rank must now have such furs, whatever the price.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_MAPLE_SIRUP</Tag>
+		<English>Fishermen returning from the northern coasts tell of a sweet sap that the natives tap from trees and boil into syrup. The confectioners of Europe are curious about this novelty and pay well for it.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_RAPE</Tag>
+		<English>The towns of Europe burn more and more oil in their lamps, and the oil mills cannot press enough rapeseed. Lamp makers and soap boilers are crying out for rapeseed and its oil.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_VALUABLE_WOOD</Tag>
+		<English>The explorers have brought back a red wood from the new lands, so prized by the dyers and cabinetmakers that whole coasts are being named after it. Princes want chests and cabinets of these exotic woods.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MARKET_BOOM_HARDWOOD</Tag>
+		<English>Generations of shipbuilding have stripped Europe's forests of their great oaks. Now that ships are needed to cross the ocean, the shipwrights must look overseas for sound hardwood and pay dearly for it.</English>
+	</TEXT>
 </Civ4GameText>

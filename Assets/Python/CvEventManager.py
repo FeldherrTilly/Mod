@@ -16,6 +16,7 @@ import sys
 import CvWorldBuilderScreen
 import CvAdvisorUtils
 import CvRandomEventInterface
+import CvMarketBoom
 
 gc = CyGlobalContext()
 localText = CyTranslator()
@@ -447,6 +448,7 @@ class CvEventManager:
 	def onBeginGameTurn(self, argsList):
 		'Called at the beginning of the end of each turn'
 		iGameTurn = argsList[0]
+		CvMarketBoom.checkMarketBoom(iGameTurn)
 
 	def onEndGameTurn(self, argsList):
 		'Called at the end of the end of each turn'
