@@ -1784,6 +1784,12 @@ void CvUnitAI::AI_workerMove()
 		}
 	}
 
+	// WTP: connecting the own colonies by road comes first
+	if (bCanRoute && AI_routeCity())
+	{
+		return;
+	}
+
 	if (pCity != NULL)
 	{
 		if (pCity->AI_getWorkersNeeded() > 0)
