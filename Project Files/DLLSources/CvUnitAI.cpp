@@ -1714,7 +1714,7 @@ void CvUnitAI::AI_workerMove()
 	{
 		if (pCity != NULL)
 		{
-			if (canJoinCity(plot()))
+			if (canJoinCity(plot()) && AI_mayPioneerJoinCity())
 			{
 				joinCity();
 				return;
@@ -8700,6 +8700,12 @@ bool CvUnitAI::AI_betterJob()
 		return false;
 	}
 	if (pCity->getOwnerINLINE() != getOwnerINLINE())
+	{
+		return false;
+	}
+
+	// WTP: hardy pioneers keep their job, regular pioneers only switch if there are more than needed
+	if (!AI_mayPioneerJoinCity())
 	{
 		return false;
 	}
@@ -19431,8 +19437,36 @@ bool CvUnitAI::AI_loadAdjacent(CvPlot* pPlot, bool bTestCity)
 	return false;
 }
 
+// WTP: AI hardy pioneers never give up their profession to join a city; regular pioneers only when the AI has
+// more pioneers than it needs
+bool CvUnitAI::AI_mayPioneerJoinCity() const
+{
+	if (isHuman() || AI_getUnitAIType() != UNITAI_WORKER)
+	{
+		return true;
+	}
+
+	const UnitClassTypes eUnitClass = getUnitClassType();
+	for (ProfessionTypes eProfession = FIRST_PROFESSION; eProfession < NUM_PROFESSION_TYPES; ++eProfession)
+	{
+		const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+		if (kProfession.getWorkRate() > 0 && kProfession.LbD_getExpert() == eUnitClass)
+		{
+			return false;
+		}
+	}
+
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	return kOwner.AI_totalUnitAIs(UNITAI_WORKER) > kOwner.AI_neededWorkers(NULL);
+}
+
 bool CvUnitAI::AI_allowedToJoin(const CvCity& kCity) const
 {
+	if (!AI_mayPioneerJoinCity())
+	{
+		return false;
+	}
+
 	// Bail if we're the leader of other units
 	if (getGroup() != NULL && getGroup()->getNumUnits() > 1)
 		return false;
