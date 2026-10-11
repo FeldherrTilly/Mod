@@ -4332,12 +4332,12 @@ int CvCityAI::AI_citizenProfessionValue(
 				{
 					if (iFoodProduced < iFoodNeed)
 					{
-						combined *= 3;
+						combined *= 4;
 					}
-					// WTP: aim for a food surplus of at least 5 per turn before other jobs
-					else if (iFoodProduced < iFoodNeed + 5)
+					// WTP: aim for a food surplus of at least 6 per turn before other jobs
+					else if (iFoodProduced < iFoodNeed + 6)
 					{
-						combined *= 2;
+						combined *= 3;
 					}
 					else if (iFoodProduced > (iFoodNeed * 3) / 2 &&
 						iFoodStored > iFoodNeed * 4)
