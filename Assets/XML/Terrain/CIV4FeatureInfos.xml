@@ -5596,8 +5596,8 @@
 			<iMovement>1</iMovement>
 			<iSeeThrough>1</iSeeThrough>
 			<iDefense>0</iDefense>
-			<iAppearance>50</iAppearance>
-			<iDisappearance>7500</iDisappearance>
+			<iAppearance>25</iAppearance>
+			<iDisappearance>3750</iDisappearance>
 			<iTurnDamage>10</iTurnDamage>
 			<bGeneratedEveryRound>1</bGeneratedEveryRound>
 			<iGrowth>0</iGrowth>
@@ -5676,8 +5676,8 @@
 			<iMovement>2</iMovement>
 			<iSeeThrough>0</iSeeThrough>
 			<iDefense>15</iDefense>
-			<iAppearance>500</iAppearance>
-			<iDisappearance>2000</iDisappearance>
+			<iAppearance>250</iAppearance>
+			<iDisappearance>1000</iDisappearance>
 			<iTurnDamage>0</iTurnDamage>
 			<bGeneratedEveryRound>1</bGeneratedEveryRound>
 			<iGrowth>0</iGrowth>
@@ -5777,8 +5777,8 @@
 			<iMovement>1</iMovement>
 			<iSeeThrough>0</iSeeThrough>
 			<iDefense>-15</iDefense>
-			<iAppearance>500</iAppearance>
-			<iDisappearance>2000</iDisappearance>
+			<iAppearance>250</iAppearance>
+			<iDisappearance>1000</iDisappearance>
 			<iTurnDamage>0</iTurnDamage>
 			<bGeneratedEveryRound>1</bGeneratedEveryRound>
 			<iGrowth>0</iGrowth>
@@ -5878,8 +5878,8 @@
 			<iMovement>4</iMovement>
 			<iSeeThrough>1</iSeeThrough>
 			<iDefense>0</iDefense>
-			<iAppearance>250</iAppearance>
-			<iDisappearance>1000</iDisappearance>
+			<iAppearance>125</iAppearance>
+			<iDisappearance>500</iDisappearance>
 			<iTurnDamage>25</iTurnDamage>
 			<bGeneratedEveryRound>1</bGeneratedEveryRound>
 			<iGrowth>0</iGrowth>
@@ -6544,8 +6544,8 @@
 			<iMovement>3</iMovement>
 			<iSeeThrough>1</iSeeThrough>
 			<iDefense>15</iDefense>
-			<iAppearance>250</iAppearance>
-			<iDisappearance>1000</iDisappearance>
+			<iAppearance>125</iAppearance>
+			<iDisappearance>500</iDisappearance>
 			<iTurnDamage>0</iTurnDamage>
 			<bGeneratedEveryRound>1</bGeneratedEveryRound>
 			<iGrowth>0</iGrowth>
@@ -6657,8 +6657,8 @@
 			<iMovement>3</iMovement>
 			<iSeeThrough>1</iSeeThrough>
 			<iDefense>15</iDefense>
-			<iAppearance>250</iAppearance>
-			<iDisappearance>1000</iDisappearance>
+			<iAppearance>125</iAppearance>
+			<iDisappearance>500</iDisappearance>
 			<iTurnDamage>25</iTurnDamage>
 			<bGeneratedEveryRound>1</bGeneratedEveryRound>
 			<iGrowth>0</iGrowth>
@@ -6762,8 +6762,8 @@
 			<iMovement>3</iMovement>
 			<iSeeThrough>1</iSeeThrough>
 			<iDefense>15</iDefense>
-			<iAppearance>250</iAppearance>
-			<iDisappearance>1000</iDisappearance>
+			<iAppearance>125</iAppearance>
+			<iDisappearance>500</iDisappearance>
 			<iTurnDamage>25</iTurnDamage>
 			<bGeneratedEveryRound>1</bGeneratedEveryRound>
 			<iGrowth>0</iGrowth>
