@@ -9569,7 +9569,8 @@ bool CvUnitAI::AI_spreadTradePosts()
 						{
 							if (pLoopPlot->getArea() == getArea())
 							{
-								if ((pLoopCity->getTradePostCivilization() != getCivilizationType()) && (pLoopPlot->calculateCulturePercent(pLoopPlot->getOwnerINLINE()) == 100))
+								if ((pLoopCity->getTradePostCivilization() != getCivilizationType()) && (pLoopPlot->calculateCulturePercent(pLoopPlot->getOwnerINLINE()) == 100)
+									&& pLoopCity->getTradeBlockingFortOwner(getOwnerINLINE()) == NO_PLAYER) // WTP, forts block foreign trade
 								{
 									if (kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_SPREAD, getGroup()) == 0)
 									{
@@ -15889,6 +15890,12 @@ bool CvUnitAI::AI_yieldNativeDestination(int iMaxPath)
 					for (pCity = kLoopPlayer.firstCity(&iLoop); pCity != NULL; pCity = kLoopPlayer.nextCity(&iLoop))
 					{
 						CvPlot* pLoopPlot = pCity->plot();
+
+						// WTP, forts block foreign trade
+						if (pCity->getTradeBlockingFortOwner(getOwnerINLINE()) != NO_PLAYER)
+						{
+							continue;
+						}
 
 						if (!atPlot(pLoopPlot) && pLoopPlot->isRevealed(getTeam(), false))
 						{
