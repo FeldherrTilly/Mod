@@ -9457,7 +9457,9 @@ void CvPlayerAI::AI_doEurope()
 
 		for (int i = 0; i < getNumEuropeUnits(); ++i)
 		{
-			if (AI_neededWorkers(NULL) <= 0)
+			// WTP: only while there are fewer pioneers than needed (the need is never 0 with a colony, so every
+			// non-expert on the docks became a pioneer)
+			if (AI_totalUnitAIs(UNITAI_WORKER) >= AI_neededWorkers(NULL))
 			{
 				break;
 			}
