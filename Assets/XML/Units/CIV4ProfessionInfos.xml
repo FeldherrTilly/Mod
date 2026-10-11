@@ -5989,7 +5989,7 @@
 			<bCanFound>0</bCanFound>
 			<bUnarmed>0</bUnarmed>
 			<bNoDefensiveBonus>0</bNoDefensiveBonus>
-			<iCombatChange>1</iCombatChange>
+			<iCombatChange>4</iCombatChange>
 			<iBarracksSpaceNeededChange>1</iBarracksSpaceNeededChange>
 			<iMovesChange>0</iMovesChange>
 			<bMoveIntoPeak>0</bMoveIntoPeak>
