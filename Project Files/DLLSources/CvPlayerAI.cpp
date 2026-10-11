@@ -6362,7 +6362,8 @@ int CvPlayerAI::AI_neededWorkers(CvArea* pArea) const
 		return iCities;
 	}
 
-	return std::max(1, (iCount * 2) / 3) + iCities;
+	// WTP: at most two pioneers more than colonies (7 pioneers were wanted for 3 colonies)
+	return std::min(iCities + 2, std::max(1, (iCount * 2) / 3) + iCities);
 }
 
 int CvPlayerAI::AI_adjacentPotentialAttackers(CvPlot* pPlot, bool bTestCanMove)
