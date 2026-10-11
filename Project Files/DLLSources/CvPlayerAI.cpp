@@ -8044,7 +8044,7 @@ void CvPlayerAI::AI_doReclaimTerritory()
 		{
 			const PlayerTypes eNative = (PlayerTypes)iPlayer;
 			const CvPlayer& kNative = GET_PLAYER(eNative);
-			if (kNative.isAlive() && kNative.isNative() && nativeCanClaimPlot(*pLoopPlot, eNative) && getPower() <= kNative.getPower())
+			if (kNative.isAlive() && kNative.isNative() && nativeCanClaimPlot(*pLoopPlot, eNative) && getPower() - getNavalPower() <= kNative.getPower())
 			{
 				bReclaim = false;
 			}
@@ -8069,7 +8069,7 @@ void CvPlayerAI::AI_doNativeLandReturn(PlayerTypes eNativePlayer)
 	}
 
 	// WTP: no land is given back to natives we are stronger than (it would be reclaimed right away)
-	if (getPower() > kNativePlayer.getPower())
+	if (getPower() - getNavalPower() > kNativePlayer.getPower())
 	{
 		return;
 	}

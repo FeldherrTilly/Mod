@@ -851,6 +851,22 @@ int CvTeamAI::AI_startWarVal(TeamTypes eTeam) const
 
 
 // XXX this should consider area power...
+// WTP: a war of or against natives is fought on land, so the ships (a galleon counts as much as 50 braves) do not count
+bool CvTeamAI::AI_isLandWar(TeamTypes eOther) const
+{
+	return hasNativePlayer() || GET_TEAM(eOther).hasNativePlayer();
+}
+
+int CvTeamAI::AI_warPowerVersus(TeamTypes eOther) const
+{
+	return AI_isLandWar(eOther) ? getLandPower() : getPower();
+}
+
+int CvTeamAI::AI_defensiveWarPowerOf(TeamTypes eTarget) const
+{
+	return AI_isLandWar(eTarget) ? GET_TEAM(eTarget).getDefensiveLandPower() : GET_TEAM(eTarget).getDefensivePower();
+}
+
 int CvTeamAI::AI_endWarVal(TeamTypes eTeam) const
 {
 	int iValue;
@@ -872,8 +888,8 @@ int CvTeamAI::AI_endWarVal(TeamTypes eTeam) const
 	
 	iValue += GET_TEAM(eTeam).AI_getDamages(getID());
 
-	int iOurPower = std::max(1, getPower());
-	int iTheirPower = std::max(1, GET_TEAM(eTeam).getDefensivePower());
+	int iOurPower = std::max(1, AI_warPowerVersus(eTeam));
+	int iTheirPower = std::max(1, AI_defensiveWarPowerOf(eTeam));
 
 	int iModifier = 50;
 	
@@ -2718,13 +2734,9 @@ void CvTeamAI::AI_doWar()
 		
 		if (bMakeWarChecks)
 		{
-			iOurPower = getPower();
+			// WTP: the power is taken per target (ships do not count against natives)
+			const int iAggressivePercent = bAggressive ? 133 : 100;
 
-			if (bAggressive)
-			{
-				iOurPower *= 4;
-				iOurPower /= 3;
-			}
 
 			if (iGameTurn > iTotalWarTurn && GC.getGameINLINE().getSorenRandNum(iMaxWarRand, "AI Maximum War") <= iWarRandThreshold)
 			{
@@ -2748,7 +2760,8 @@ void CvTeamAI::AI_doWar()
 									{
 										if (iNoWarRoll >= AI_noWarAttitudeProb(AI_getAttitude((TeamTypes)iI)))
 										{
-											int iDefensivePower = (GET_TEAM((TeamTypes)iI).getDefensivePower() * 2) / 3;
+											int iDefensivePower = (AI_defensiveWarPowerOf((TeamTypes)iI) * 2) / 3;
+											iOurPower = AI_warPowerVersus((TeamTypes)iI) * iAggressivePercent / 100;
 											
 											if (iDefensivePower < ((iOurPower * ((iPass > 1) ? AI_maxWarDistantPowerRatio() : AI_maxWarNearbyPowerRatio())) / 100))
 											{
@@ -2806,7 +2819,8 @@ void CvTeamAI::AI_doWar()
 									{
 										if (AI_isLandTarget((TeamTypes)iI) || (AI_isAnyCapitalAreaAlone() && GET_TEAM((TeamTypes)iI).AI_isAnyCapitalAreaAlone()))
 										{
-											if (GET_TEAM((TeamTypes)iI).getDefensivePower() < ((iOurPower * AI_limitedWarPowerRatio()) / 100))
+											iOurPower = AI_warPowerVersus((TeamTypes)iI) * iAggressivePercent / 100;
+											if (AI_defensiveWarPowerOf((TeamTypes)iI) < ((iOurPower * AI_limitedWarPowerRatio()) / 100))
 											{
 												iValue = AI_startWarVal((TeamTypes)iI);
 
@@ -2854,7 +2868,7 @@ void CvTeamAI::AI_doWar()
 										{
 											if (AI_isLandTarget((TeamTypes)iI))
 											{
-												iDogpilePower = iOurPower;
+												iDogpilePower = AI_warPowerVersus((TeamTypes)iI) * iAggressivePercent / 100;
 
 												for (iJ = 0; iJ < MAX_TEAMS; iJ++)
 												{
@@ -2864,7 +2878,7 @@ void CvTeamAI::AI_doWar()
 														{
 															if (atWar(((TeamTypes)iJ), ((TeamTypes)iI)))
 															{
-																iDogpilePower += GET_TEAM((TeamTypes)iJ).getPower();
+																iDogpilePower += GET_TEAM((TeamTypes)iJ).AI_warPowerVersus((TeamTypes)iI);
 															}
 														}
 													}
@@ -2872,7 +2886,7 @@ void CvTeamAI::AI_doWar()
 
 												FAssert(GET_TEAM((TeamTypes)iI).getPower() == GET_TEAM((TeamTypes)iI).getDefensivePower());
 
-												if (((GET_TEAM((TeamTypes)iI).getDefensivePower() * 3) / 2) < iDogpilePower)
+												if (((AI_defensiveWarPowerOf((TeamTypes)iI) * 3) / 2) < iDogpilePower)
 												{
 													iValue = AI_startWarVal((TeamTypes)iI);
 

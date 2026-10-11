@@ -1240,6 +1240,35 @@ int CvTeam::getDefensivePower() const
 }
 
 
+// WTP: power without the ships (wars of and against natives are fought on land)
+int CvTeam::getLandPower() const
+{
+	int iCount = 0;
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
+	{
+		const CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
+		if (kLoopPlayer.isAlive() && kLoopPlayer.getTeam() == getID())
+		{
+			iCount += std::max(0, kLoopPlayer.getPower() - kLoopPlayer.getNavalPower());
+		}
+	}
+	return iCount;
+}
+
+int CvTeam::getDefensiveLandPower() const
+{
+	int iCount = 0;
+	for (int iI = 0; iI < MAX_TEAMS; iI++)
+	{
+		const CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iI);
+		if (kLoopTeam.isAlive() && (getID() == iI || isDefensivePact((TeamTypes)iI)))
+		{
+			iCount += kLoopTeam.getLandPower();
+		}
+	}
+	return iCount;
+}
+
 int CvTeam::getEnemyPower() const
 {
 	int iCount = 0;

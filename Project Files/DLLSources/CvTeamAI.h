@@ -63,6 +63,10 @@ public:
 
 	int AI_startWarVal(TeamTypes eTeam) const;
 	int AI_endWarVal(TeamTypes eTeam) const;
+	// WTP: in a war of or against natives the ships do not count (it is fought on land)
+	bool AI_isLandWar(TeamTypes eOther) const;
+	int AI_warPowerVersus(TeamTypes eOther) const;
+	int AI_defensiveWarPowerOf(TeamTypes eTarget) const;
 	int AI_mapTradeVal(TeamTypes eTeam) const;
 	DenialTypes AI_mapTrade(TeamTypes eTeam) const;
 

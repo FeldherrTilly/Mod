@@ -60,6 +60,8 @@ public:
 	int getAssets() const;
 	int getPower() const;
 	int getDefensivePower() const;
+	int getLandPower() const; // WTP: power without ships
+	int getDefensiveLandPower() const;
 	int getEnemyPower() const;
 	int getAtWarCount() const;
 	int getWarPlanCount(WarPlanTypes eWarPlan) const;
