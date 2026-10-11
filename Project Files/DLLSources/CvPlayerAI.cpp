@@ -268,6 +268,8 @@ void CvPlayerAI::AI_doTurnPre()
 
 	AI_doReclaimTerritory();
 
+	AI_doSurplusPioneers();
+
 	AI_logStatusSummary();
 }
 
@@ -18465,6 +18467,88 @@ UnitTypes CvPlayerAI::AI_treasureShipToBuy(int* piTreasures) const
 		}
 	}
 	return eShip;
+}
+
+// WTP: with more than 3 pioneers above the need, one regular pioneer (never a hardy pioneer) goes to the nearest
+// colony and joins it; the next one only after it has arrived
+void CvPlayerAI::AI_doSurplusPioneers()
+{
+	if (isHuman() || isNative() || isEurope() || getNumCities() == 0)
+	{
+		return;
+	}
+	if (m_iSurplusPioneerID != -1)
+	{
+		const CvUnit* const pSent = getUnit(m_iSurplusPioneerID);
+		if (pSent != NULL && getPopulationUnitCity(m_iSurplusPioneerID) == NULL && pSent->isOnMap() && pSent->AI_getUnitAIType() == UNITAI_WORKER
+			&& getCity(m_iSurplusPioneerCityID) != NULL)
+		{
+			return; // still on its way
+		}
+		AI_clearSurplusPioneer();
+	}
+	const int iNeeded = AI_neededWorkers(NULL);
+	const int iHave = AI_totalUnitAIs(UNITAI_WORKER);
+	if (iHave <= iNeeded + 3)
+	{
+		return;
+	}
+
+	CvUnitAI* pBest = NULL;
+	CvCity* pBestCity = NULL;
+	int iBestTurns = MAX_INT;
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		CvUnitAI* const pPioneer = static_cast<CvUnitAI*>(pLoopUnit);
+		if (pPioneer->AI_getUnitAIType() != UNITAI_WORKER || !pPioneer->isOnMap() || pPioneer->isCargo() || !pPioneer->AI_mayPioneerJoinCity())
+		{
+			continue;
+		}
+		// nearest colony on the same landmass
+		CvCity* pNearest = NULL;
+		int iNearest = MAX_INT;
+		int iCityLoop;
+		for (CvCity* pLoopCity = firstCity(&iCityLoop); pLoopCity != NULL; pLoopCity = nextCity(&iCityLoop))
+		{
+			const int iDistance = plotDistance(pPioneer->getX_INLINE(), pPioneer->getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+			if (pLoopCity->area() == pPioneer->area() && iDistance < iNearest)
+			{
+				iNearest = iDistance;
+				pNearest = pLoopCity;
+			}
+		}
+		if (pNearest == NULL || iNearest >= iBestTurns)
+		{
+			continue;
+		}
+		int iPathTurns = 0;
+		if (pPioneer->atPlot(pNearest->plot()) || pPioneer->generatePath(pNearest->plot(), MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns))
+		{
+			iBestTurns = iNearest;
+			pBest = pPioneer;
+			pBestCity = pNearest;
+		}
+	}
+	if (pBest == NULL)
+	{
+		return;
+	}
+	m_iSurplusPioneerID = pBest->getID();
+	m_iSurplusPioneerCityID = pBestCity->getID();
+	if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) turn %d has %d pioneers, needs %d: %S goes to %S to join it", getID(), getCivilizationDescription(0),
+		GC.getGameINLINE().getGameTurn(), iHave, iNeeded, pBest->getNameAndProfession().GetCString(), pBestCity->getName().GetCString());
+}
+
+CvCity* CvPlayerAI::AI_surplusPioneerCity(int iUnitID) const
+{
+	return (iUnitID == m_iSurplusPioneerID) ? getCity(m_iSurplusPioneerCityID) : NULL;
+}
+
+void CvPlayerAI::AI_clearSurplusPioneer()
+{
+	m_iSurplusPioneerID = -1;
+	m_iSurplusPioneerCityID = -1;
 }
 
 // WTP: buy another transport if more units wait in Europe than one load of all our transports.

@@ -220,6 +220,8 @@ void CvPlayerAI::AI_resetSavedData()
 	m_iUpgradeUnitsCachedGold = defaultUpgradeUnitsCachedGold;
 	m_iTurnLastProductionDirty = defaultTurnLastProductionDirty;
 	m_iTurnLastManagedPop = defaultTurnLastManagedPop;
+	m_iSurplusPioneerID = -1;
+	m_iSurplusPioneerCityID = -1;
 	m_iMoveQueuePasses = defaultMoveQueuePasses;
 	m_iLastWave = defaultLastWave;
 	m_iWaveIndex = defaultWaveIndex;

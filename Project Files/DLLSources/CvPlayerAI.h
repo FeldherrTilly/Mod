@@ -472,6 +472,9 @@ public:
 	UnitTypes AI_bestShipToBuy(UnitAITypes eUnitAI, bool bCheapest);
 	bool AI_doTransportPurchase();
 	bool AI_doTreasureShipPurchase();
+	void AI_doSurplusPioneers();
+	CvCity* AI_surplusPioneerCity(int iUnitID) const;
+	void AI_clearSurplusPioneer();
 	UnitTypes AI_treasureShipToBuy(int* piTreasures = NULL) const;
 	void AI_doCitizenRelocation(); // WTP
 	void AI_doWorkforcePlan(); // WTP
@@ -608,6 +611,9 @@ protected:
 	int m_iTurnLastProductionDirty;
 	int m_iTurnLastManagedPop;
 	int m_iMoveQueuePasses;
+	// WTP: the surplus pioneer on its way to join a colony (not saved, the choice is simply made again)
+	int m_iSurplusPioneerID;
+	int m_iSurplusPioneerCityID;
 
 	void AI_doTradeRoutes();
 	void AI_doCounter();
