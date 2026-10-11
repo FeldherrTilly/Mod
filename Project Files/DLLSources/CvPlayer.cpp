@@ -421,6 +421,21 @@ void CvPlayer::initFreeUnits()
 			}
 		}
 
+		// WTP: AI colonial players start with an additional hardy pioneer
+		if (!isHuman() && is(CIV_CATEGORY_COLONIAL))
+		{
+			const UnitClassTypes ePioneerClass = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_PIONEER");
+			const ProfessionTypes ePioneerProfession = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_PIONEER");
+			if (ePioneerClass != NO_UNITCLASS && ePioneerProfession != NO_PROFESSION)
+			{
+				const UnitTypes ePioneer = kCivilizationInfo.getCivilizationUnits(ePioneerClass);
+				if (ePioneer != NO_UNIT)
+				{
+					addFreeUnit(ePioneer, ePioneerProfession);
+				}
+			}
+		}
+
 		/** NBMOD REF **/
 
 		if (GC.getNBMOD_REF_ENABLE() == 1)
