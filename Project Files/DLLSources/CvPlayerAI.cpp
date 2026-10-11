@@ -11640,11 +11640,11 @@ int CvPlayerAI::AI_desiredCityCount()
 		iTotal *= 133;
 		iTotal /= 100;
 	}
-	// WTP: colonial AIs need about 72% more population per wanted colony (43% before, raised by 20%)
+	// WTP: colonial AIs need about 57% more population per wanted colony (43% before, raised by 10%)
 	if (bColonial)
 	{
 		iTotal *= 100;
-		iTotal /= 172;
+		iTotal /= 157;
 	}
 
 	while (iTotal > 0)
