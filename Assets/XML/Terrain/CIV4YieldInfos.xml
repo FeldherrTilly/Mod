@@ -1509,7 +1509,7 @@
 				<PriceTables>
 					<PriceTable>
 						<location>TRADE_LOCATION_EUROPE</location>
-						<iBuyLow>2</iBuyLow>
+						<iBuyLow>5</iBuyLow>
 						<iBuyHigh>7</iBuyHigh>
 						<iBuyLowInit>5</iBuyLowInit>
 						<iBuyHighInit>7</iBuyHighInit>
