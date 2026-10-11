@@ -10285,14 +10285,24 @@ void CvPlayerAI::AI_updateYieldValues()
 			case YIELD_FOOD:
 				iValue += (kParent.getYieldSellPrice(eYield) + kParent.getYieldBuyPrice(eYield)) / 2;
 				break;
+			// WTP: the average of buy and sell price only for goods the colony mostly buys in Europe or needs itself;
+			// everything else is valued at the price Europe pays for it
 			case YIELD_LUMBER:
-			case YIELD_HARDWOOD:
 			case YIELD_STONE:
 			case YIELD_CLAY:
-				// TAC - AI Economy - koma13 - START
-				//iValue += (kParent.getYieldSellPrice(eYield) + kParent.getYieldBuyPrice(eYield)) / 2;
-				iValue += (AI_isYieldNeeded(eYield, 50)) ? (kParent.getYieldSellPrice(eYield) + kParent.getYieldBuyPrice(eYield)) / 2 : kParent.getYieldBuyPrice(eYield);
-				// TAC - AI Economy - koma13 - END
+			case YIELD_TOOLS:
+			case YIELD_BLADES:
+			case YIELD_MUSKETS:
+			case YIELD_CANNONS:
+			case YIELD_BLACK_POWDER:
+			case YIELD_HORSES:
+			case YIELD_HARDWOOD:
+			case YIELD_TRADE_GOODS:
+			case YIELD_ROPE:
+			case YIELD_SAILCLOTH:
+			case YIELD_BAKERY_GOODS:
+			case YIELD_LUXURY_GOODS:
+				iValue += (kParent.getYieldSellPrice(eYield) + kParent.getYieldBuyPrice(eYield)) / 2;
 				break;
 			case YIELD_HEMP:
 			case YIELD_FLAX:
@@ -10307,9 +10317,6 @@ void CvPlayerAI::AI_updateYieldValues()
 			case YIELD_CHICKEN:
 			case YIELD_GEESE:
 				iValue += kParent.getYieldBuyPrice(eYield);
-				break;
-			case YIELD_HORSES:
-				iValue += kParent.getYieldSellPrice(eYield);
 				break;
 			case YIELD_COCOA_FRUITS:
 			case YIELD_COFFEE_BERRIES:
@@ -10340,17 +10347,6 @@ void CvPlayerAI::AI_updateYieldValues()
 			case YIELD_WHALE_BLUBBER:
 			case YIELD_VALUABLE_WOOD:
 				iValue += kParent.getYieldBuyPrice(eYield);
-				break;
-			case YIELD_TRADE_GOODS:
-			case YIELD_ROPE:
-			case YIELD_BAKERY_GOODS:
-			case YIELD_SAILCLOTH:
-			case YIELD_TOOLS:
-			case YIELD_BLADES:
-			case YIELD_MUSKETS:
-			case YIELD_CANNONS:
-			case YIELD_BLACK_POWDER:
-				iValue += kParent.getYieldSellPrice(eYield);
 				break;
 			case YIELD_RICE:
 			case YIELD_CASSAVA:
@@ -10396,9 +10392,6 @@ void CvPlayerAI::AI_updateYieldValues()
 			case YIELD_FIELD_WORKER_TOOLS:
 			case YIELD_HOUSEHOLD_GOODS:
 				iValue += kParent.getYieldBuyPrice(eYield);
-				break;
-			case YIELD_LUXURY_GOODS:
-				iValue += kParent.getYieldSellPrice(eYield);
 				break;
 			case YIELD_HAMMERS:
 			case YIELD_BELLS:
