@@ -17651,13 +17651,21 @@ CvCity* CvPlayerAI::AI_wfTeachingVillage(UnitClassTypes eExpertClass, const CvCi
 	return NULL;
 }
 
+// WTP: experts that never give up their specialty (renowned medics, expert farmers, expert fishermen)
+bool CvPlayerAI::AI_isProtectedSpecialty(UnitClassTypes eUnitClass)
+{
+	return eUnitClass != NO_UNITCLASS && (eUnitClass == (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_DOCTOR")
+		|| eUnitClass == (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_FARMER")
+		|| eUnitClass == (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_FISHERMAN"));
+}
+
 // WTP: an expert whose specialty is useless: the raw materials of its expert job are nowhere near the colonies (no
 // colony produces them, no plot within the colonies' radius + 1 can); aiYieldAvailable caches the yields (-1 unknown)
 bool CvPlayerAI::AI_isUselessExpert(const CvUnitAI& kUnit, std::vector<int>& aiYieldAvailable)
 {
 	const int iRadius = GC.getGameINLINE().isOption(GAMEOPTION_TWO_PLOT_CITY_RADIUS) ? 2 : 1;
 	const ProfessionTypes eIdeal = kUnit.AI_getIdealProfession();
-	if (eIdeal == NO_PROFESSION)
+	if (eIdeal == NO_PROFESSION || AI_isProtectedSpecialty(kUnit.getUnitClassType()))
 	{
 		return false;
 	}
@@ -18139,8 +18147,9 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			}
 			else
 			{
-				// an expert: only if its profession has no opportunity at all and no such building finishes within 15 turns
-				if (!kUnit.canClearSpecialty())
+				// an expert: only if its profession has no opportunity at all and no such building finishes within 15 turns;
+				// never medics, farmers and fishermen
+				if (!kUnit.canClearSpecialty() || AI_isProtectedSpecialty(kUnit.getUnitClassType()))
 				{
 					continue;
 				}

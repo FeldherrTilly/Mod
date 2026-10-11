@@ -627,6 +627,9 @@ protected:
 	int m_iSurplusPioneerID;
 	int m_iSurplusPioneerCityID;
 	int m_iSavingGoldTurn; // WTP: last turn the AI saved gold for a ship or the militia (not saved)
+public:
+	static bool AI_isProtectedSpecialty(UnitClassTypes eUnitClass);
+protected:
 	// WTP: open (unfilled) opportunities of the last workforce plan, for buying experts (not saved, made again each turn)
 	struct WfOpenOpportunity
 	{
