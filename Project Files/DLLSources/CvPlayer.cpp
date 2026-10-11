@@ -16803,7 +16803,7 @@ int CvPlayer::getYieldBuyPrice(YieldTypes eYield) const
 	return m_em_iYieldBuyPrice.get(eYield);
 }
 
-void CvPlayer::setYieldBuyPrice(YieldTypes eYield, int iPrice, bool bMessage)
+void CvPlayer::setYieldBuyPrice(YieldTypes eYield, int iPrice, bool bMessage, bool bAllowAboveMax)
 {
 	FAssert(eYield >= 0);
 	FAssert(eYield < NUM_YIELD_TYPES);
@@ -17159,7 +17159,13 @@ void CvPlayer::setYieldBuyPrice(YieldTypes eYield, int iPrice, bool bMessage)
 	//Never let price end up outside of range set in xml
 	const CvYieldInfo& kYield = GC.getYieldInfo(eYield);
 	iPrice = std::max(iPrice, kYield.price(TRADE_LOCATION_EUROPE).buyLow);
-	iPrice = std::min(iPrice, kYield.price(TRADE_LOCATION_EUROPE).buyHigh);
+	// WTP, market boom: events may lift a price above the xml maximum; from there it only drifts back down
+	int iMaxPrice = std::max(kYield.price(TRADE_LOCATION_EUROPE).buyHigh, getYieldBuyPrice(eYield));
+	if (bAllowAboveMax)
+	{
+		iMaxPrice = std::max(iMaxPrice, iPrice);
+	}
+	iPrice = std::min(iPrice, iMaxPrice);
 
 	// TAC - Price Limits - Ray - END
 

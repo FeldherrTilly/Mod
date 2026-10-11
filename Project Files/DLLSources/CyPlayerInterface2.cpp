@@ -77,6 +77,7 @@ void CyPlayerPythonInterface2(python::class_<CyPlayer>& x)
 		.def("getYieldSellPrice", &CyPlayer::getYieldSellPrice, "int (eYield)")
 		.def("getYieldBuyPrice", &CyPlayer::getYieldBuyPrice, "int (eYield)")
 		.def("setYieldBuyPrice", &CyPlayer::setYieldBuyPrice, "void (eYield, int iValue, bool bMessage)")
+		.def("setYieldBuyPriceAboveMax", &CyPlayer::setYieldBuyPriceAboveMax, "void (eYield, int iValue, bool bMessage) - may exceed the xml maximum, e.g. for events")
 		.def("sellYieldUnitToEurope", &CyPlayer::sellYieldUnitToEurope, "void (CyUnit* pUnit, int iAmount, int iCommission)")
 		.def("buyYieldUnitFromEurope", &CyPlayer::buyYieldUnitFromEurope, python::return_value_policy<python::manage_new_object>(), "CyUnit (int /*YieldTypes*/ eYield, int iAmount, CyUnit* pTransport)")
 		.def("buyYieldUnitFromAfrica", &CyPlayer::buyYieldUnitFromAfrica, python::return_value_policy<python::manage_new_object>(), "CyUnit (int /*YieldTypes*/ eYield, int iAmount, CyUnit* pTransport)") // R&R, ray, Africa

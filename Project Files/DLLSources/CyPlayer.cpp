@@ -1352,6 +1352,11 @@ void CyPlayer::setYieldBuyPrice(int /*YieldTypes*/ eYield, int iPrice, bool bMes
 	if (m_pPlayer)
 		pointer(CREATE_ASSERT_DATA)->setYieldBuyPrice((YieldTypes)eYield, iPrice, bMessage);
 }
+void CyPlayer::setYieldBuyPriceAboveMax(int /*YieldTypes*/ eYield, int iPrice, bool bMessage)
+{
+	if (m_pPlayer)
+		pointer(CREATE_ASSERT_DATA)->setYieldBuyPrice((YieldTypes)eYield, iPrice, bMessage, true);
+}
 // R&R, ray, Africa
 int CyPlayer::getYieldAfricaSellPrice(int /*YieldTypes*/ eYield)
 {
