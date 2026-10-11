@@ -471,6 +471,8 @@ public:
 	int AI_shipReachableColonies(UnitTypes eUnit) const;
 	UnitTypes AI_bestShipToBuy(UnitAITypes eUnitAI, bool bCheapest);
 	bool AI_doTransportPurchase();
+	bool AI_doTreasureShipPurchase();
+	UnitTypes AI_treasureShipToBuy(int* piTreasures = NULL) const;
 	void AI_doCitizenRelocation(); // WTP
 	void AI_doWorkforcePlan(); // WTP
 	static int AI_nativeDeliveryPrice(YieldTypes eYield); // WTP

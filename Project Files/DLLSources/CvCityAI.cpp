@@ -2420,6 +2420,12 @@ void CvCityAI::AI_doHurry(bool bForce)
 	// Previously hurried builds must have been processed before considering another hurry
 	FAssert(!m_bHasHurried);
 
+	// WTP: no hurrying while the player saves for the galleon that picks up the treasures
+	if (!bForce && GET_PLAYER(getOwnerINLINE()).AI_treasureShipToBuy() != NO_UNIT)
+	{
+		return;
+	}
+
 	// TODO: Cache this
 	HurryTypes eGoldHurry = NO_HURRY;
 	for (int i = FIRST_HURRY; i < GC.getNumHurryInfos(); ++i)

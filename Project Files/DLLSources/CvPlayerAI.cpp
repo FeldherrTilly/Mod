@@ -6084,7 +6084,7 @@ int CvPlayerAI::AI_unitValuePercent(UnitTypes eUnit, UnitAITypes* peUnitAI, CvAr
 							iLargestTreasureUnit = std::max(iLargestTreasureUnit, iSize);
 							if (iCargoSpace >= iSize)
 							{
-								iTotalTreasure += pLoopUnit->getYield();
+								iTotalTreasure += pLoopUnit->getYieldStored(); // WTP: the gold, not the yield type
 							}
 						}
 					}
@@ -9333,6 +9333,12 @@ void CvPlayerAI::AI_doEurope()
 
 	if (!isHuman() && !isNative() && !isEurope())
 	{
+		// WTP: from 5 waiting treasures a galleon (the only ship that carries them) comes first
+		if (AI_doTreasureShipPurchase())
+		{
+			return;
+		}
+
 		// WTP, Schmiddie, AI Minimum Fleet - START
 		UnitAITypes eRequiredShipAI = NO_UNITAI;
 
@@ -17249,6 +17255,11 @@ bool CvPlayerAI::AI_canAffordCivilianPurchase(int iCost) const
 	{
 		return false;
 	}
+	// WTP: while saving for the galleon that picks up the treasures
+	if (AI_treasureShipToBuy() != NO_UNIT)
+	{
+		return false;
+	}
 	return getGold() - iCost >= 300;
 }
 
@@ -18359,6 +18370,101 @@ UnitTypes CvPlayerAI::AI_bestShipToBuy(UnitAITypes eUnitAI, bool bCheapest)
 		}
 	}
 	return eBestShip;
+}
+
+// WTP: treasures can only be carried by a galleon; from 5 treasures on the map without such a ship the AI buys one
+// (cheapest ship that can carry them). Returns true while saving gold for it, then nothing else is bought.
+bool CvPlayerAI::AI_doTreasureShipPurchase()
+{
+	int iTreasures = 0;
+	const UnitTypes eShip = AI_treasureShipToBuy(&iTreasures);
+	if (eShip == NO_UNIT)
+	{
+		return false;
+	}
+	const int iBestPrice = getEuropeUnitBuyPrice(eShip);
+	if (getGold() < iBestPrice)
+	{
+		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) saves for %S (%d gold, have %d): %d treasures wait for pickup",
+			getID(), getCivilizationDescription(0), GC.getUnitInfo(eShip).getDescription(), iBestPrice, getGold(), iTreasures);
+		return true;
+	}
+	CvUnit* const pUnit = buyEuropeUnit(eShip, 100);
+	if (pUnit != NULL)
+	{
+		pUnit->AI_setUnitAIType(UNITAI_TRANSPORT_SEA);
+		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) buys %S for %d treasures waiting for pickup",
+			getID(), getCivilizationDescription(0), pUnit->getName().GetCString(), iTreasures);
+	}
+	return false;
+}
+
+// WTP: the ship to buy for the treasures (NO_UNIT if none is needed); while it is needed the gold is saved for it
+UnitTypes CvPlayerAI::AI_treasureShipToBuy(int* piTreasures) const
+{
+	if (isHuman() || isNative() || isEurope() || getParent() == NO_PLAYER || !canTradeWithEurope())
+	{
+		return NO_UNIT;
+	}
+	int iTreasures = 0;
+	int iSize = 0;
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->AI_getUnitAIType() == UNITAI_TREASURE && pLoopUnit->isOnMap())
+		{
+			++iTreasures;
+			iSize = std::max(iSize, pLoopUnit->getUnitInfo().getRequiredTransportSize());
+		}
+	}
+	if (piTreasures != NULL)
+	{
+		*piTreasures = iTreasures;
+	}
+	if (iTreasures < 5)
+	{
+		return NO_UNIT;
+	}
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->cargoSpace() >= iSize)
+		{
+			return NO_UNIT;
+		}
+	}
+	for (int i = 0; i < getNumEuropeUnits(); ++i)
+	{
+		const CvUnit* const pLoopUnit = getEuropeUnit(i);
+		if (pLoopUnit != NULL && pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->cargoSpace() >= iSize)
+		{
+			return NO_UNIT;
+		}
+	}
+
+	const CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
+	UnitTypes eShip = NO_UNIT;
+	int iBestPrice = MAX_INT;
+	for (UnitClassTypes eUnitClass = FIRST_UNITCLASS; eUnitClass < NUM_UNITCLASS_TYPES; ++eUnitClass)
+	{
+		const UnitTypes eLoopUnit = kCiv.getCivilizationUnits(eUnitClass);
+		if (eLoopUnit == NO_UNIT)
+		{
+			continue;
+		}
+		const CvUnitInfo& kUnitInfo = GC.getUnitInfo(eLoopUnit);
+		if (kUnitInfo.getDomainType() != DOMAIN_SEA || kUnitInfo.getDefaultUnitAIType() != UNITAI_TRANSPORT_SEA || kUnitInfo.getCargoSpace() < iSize
+			|| kUnitInfo.isHiddenNationality() || !isUnitWithinGameYearWindow(eLoopUnit))
+		{
+			continue;
+		}
+		const int iPrice = getEuropeUnitBuyPrice(eLoopUnit);
+		if (iPrice > 0 && iPrice < iBestPrice)
+		{
+			iBestPrice = iPrice;
+			eShip = eLoopUnit;
+		}
+	}
+	return eShip;
 }
 
 // WTP: buy another transport if more units wait in Europe than one load of all our transports.
