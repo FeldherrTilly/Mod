@@ -1829,6 +1829,11 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 	}
 	// TAC - AI City Sites - koma13 - END
 
+	if (!isNative() && !bStartingLoc && getNumCities() == 0 && !AI_isFirstColonySiteAllowed(*pPlot))
+	{
+		return 0;
+	}
+
 	bool bNeedMoreExploring = false;
 	if (getNumCities() == 0 && (pPlot->area()->getNumRevealedTiles(getTeam()) < 10))
 	{
@@ -17273,6 +17278,46 @@ int CvPlayerAI::AI_estimateUnemploymentCount() const
 	return cnt;
 }
 
+// WTP: the first colony needs a landmass of more than 40 plots to expand on, at least 4 usable land plots next
+// to the city center and must not be founded within 5 plots of another European's colony
+bool CvPlayerAI::AI_isFirstColonySiteAllowed(const CvPlot& kPlot) const
+{
+	if (kPlot.area()->getNumTiles() <= 40)
+	{
+		return false;
+	}
+
+	// at least 4 usable land plots next to the city center
+	int iUsableLand = 0;
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		const CvPlot* const pLoopPlot = plotDirection(kPlot.getX_INLINE(), kPlot.getY_INLINE(), (DirectionTypes)iI);
+		if (pLoopPlot != NULL && !pLoopPlot->isWater() && !pLoopPlot->isImpassable() && !pLoopPlot->isCityRadius()
+			&& (!pLoopPlot->isOwned() || pLoopPlot->getOwnerINLINE() == getID() || GET_PLAYER(pLoopPlot->getOwnerINLINE()).isNative()))
+		{
+			++iUsableLand;
+		}
+	}
+	if (iUsableLand < 4)
+	{
+		return false;
+	}
+
+	const int iRange = 5;
+	for (int iDX = -iRange; iDX <= iRange; ++iDX)
+	{
+		for (int iDY = -iRange; iDY <= iRange; ++iDY)
+		{
+			const CvPlot* const pLoopPlot = plotXY(kPlot.getX_INLINE(), kPlot.getY_INLINE(), iDX, iDY);
+			if (pLoopPlot != NULL && pLoopPlot->isCity() && pLoopPlot->getOwnerINLINE() != getID() && !GET_PLAYER(pLoopPlot->getOwnerINLINE()).isNative())
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
 int CvPlayerAI::AI_firstCityFoundValue(const CvPlot& kPlot)
 {
 	PROFILE_FUNC();
@@ -17291,6 +17336,9 @@ int CvPlayerAI::AI_firstCityFoundValue(const CvPlot& kPlot)
 	const CvPlayer& kParent = GET_PLAYER(getParent());
 
 	if (!canFound(Coordinates(kPlot.getX_INLINE(), kPlot.getY_INLINE())))
+		return 0;
+
+	if (!AI_isFirstColonySiteAllowed(kPlot))
 		return 0;
 
 	if (!kPlot.isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN()))

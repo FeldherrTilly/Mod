@@ -503,6 +503,7 @@ public:
 	bool AI_shouldHurryUnit() const;
 	int AI_estimateUnemploymentCount() const;
 	int AI_firstCityFoundValue(const CvPlot& cityPlot);
+	bool AI_isFirstColonySiteAllowed(const CvPlot& kPlot) const;
 
 protected:
 
