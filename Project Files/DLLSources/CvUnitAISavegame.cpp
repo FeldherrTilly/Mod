@@ -12,6 +12,10 @@ const UnitAIStates defaultUnitAIState = UNITAI_STATE_DEFAULT;
 const ProfessionTypes defaultOldProfession = NO_PROFESSION;
 const ProfessionTypes defaultIdealProfessionCache = INVALID_PROFESSION;
 const int defaultAutomatedAbortTurn = -1;
+const int defaultWfTask = 0;
+const int defaultWfCityID = -1;
+const ProfessionTypes defaultWfProfession = NO_PROFESSION;
+const int defaultWfCoord = -1;
 
 enum SavegameVariableTypes
 {
@@ -24,6 +28,13 @@ enum SavegameVariableTypes
 	UnitSaveAI_OldProfession,
 	UnitSaveAI_IdealProfessionCache,
 	UnitSaveAI_AutomatedAbortTurn,
+	UnitSaveAI_WfTask,
+	UnitSaveAI_WfCityID,
+	UnitSaveAI_WfProfession,
+	UnitSaveAI_WfPlotX,
+	UnitSaveAI_WfPlotY,
+	UnitSaveAI_WfVillageX,
+	UnitSaveAI_WfVillageY,
 	NUM_SAVE_ENUM_VALUES,
 };
 
@@ -40,6 +51,13 @@ const char* getSavedEnumNameUnitAi(SavegameVariableTypes eType)
 	case UnitSaveAI_OldProfession: return "UnitSaveAI_OldProfession";
 	case UnitSaveAI_IdealProfessionCache: return "UnitSaveAI_IdealProfessionCache";
 	case UnitSaveAI_AutomatedAbortTurn: return "UnitSaveAI_AutomatedAbortTurn";
+	case UnitSaveAI_WfTask: return "UnitSaveAI_WfTask";
+	case UnitSaveAI_WfCityID: return "UnitSaveAI_WfCityID";
+	case UnitSaveAI_WfProfession: return "UnitSaveAI_WfProfession";
+	case UnitSaveAI_WfPlotX: return "UnitSaveAI_WfPlotX";
+	case UnitSaveAI_WfPlotY: return "UnitSaveAI_WfPlotY";
+	case UnitSaveAI_WfVillageX: return "UnitSaveAI_WfVillageX";
+	case UnitSaveAI_WfVillageY: return "UnitSaveAI_WfVillageY";
 
 }
 	FAssertMsg(0, "Missing case");
@@ -62,6 +80,13 @@ void CvUnitAI::AI_resetSavedData()
 	m_eOldProfession =  defaultOldProfession;
 	m_eIdealProfessionCache =  defaultIdealProfessionCache;
 	m_iAutomatedAbortTurn =  defaultAutomatedAbortTurn;
+	m_iWfTask = defaultWfTask;
+	m_iWfCityID = defaultWfCityID;
+	m_eWfProfession = defaultWfProfession;
+	m_iWfPlotX = defaultWfCoord;
+	m_iWfPlotY = defaultWfCoord;
+	m_iWfVillageX = defaultWfCoord;
+	m_iWfVillageY = defaultWfCoord;
 }
 
 void CvUnitAI::read(CvSavegameReader reader)
@@ -93,6 +118,13 @@ void CvUnitAI::read(CvSavegameReader reader)
 		case UnitSaveAI_OldProfession: reader.Read(m_eOldProfession); break;
 		case UnitSaveAI_IdealProfessionCache: reader.Read(m_eIdealProfessionCache); break;
 		case UnitSaveAI_AutomatedAbortTurn: reader.Read(m_iAutomatedAbortTurn); break;
+		case UnitSaveAI_WfTask: reader.Read(m_iWfTask); break;
+		case UnitSaveAI_WfCityID: reader.Read(m_iWfCityID); break;
+		case UnitSaveAI_WfProfession: reader.Read(m_eWfProfession); break;
+		case UnitSaveAI_WfPlotX: reader.Read(m_iWfPlotX); break;
+		case UnitSaveAI_WfPlotY: reader.Read(m_iWfPlotY); break;
+		case UnitSaveAI_WfVillageX: reader.Read(m_iWfVillageX); break;
+		case UnitSaveAI_WfVillageY: reader.Read(m_iWfVillageY); break;
 		}
 	}
 	
@@ -121,5 +153,12 @@ void CvUnitAI::write(CvSavegameWriter writer)
 	writer.Write(UnitSaveAI_OldProfession, m_eOldProfession, defaultOldProfession);
 	writer.Write(UnitSaveAI_IdealProfessionCache, m_eIdealProfessionCache, defaultIdealProfessionCache);
 	writer.Write(UnitSaveAI_AutomatedAbortTurn, m_iAutomatedAbortTurn, defaultAutomatedAbortTurn);
+	writer.Write(UnitSaveAI_WfTask, m_iWfTask, defaultWfTask);
+	writer.Write(UnitSaveAI_WfCityID, m_iWfCityID, defaultWfCityID);
+	writer.Write(UnitSaveAI_WfProfession, m_eWfProfession, defaultWfProfession);
+	writer.Write(UnitSaveAI_WfPlotX, m_iWfPlotX, defaultWfCoord);
+	writer.Write(UnitSaveAI_WfPlotY, m_iWfPlotY, defaultWfCoord);
+	writer.Write(UnitSaveAI_WfVillageX, m_iWfVillageX, defaultWfCoord);
+	writer.Write(UnitSaveAI_WfVillageY, m_iWfVillageY, defaultWfCoord);
 	writer.Write(UnitSaveAI_END);
 }

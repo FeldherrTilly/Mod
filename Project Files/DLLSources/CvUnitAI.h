@@ -100,6 +100,27 @@ public:
 	bool is(UnitAIStates) const;
 	bool is(UnitAITypes) const;
 
+	// WTP: workforce plan task of a colonist (set by CvPlayerAI::AI_doWorkforcePlan, saved)
+	enum WorkforceTask
+	{
+		WF_NONE = 0,
+		WF_EXPERT_JOB = 1, // work profession eProfession in city (on plot X/Y, or in a building if X < 0)
+		WF_RETRAIN = 2,    // give up the specialty, then learn in the village and do the job
+		WF_LEARN = 3,      // learn in the village at VillageX/Y, then do the job
+	};
+	int AI_getWfTask() const { return m_iWfTask; }
+	int AI_getWfCityID() const { return m_iWfCityID; }
+	ProfessionTypes AI_getWfProfession() const { return m_eWfProfession; }
+	int AI_getWfPlotX() const { return m_iWfPlotX; }
+	int AI_getWfPlotY() const { return m_iWfPlotY; }
+	int AI_getWfVillageX() const { return m_iWfVillageX; }
+	int AI_getWfVillageY() const { return m_iWfVillageY; }
+	void AI_setWfTask(int iTask, int iCityID, ProfessionTypes eProfession, int iPlotX, int iPlotY, int iVillageX, int iVillageY);
+	void AI_clearWfTask();
+	void AI_copyWfTask(const CvUnitAI& kOther);
+	bool AI_isWfJob(const CvCity& kCity, ProfessionTypes eProfession, const CvPlot* pPlot) const;
+	bool AI_doWfTask();
+
 protected:
 
 	void AI_resetSavedData();
@@ -114,6 +135,14 @@ protected:
 	ProfessionTypes m_eOldProfession;
 
 	int m_iAutomatedAbortTurn;
+	// WTP: workforce plan task
+	int m_iWfTask;
+	int m_iWfCityID;
+	ProfessionTypes m_eWfProfession;
+	int m_iWfPlotX;
+	int m_iWfPlotY;
+	int m_iWfVillageX;
+	int m_iWfVillageY;
 	
 	mutable ProfessionTypes m_eIdealProfessionCache;
 
@@ -225,6 +254,7 @@ protected:
 	bool AI_spreadTradePosts(); // WTP, ray, Native Trade Posts - START
 
 	bool AI_learn(int iRange = 8);
+	bool AI_routeCityNear(int iMaxDistance); // WTP
 
 	bool AI_requestPickup(int iMaxPath = MAX_INT);
 	bool AI_respondToPickup(int iMaxPath = MAX_INT, UnitAITypes eUnitAI = NO_UNITAI);

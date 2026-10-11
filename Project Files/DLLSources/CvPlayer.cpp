@@ -2182,6 +2182,9 @@ char const* CvPlayer::getUnitButton(UnitTypes eUnit) const
 
 void CvPlayer::doTurn()
 {
+#ifdef PROFILING_ENABLED
+	Profiler profileSession(isNative() ? "CvPlayer::doTurn (native)" : "CvPlayer::doTurn");
+#endif
 	OOS_LOG("CvPlayer::doTurn start", getID());
 	PROFILE_FUNC();
 
@@ -4586,7 +4589,7 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 					FAssertMsg(iAmountToTrade > 0, "Warning: iAmountToTrade in Native Trade is supposed to be larger 0");
 					// WTP, ray trying to fix negative storage bug - END
 
-					int priceToPay = GC.getYieldInfo(yieldToTrade).getNativeSellPrice() * iAmountToTrade;
+					int priceToPay = CvPlayerAI::AI_nativeDeliveryPrice(yieldToTrade) * iAmountToTrade; // WTP
 					// we have chosen to accept
 					if (choice == 1)
 					{
@@ -6357,6 +6360,22 @@ CvCity* CvPlayer::found(Coordinates foundCoord)
 
 	gDLL->getEventReporterIFace()->cityBuilt(pCity);
 	if (gPlayerLogLevel >= 1) logBBAI(" Player %d (%S) founds new city %S at %d, %d", getID(), getCivilizationDescription(0), pCity->getName(0).GetCString(), foundCoord.x(), foundCoord.y()); // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+
+	// WTP: a colonial AI gets a scout with its first colony (exploring brings gold and shows the villages nearby)
+	if (!isHuman() && !isNative() && !isEurope() && getParent() != NO_PLAYER && getNumCities() == 1)
+	{
+		// a free colonist with scout equipment, not a seasoned scout
+		const ProfessionTypes eScoutProfession = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_SCOUT");
+		const UnitTypes eScout = GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(GLOBAL_DEFINE_DEFAULT_POPULATION_UNIT);
+		if (eScout != NO_UNIT && eScoutProfession != NO_PROFESSION)
+		{
+			CvUnit* const pScout = initUnit(eScout, eScoutProfession, foundCoord, UNITAI_SCOUT);
+			if (pScout != NULL && gPlayerLogLevel >= 1)
+			{
+				logBBAI(" WTP: Player %d (%S) gets a free scout with its first colony", getID(), getCivilizationDescription(0));
+			}
+		}
+	}
 
 	return pCity;
 }

@@ -3683,6 +3683,7 @@ int CvSelectionGroup::getPathLength() const
 // generatePath and thus attempting to access the internal pf state to get the nodes will be invalid!
 bool CvSelectionGroup::generatePath(const CvPlot* pFromPlot, const CvPlot* pToPlot, int iFlags, bool bReuse, int* piPathTurns, int iMaxPath, bool bUseTempFinder, bool bCalledFromPython) const
 {
+	MOD_PROFILE("CvSelectionGroup::generatePath");
 	PROFILE("CvSelectionGroup::generatePath()");
 
 	if (pFromPlot == NULL || pToPlot == NULL) {

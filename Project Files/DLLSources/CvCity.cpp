@@ -501,6 +501,9 @@ void CvCity::kill()
 
 void CvCity::doTurn()
 {
+#ifdef PROFILING_ENABLED
+	Profiler profileSession(isNative() ? "CvCity::doTurn (native)" : "CvCity::doTurn");
+#endif
 	OOS_LOG("CvCity::doTurn start", getID());
 
 	PROFILE_FUNC();
