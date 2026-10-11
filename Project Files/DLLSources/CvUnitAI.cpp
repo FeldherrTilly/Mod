@@ -9072,9 +9072,20 @@ bool CvUnitAI::AI_unloadWhereNeeded(int iMaxPath)
 	return false;
 }
 
+// WTP: colonial soldiers never become citizens again
+bool CvUnitAI::AI_isSoldier() const
+{
+	const UnitAITypes eUnitAI = AI_getUnitAIType();
+	return !isNative() && (eUnitAI == UNITAI_DEFENSIVE || eUnitAI == UNITAI_OFFENSIVE || eUnitAI == UNITAI_COUNTER);
+}
+
 bool CvUnitAI::AI_betterJob()
 {
 	MOD_PROFILE("CvUnitAI::AI_betterJob");
+	if (AI_isSoldier())
+	{
+		return false;
+	}
 	// WTP: units with a planned job keep it
 	if (m_iWfTask == WF_EXPERT_JOB)
 	{
@@ -16294,6 +16305,10 @@ bool CvUnitAI::AI_joinOptimalCity()
 
 bool CvUnitAI::AI_joinCityDefender()
 {
+	if (AI_isSoldier())
+	{
+		return false;
+	}
 	CvCity* pCity = plot()->getPlotCity();
 	if (pCity == NULL || pCity->getOwnerINLINE() != getOwnerINLINE())
 	{
@@ -20004,7 +20019,7 @@ bool CvUnitAI::AI_mayPioneerJoinCity() const
 
 bool CvUnitAI::AI_allowedToJoin(const CvCity& kCity) const
 {
-	if (!AI_mayPioneerJoinCity())
+	if (!AI_mayPioneerJoinCity() || AI_isSoldier())
 	{
 		return false;
 	}
