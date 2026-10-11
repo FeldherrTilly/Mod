@@ -4315,6 +4315,19 @@ int CvCityAI::AI_citizenProfessionValue(
 		}
 		// WTP, Schmiddie, Native food surplus END
 
+		// WTP: villages with a food surplus of 20 or more work less food and furs and more other goods (lumber unchanged)
+		if (isNative() && foodDifference() >= 20)
+		{
+			if (eY == YIELD_FOOD || eY == YIELD_FUR)
+			{
+				iOutputValue /= 3;
+			}
+			else if (eY != YIELD_LUMBER)
+			{
+				iOutputValue *= 2;
+			}
+		}
+
 		// … other AI tweaks (culture, cargo, etc.) unchanged …
 
 		// g) final net for this yield
