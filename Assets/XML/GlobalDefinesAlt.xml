@@ -453,6 +453,11 @@
 		<DefineTextVal>PROFESSION_FISHING_BOAT_WORKING</DefineTextVal>
 	</Define>
 	<Define>
+		<!-- percentage of the normal amount a fishing boat gathers per turn (minimum 10 applied first) -->
+		<DefineName>FISHING_BOAT_GATHER_PERCENT</DefineName>
+		<iDefineIntVal>120</iDefineIntVal>
+	</Define>
+	<Define>
 		<DefineName>BONUS_HIGH_SEA_FISH</DefineName>
 		<DefineTextVal>BONUS_HIGH_SEA_FISH</DefineTextVal>
 	</Define>

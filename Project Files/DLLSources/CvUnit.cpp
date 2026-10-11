@@ -17274,6 +17274,20 @@ bool CvUnit::gatherResource()
 		int iNumYieldChanges = GC.getBonusInfo(eBonus).getNumYieldChanges();
 		std::vector<int> eBonusYieldChanges = GC.getBonusInfo(eBonus).getYieldChangesArray();
 
+		// WTP, fishing boats gather more: minimum 10 per turn, then the fishing boat bonus on top
+		for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_YIELD_TYPES; ++eYield)
+		{
+			int& iAmount = eBonusYieldChanges[eYield];
+			if (iAmount > 0 && iAmount < 10)
+			{
+				iAmount = 10;
+			}
+			if (iAmount > 0 && isFishingBoat())
+			{
+				iAmount = iAmount * GLOBAL_DEFINE_FISHING_BOAT_GATHER_PERCENT / 100;
+			}
+		}
+
 		if (pPlot != NULL)
 		{
 			for (int i = 0; i < pPlot->getNumUnits(); i++)
