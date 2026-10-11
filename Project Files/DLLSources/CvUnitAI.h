@@ -451,6 +451,7 @@ protected:
 	void AI_unloadUnits(TradeLocationTypes eLocation);
 	void AI_automateSailTo(const SailToHelper& sth);
 	void AI_transportSettler();
+	void AI_unloadPassengers(bool bAll);
 	bool AI_pickupStranded(UnitAITypes eUnitAI = NO_UNITAI, int iMaxPath = MAX_INT);
 
 	// added so under cheat mode we can call protected functions for testing
