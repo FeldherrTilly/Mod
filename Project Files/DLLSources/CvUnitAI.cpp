@@ -7045,6 +7045,9 @@ bool CvUnitAI::AI_europe()
 	FAssert(plot()->isEurope());
 	FAssert(canCrossOcean(plot(), UNIT_TRAVEL_STATE_FROM_EUROPE));
 
+	if (gUnitLogLevel >= 1) logBBAI("WTP ship: Player %d (%S) turn %d ship %S (unitAI %d) leaves Europe with cargo %d/%d, %d units still wait in Europe",
+		getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), (int)AI_getUnitAIType(),
+		getCargo(), cargoSpace(), kOwner.getNumEuropeUnits());
 	crossOcean(UNIT_TRAVEL_STATE_FROM_EUROPE);
 	finishMoves();
 	return true;

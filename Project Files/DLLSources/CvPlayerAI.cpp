@@ -258,6 +258,66 @@ void CvPlayerAI::AI_doTurnPre()
 	AI_doStrategy();
 
 	AI_updateYieldValues();
+
+	AI_logStatusSummary();
+}
+
+// WTP: per turn summary of a colonial AI, to find bad decisions (no expansion, no growth, ...) in BBAI.log
+void CvPlayerAI::AI_logStatusSummary()
+{
+	if (gPlayerLogLevel < 1 || isHuman() || isNative() || isEurope() || !isAlive() || getParent() == NO_PLAYER)
+	{
+		return;
+	}
+	logBBAI("WTP status: Player %d (%S) turn %d gold %d cities %d pop %d desiredCities %d settlers %d workers %d/%d needed, europeUnits %d, crosses %d/%d, warPlans %d",
+		getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getGold(), getNumCities(), getTotalPopulation(),
+		AI_desiredCityCount(), AI_totalUnitAIs(UNITAI_SETTLER), AI_totalUnitAIs(UNITAI_WORKER), AI_neededWorkers(NULL),
+		getNumEuropeUnits(), getCrossesStored(), immigrationThreshold(), GET_TEAM(getTeam()).getAnyWarPlanCount());
+
+	CvString szUnitAIs;
+	for (int iUnitAI = 0; iUnitAI < NUM_UNITAI_TYPES; ++iUnitAI)
+	{
+		const UnitAITypes eUnitAI = (UnitAITypes)iUnitAI;
+		const int iCount = AI_totalUnitAIs(eUnitAI);
+		if (iCount > 0)
+		{
+			szUnitAIs += CvString::format(" %d:%d", (int)eUnitAI, iCount);
+		}
+	}
+	logBBAI("WTP status:   unitAIs (type:count)%s", szUnitAIs.c_str());
+
+	int iLoop;
+	for (CvArea* pArea = GC.getMap().firstArea(&iLoop); pArea != NULL; pArea = GC.getMap().nextArea(&iLoop))
+	{
+		if (!pArea->isWater() && pArea->getCitiesPerPlayer(getID()) > 0)
+		{
+			logBBAI("WTP status:   area %d tiles %d ownCities %d allCities %d bestFoundValue %d",
+				pArea->getID(), pArea->getNumTiles(), pArea->getCitiesPerPlayer(getID()), pArea->getNumCities(), pArea->getBestFoundValue(getID()));
+		}
+	}
+
+	for (CvUnit* pShip = firstUnit(&iLoop); pShip != NULL; pShip = nextUnit(&iLoop))
+	{
+		if (pShip->getDomainType() != DOMAIN_SEA)
+		{
+			continue;
+		}
+		CvSelectionGroup* const pGroup = pShip->getGroup();
+		const CvPlot* const pMissionPlot = (pGroup != NULL) ? pGroup->AI_getMissionAIPlot() : NULL;
+		logBBAI("WTP status:   ship %S unitAI %d travelState %d timer %d at %d,%d cargo %d/%d (goods %d settlers %d colonists %d) missionAI %d target %d,%d",
+			pShip->getName().GetCString(), (int)pShip->AI_getUnitAIType(), (int)pShip->getUnitTravelState(), pShip->getUnitTravelTimer(),
+			pShip->getX_INLINE(), pShip->getY_INLINE(), pShip->getCargo(), pShip->cargoSpace(),
+			pShip->getUnitAICargo(UNITAI_YIELD), pShip->getUnitAICargo(UNITAI_SETTLER), pShip->getUnitAICargo(UNITAI_COLONIST),
+			(pGroup != NULL) ? (int)pGroup->AI_getMissionAIType() : -1,
+			(pMissionPlot != NULL) ? pMissionPlot->getX_INLINE() : -1, (pMissionPlot != NULL) ? pMissionPlot->getY_INLINE() : -1);
+	}
+
+	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+	{
+		logBBAI("WTP status:   city %S pop %d food %+d (%d/%d) hammers %d lumber %d builds %S",
+			pCity->getName().GetCString(), pCity->getPopulation(), pCity->foodDifference(), pCity->getFood(), pCity->growthThreshold(),
+			pCity->getCurrentProductionDifference(false), pCity->getYieldStored(YIELD_LUMBER), pCity->getProductionName());
+	}
 }
 
 
@@ -16238,6 +16298,8 @@ void CvPlayerAI::AI_updateNextBuyUnit(bool bPriceLimit)
 	m_eNextBuyUnit = eBestUnit;
 	m_eNextBuyUnitAI = eBestUnitAI;
 	m_iNextBuyUnitValue = iBestValue;
+	if (gPlayerLogLevel >= 1 && eBestUnit != NO_UNIT) logBBAI("WTP decision: Player %d (%S) next military buy %S unitAI %d value %d price %d gold %d",
+		getID(), getCivilizationDescription(0), GC.getUnitInfo(eBestUnit).getDescription(), (int)eBestUnitAI, iBestValue, getEuropeUnitBuyPrice(eBestUnit), getGold());
 }
 
 /*
