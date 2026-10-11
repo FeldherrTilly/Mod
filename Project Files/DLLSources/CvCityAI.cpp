@@ -4823,6 +4823,76 @@ const int YIELD_TOOLS_BASE_VALUE = 10;
 
 // WTP: the value a hammer job is worth at least while lumber is available: 10 units of the most valuable
 // non-food yield found on the city's plots, precious metals and gems not counted
+// WTP: marks the plot yields whose expert a native village within 8 plots on the same landmass teaches
+void CvCityAI::AI_getYieldsTaughtNearby(bool* abYields) const
+{
+	for (int iYield = 0; iYield < NUM_YIELD_TYPES; ++iYield)
+	{
+		abYields[iYield] = false;
+	}
+	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
+	{
+		CvPlayer& kNative = GET_PLAYER((PlayerTypes)iPlayer);
+		if (!kNative.isAlive() || !kNative.isNative())
+		{
+			continue;
+		}
+		int iLoop;
+		for (CvCity* pVillage = kNative.firstCity(&iLoop); pVillage != NULL; pVillage = kNative.nextCity(&iLoop))
+		{
+			const UnitClassTypes eTeach = pVillage->getTeachUnitClass();
+			if (eTeach == NO_UNITCLASS || pVillage->area() != area()
+				|| plotDistance(pVillage->getX_INLINE(), pVillage->getY_INLINE(), getX_INLINE(), getY_INLINE()) > 8)
+			{
+				continue;
+			}
+			for (ProfessionTypes eProfession = FIRST_PROFESSION; eProfession < NUM_PROFESSION_TYPES; ++eProfession)
+			{
+				const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+				if (kProfession.isWorkPlot() && (UnitClassTypes)kProfession.LbD_getExpert() == eTeach && kProfession.getYieldsProduced(0) != NO_YIELD)
+				{
+					abYields[kProfession.getYieldsProduced(0)] = true;
+				}
+			}
+		}
+	}
+}
+
+// WTP: whether a lumber feature (forest) on pPlot may be cleared without leaving the city short of lumber plots:
+// at least 1 forest has to stay next to the city center and at least 4 in the 5x5 around it
+bool CvCityAI::AI_canClearLumberFeature(const CvPlot* pPlot) const
+{
+	int iNear = 0;
+	int iTotal = 0;
+	for (int iDX = -2; iDX <= 2; ++iDX)
+	{
+		for (int iDY = -2; iDY <= 2; ++iDY)
+		{
+			const CvPlot* const pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
+			if (pLoopPlot == NULL || pLoopPlot == pPlot || (iDX == 0 && iDY == 0))
+			{
+				continue;
+			}
+			const FeatureTypes eLoopFeature = pLoopPlot->getFeatureType();
+			if (eLoopFeature != NO_FEATURE && GC.getFeatureInfo(eLoopFeature).getYieldChange(YIELD_LUMBER) > 0)
+			{
+				++iTotal;
+				if (std::abs(iDX) <= 1 && std::abs(iDY) <= 1)
+				{
+					++iNear;
+				}
+			}
+		}
+	}
+
+	const bool bNear = std::abs(pPlot->getX_INLINE() - getX_INLINE()) <= 1 && std::abs(pPlot->getY_INLINE() - getY_INLINE()) <= 1;
+	if (bNear && iNear < 1)
+	{
+		return false;
+	}
+	return iTotal >= 4;
+}
+
 int CvCityAI::AI_hammerJobMinValue() const
 {
 	// the value only depends on the city's plots and market values, so compute it once per turn
@@ -5985,6 +6055,10 @@ void CvCityAI::AI_bestPlotBuild(const CvPlot* pPlot, int* piBestValue, BuildType
 		}
 	}
 
+	// WTP: yields whose expert a native village nearby teaches
+	bool abTaughtYields[NUM_YIELD_TYPES];
+	AI_getYieldsTaughtNearby(abTaughtYields);
+
 	for (int iI = 0; iI < GC.getNumBuildInfos(); iI++)
 	{
 		BuildTypes eBuild = (BuildTypes)iI;
@@ -6049,6 +6123,29 @@ void CvCityAI::AI_bestPlotBuild(const CvPlot* pPlot, int* piBestValue, BuildType
 			}
 
 			int iValue = AI_plotYieldValue(pPlot, aiFinalYields);
+
+			// WTP: keep forest for lumber: never clear the last forest next to the city or one of the last 4 in the
+			// 5x5 around it; lodges and sawmills are worth double
+			if (bRemoveFeature && GC.getFeatureInfo(eFeature).getYieldChange(YIELD_LUMBER) > 0 && !AI_canClearLumberFeature(pPlot))
+			{
+				continue;
+			}
+			if (eImprovement != NO_IMPROVEMENT && (eImprovement == GC.getInfoTypeForString("IMPROVEMENT_LUMBERMILL") || eImprovement == GC.getInfoTypeForString("IMPROVEMENT_LODGE")))
+			{
+				iValue *= 2;
+			}
+			// WTP: improvements for a yield whose expert a nearby village teaches are worth 1.5 times, even on unworked plots
+			if (eImprovement != NO_IMPROVEMENT)
+			{
+				for (YieldTypes eLoopYield = FIRST_YIELD; eLoopYield < NUM_YIELD_TYPES; ++eLoopYield)
+				{
+					if (abTaughtYields[eLoopYield] && pPlot->getYieldWithBuild(eBuild, eLoopYield, true) > pPlot->getYield(eLoopYield))
+					{
+						iValue = iValue * 3 / 2;
+						break;
+					}
+				}
+			}
 
 			if (kBuild.getRoute() != NO_ROUTE)
 			{
