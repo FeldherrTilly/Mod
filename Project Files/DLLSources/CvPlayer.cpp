@@ -18748,6 +18748,19 @@ CvUnit* CvPlayer::buyEuropeUnit(UnitTypes eUnit, int iPriceModifier)
 		return NULL;
 	}
 
+	// WTP: colonial AIs only buy warships from 3 colonies and turn 45 on (or during war plans), whatever path the purchase comes from
+	if (!isHuman() && !isNative() && !isEurope() && getParent() != NO_PLAYER)
+	{
+		const UnitAITypes eDefaultAI = (UnitAITypes)GC.getUnitInfo(eUnit).getDefaultUnitAIType();
+		if ((eDefaultAI == UNITAI_COMBAT_SEA || eDefaultAI == UNITAI_PIRATE_SEA || eDefaultAI == UNITAI_ASSAULT_SEA || eDefaultAI == UNITAI_ESCORT_SEA)
+			&& GET_TEAM(getTeam()).getAnyWarPlanCount() == 0 && (getNumCities() < 3 || GC.getGameINLINE().getGameTurn() < 45))
+		{
+			if (gPlayerLogLevel >= 1) logBBAI(" WTP buy: Player %d (%S) turn %d blocked warship %S (price modifier %d)",
+				getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), GC.getUnitInfo(eUnit).getDescription(), iPriceModifier);
+			return NULL;
+		}
+	}
+
 	int iPrice = getEuropeUnitBuyPrice(eUnit) * iPriceModifier / 100;
 	if (iPrice > getGold())
 	{
