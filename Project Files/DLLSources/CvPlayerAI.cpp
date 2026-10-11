@@ -9398,11 +9398,11 @@ void CvPlayerAI::AI_doEurope()
 		// WTP: after the ships the missing pioneers come first
 		AI_doEquipPioneersInEurope();
 
-		// WTP: civilian needs come before buying military units
-		AI_doCivilianPurchases();
-
-		// WTP: missing defenders in peace are colonists equipped as colonial militia
-		AI_doMilitiaPurchase();
+		// WTP: two defenders per colony (in peace too) before civilian units are bought
+		if (!AI_doMilitiaPurchase())
+		{
+			AI_doCivilianPurchases();
+		}
 
 		//Always refresh at start of new turn (maybe do this smarter but it's okay for now)
 		AI_updateNextBuyUnit();
@@ -18826,35 +18826,38 @@ bool CvPlayerAI::AI_doTransportPurchase()
 	return false;
 }
 
-// WTP: in peace missing defenders are free colonists equipped as colonial militia in Europe (cheaper than town
-// guards and light artillery); while more colonies are wanted only for undefended colonies
-void CvPlayerAI::AI_doMilitiaPurchase()
+// WTP: two defenders per colony (in peace too) before civilian units are bought; missing defenders are free colonists
+// equipped as colonial militia in Europe (cheaper than town guards and light artillery). Returns true while defenders
+// are missing (then no civilian units are bought).
+bool CvPlayerAI::AI_doMilitiaPurchase()
 {
-	if (isHuman() || isNative() || isEurope() || getParent() == NO_PLAYER || !canTradeWithEurope() || GET_TEAM(getTeam()).getAnyWarPlanCount() > 0)
+	if (isHuman() || isNative() || isEurope() || getParent() == NO_PLAYER || !canTradeWithEurope() || getNumCities() == 0)
 	{
-		return;
+		return false;
 	}
-	int iUndefended = 0;
-	const int iMissing = AI_totalDefendersNeeded(&iUndefended);
-	const bool bExpanding = AI_desiredCityCount() > getNumCities() + AI_totalUnitAIs(UNITAI_SETTLER);
-	if (bExpanding ? iUndefended <= 0 : iMissing <= 0)
+	const int iDefenders = AI_totalUnitAIs(UNITAI_DEFENSIVE);
+	const int iWanted = 2 * getNumCities();
+	if (iDefenders >= iWanted)
 	{
-		return;
+		return false;
 	}
 	const ProfessionTypes eMilitia = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_COLONIAL_MILITIA");
 	const UnitTypes eColonist = GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(GLOBAL_DEFINE_DEFAULT_POPULATION_UNIT);
 	if (eMilitia == NO_PROFESSION || eColonist == NO_UNIT || getEuropeUnitBuyPrice(eColonist) <= 0)
 	{
-		return;
+		return false;
 	}
 	int iEquipCost = 0;
 	for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
 	{
 		iEquipCost += GET_PLAYER(getParent()).getYieldSellPrice(eYield) * GC.getProfessionInfo(eMilitia).getYieldEquipmentAmount(eYield);
 	}
-	if (!AI_canAffordCivilianPurchase(getEuropeUnitBuyPrice(eColonist) + iEquipCost))
+	const int iCost = getEuropeUnitBuyPrice(eColonist) + iEquipCost;
+	if (getGold() < iCost)
 	{
-		return;
+		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) saves for colonial militia (%d gold, have %d): %d defenders for %d colonies",
+			getID(), getCivilizationDescription(0), iCost, getGold(), iDefenders, getNumCities());
+		return true;
 	}
 	CvUnit* const pUnit = buyEuropeUnit(eColonist, 100);
 	if (pUnit != NULL)
@@ -18864,9 +18867,10 @@ void CvPlayerAI::AI_doMilitiaPurchase()
 			changeProfessionEurope(pUnit->getID(), eMilitia);
 		}
 		pUnit->AI_setUnitAIType(UNITAI_DEFENSIVE);
-		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) buys colonial militia %S (%d defenders missing, %d colonies undefended)",
-			getID(), getCivilizationDescription(0), pUnit->getNameAndProfession().GetCString(), iMissing, iUndefended);
+		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) buys colonial militia %S: %d defenders for %d colonies",
+			getID(), getCivilizationDescription(0), pUnit->getNameAndProfession().GetCString(), iDefenders, getNumCities());
 	}
+	return true;
 }
 
 void CvPlayerAI::AI_doCivilianPurchases()
