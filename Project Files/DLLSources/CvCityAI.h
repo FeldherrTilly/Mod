@@ -264,6 +264,12 @@ protected:
 	// WTP: extra defenders against angry natives nearby, refreshed every turn, not saved
 	mutable int m_iCacheAngryNativeTurn;
 	mutable int m_iCacheAngryNativeDefenders;
+	// WTP: last turn colonists were put on food plots because of a food shortage, not saved
+	int m_iFoodShortageTurn;
+public:
+	bool AI_isFoodShortage() const;
+protected:
+	void AI_fixFoodShortage();
 	mutable bool m_abCacheTaughtYields[NUM_YIELD_TYPES];
 	mutable int m_iCachePlayerClosenessDistance;
 	EnumMap<PlayerTypes,int> m_em_iPlayerCloseness;
