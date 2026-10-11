@@ -9151,7 +9151,9 @@ bool CvUnitAI::AI_betterJob()
 				if (eLoopProfession == NO_PROFESSION)
 					continue;
 
-				if (pLoopUnit->canHaveProfession(eOriginalProfession, true, NULL, /*bForceCheck*/true) && canHaveProfession(eLoopProfession, true, NULL, /*bForceCheck*/true))
+				// WTP: an expert does not give up its place for a job outside the colony (scout, pioneer, soldier)
+				if (pLoopUnit->canHaveProfession(eOriginalProfession, true, NULL, /*bForceCheck*/true) && canHaveProfession(eLoopProfession, true, NULL, /*bForceCheck*/true)
+					&& (GC.getProfessionInfo(eOriginalProfession).isCitizen() || pLoopUnit->AI_getIdealProfession() == NO_PROFESSION))
 				{
 					units.push_back(pLoopUnit);
 				}
@@ -9168,7 +9170,9 @@ bool CvUnitAI::AI_betterJob()
 			{
 				if (!pLoopUnit->AI_hasAIChanged(5))
 				{
-					if (pLoopUnit->canHaveProfession(eOriginalProfession, true, NULL, /*bForceCheck*/true) && canHaveProfession(pLoopUnit->getProfession(), true, NULL, /*bForceCheck*/true))
+					// WTP: an expert does not give up its place for a job outside the colony (scout, pioneer, soldier)
+					if (pLoopUnit->canHaveProfession(eOriginalProfession, true, NULL, /*bForceCheck*/true) && canHaveProfession(pLoopUnit->getProfession(), true, NULL, /*bForceCheck*/true)
+						&& (GC.getProfessionInfo(eOriginalProfession).isCitizen() || pLoopUnit->AI_getIdealProfession() == NO_PROFESSION))
 					{
 						units.push_back(pLoopUnit);
 					}
