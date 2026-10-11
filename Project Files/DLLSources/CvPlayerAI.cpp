@@ -11403,11 +11403,30 @@ int CvPlayerAI::AI_desiredCityCount()
 
 	int iStep = 4;
 
-	int iTotal = getTotalPopulation();
+	// WTP: only count colonists in the colonies and on the map, not those waiting in Europe
+	int iTotal = 0;
+	int iLoop;
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	{
+		iTotal += pLoopCity->getPopulation();
+	}
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->getUnitInfo().isFound() && pLoopUnit->isOnMap())
+		{
+			++iTotal;
+		}
+	}
 	if (AI_isStrategy(STRATEGY_DENSE_CITY_SPACING))
 	{
 		iTotal *= 133;
 		iTotal /= 100;
+	}
+	// WTP: colonial AIs need about 43% more population per wanted colony
+	if (bColonial)
+	{
+		iTotal *= 100;
+		iTotal /= 143;
 	}
 
 	while (iTotal > 0)
@@ -11428,7 +11447,6 @@ int CvPlayerAI::AI_desiredCityCount()
 		iCount++;
 	}
 
-	int iLoop;
 	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
 		if (pLoopCity->getPopulation() >= 20)

@@ -1614,6 +1614,13 @@ void CvUnitAI::AI_settlerMove()
 		//if (canUnload())
 		//	unload();
 
+		// WTP: in an own colony get off the ship and look for a site over land
+		if (!bFirstCityPhase && plot()->isCity() && plot()->getOwnerINLINE() == getOwnerINLINE() && canUnload())
+		{
+			unload();
+			return;
+		}
+
 		getGroup()->pushMission(MISSION_SKIP);
 		return;
 	}
@@ -15309,6 +15316,11 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 								if (bTransport)
 								{
 									bValid = pTransportUnit->generatePath(pLoopPlot, 0, bTransportPath, &iPathTurns);
+									// WTP: later colonies are founded near the existing ones; far targets made transports dither for many turns
+									if (bValid && !bFirstCity && iPathTurns > 6)
+									{
+										bValid = false;
+									}
 								}
 								else
 								{
