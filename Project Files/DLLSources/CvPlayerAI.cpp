@@ -9067,7 +9067,8 @@ void CvPlayerAI::AI_doProfessions()
 
 			bool bDone = false;
 
-			for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+			// WTP: one unit per unit AI and turn (the need is checked again next turn); it took one from every colony
+			for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL && !bDone; pLoopCity = nextCity(&iLoop))
 			{
 				if (pLoopCity->getPopulation() > ((pLoopCity->getHighestPopulation() * 2) / 3))
 				{
@@ -9241,6 +9242,7 @@ void CvPlayerAI::AI_doProfessions()
 								getCivilizationDescription(), pLoopCity->getNameKey(), pBestUnit->getNameAndProfession().GetCString(), szTempString.GetCString());
 
 						}
+						break; // WTP: one unit per unit AI and turn
 					}
 				}
 			}
