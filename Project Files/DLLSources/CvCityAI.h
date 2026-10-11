@@ -148,6 +148,7 @@ public:
     int AI_calculateAlarm(PlayerTypes eIndex) const;
 
 	int AI_estimateYieldValue(YieldTypes eYield, int iAmount) const;
+	int AI_hammerJobMinValue() const;
 
 	int AI_getTargetSize() const;
 	void AI_setTargetSize(int iNewValue);
@@ -244,6 +245,9 @@ protected:
 	EnumMap<EmphasizeTypes,bool> m_em_bEmphasize;
 
 	mutable int m_iCachePlayerClosenessTurn;
+	// WTP: per-turn cache for AI_hammerJobMinValue, not saved
+	mutable int m_iCacheHammerJobMinTurn;
+	mutable int m_iCacheHammerJobMinValue;
 	mutable int m_iCachePlayerClosenessDistance;
 	EnumMap<PlayerTypes,int> m_em_iPlayerCloseness;
 
