@@ -1773,6 +1773,33 @@ void CvUnitAI::AI_workerMove()
 		}
 	}
 
+	// WTP: a surplus pioneer chosen by the player goes to its colony and joins it
+	CvCity* const pSurplusCity = kOwner.AI_surplusPioneerCity(getID());
+	if (pSurplusCity != NULL && !isCargo())
+	{
+		if (atPlot(pSurplusCity->plot()))
+		{
+			if (canJoinCity(plot()))
+			{
+				if (gUnitLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) turn %d surplus pioneer %S joins %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+					GC.getGameINLINE().getGameTurn(), getNameAndProfession().GetCString(), pSurplusCity->getName().GetCString());
+				kOwner.AI_clearSurplusPioneer();
+				joinCity();
+				return;
+			}
+			kOwner.AI_clearSurplusPioneer();
+		}
+		else if (generatePath(pSurplusCity->plot(), MOVE_NO_ENEMY_TERRITORY, true))
+		{
+			getGroup()->pushMission(MISSION_MOVE_TO, pSurplusCity->getX_INLINE(), pSurplusCity->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY);
+			return;
+		}
+		else
+		{
+			kOwner.AI_clearSurplusPioneer();
+		}
+	}
+
 	if ((kOwner.getNumCities() == 0) && (kOwner.AI_getNumAIUnits(UNITAI_SETTLER) == 0))
 	{
 		if (canFound(NULL))
