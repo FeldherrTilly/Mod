@@ -1,0 +1,34 @@
+# Fantasy New World map generator
+
+Generates `PrivateMaps/Fantasy New World Large.ColonizationWBSave` (80x110, 70°N–40°S, Europe east and west) plus a PNG preview. Python 3, standard library only.
+
+```
+python Tools/MapGenerator/gen.py [seed] [output dir]      # default: seed 1, Tools/MapGenerator/out
+python Tools/MapGenerator/validate.py <file.ColonizationWBSave>
+python Tools/MapGenerator/crop.py x0 x1 y0 y1 crop.png [preview.png]   # zoomed preview section
+```
+
+Copy the generated `.ColonizationWBSave` to `PrivateMaps/` and restart Colonization completely to see the change. The map text key is `TXT_KEY_WORLDBUILDER_FANTASY_NEW_WORLD_DESC`.
+
+## Pipeline (`gen.py`)
+
+1. Landmasses from designed polylines plus noise, coastline details (fjords, skerries, volcanic island of ~12 tiles with a stream, Caribbean island world of ~10-tile islands (at least two water tiles apart), climate-matching islands off other coasts, barrier islands with a shallow lagoon on the east coast, atolls).
+2. Arctic archipelago in the far north with a winding, ice-free strait (Magellan-like) from the Atlantic to the Pacific. Mountain ranges with passes (plus low worn-down chains in the eastern settlement lands), hidden high valley, salt basin arcs, small inland massifs, sparse scattered hills, irregular mountain flanks, open altiplano floor.
+3. Lakes (designed, glacial lake district, finger lakes, rainforest lakes, salt lake, altiplano lake).
+4. Climate: temperature by latitude and altitude, precipitation by prevailing winds with orographic rain and rain shadows.
+5. Drainage: large rivers (plot water, ruler-straight paths rejected) and edge rivers (corner flow network); afterwards an estuary (drowned lower course of an eastern river, deep main channel, shallow side arms), two large natural harbours and ~10 small irregular coves (3-5 water tiles; shallow, partly shallow or deep) are carved, away from large river mouths.
+6. Biomes (fertile plains where grassland meets prairie), set pieces (deltas, green river valleys, oases, salt basin, altiplano, canyon, mesas, river island, gorge), clay hills on marsh/wetland, terrain smoothing, scattered lone hills in the open lowlands (several resources need hills).
+7. Connectivity for land units (passes, fords) and deep-water lanes for large ships.
+8. Features: forests by biome density, hardwood clusters (dense forest / ancient forest, not in jungle or savanna), a cluster of city ruins with fragments of winding, overgrown roads in the southern jungle (plus single ruins on the altiplano and in the isthmus), special features, meteor crater in the isthmus jungle, volcanoes, reefs, currents; Europe plots: Atlantic (EUROPE_EAST) and Pacific (EUROPE_WEST), both at least 5 tiles from land.
+9. Southern extension: ten extra rows appended at the end (so the rest of the map is unaffected) - a cape behind a dense coastal cordillera with a coastal desert in front, a few islands, the tip of a polar continent (taiga and forest on its northern shore, room for two towns) reaching in from the bottom edge and an open southern passage to the Pacific between them.
+10. Landmark names: map signs with realistic-sounding names (visible to all players, ASCII captions) for set pieces, highest summits, mountain chains, large rivers, lakes and large flat woodland regions (one sign per feature, at least 5 tiles apart); white dots in the preview.
+11. Checks that every set piece has a usable city site (>= 6 workable land tiles in the 3x3 ring, >= 10 in 5x5 without corners).
+
+## Engine notes
+
+- Peaks and large rivers are impassable for most land units; fords (`FEATURE_RIVER_FORD`) and passes keep regions connected.
+- `FEATURE_VOLCANO` must be on flat land; on a peak the model is not visible.
+- Shallow coast blocks large ships.
+- Water regions below 50 plots without Europe become lakes when the map is loaded; lakes next to snow become ice lakes.
+- Clay comes from hills on marsh, wetland or tundra only.
+- The map uses `Randomize Features=false` (forests are placed by the generator); resources and goodies are randomized by the game.
