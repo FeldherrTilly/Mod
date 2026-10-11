@@ -464,6 +464,7 @@ public:
 
 	// TAC - AI More Immigrants - koma13 - START
 	void AI_hurryDocks();
+	void AI_logStatusSummary(); // WTP: per turn AI status in BBAI.log
 	// TAC - AI More Immigrants - koma13 - END
 
 	bool AI_prepareAssaultSea();	// TAC - AI Assault Sea - koma13

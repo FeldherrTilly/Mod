@@ -15609,6 +15609,9 @@ void CvPlayer::applyEvent(EventTypes eEvent, const EventTriggeredData& kTriggere
 					pUnitCity = getPrimaryCity();
 				}
 
+				if (gPlayerLogLevel >= 1 && !isHuman()) logBBAI(" WTP event unit: Player %d (%S) turn %d gets %d x %S from event %S",
+					getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), kEvent.getNumUnits(), GC.getUnitInfo(eUnit).getDescription(), CvWString(kEvent.getType()).GetCString());
+
 				// WTP, ray, let us do this for all Ships, it is safer
 				// if (GC.getUnitInfo(eUnit).getDomainType() == DOMAIN_SEA && GC.getUnitInfo(eUnit).getTerrainImpassable(TERRAIN_SHALLOW_COAST))
 				if (GC.getUnitInfo(eUnit).getDomainType() == DOMAIN_SEA)
@@ -17507,6 +17510,9 @@ CvUnit* CvPlayer::buyYieldUnit(YieldTypes eYield, int iAmount, CvUnit* pTranspor
 			pTransport->groupTransportedYieldUnits(pUnit);
 		}
 		changeGold(-iPrice);
+		if (gPlayerLogLevel >= 1 && !isHuman()) logBBAI(" WTP buy: Player %d (%S) turn %d buys %d %S in %s for %d gold (gold left %d)",
+			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), iAmount, GC.getYieldInfo(eYield).getDescription(),
+			eLocation == TRADE_LOCATION_EUROPE ? "EUROPE" : (eLocation == TRADE_LOCATION_AFRICA ? "AFRICA" : "PORT ROYAL"), iPrice, getGold());
 
 		// R&R, vetiarvind, Price dependent tax rate change - Start
 		const int iBuyValue = iYieldSellPrice / 2; // buying should only contribute 50% of sell to tax incr. score
@@ -18781,8 +18787,8 @@ CvUnit* CvPlayer::buyEuropeUnit(UnitTypes eUnit, int iPriceModifier)
 		changeGold(-iPrice);
 		GET_TEAM(getTeam()).changeUnitsPurchasedHistory(pUnit->getUnitClassType(), 1);
 		gDLL->getEventReporterIFace()->unitBoughtFromEurope(getID(), pUnit->getID());
-		if (gPlayerLogLevel >= 1) logBBAI(" Player %d (%S) buys Unit:%S Gold:%d",
-			getID(), getCivilizationDescription(0), pUnit->getNameAndProfession().GetCString(), iPrice);
+		if (gPlayerLogLevel >= 1) logBBAI(" WTP buy: Player %d (%S) turn %d buys %S in EUROPE for %d gold (gold left %d)",
+			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pUnit->getNameAndProfession().GetCString(), iPrice, getGold());
 	}
 
 
@@ -18924,6 +18930,8 @@ CvUnit* CvPlayer::buyAfricaUnit(UnitTypes eUnit, int iPriceModifier)
 		changeGold(-iPrice);
 		GET_TEAM(getTeam()).changeUnitsPurchasedHistory(pUnit->getUnitClassType(), 1);
 		//gDLL->getEventReporterIFace()->unitBoughtFromEurope(getID(), pUnit->getID());
+		if (gPlayerLogLevel >= 1) logBBAI(" WTP buy: Player %d (%S) turn %d buys %S in AFRICA for %d gold (gold left %d)",
+			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pUnit->getNameAndProfession().GetCString(), iPrice, getGold());
 	}
 
 	return pUnit;
@@ -19036,6 +19044,8 @@ CvUnit* CvPlayer::buyPortRoyalUnit(UnitTypes eUnit, int iPriceModifier)
 		changeGold(-iPrice);
 		GET_TEAM(getTeam()).changeUnitsPurchasedHistory(pUnit->getUnitClassType(), 1);
 		//gDLL->getEventReporterIFace()->unitBoughtFromEurope(getID(), pUnit->getID());
+		if (gPlayerLogLevel >= 1) logBBAI(" WTP buy: Player %d (%S) turn %d buys %S in PORT ROYAL for %d gold (gold left %d)",
+			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pUnit->getNameAndProfession().GetCString(), iPrice, getGold());
 	}
 
 	return pUnit;
@@ -20930,6 +20940,8 @@ void CvPlayer::hurry(HurryTypes eHurry, int iIndex)
 		if (kHurry.getGoldPerCross() > 0)
 		{
 			OOS_LOG("hurry gold", getHurryGold(eHurry, iIndex));
+			if (gPlayerLogLevel >= 1) logBBAI(" WTP buy: Player %d (%S) turn %d hurries immigrant %S (dock %d) for %d gold (gold before %d)",
+				getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), GC.getUnitInfo(getDocksNextUnit(iIndex)).getDescription(), iIndex, getHurryGold(eHurry, iIndex), getGold());
 			changeGold(-getHurryGold(eHurry, iIndex));
 
 			int iMissingCrosses = immigrationThreshold() - getCrossesStored();
