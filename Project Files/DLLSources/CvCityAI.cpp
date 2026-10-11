@@ -2420,8 +2420,8 @@ void CvCityAI::AI_doHurry(bool bForce)
 	// Previously hurried builds must have been processed before considering another hurry
 	FAssert(!m_bHasHurried);
 
-	// WTP: no hurrying while the player saves for the galleon that picks up the treasures
-	if (!bForce && GET_PLAYER(getOwnerINLINE()).AI_treasureShipToBuy() != NO_UNIT)
+	// WTP: no hurrying while the player saves for a transport, the colonial militia or the treasure galleon
+	if (!bForce && GET_PLAYER(getOwnerINLINE()).AI_isSavingGold())
 	{
 		return;
 	}

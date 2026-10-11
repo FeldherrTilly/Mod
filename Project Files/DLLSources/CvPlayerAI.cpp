@@ -18716,6 +18716,7 @@ bool CvPlayerAI::AI_doColonyTransportPurchase()
 	const int iPrice = getEuropeUnitBuyPrice(eShip);
 	if (getGold() < iPrice)
 	{
+		AI_setSavingGold();
 		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) saves for transport %S (%d gold, have %d): %d transports for %d colonies",
 			getID(), getCivilizationDescription(0), GC.getUnitInfo(eShip).getDescription(), iPrice, getGold(), iTransports, getNumCities());
 		return true;
@@ -18868,6 +18869,18 @@ bool CvPlayerAI::AI_buyExpertForOpportunity()
 	return true;
 }
 
+// WTP: while the AI saves for a transport, the colonial militia or the treasure galleon, colonies do not hurry (the
+// purchases are made in the units' turn, the hurrying in the colonies' turn of the next turn)
+void CvPlayerAI::AI_setSavingGold()
+{
+	m_iSavingGoldTurn = GC.getGameINLINE().getGameTurn();
+}
+
+bool CvPlayerAI::AI_isSavingGold() const
+{
+	return m_iSavingGoldTurn >= GC.getGameINLINE().getGameTurn() - 1 || AI_treasureShipToBuy() != NO_UNIT;
+}
+
 // WTP: two scouts before anything else (the first one comes free with the first colony)
 void CvPlayerAI::AI_doScoutPurchase()
 {
@@ -18949,6 +18962,7 @@ bool CvPlayerAI::AI_doTransportPurchase()
 	const int iPrice = getEuropeUnitBuyPrice(eShip);
 	if (getGold() < iPrice)
 	{
+		AI_setSavingGold();
 		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) saves for transport %S (%d gold, have %d): %d units wait in Europe, capacity %d in %d transports",
 			getID(), getCivilizationDescription(0), GC.getUnitInfo(eShip).getDescription(), iPrice, getGold(), iWaiting, iCapacity, iTransports);
 		return true;
@@ -18992,6 +19006,7 @@ bool CvPlayerAI::AI_doMilitiaPurchase()
 	const int iCost = getEuropeUnitBuyPrice(eColonist) + iEquipCost;
 	if (getGold() < iCost)
 	{
+		AI_setSavingGold();
 		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) saves for colonial militia (%d gold, have %d): %d defenders for %d colonies",
 			getID(), getCivilizationDescription(0), iCost, getGold(), iDefenders, getNumCities());
 		return true;

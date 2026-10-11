@@ -476,6 +476,8 @@ public:
 	bool AI_doTreasureShipPurchase();
 	bool AI_doColonyTransportPurchase();
 	void AI_doScoutPurchase();
+	void AI_setSavingGold();
+	bool AI_isSavingGold() const;
 	void AI_doEquipPioneersInEurope();
 	bool AI_isUselessExpert(const CvUnitAI& kUnit, std::vector<int>& aiYieldAvailable);
 	UnitTypes AI_transportToBuy();
@@ -624,6 +626,7 @@ protected:
 	// WTP: the surplus pioneer on its way to join a colony (not saved, the choice is simply made again)
 	int m_iSurplusPioneerID;
 	int m_iSurplusPioneerCityID;
+	int m_iSavingGoldTurn; // WTP: last turn the AI saved gold for a ship or the militia (not saved)
 	// WTP: open (unfilled) opportunities of the last workforce plan, for buying experts (not saved, made again each turn)
 	struct WfOpenOpportunity
 	{
