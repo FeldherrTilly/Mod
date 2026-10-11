@@ -5091,6 +5091,25 @@ void CvUnitAI::AI_transportSeaMove()
 			return;
 		}
 
+		// WTP: only a galleon carries treasures; it collects all waiting treasures first and then sells them in Europe
+		if (getUnitAICargo(UNITAI_TREASURE) > 0)
+		{
+			if (!isFull() && AI_respondToPickup(MAX_INT, UNITAI_TREASURE))
+			{
+				AI_setUnitAIState(UNITAI_STATE_PICKUP);
+				return;
+			}
+			if (AI_sailToEurope())
+			{
+				return;
+			}
+		}
+		else if (!hasAnyUnitInCargo() && kOwner.AI_totalUnitAIs(UNITAI_TREASURE) > 0 && AI_respondToPickup(MAX_INT, UNITAI_TREASURE))
+		{
+			AI_setUnitAIState(UNITAI_STATE_PICKUP);
+			return;
+		}
+
 		if (kOwner.AI_totalUnitAIs(UNITAI_TREASURE) > 0)
 		{
 			if (AI_respondToPickup(20, UNITAI_TREASURE))
@@ -18313,12 +18332,19 @@ bool CvUnitAI::AI_treasureRetreat(int iMaxPathTurns)
 		return false;
 	}
 
-	for (int iPass = 0; iPass < 2; iPass++)
+	// WTP: treasures go to the nearest own colony with a deep water harbour, where a galleon can pick them up; other
+	// colonies only if there is no such harbour within reach
+	for (int iPass = 0; iPass < 4; iPass++)
 	{
+		const bool bDeepWaterOnly = iPass < 2;
 		int iLoop;
 		for (CvCity* pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
 		{
 			CvPlot* pLoopPlot = pLoopCity->plot();
+			if (bDeepWaterOnly && !(pLoopPlot->hasDeepWaterCoast() && pLoopCity->isEuropeAccessable()))
+			{
+				continue;
+			}
 			if (AI_plotValid(pLoopPlot))
 			{
 				if (!(pLoopPlot->isVisibleEnemyUnit(this)))
@@ -18326,7 +18352,7 @@ bool CvUnitAI::AI_treasureRetreat(int iMaxPathTurns)
 					if (pLoopPlot->getNearestEurope() == eMainEurope)
 					{
 						int iPathTurns = 0;
-						if (atPlot(pLoopPlot) || generatePath(pLoopPlot, ((iPass > 0) ? MOVE_IGNORE_DANGER : 0), true, &iPathTurns, iMaxPathTurns))
+						if (atPlot(pLoopPlot) || generatePath(pLoopPlot, ((iPass % 2 > 0) ? MOVE_IGNORE_DANGER : 0), true, &iPathTurns, iMaxPathTurns))
 						{
 							int iValue = 3 + pLoopPlot->getDistanceToOcean();
 
@@ -18364,7 +18390,7 @@ bool CvUnitAI::AI_treasureRetreat(int iMaxPathTurns)
 		}
 		else
 		{
-			getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), ((iPass > 0) ? MOVE_IGNORE_DANGER : 0), false, false, MISSIONAI_AWAIT_PICKUP, pBestMissionPlot);
+			getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), ((iPass % 2 > 0) ? MOVE_IGNORE_DANGER : 0), false, false, MISSIONAI_AWAIT_PICKUP, pBestMissionPlot);
 			return true;
 		}
 	}
