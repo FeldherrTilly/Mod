@@ -23880,6 +23880,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=38,y=59
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -24452,7 +24453,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=39,y=55
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -25999,7 +25999,7 @@ EndPlot
 BeginPlot
 	x=42,y=11
 	FeatureType=FEATURE_CACTUS_TREES, FeatureVariety=0
-	TerrainType=TERRAIN_DESERT
+	TerrainType=TERRAIN_SHRUBLAND
 	PlotType=2
 EndPlot
 BeginPlot
@@ -26613,7 +26613,8 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=43,y=11
-	TerrainType=TERRAIN_DESERT
+	FeatureType=FEATURE_SHRUB, FeatureVariety=0
+	TerrainType=TERRAIN_SHRUBLAND
 	PlotType=2
 EndPlot
 BeginPlot
@@ -26658,8 +26659,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=43,y=20
-	FeatureType=FEATURE_SHRUB, FeatureVariety=0
-	TerrainType=TERRAIN_SHRUBLAND
+	TerrainType=TERRAIN_DESERT
 	PlotType=2
 EndPlot
 BeginPlot
@@ -26836,7 +26836,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=43,y=51
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -27255,7 +27254,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=44,y=18
-	TerrainType=TERRAIN_SHRUBLAND
+	TerrainType=TERRAIN_DESERT
 	PlotType=0
 EndPlot
 BeginPlot
@@ -27270,8 +27269,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=44,y=21
-	FeatureType=FEATURE_LIGHT_FOREST, FeatureVariety=0
-	TerrainType=TERRAIN_SHRUBLAND
+	TerrainType=TERRAIN_DESERT
 	PlotType=2
 EndPlot
 BeginPlot
@@ -27439,7 +27437,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=44,y=51
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -27456,6 +27453,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=44,y=54
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -28043,12 +28041,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=45,y=50
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=45,y=51
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -28699,6 +28697,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=46,y=60
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -29033,12 +29032,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=47,y=10
-	TerrainType=TERRAIN_DESERT
+	TerrainType=TERRAIN_SHRUBLAND
 	PlotType=2
 EndPlot
 BeginPlot
 	x=47,y=11
-	TerrainType=TERRAIN_DESERT
+	TerrainType=TERRAIN_SHRUBLAND
 	PlotType=0
 EndPlot
 BeginPlot
@@ -29632,7 +29631,7 @@ EndPlot
 BeginPlot
 	x=48,y=11
 	FeatureType=FEATURE_CACTUS_TREES, FeatureVariety=0
-	TerrainType=TERRAIN_DESERT
+	TerrainType=TERRAIN_SHRUBLAND
 	PlotType=2
 EndPlot
 BeginPlot
@@ -29717,13 +29716,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=48,y=27
-	FeatureType=FEATURE_REMARKABLE_MOUNTAIN1, FeatureVariety=0
-	TerrainType=TERRAIN_SHRUBLAND
+	TerrainType=TERRAIN_DESERT
 	PlotType=0
 EndPlot
 BeginPlot
 	x=48,y=28
-	TerrainType=TERRAIN_SHRUBLAND
+	TerrainType=TERRAIN_DESERT
 	PlotType=0
 EndPlot
 BeginPlot
@@ -29844,17 +29842,18 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=48,y=50
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=48,y=51
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=48,y=52
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -30314,7 +30313,8 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=49,y=25
-	TerrainType=TERRAIN_DESERT
+	FeatureType=FEATURE_SHRUB, FeatureVariety=0
+	TerrainType=TERRAIN_SHRUBLAND
 	PlotType=2
 EndPlot
 BeginPlot
@@ -30324,7 +30324,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=49,y=27
-	TerrainType=TERRAIN_DESERT
+	TerrainType=TERRAIN_SHRUBLAND
 	PlotType=0
 EndPlot
 BeginPlot
@@ -30457,7 +30457,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=49,y=51
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -30925,7 +30924,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=50,y=26
-	TerrainType=TERRAIN_SHRUBLAND
+	TerrainType=TERRAIN_DESERT
 	PlotType=1
 EndPlot
 BeginPlot
@@ -31077,7 +31076,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=50,y=54
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -31462,7 +31460,8 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=51,y=12
-	TerrainType=TERRAIN_DESERT
+	FeatureType=FEATURE_SHRUB, FeatureVariety=0
+	TerrainType=TERRAIN_SHRUBLAND
 	PlotType=2
 EndPlot
 BeginPlot
@@ -31662,7 +31661,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=51,y=50
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -32274,7 +32272,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=52,y=52
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -32658,12 +32655,13 @@ EndPlot
 BeginPlot
 	x=53,y=12
 	FeatureType=FEATURE_CACTUS_TREES, FeatureVariety=0
-	TerrainType=TERRAIN_DESERT
+	TerrainType=TERRAIN_SHRUBLAND
 	PlotType=2
 EndPlot
 BeginPlot
 	x=53,y=13
-	TerrainType=TERRAIN_DESERT
+	FeatureType=FEATURE_SHRUB, FeatureVariety=0
+	TerrainType=TERRAIN_SHRUBLAND
 	PlotType=2
 EndPlot
 BeginPlot
@@ -32873,6 +32871,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=53,y=51
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -32911,7 +32910,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=53,y=57
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -33298,7 +33296,8 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=54,y=15
-	TerrainType=TERRAIN_DESERT
+	FeatureType=FEATURE_SHRUB, FeatureVariety=0
+	TerrainType=TERRAIN_SHRUBLAND
 	PlotType=2
 EndPlot
 BeginPlot
@@ -33382,7 +33381,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=54,y=29
-	TerrainType=TERRAIN_SHRUBLAND
+	TerrainType=TERRAIN_DESERT
 	PlotType=0
 EndPlot
 BeginPlot
@@ -33993,13 +33992,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=55,y=26
-	FeatureType=FEATURE_SHRUB, FeatureVariety=0
-	TerrainType=TERRAIN_SHRUBLAND
+	TerrainType=TERRAIN_DESERT
 	PlotType=2
 EndPlot
 BeginPlot
 	x=55,y=27
-	TerrainType=TERRAIN_SHRUBLAND
+	TerrainType=TERRAIN_DESERT
 	PlotType=2
 EndPlot
 BeginPlot
@@ -34139,6 +34137,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=55,y=51
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -34165,7 +34164,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=55,y=56
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -34176,7 +34174,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=55,y=58
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -34622,7 +34619,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=56,y=27
-	TerrainType=TERRAIN_SHRUBLAND
+	TerrainType=TERRAIN_DESERT
 	PlotType=1
 EndPlot
 BeginPlot
@@ -34778,7 +34775,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=56,y=55
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -35176,8 +35172,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=57,y=18
-	FeatureType=FEATURE_SHRUB, FeatureVariety=0
-	TerrainType=TERRAIN_SHRUBLAND
+	TerrainType=TERRAIN_DESERT
 	PlotType=2
 EndPlot
 BeginPlot
@@ -35207,7 +35202,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=57,y=23
-	TerrainType=TERRAIN_SHRUBLAND
+	TerrainType=TERRAIN_DESERT
 	PlotType=2
 EndPlot
 BeginPlot
@@ -35217,7 +35212,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=57,y=25
-	TerrainType=TERRAIN_DESERT
+	TerrainType=TERRAIN_SHRUBLAND
 	PlotType=2
 EndPlot
 BeginPlot
@@ -35337,7 +35332,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=57,y=47
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -35354,7 +35348,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=57,y=50
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -35414,7 +35407,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=57,y=61
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -35810,8 +35802,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=58,y=23
-	FeatureType=FEATURE_LIGHT_FOREST, FeatureVariety=0
-	TerrainType=TERRAIN_SHRUBLAND
+	TerrainType=TERRAIN_DESERT
 	PlotType=2
 EndPlot
 BeginPlot
@@ -35823,7 +35814,7 @@ EndPlot
 BeginPlot
 	x=58,y=25
 	FeatureType=FEATURE_CACTUS_TREES, FeatureVariety=0
-	TerrainType=TERRAIN_DESERT
+	TerrainType=TERRAIN_SHRUBLAND
 	PlotType=2
 EndPlot
 BeginPlot
@@ -35956,7 +35947,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=58,y=47
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -36629,7 +36619,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=59,y=53
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -36650,7 +36639,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=59,y=57
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -37205,7 +37193,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=60,y=47
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -37242,7 +37229,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=60,y=54
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -37254,7 +37240,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=60,y=56
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -37270,7 +37255,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=60,y=59
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -37905,11 +37889,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=61,y=61
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=61,y=62
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -38487,6 +38473,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=62,y=53
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -38497,11 +38484,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=62,y=55
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=62,y=56
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -38523,7 +38512,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=62,y=60
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -39101,6 +39089,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=63,y=52
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -39760,13 +39749,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=64,y=58
-	FeatureType=FEATURE_ARROW_NW, FeatureVariety=0
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=59
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -39784,6 +39772,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=64,y=62
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -40403,6 +40392,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=65,y=61
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -40933,6 +40923,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=66,y=46
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -40970,6 +40961,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=66,y=53
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -41493,6 +41485,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=67,y=41
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -41521,6 +41514,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=67,y=46
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -41541,11 +41535,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=67,y=50
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=67,y=51
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -41556,6 +41552,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=67,y=53
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -42048,6 +42045,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=68,y=38
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -42064,6 +42062,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=68,y=41
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -42130,6 +42129,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=68,y=54
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
