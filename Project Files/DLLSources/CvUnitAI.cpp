@@ -15702,6 +15702,21 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 		}
 	}
 
+	// WTP: own settlers keep their distance too: no site within 3 plots of another own settler's site (two settlers
+	// walked to neighbouring plots for many turns)
+	std::vector<const CvPlot*> aOwnFoundTargets;
+	{
+		int iUnitLoop;
+		for (CvUnit* pLoopUnit = kOwner.firstUnit(&iUnitLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iUnitLoop))
+		{
+			if (pLoopUnit != this && pLoopUnit->AI_getUnitAIType() == UNITAI_SETTLER && pLoopUnit->getGroup() != getGroup()
+				&& pLoopUnit->getGroup()->AI_getMissionAIType() == MISSIONAI_FOUND && pLoopUnit->getGroup()->AI_getMissionAIPlot() != NULL)
+			{
+				aOwnFoundTargets.push_back(pLoopUnit->getGroup()->AI_getMissionAIPlot());
+			}
+		}
+	}
+
 	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
@@ -15714,6 +15729,13 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 				{
 					bTakenByOthers = true;
 					break;
+				}
+			}
+			for (uint iTarget = 0; iTarget < aOwnFoundTargets.size() && !bTakenByOthers; ++iTarget)
+			{
+				if (plotDistance(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), aOwnFoundTargets[iTarget]->getX_INLINE(), aOwnFoundTargets[iTarget]->getY_INLINE()) <= 3)
+				{
+					bTakenByOthers = true;
 				}
 			}
 			if (!bTakenByOthers && canFound(pLoopPlot))
