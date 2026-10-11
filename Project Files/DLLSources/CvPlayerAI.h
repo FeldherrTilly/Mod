@@ -464,7 +464,13 @@ public:
 
 	// TAC - AI More Immigrants - koma13 - START
 	void AI_hurryDocks();
+	// WTP: civilian purchases in Europe (settlers, pioneers, experts) and hurrying immigrants
+	void AI_doCivilianPurchases();
 	void AI_logStatusSummary(); // WTP: per turn AI status in BBAI.log
+	bool AI_canAffordCivilianPurchase(int iCost) const;
+	bool AI_buyCivilianUnit(UnitTypes eUnit, UnitAITypes eUnitAI, ProfessionTypes eProfession);
+	bool AI_hurryCheapImmigrant(bool bUnconditional);
+	int AI_civilianExpertPriority(ProfessionTypes eProfession, UnitClassTypes& eExpertClass);
 	// TAC - AI More Immigrants - koma13 - END
 
 	bool AI_prepareAssaultSea();	// TAC - AI Assault Sea - koma13
