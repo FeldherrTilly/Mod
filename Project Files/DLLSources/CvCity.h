@@ -185,6 +185,8 @@ public:
 	bool hasTrait(TraitTypes eTrait) const;
 	bool isHuman() const;
 	bool isNative() const;
+	PlayerTypes getTradeBlockingFortOwner(PlayerTypes eTrader) const;
+	bool hasTradeBlockingWalls() const;
 	DllExport bool isVisible(TeamTypes eTeam, bool bDebug) const;
 
 	DllExport bool isCapital() const;

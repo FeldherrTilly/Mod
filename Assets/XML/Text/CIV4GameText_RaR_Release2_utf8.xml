@@ -1177,4 +1177,14 @@
 		<Tag>TXT_KEY_MARKET_BOOM_HARDWOOD</Tag>
 		<English>Generations of shipbuilding have stripped Europe's forests of their great oaks. Now that ships are needed to cross the ocean, the shipwrights must look overseas for sound hardwood and pay dearly for it.</English>
 	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CITY_TRADE_BLOCKED_BY_FORT</Tag>
+		<English>[COLOR_WARNING_TEXT]No trade: the village is under the influence of a fort or fortified colony of %s1[COLOR_REVERT]</English>
+		<German>[COLOR_WARNING_TEXT]Kein Handel: Das Dorf steht unter dem Einfluss eines Forts oder einer befestigten Kolonie von %s1[COLOR_REVERT]</German>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRADE_BLOCKED_BY_FORT</Tag>
+		<English>Trade with %s1 is controlled by the nearby fort or colony of %s2 and is therefore not possible.</English>
+		<German>Der Handel mit %s1 wird über das nahe Fort bzw. die nahe Kolonie von %s2 kontrolliert und ist deshalb nicht möglich.</German>
+	</TEXT>
 </Civ4GameText>

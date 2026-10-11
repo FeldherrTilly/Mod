@@ -3108,6 +3108,18 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			szString.append(NEWLINE);
 			szString.append(pCity->getNameKey());
 
+			// WTP, forts block foreign trade
+			const PlayerTypes eActivePlayer = GC.getGameINLINE().getActivePlayer();
+			if (eActivePlayer != NO_PLAYER && pCity->getOwnerINLINE() != eActivePlayer)
+			{
+				const PlayerTypes eFortOwner = pCity->getTradeBlockingFortOwner(eActivePlayer);
+				if (eFortOwner != NO_PLAYER)
+				{
+					szString.append(NEWLINE);
+					szString.append(gDLL->getText("TXT_KEY_CITY_TRADE_BLOCKED_BY_FORT", GET_PLAYER(eFortOwner).getCivilizationShortDescriptionKey()));
+				}
+			}
+
 			// WTP, ray, new Harbour System - START
 			if (pCity->bShouldShowCityHarbourSystem())
 			{

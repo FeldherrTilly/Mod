@@ -2920,6 +2920,93 @@ bool CvCity::isNative() const
 	return GET_PLAYER(getOwnerINLINE()).isNative();
 }
 
+// WTP, forts block foreign trade: a defended fort or a colony with at least a stockade (walls level 2) near a
+// native village keeps other players from trading there, unless the natives are furious with or at war with
+// its owner. Forts and colonies of natives do not block. A trader whose own team has such a fort or colony
+// there may still trade, so rival powers holding the same village can both trade with it.
+// Returns the blocking player or NO_PLAYER.
+PlayerTypes CvCity::getTradeBlockingFortOwner(PlayerTypes eTrader) const
+{
+	if (!isNative() || eTrader == NO_PLAYER)
+	{
+		return NO_PLAYER;
+	}
+
+	CvPlayerAI& kNative = GET_PLAYER(getOwnerINLINE());
+	const TeamTypes eTraderTeam = GET_PLAYER(eTrader).getTeam();
+	const int iRange = GLOBAL_DEFINE_FORT_TRADE_BLOCK_RANGE;
+	PlayerTypes eForeignBlocker = NO_PLAYER;
+
+	for (int iDX = -iRange; iDX <= iRange; ++iDX)
+	{
+		for (int iDY = -iRange; iDY <= iRange; ++iDY)
+		{
+			CvPlot* const pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
+			if (pLoopPlot == NULL)
+			{
+				continue;
+			}
+
+			PlayerTypes eHolder = NO_PLAYER;
+			if (pLoopPlot->isFort())
+			{
+				const CvUnit* const pDefender = pLoopPlot->getFortDefender();
+				if (pDefender != NULL)
+				{
+					eHolder = pDefender->getOwnerINLINE();
+				}
+			}
+			else if (pLoopPlot->isCity())
+			{
+				const CvCity* const pLoopCity = pLoopPlot->getPlotCity();
+				if (pLoopCity->hasTradeBlockingWalls())
+				{
+					eHolder = pLoopCity->getOwnerINLINE();
+				}
+			}
+
+			if (eHolder == NO_PLAYER || GET_PLAYER(eHolder).isNative())
+			{
+				continue;
+			}
+
+			const TeamTypes eHolderTeam = GET_PLAYER(eHolder).getTeam();
+			if (GET_TEAM(kNative.getTeam()).isAtWar(eHolderTeam) || kNative.AI_getAttitude(eHolder) == ATTITUDE_FURIOUS)
+			{
+				continue;
+			}
+
+			if (eHolderTeam == eTraderTeam)
+			{
+				// the trader holds the village too
+				return NO_PLAYER;
+			}
+
+			if (eForeignBlocker == NO_PLAYER)
+			{
+				eForeignBlocker = eHolder;
+			}
+		}
+	}
+
+	return eForeignBlocker;
+}
+
+// WTP, forts block foreign trade: walls of at least the second level (stockade or better)
+bool CvCity::hasTradeBlockingWalls() const
+{
+	const int eWalls = getIndexForType(JIT_ARRAY_BUILDING_SPECIAL, "SPECIALBUILDING_WALLS");
+	for (BuildingTypes eBuilding = FIRST_BUILDING; eBuilding < NUM_BUILDING_TYPES; ++eBuilding)
+	{
+		const CvBuildingInfo& kBuilding = GC.getBuildingInfo(eBuilding);
+		if (kBuilding.getSpecialBuildingType() == eWalls && kBuilding.getSpecialBuildingPriority() >= 1 && isHasConceptualBuilding(eBuilding))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 bool CvCity::isVisible(TeamTypes eTeam, bool bDebug) const
 {
 	if (SAVEGAME_IS_LOADING)
