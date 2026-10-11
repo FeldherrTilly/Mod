@@ -9125,6 +9125,11 @@ void CvPlayerAI::AI_doProfessions()
 												static_cast<CvCityAI*>(pLoopCity)->AI_doSettlerProfessionCheat();
 											}
 
+											// WTP: experts become settlers only if nobody else is available (second pass)
+											if (eUnitAI == UNITAI_SETTLER && pUnit->AI_getIdealProfession() != NO_PROFESSION)
+											{
+												continue;
+											}
 											if (pUnit->canHaveProfession(eProfession, false) && (AI_professionSuitability(pUnit, eProfession, pLoopCity->plot()) > 100))
 											{
 												pLoopCity->removePopulationUnit(CREATE_ASSERT_DATA, pUnit, false, eProfession);
@@ -9154,10 +9159,12 @@ void CvPlayerAI::AI_doProfessions()
 
 			if (!bDone)
 			{
+				// WTP: the best unit over all colonies
+				int iBestValue = 0;
+				CvUnit* pBestUnit = NULL;
+				CvCity* pBestCity = NULL;
 				for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 				{
-					int iBestValue = 0;
-					CvUnit* pBestUnit = NULL;
 
 					if (!cityDanger[pLoopCity->getID()] || AI_unitAIIsCombat(eUnitAI))
 					{
@@ -9187,13 +9194,10 @@ void CvPlayerAI::AI_doProfessions()
 											// TODO: Replace this with AdvCiv's AI() accessor
 											static_cast<CvCityAI*>(pLoopCity)->AI_doSettlerProfessionCheat();
 
+											// WTP: experts only if nobody else is available (in any colony)
 											if (pUnit->AI_getIdealProfession() != NO_PROFESSION)
 											{
-												if ((pUnit->getProfession() != pUnit->AI_getIdealProfession()) && (GC.getProfessionInfo(pUnit->AI_getIdealProfession()).isWorkPlot()))
-												{
-													iValue *= 150;
-													iValue /= 100;
-												}
+												iValue /= 1000;
 											}
 											else
 											{
@@ -9214,27 +9218,27 @@ void CvPlayerAI::AI_doProfessions()
 										{
 											iBestValue = iValue;
 											pBestUnit = pUnit;
+											pBestCity = pLoopCity;
 										}
 									}
 								}
 							}
 						}
 					}
-					if (pBestUnit != NULL)
+				}
+				if (pBestUnit != NULL)
+				{
+					pBestCity->removePopulationUnit(CREATE_ASSERT_DATA, pBestUnit, false, eProfession);
+					pBestUnit->AI_setUnitAIType(eUnitAI);
+
+					if (gPlayerLogLevel >= 1)
 					{
-						pLoopCity->removePopulationUnit(CREATE_ASSERT_DATA, pBestUnit, false, eProfession);
-						pBestUnit->AI_setUnitAIType(eUnitAI);
+						CvWString szTempString;
+						getUnitAIString(szTempString, eUnitAI);
 
-						if (gPlayerLogLevel >= 1)
-						{
-							CvWString szTempString;
-							getUnitAIString(szTempString, eUnitAI);
+						logBBAI(" Player(%S) City (%S) emits civilian Unit (!bdone) (%S) with UnitAI (%S)",
+							getCivilizationDescription(), pBestCity->getNameKey(), pBestUnit->getNameAndProfession().GetCString(), szTempString.GetCString());
 
-							logBBAI(" Player(%S) City (%S) emits civilian Unit (!bdone) (%S) with UnitAI (%S)",
-								getCivilizationDescription(), pLoopCity->getNameKey(), pBestUnit->getNameAndProfession().GetCString(), szTempString.GetCString());
-
-						}
-						break; // WTP: one unit per unit AI and turn
 					}
 				}
 			}
