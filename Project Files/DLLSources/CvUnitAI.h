@@ -86,6 +86,7 @@ public:
 
 	bool AI_loadAdjacent(CvPlot* pPlot, bool bTestCity);
 	bool AI_allowedToJoin(const CvCity& kCity) const;
+	bool AI_mayPioneerJoinCity() const;
 
 	void read(CvSavegameReader reader);
 	void write(CvSavegameWriter writer);
