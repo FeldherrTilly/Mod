@@ -1673,6 +1673,21 @@
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 	<Define>
+		<!-- domestic market profit change in percent per point of net law (positive) or net crime (negative) -->
+		<DefineName>DOMESTIC_MARKET_PERCENT_PER_NET_LAW</DefineName>
+		<iDefineIntVal>2</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- maximum domestic market bonus in percent from net law; the malus from net crime is not capped -->
+		<DefineName>DOMESTIC_MARKET_MAX_LAW_BONUS_PERCENT</DefineName>
+		<iDefineIntVal>16</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- gold stolen each turn per point of net crime in a colony -->
+		<DefineName>CRIME_GOLD_STOLEN_PER_NET_CRIME</DefineName>
+		<iDefineIntVal>5</iDefineIntVal>
+	</Define>
+	<Define>
 		<DefineName>CRIME_PERCENT_BONUS_FACTOR_OVERFLOW</DefineName>
 		<iDefineIntVal>60</iDefineIntVal>
 	</Define>

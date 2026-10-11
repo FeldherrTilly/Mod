@@ -7914,7 +7914,11 @@ void CvCity::doYields()
 	// WTP, ray, Happiness - END
 
 	// WTP, ray, Crime and Law - START
-	int iCityLawDomesticMarketGoldModifiers = getCityLaw() - getCityCrime();
+	// WTP: each point of net law or crime changes domestic market profits by a percentage; the bonus is capped,
+	// the malus only so far that sales never cost money
+	int iCityLawDomesticMarketGoldModifiers = (getCityLaw() - getCityCrime()) * GLOBAL_DEFINE_DOMESTIC_MARKET_PERCENT_PER_NET_LAW;
+	iCityLawDomesticMarketGoldModifiers = std::min(iCityLawDomesticMarketGoldModifiers, GLOBAL_DEFINE_DOMESTIC_MARKET_MAX_LAW_BONUS_PERCENT);
+	iCityLawDomesticMarketGoldModifiers = std::max(iCityLawDomesticMarketGoldModifiers, -100);
 	// WTP, ray, Crime and Law - END
 
 	// WTP, ray, Domestic Market Profit Modifier - START
@@ -10908,13 +10912,15 @@ void CvCity::doCityCrime()
 	CvPlayerAI& kPlayer = GET_PLAYER(eOwner);
 
 	// we substract gold if there is enough
-	if (kPlayer.getGold() > iCityCrime)
+	// WTP: thieves take CRIME_GOLD_STOLEN_PER_NET_CRIME gold per point of net crime
+	const int iGoldStolen = iCityCrime * GLOBAL_DEFINE_CRIME_GOLD_STOLEN_PER_NET_CRIME;
+	if (kPlayer.getGold() > iGoldStolen)
 	{
-		OOS_LOG_3("Crime", CvString(getName()).c_str(), iCityCrime);
-		kPlayer.changeGold(-iCityCrime);
+		OOS_LOG_3("Crime", CvString(getName()).c_str(), iGoldStolen);
+		kPlayer.changeGold(-iGoldStolen);
 
 		// add message
-		CvWString szBuffer = gDLL->getText("TXT_KEY_CITY_GOLD_STOLEN_BECAUSE_CRIME", getNameKey(), iCityCrime);
+		CvWString szBuffer = gDLL->getText("TXT_KEY_CITY_GOLD_STOLEN_BECAUSE_CRIME", getNameKey(), iGoldStolen);
 		gDLL->UI().addPlayerMessage(eOwner, false, GC.getEVENT_MESSAGE_TIME(), szBuffer, coord(), "AS2D_CITYCRIME", MESSAGE_TYPE_MAJOR_EVENT, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_SHOW_CTIYCRIME")->getPath(), COLOR_RED, true, true);
 
 	}
