@@ -14459,7 +14459,9 @@ int CvPlayerAI::AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance)
 	FAssert(eIndex != getID());
 
 	iValue = 0;
-	for (pLoopCity = GET_PLAYER(eIndex).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(eIndex).nextCity(&iLoop))
+	// WTP: sum up how close our own cities are to eIndex (the loop used to run over eIndex's cities, which
+	// measured how close eIndex's cities are to eIndex itself)
+	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
 		iValue += pLoopCity->AI_playerCloseness(eIndex, iMaxDistance);
 	}
