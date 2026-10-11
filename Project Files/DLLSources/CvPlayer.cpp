@@ -313,6 +313,12 @@ void CvPlayer::initFreeState()
 	iStartingGold *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getStoragePercent();
 	iStartingGold /= 100;
 
+	// WTP, natives start poorer
+	if (isNative())
+	{
+		iStartingGold = iStartingGold * GLOBAL_DEFINE_NATIVE_STARTING_GOLD_PERCENT / 100;
+	}
+
 	changeGold(iStartingGold);
     // Barthoze : Time is the issue - END
 }
@@ -12546,7 +12552,8 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, Coordinat
 	switch (eAction)
 	{
 	case ADVANCEDSTARTACTION_EXIT:
-		changeGold(getAdvancedStartPoints());
+		// WTP, natives keep only part of their unspent start points as gold
+		changeGold(isNative() ? getAdvancedStartPoints() * GLOBAL_DEFINE_NATIVE_STARTING_GOLD_PERCENT / 100 : getAdvancedStartPoints());
 		setAdvancedStartPoints(-1);
 		if (GC.getGameINLINE().getActivePlayer() == getID())
 		{

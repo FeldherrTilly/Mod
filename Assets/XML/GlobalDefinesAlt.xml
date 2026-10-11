@@ -550,7 +550,7 @@
 	</Define>
 	<Define>
 		<DefineName>PRICE_INCREASE_BARGAIN_SELL</DefineName>
-		<iDefineIntVal>300</iDefineIntVal>
+		<iDefineIntVal>210</iDefineIntVal>
 	</Define>
 	<Define>
 		<DefineName>MAX_NATIVE_BARGAIN_MODIFIER</DefineName>
@@ -664,8 +664,13 @@
 		<iDefineIntVal>10</iDefineIntVal>
 	</Define>
 	<Define>
+		<!-- percentage of the normal starting gold (incl. unspent advanced start points) natives receive -->
+		<DefineName>NATIVE_STARTING_GOLD_PERCENT</DefineName>
+		<iDefineIntVal>70</iDefineIntVal>
+	</Define>
+	<Define>
 		<DefineName>PER_ROUND_PER_VILLAGE_INCOME_MAX</DefineName>
-		<iDefineIntVal>10</iDefineIntVal>
+		<iDefineIntVal>7</iDefineIntVal>
 	</Define>
 	<Define>
 		<DefineName>PER_VILLAGE_FEATURE_GENERATION_LIMIT</DefineName>
