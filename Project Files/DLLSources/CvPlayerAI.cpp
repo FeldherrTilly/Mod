@@ -18377,6 +18377,17 @@ UnitTypes CvPlayerAI::AI_bestShipToBuy(UnitAITypes eUnitAI, bool bCheapest, Terr
 		}
 	}
 
+	int iMaxMoves = 1;
+	for (UnitClassTypes eUnitClass = FIRST_UNITCLASS; eUnitClass < NUM_UNITCLASS_TYPES; ++eUnitClass)
+	{
+		const UnitTypes eLoopUnit = kCiv.getCivilizationUnits(eUnitClass);
+		if (eLoopUnit != NO_UNIT && GC.getUnitInfo(eLoopUnit).getDefaultUnitAIType() == eUnitAI && isUnitWithinGameYearWindow(eLoopUnit)
+			&& getEuropeUnitBuyPrice(eLoopUnit) > 0)
+		{
+			iMaxMoves = std::max(iMaxMoves, GC.getUnitInfo(eLoopUnit).getMoves());
+		}
+	}
+
 	UnitTypes eBestShip = NO_UNIT;
 	int iBestValue = 0;
 	for (UnitClassTypes eUnitClass = FIRST_UNITCLASS; eUnitClass < NUM_UNITCLASS_TYPES; ++eUnitClass)
@@ -18397,7 +18408,12 @@ UnitTypes CvPlayerAI::AI_bestShipToBuy(UnitAITypes eUnitAI, bool bCheapest, Terr
 		{
 			continue;
 		}
-		const int iValue = bCheapest ? (1000000 / iPrice) : (1000 * AI_unitGoldValue(eLoopUnit, eUnitAI, NULL) / iPrice);
+		int iValue = bCheapest ? (1000000 / iPrice) : (1000 * AI_unitGoldValue(eLoopUnit, eUnitAI, NULL) / iPrice);
+		// WTP: transports: the most cargo per gold, weighted with 50 % of the speed (moves relative to the fastest)
+		if (!bCheapest && eUnitAI == UNITAI_TRANSPORT_SEA)
+		{
+			iValue = 1000000 * kUnitInfo.getCargoSpace() / iPrice * (50 + 50 * kUnitInfo.getMoves() / std::max(1, iMaxMoves)) / 100;
+		}
 		if (iValue > iBestValue)
 		{
 			iBestValue = iValue;
