@@ -690,7 +690,9 @@ int CvUnitAI::AI_groupFirstVal()
 		break;
 
 	case UNITAI_SETTLER:
-		return 5;
+		// WTP: a settler must lead its escort, otherwise the group follows the escort's AI (e.g. guarding a city)
+		// and the settler never moves; was 5, below all military unit AIs
+		return 22;
 		break;
 
 	case UNITAI_WORKER:
