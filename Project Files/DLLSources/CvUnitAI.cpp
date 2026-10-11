@@ -19076,7 +19076,7 @@ bool CvUnitAI::AI_poach()
 	if (pBestPoachPlot != NULL)
 	{
 		//No war roll.
-		if (!GET_TEAM(getTeam()).AI_performNoWarRolls(eBestPoachTeam))
+		if (GET_TEAM(getTeam()).AI_mayDeclareWarAsNative(eBestPoachTeam) && !GET_TEAM(getTeam()).AI_performNoWarRolls(eBestPoachTeam))
 		{
 			GET_TEAM(getTeam()).declareWar(eBestPoachTeam, true, WARPLAN_LIMITED);
 

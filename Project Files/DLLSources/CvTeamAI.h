@@ -57,6 +57,7 @@ public:
 	bool AI_shareWar(TeamTypes eTeam) const;
 
 	AttitudeTypes AI_getAttitude(TeamTypes eTeam, bool bForced = true) const;
+	bool AI_mayDeclareWarAsNative(TeamTypes eTeam) const; // WTP
 	int AI_getAttitudeVal(TeamTypes eTeam, bool bForced = true) const;
 	int AI_getMemoryCount(TeamTypes eTeam, MemoryTypes eMemory) const;
 
