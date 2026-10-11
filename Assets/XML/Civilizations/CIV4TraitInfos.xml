@@ -226,7 +226,7 @@
 			<iAfricaSellProfitModifierInPercent>0</iAfricaSellProfitModifierInPercent>
 			<iPortRoyalSellProfitModifierInPercent>0</iPortRoyalSellProfitModifierInPercent>
 			<iDomesticMarketProfitModifierInPercent>0</iDomesticMarketProfitModifierInPercent>
-			<iTreasureModifier>25</iTreasureModifier>
+			<iTreasureModifier>50</iTreasureModifier>
 			<iGoodUniqueGoodyChanceModifierLand>0</iGoodUniqueGoodyChanceModifierLand>
 			<iGoodUniqueGoodyChanceModifierWater>0</iGoodUniqueGoodyChanceModifierWater>
 			<iUnhappinessFromSlavesModifier>25</iUnhappinessFromSlavesModifier>
@@ -1921,7 +1921,7 @@
 			<iAfricaSellProfitModifierInPercent>0</iAfricaSellProfitModifierInPercent>
 			<iPortRoyalSellProfitModifierInPercent>0</iPortRoyalSellProfitModifierInPercent>
 			<iDomesticMarketProfitModifierInPercent>0</iDomesticMarketProfitModifierInPercent>
-			<iTreasureModifier>100</iTreasureModifier>
+			<iTreasureModifier>200</iTreasureModifier>
 			<iGoodUniqueGoodyChanceModifierLand>0</iGoodUniqueGoodyChanceModifierLand>
 			<iGoodUniqueGoodyChanceModifierWater>0</iGoodUniqueGoodyChanceModifierWater>
 			<iUnhappinessFromSlavesModifier>0</iUnhappinessFromSlavesModifier>
