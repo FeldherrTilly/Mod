@@ -6310,6 +6310,30 @@ CvCity* CvPlayer::found(Coordinates foundCoord)
 		return NULL;
 	}
 
+	// WTP: why a colonial AI founds where it does (found value, distance to its nearest colony and to its primary colony)
+	if (gPlayerLogLevel >= 1 && !isHuman() && is(CIV_CATEGORY_COLONIAL) && getNumCities() > 0)
+	{
+		const CvPlot* const pFoundPlot = GC.getMap().plotINLINE(foundCoord.x(), foundCoord.y());
+		int iNearest = MAX_INT;
+		int iLoop;
+		for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+		{
+			const int iDistance = plotDistance(foundCoord.x(), foundCoord.y(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+			if (iDistance < iNearest)
+			{
+				iNearest = iDistance;
+			}
+		}
+		CvCity* const pPrimary = AI().AI_getPrimaryCity();
+		logBBAI("WTP found: Player %d (%S) turn %d founds at %d,%d: found value %d, area best %d, nearest own colony %d plots, primary colony %S %d plots%s, AI city distance %d",
+			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), foundCoord.x(), foundCoord.y(),
+			AI().AI_foundValue(foundCoord.x(), foundCoord.y()), pFoundPlot->area()->getBestFoundValue(getID()), iNearest,
+			(pPrimary != NULL) ? pPrimary->getName().GetCString() : L"-",
+			(pPrimary != NULL) ? plotDistance(foundCoord.x(), foundCoord.y(), pPrimary->getX_INLINE(), pPrimary->getY_INLINE()) : -1,
+			(pPrimary != NULL && pPrimary->area() != pFoundPlot->area()) ? " (other landmass)" : "",
+			AI().AI_cityDistance(const_cast<CvPlot*>(pFoundPlot)));
+	}
+
 	CvCity* pCity = initCity(foundCoord, true);
 	FAssertMsg(pCity != NULL, "City is not assigned a valid value");
 
