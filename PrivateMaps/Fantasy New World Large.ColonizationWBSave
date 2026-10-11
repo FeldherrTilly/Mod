@@ -38907,9 +38907,8 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=63,y=15
-	FeatureType=FEATURE_FOREST, FeatureVariety=0
-	TerrainType=TERRAIN_GRASS
-	PlotType=2
+	TerrainType=TERRAIN_SHALLOW_COAST
+	PlotType=3
 EndPlot
 BeginPlot
 	x=63,y=16
@@ -39526,25 +39525,18 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=64,y=14
-	FeatureType=FEATURE_FOREST_EVERGREEN, FeatureVariety=0
-	TerrainType=TERRAIN_GRASS
-	PlotType=2
+	TerrainType=TERRAIN_SHALLOW_COAST
+	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=15
-	FeatureType=FEATURE_FOREST, FeatureVariety=0
-	TerrainType=TERRAIN_GRASS
-	PlotType=2
+	TerrainType=TERRAIN_SHALLOW_COAST
+	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=16
-	RiverNSDirection=0
-	isWOfRiver
-	RiverWEDirection=1
-	isNOfRiver
-	FeatureType=FEATURE_FOREST, FeatureVariety=0
-	TerrainType=TERRAIN_GRASS
-	PlotType=2
+	TerrainType=TERRAIN_SHALLOW_COAST
+	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=17
@@ -39578,8 +39570,8 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=64,y=21
-	TerrainType=TERRAIN_MARSH
-	PlotType=1
+	TerrainType=TERRAIN_SHALLOW_COAST
+	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=22
@@ -40170,9 +40162,8 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=65,y=15
-	FeatureType=FEATURE_FOREST, FeatureVariety=0
-	TerrainType=TERRAIN_SAVANNAH
-	PlotType=2
+	TerrainType=TERRAIN_SHALLOW_COAST
+	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=16
@@ -40195,21 +40186,18 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=65,y=19
-	FeatureType=FEATURE_JUNGLE, FeatureVariety=0
-	TerrainType=TERRAIN_SAVANNAH
-	PlotType=2
+	TerrainType=TERRAIN_SHALLOW_COAST
+	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=20
-	FeatureType=FEATURE_JUNGLE, FeatureVariety=0
-	TerrainType=TERRAIN_SAVANNAH
-	PlotType=2
+	TerrainType=TERRAIN_SHALLOW_COAST
+	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=21
-	FeatureType=FEATURE_TROPICAL_GROVES, FeatureVariety=0
-	TerrainType=TERRAIN_SAVANNAH
-	PlotType=2
+	TerrainType=TERRAIN_SHALLOW_COAST
+	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=22
@@ -40266,14 +40254,11 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=65,y=30
-	FeatureType=FEATURE_JUNGLE, FeatureVariety=0
-	TerrainType=TERRAIN_SAVANNAH
-	PlotType=2
+	TerrainType=TERRAIN_SHALLOW_COAST
+	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=31
-	RiverWEDirection=1
-	isNOfRiver
 	FeatureType=FEATURE_TROPICAL_GROVES, FeatureVariety=0
 	TerrainType=TERRAIN_SAVANNAH
 	PlotType=2
@@ -40828,14 +40813,11 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=66,y=21
-	FeatureType=FEATURE_JUNGLE, FeatureVariety=0
-	TerrainType=TERRAIN_SAVANNAH
-	PlotType=2
+	TerrainType=TERRAIN_SHALLOW_COAST
+	PlotType=3
 EndPlot
 BeginPlot
 	x=66,y=22
-	RiverWEDirection=1
-	isNOfRiver
 	FeatureType=FEATURE_JUNGLE, FeatureVariety=0
 	TerrainType=TERRAIN_SAVANNAH
 	PlotType=1
@@ -40885,16 +40867,11 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=66,y=30
-	RiverWEDirection=1
-	isNOfRiver
-	FeatureType=FEATURE_JUNGLE, FeatureVariety=0
-	TerrainType=TERRAIN_SAVANNAH
-	PlotType=2
+	TerrainType=TERRAIN_COAST
+	PlotType=3
 EndPlot
 BeginPlot
 	x=66,y=31
-	RiverWEDirection=1
-	isNOfRiver
 	FeatureType=FEATURE_TROPICAL_GROVES, FeatureVariety=0
 	TerrainType=TERRAIN_SAVANNAH
 	PlotType=1
@@ -41475,16 +41452,11 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=67,y=30
-	RiverWEDirection=1
-	isNOfRiver
-	FeatureType=FEATURE_TROPICAL_GROVES, FeatureVariety=0
-	TerrainType=TERRAIN_SAVANNAH
-	PlotType=2
+	TerrainType=TERRAIN_COAST
+	PlotType=3
 EndPlot
 BeginPlot
 	x=67,y=31
-	RiverWEDirection=1
-	isNOfRiver
 	FeatureType=FEATURE_TROPICAL_GROVES, FeatureVariety=0
 	TerrainType=TERRAIN_SAVANNAH
 	PlotType=1
@@ -49961,12 +49933,6 @@ BeginSign
 	caption=Lake Hartley
 EndSign
 BeginSign
-	plotX=63
-	plotY=15
-	playerType=-1
-	caption=Terra de Santa Cruz
-EndSign
-BeginSign
 	plotX=6
 	plotY=82
 	playerType=-1
@@ -49988,13 +49954,19 @@ BeginSign
 	plotX=61
 	plotY=30
 	playerType=-1
-	caption=Nueva Andalucia
+	caption=Terra de Santa Cruz
 EndSign
 BeginSign
 	plotX=17
 	plotY=65
 	playerType=-1
 	caption=Nueva Galicia
+EndSign
+BeginSign
+	plotX=62
+	plotY=15
+	playerType=-1
+	caption=Nueva Andalucia
 EndSign
 BeginSign
 	plotX=63
