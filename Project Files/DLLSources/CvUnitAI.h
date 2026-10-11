@@ -453,6 +453,7 @@ protected:
 	void AI_transportSettler();
 	void AI_unloadPassengers(bool bAll);
 	bool AI_wfTravelByShip(const CvCity& kTarget);
+	CvCity* AI_transportDestinationCity() const;
 	bool AI_pickupStranded(UnitAITypes eUnitAI = NO_UNITAI, int iMaxPath = MAX_INT);
 
 	// added so under cheat mode we can call protected functions for testing

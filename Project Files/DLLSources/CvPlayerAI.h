@@ -469,6 +469,8 @@ public:
 	void AI_logStatusSummary(); // WTP: per turn AI status in BBAI.log
 	// WTP: ship purchases that respect where the colonies are
 	int AI_shipReachableColonies(UnitTypes eUnit) const;
+	static bool AI_shipCanReachCity(UnitTypes eUnit, const CvCity& kCity);
+	bool AI_isRestrictedWaterCity(const CvCity& kCity) const;
 	UnitTypes AI_bestShipToBuy(UnitAITypes eUnitAI, bool bCheapest);
 	bool AI_doTransportPurchase();
 	bool AI_doTreasureShipPurchase();
