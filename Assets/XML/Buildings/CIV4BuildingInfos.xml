@@ -10064,11 +10064,11 @@
 				</YieldChange>
 				<YieldChange>
 					<YieldType>YIELD_CROSSES</YieldType>
-					<iYieldChange>3</iYieldChange>
+					<iYieldChange>7</iYieldChange>
 				</YieldChange>
 				<YieldChange>
 					<YieldType>YIELD_HAPPINESS</YieldType>
-					<iYieldChange>3</iYieldChange>
+					<iYieldChange>5</iYieldChange>
 				</YieldChange>
 			</YieldChanges>
 			<YieldModifiers/>
@@ -10191,11 +10191,11 @@
 				</YieldChange>
 				<YieldChange>
 					<YieldType>YIELD_CROSSES</YieldType>
-					<iYieldChange>5</iYieldChange>
+					<iYieldChange>9</iYieldChange>
 				</YieldChange>
 				<YieldChange>
 					<YieldType>YIELD_HAPPINESS</YieldType>
-					<iYieldChange>5</iYieldChange>
+					<iYieldChange>7</iYieldChange>
 				</YieldChange>
 			</YieldChanges>
 			<YieldModifiers/>
@@ -10323,11 +10323,11 @@
 				</YieldChange>
 				<YieldChange>
 					<YieldType>YIELD_CROSSES</YieldType>
-					<iYieldChange>7</iYieldChange>
+					<iYieldChange>11</iYieldChange>
 				</YieldChange>
 				<YieldChange>
 					<YieldType>YIELD_HAPPINESS</YieldType>
-					<iYieldChange>7</iYieldChange>
+					<iYieldChange>9</iYieldChange>
 				</YieldChange>
 			</YieldChanges>
 			<YieldModifiers/>
