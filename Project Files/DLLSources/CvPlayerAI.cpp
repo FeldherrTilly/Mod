@@ -9334,8 +9334,11 @@ void CvPlayerAI::AI_doEurope()
 
 	if (!isHuman() && !isNative() && !isEurope())
 	{
-		// WTP: the second scout before anything else
-		AI_doScoutPurchase();
+		// WTP: the second scout before anything else; while saving for it nothing else is bought
+		if (AI_doScoutPurchase())
+		{
+			return;
+		}
 
 		// WTP: from 5 waiting treasures a galleon (the only ship that carries them) comes first
 		if (AI_doTreasureShipPurchase())
@@ -17242,8 +17245,8 @@ bool CvPlayerAI::AI_canAffordCivilianPurchase(int iCost) const
 	{
 		return false;
 	}
-	// WTP: while saving for the galleon that picks up the treasures
-	if (AI_treasureShipToBuy() != NO_UNIT)
+	// WTP: while saving for a scout, a transport, the militia or the galleon that picks up the treasures
+	if (AI_isSavingGold())
 	{
 		return false;
 	}
@@ -18883,11 +18886,11 @@ bool CvPlayerAI::AI_isSavingGold() const
 }
 
 // WTP: two scouts before anything else (the first one comes free with the first colony)
-void CvPlayerAI::AI_doScoutPurchase()
+bool CvPlayerAI::AI_doScoutPurchase()
 {
 	if (isHuman() || isNative() || isEurope() || getParent() == NO_PLAYER || !canTradeWithEurope())
 	{
-		return;
+		return false;
 	}
 	const UnitTypes eColonist = GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits((UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_COLONIST"));
 	// 0. two scouts before anybody else (the first one comes free with the first colony): exploring brings gold
@@ -18912,7 +18915,11 @@ void CvPlayerAI::AI_doScoutPurchase()
 			}
 			if (getGold() < getEuropeUnitBuyPrice(eUnit) + iEquipCost)
 			{
-				continue;
+				// WTP: the AI saves for the scout: no civilian units and no hurrying meanwhile
+				AI_setSavingGold();
+				if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) saves for a scout (%d gold, have %d)", getID(), getCivilizationDescription(0),
+					getEuropeUnitBuyPrice(eUnit) + iEquipCost, getGold());
+				return true;
 			}
 			CvUnit* const pScout = buyEuropeUnit(eUnit, 100);
 			if (pScout != NULL)
@@ -18928,6 +18935,7 @@ void CvPlayerAI::AI_doScoutPurchase()
 		}
 	}
 
+	return false;
 }
 
 // WTP: buy another transport if more units wait in Europe than one load of all our transports.
