@@ -2122,7 +2122,8 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 
 				if (iI == CITY_HOME_PLOT)
 				{
-					iValue += 2 * aiYield[YIELD_FOOD] * AI_yieldValue(YIELD_FOOD);
+					// WTP: food weighs less for later colonies, so cash crops count for more
+					iValue += 2 * aiYield[YIELD_FOOD] * AI_yieldValue(YIELD_FOOD) * ((getNumCities() > 0) ? 75 : 100) / 100;
 
 					YieldTypes bestYield = NO_YIELD;
 					int bestOutput = 0;
@@ -2159,6 +2160,12 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 							if (pLoopPlot->isWater())
 							{
 								iYieldValue /= 2;
+							}
+
+							// WTP: food weighs less for later colonies, so cash crops count for more
+							if (eYield == YIELD_FOOD && getNumCities() > 0)
+							{
+								iYieldValue = iYieldValue * 75 / 100;
 							}
 
 							if (getNumCities() > 0)
@@ -2233,6 +2240,24 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 	if (iTeammateTakenTiles > 1)
 	{
 		return 0;
+	}
+
+	// WTP: a site with fewer than 3 usable land plots next to the city center is worth 25% less
+	{
+		int iUsableLand = 0;
+		for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+		{
+			const CvPlot* const pLoopPlot = plotDirection(iX, iY, (DirectionTypes)iI);
+			if (pLoopPlot != NULL && !pLoopPlot->isWater() && !pLoopPlot->isImpassable() && !pLoopPlot->isCityRadius()
+				&& (!pLoopPlot->isOwned() || pLoopPlot->getOwnerINLINE() == getID() || GET_PLAYER(pLoopPlot->getOwnerINLINE()).isNative()))
+			{
+				++iUsableLand;
+			}
+		}
+		if (iUsableLand < 3)
+		{
+			iValue = iValue * 75 / 100;
+		}
 	}
 
 	if (pPlot->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN()))
