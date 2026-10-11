@@ -151,6 +151,7 @@ public:
 	int AI_hammerJobMinValue() const;
 	bool AI_canClearLumberFeature(const CvPlot* pPlot) const;
 	void AI_getYieldsTaughtNearby(bool* abYields) const; // WTP
+	int AI_projectedLumberWithout(const CvUnit* pUnit) const; // WTP
 
 	int AI_getTargetSize() const;
 	void AI_setTargetSize(int iNewValue);
