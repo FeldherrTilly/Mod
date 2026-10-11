@@ -78629,15 +78629,15 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>20</iCost>
+					<iCost>25</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>20</iCost>
+					<iCost>25</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iCost>20</iCost>
+					<iCost>35</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
@@ -78645,15 +78645,15 @@
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>10</iCost>
+					<iCost>5</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>20</iCost>
+					<iCost>5</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>60</iCost>
+					<iCost>110</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1492</iGameYearAvailable>
@@ -78661,8 +78661,8 @@
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iEuropeCost>1600</iEuropeCost>
-			<iEuropeCostIncrease>250</iEuropeCostIncrease>
+			<iEuropeCost>2000</iEuropeCost>
+			<iEuropeCostIncrease>600</iEuropeCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -78862,31 +78862,31 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>40</iCost>
+					<iCost>35</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>40</iCost>
+					<iCost>35</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iCost>40</iCost>
+					<iCost>55</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
-					<iCost>40</iCost>
+					<iCost>45</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>10</iCost>
+					<iCost>5</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>20</iCost>
+					<iCost>5</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>80</iCost>
+					<iCost>160</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1550</iGameYearAvailable>
@@ -78894,8 +78894,8 @@
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iEuropeCost>2000</iEuropeCost>
-			<iEuropeCostIncrease>250</iEuropeCostIncrease>
+			<iEuropeCost>2850</iEuropeCost>
+			<iEuropeCostIncrease>850</iEuropeCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -79100,15 +79100,15 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>40</iCost>
+					<iCost>25</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>30</iCost>
+					<iCost>25</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iCost>30</iCost>
+					<iCost>50</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
@@ -79116,15 +79116,15 @@
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>20</iCost>
+					<iCost>10</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>30</iCost>
+					<iCost>10</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>90</iCost>
+					<iCost>140</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1492</iGameYearAvailable>
@@ -79132,8 +79132,8 @@
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iEuropeCost>2000</iEuropeCost>
-			<iEuropeCostIncrease>250</iEuropeCostIncrease>
+			<iEuropeCost>2550</iEuropeCost>
+			<iEuropeCostIncrease>750</iEuropeCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -79342,31 +79342,31 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>50</iCost>
+					<iCost>45</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>60</iCost>
+					<iCost>45</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iCost>50</iCost>
+					<iCost>75</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
-					<iCost>70</iCost>
+					<iCost>60</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>40</iCost>
+					<iCost>25</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>40</iCost>
+					<iCost>25</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>140</iCost>
+					<iCost>205</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1492</iGameYearAvailable>
@@ -79374,8 +79374,8 @@
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iEuropeCost>2800</iEuropeCost>
-			<iEuropeCostIncrease>300</iEuropeCostIncrease>
+			<iEuropeCost>4250</iEuropeCost>
+			<iEuropeCostIncrease>850</iEuropeCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -79584,31 +79584,31 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>50</iCost>
+					<iCost>30</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>40</iCost>
+					<iCost>30</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iCost>40</iCost>
+					<iCost>45</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
-					<iCost>50</iCost>
+					<iCost>35</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>30</iCost>
+					<iCost>10</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>30</iCost>
+					<iCost>10</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>80</iCost>
+					<iCost>135</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1550</iGameYearAvailable>
@@ -79616,8 +79616,8 @@
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iEuropeCost>2100</iEuropeCost>
-			<iEuropeCostIncrease>350</iEuropeCostIncrease>
+			<iEuropeCost>2550</iEuropeCost>
+			<iEuropeCostIncrease>750</iEuropeCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -79826,7 +79826,7 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>50</iCost>
+					<iCost>40</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
@@ -79834,7 +79834,7 @@
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iCost>40</iCost>
+					<iCost>60</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
@@ -79842,23 +79842,23 @@
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>20</iCost>
+					<iCost>15</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>20</iCost>
+					<iCost>15</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>120</iCost>
+					<iCost>170</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1650</iGameYearAvailable>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iEuropeCost>2700</iEuropeCost>
-			<iEuropeCostIncrease>500</iEuropeCostIncrease>
+			<iEuropeCost>3400</iEuropeCost>
+			<iEuropeCostIncrease>1000</iEuropeCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -80071,11 +80071,11 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>50</iCost>
+					<iCost>35</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>50</iCost>
+					<iCost>35</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
@@ -80083,27 +80083,27 @@
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
-					<iCost>60</iCost>
+					<iCost>40</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>40</iCost>
+					<iCost>30</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>40</iCost>
+					<iCost>30</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>140</iCost>
+					<iCost>150</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1650</iGameYearAvailable>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iEuropeCost>2800</iEuropeCost>
-			<iEuropeCostIncrease>550</iEuropeCostIncrease>
+			<iEuropeCost>3450</iEuropeCost>
+			<iEuropeCostIncrease>1050</iEuropeCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -80878,31 +80878,31 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>70</iCost>
+					<iCost>55</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>70</iCost>
+					<iCost>55</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iCost>60</iCost>
+					<iCost>85</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
-					<iCost>80</iCost>
+					<iCost>70</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>60</iCost>
+					<iCost>50</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>60</iCost>
+					<iCost>50</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>150</iCost>
+					<iCost>235</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1492</iGameYearAvailable>
@@ -80910,8 +80910,8 @@
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iEuropeCost>4000</iEuropeCost>
-			<iEuropeCostIncrease>750</iEuropeCostIncrease>
+			<iEuropeCost>5550</iEuropeCost>
+			<iEuropeCostIncrease>1100</iEuropeCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -81138,31 +81138,31 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>70</iCost>
+					<iCost>75</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>70</iCost>
+					<iCost>75</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iCost>80</iCost>
+					<iCost>85</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
-					<iCost>80</iCost>
+					<iCost>70</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>80</iCost>
+					<iCost>75</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>80</iCost>
+					<iCost>75</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>250</iCost>
+					<iCost>235</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1492</iGameYearAvailable>
@@ -81170,8 +81170,8 @@
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iEuropeCost>4500</iEuropeCost>
-			<iEuropeCostIncrease>500</iEuropeCostIncrease>
+			<iEuropeCost>6700</iEuropeCost>
+			<iEuropeCostIncrease>1350</iEuropeCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -81410,31 +81410,31 @@
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iCost>70</iCost>
+					<iCost>90</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
-					<iCost>100</iCost>
+					<iCost>70</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>80</iCost>
+					<iCost>65</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>80</iCost>
+					<iCost>65</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>200</iCost>
+					<iCost>240</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1650</iGameYearAvailable>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iEuropeCost>5500</iEuropeCost>
-			<iEuropeCostIncrease>500</iEuropeCostIncrease>
+			<iEuropeCost>6350</iEuropeCost>
+			<iEuropeCostIncrease>1250</iEuropeCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -81889,19 +81889,19 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>40</iCost>
+					<iCost>35</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>30</iCost>
+					<iCost>35</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iCost>30</iCost>
+					<iCost>40</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
-					<iCost>30</iCost>
+					<iCost>35</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
@@ -81909,11 +81909,11 @@
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>30</iCost>
+					<iCost>20</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>80</iCost>
+					<iCost>125</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1492</iGameYearAvailable>
@@ -81921,8 +81921,8 @@
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iEuropeCost>2300</iEuropeCost>
-			<iEuropeCostIncrease>300</iEuropeCostIncrease>
+			<iEuropeCost>2850</iEuropeCost>
+			<iEuropeCostIncrease>850</iEuropeCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -82141,27 +82141,27 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>30</iCost>
+					<iCost>45</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>30</iCost>
+					<iCost>45</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iCost>30</iCost>
+					<iCost>35</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
-					<iCost>30</iCost>
+					<iCost>25</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>20</iCost>
+					<iCost>15</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>20</iCost>
+					<iCost>15</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLADES</YieldType>
@@ -82169,15 +82169,15 @@
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>60</iCost>
+					<iCost>105</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1600</iGameYearAvailable>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iEuropeCost>2300</iEuropeCost>
-			<iEuropeCostIncrease>250</iEuropeCostIncrease>
+			<iEuropeCost>2700</iEuropeCost>
+			<iEuropeCostIncrease>800</iEuropeCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -82359,11 +82359,11 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>35</iCost>
+					<iCost>40</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>35</iCost>
+					<iCost>40</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
@@ -82371,15 +82371,15 @@
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
-					<iCost>35</iCost>
+					<iCost>30</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>25</iCost>
+					<iCost>10</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>25</iCost>
+					<iCost>10</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLADES</YieldType>
@@ -82387,15 +82387,15 @@
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>65</iCost>
+					<iCost>110</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1650</iGameYearAvailable>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iEuropeCost>2500</iEuropeCost>
-			<iEuropeCostIncrease>275</iEuropeCostIncrease>
+			<iEuropeCost>2550</iEuropeCost>
+			<iEuropeCostIncrease>750</iEuropeCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -82962,35 +82962,35 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>50</iCost>
+					<iCost>40</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>50</iCost>
+					<iCost>40</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iCost>50</iCost>
+					<iCost>45</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
-					<iCost>70</iCost>
+					<iCost>35</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>60</iCost>
+					<iCost>25</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>60</iCost>
+					<iCost>25</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLADES</YieldType>
-					<iCost>50</iCost>
+					<iCost>125</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>120</iCost>
+					<iCost>135</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1650</iGameYearAvailable>
@@ -82998,7 +82998,7 @@
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
 			<iEuropeCost>4000</iEuropeCost>
-			<iEuropeCostIncrease>750</iEuropeCostIncrease>
+			<iEuropeCostIncrease>800</iEuropeCostIncrease>
 			<iPortRoyalCost>3500</iPortRoyalCost>
 			<iPortRoyalCostIncrease>500</iPortRoyalCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
@@ -83815,27 +83815,27 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>70</iCost>
+					<iCost>50</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>70</iCost>
+					<iCost>50</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iCost>70</iCost>
+					<iCost>55</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
-					<iCost>80</iCost>
+					<iCost>45</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>100</iCost>
+					<iCost>45</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>100</iCost>
+					<iCost>45</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLADES</YieldType>
@@ -83843,15 +83843,15 @@
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>100</iCost>
+					<iCost>160</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1600</iGameYearAvailable>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iEuropeCost>4400</iEuropeCost>
-			<iEuropeCostIncrease>1200</iEuropeCostIncrease>
+			<iEuropeCost>4500</iEuropeCost>
+			<iEuropeCostIncrease>900</iEuropeCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -84067,35 +84067,35 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>75</iCost>
+					<iCost>40</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>75</iCost>
+					<iCost>40</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iCost>75</iCost>
+					<iCost>55</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
-					<iCost>90</iCost>
+					<iCost>45</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>100</iCost>
+					<iCost>55</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>100</iCost>
+					<iCost>55</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLADES</YieldType>
-					<iCost>50</iCost>
+					<iCost>90</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>110</iCost>
+					<iCost>160</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1650</iGameYearAvailable>
@@ -84103,7 +84103,7 @@
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
 			<iEuropeCost>5000</iEuropeCost>
-			<iEuropeCostIncrease>1400</iEuropeCostIncrease>
+			<iEuropeCostIncrease>1000</iEuropeCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -84315,27 +84315,27 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>80</iCost>
-				</YieldCost>
-				<YieldCost>
-					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>80</iCost>
-				</YieldCost>
-				<YieldCost>
-					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iCost>80</iCost>
-				</YieldCost>
-				<YieldCost>
-					<YieldType>YIELD_TOOLS</YieldType>
 					<iCost>70</iCost>
 				</YieldCost>
 				<YieldCost>
+					<YieldType>YIELD_ROPE</YieldType>
+					<iCost>70</iCost>
+				</YieldCost>
+				<YieldCost>
+					<YieldType>YIELD_HARDWOOD</YieldType>
+					<iCost>85</iCost>
+				</YieldCost>
+				<YieldCost>
+					<YieldType>YIELD_TOOLS</YieldType>
+					<iCost>65</iCost>
+				</YieldCost>
+				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>100</iCost>
+					<iCost>85</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>100</iCost>
+					<iCost>85</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLADES</YieldType>
@@ -84343,15 +84343,15 @@
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>120</iCost>
+					<iCost>230</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1650</iGameYearAvailable>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iEuropeCost>5500</iEuropeCost>
-			<iEuropeCostIncrease>800</iEuropeCostIncrease>
+			<iEuropeCost>7150</iEuropeCost>
+			<iEuropeCostIncrease>1450</iEuropeCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -85006,27 +85006,27 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>90</iCost>
+					<iCost>65</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>90</iCost>
+					<iCost>65</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iCost>90</iCost>
+					<iCost>105</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
-					<iCost>100</iCost>
+					<iCost>85</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>150</iCost>
+					<iCost>135</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>150</iCost>
+					<iCost>135</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLADES</YieldType>
@@ -85034,15 +85034,15 @@
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>200</iCost>
+					<iCost>285</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1650</iGameYearAvailable>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iEuropeCost>8000</iEuropeCost>
-			<iEuropeCostIncrease>1500</iEuropeCostIncrease>
+			<iEuropeCost>9500</iEuropeCost>
+			<iEuropeCostIncrease>1900</iEuropeCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
