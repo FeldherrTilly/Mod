@@ -4935,6 +4935,32 @@ void CvUnitAI::AI_transportCoastMove()
 	return;
 }
 
+// WTP: put passengers ashore whose destination is this plot or who have none; settlers and treasures stay aboard
+// (bAll: everybody except treasures)
+void CvUnitAI::AI_unloadPassengers(bool bAll)
+{
+	std::vector<CvUnit*> apPassengers;
+	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && !pLoopUnit->isGoods() && pLoopUnit->AI_getUnitAIType() != UNITAI_TREASURE)
+		{
+			CvSelectionGroup* const pGroup = pLoopUnit->getGroup();
+			const CvPlot* const pTarget = (pGroup != NULL && pGroup->AI_getMissionAIType() != NO_MISSIONAI) ? pGroup->AI_getMissionAIPlot() : NULL;
+			// a settler decides itself (it gets off in a colony when it finds no site)
+			if (bAll || (pLoopUnit->AI_getUnitAIType() != UNITAI_SETTLER && (pTarget == NULL || pTarget == plot())))
+			{
+				apPassengers.push_back(pLoopUnit);
+			}
+		}
+	}
+	for (uint i = 0; i < apPassengers.size(); ++i)
+	{
+		apPassengers[i]->unload();
+	}
+}
+
 void CvUnitAI::AI_transportSettler()
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
@@ -5059,8 +5085,8 @@ void CvUnitAI::AI_transportSeaMove()
 		CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 		const bool bEmpty = !getGroup()->hasCargo();
 
-		
-		if (AI_goodyRange(baseMoves(), /*bIgnoreCity*/true))
+		// WTP: no detours to goodies with passengers aboard (settlers were taken along from ruin to ruin for many turns)
+		if (!hasAnyUnitInCargo() && AI_goodyRange(baseMoves(), /*bIgnoreCity*/true))
 		{
 			return;
 		}
@@ -5099,11 +5125,27 @@ void CvUnitAI::AI_transportSeaMove()
 
 		// WTP: passengers without a destination (e.g. left over from the first voyage) are put ashore in the nearest own
 		// colony; with units aboard a transport never sails to Europe again and just kept exploring
-		if (hasAnyUnitInCargo() && kOwner.getNumCities() > 0)
+		if (hasAnyUnitInCargo() && kOwner.getNumCities() > 0 && getUnitAICargo(UNITAI_TREASURE) == 0)
 		{
+			// passengers that arrived (or have no destination) get off in port first; otherwise the transport went to
+			// the settler's site and back to the colony every other turn
+			if (pCity != NULL)
+			{
+				AI_unloadPassengers(false);
+			}
+			// settlers first: they are carried to their site
+			if (AI_deliverUnits(UNITAI_SETTLER))
+			{
+				return;
+			}
 			if (AI_deliverUnits())
 			{
 				return;
+			}
+			if (getUnitAICargo(UNITAI_SETTLER) > 0 && gUnitLogLevel >= 1)
+			{
+				logBBAI("WTP ship: Player %d (%S) turn %d ship %S at %d,%d cannot deliver its settler, takes it to a colony", getOwnerINLINE(),
+					kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), getX_INLINE(), getY_INLINE());
 			}
 			if (pCity != NULL)
 			{
