@@ -1059,7 +1059,7 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MARKET_BOOM_MESSAGE</Tag>
-		<English>Market boom in the Old World: %s1 and %s2 fetch higher prices in Europe and Port Royal.</English>
+		<English>Market boom in the Old World: %s1, %s2 and %s3 fetch higher prices in Europe and Port Royal.</English>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MARKET_BOOM_SUGAR</Tag>

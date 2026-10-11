@@ -1,4 +1,4 @@
-## Market boom: at the start of the game two random cash crops from different climate zones (and the
+## Market boom: at the start of the game three random cash crops from at least two climate zones (and the
 ## goods made from them) become fashionable in Europe and Port Royal. The raw good is lifted to a fixed price
 ## for every European colony, the goods made from it rise as well (capped); all of them slowly drift back
 ## to equilibrium through the normal price correction.
@@ -61,7 +61,9 @@ def checkMarketBoom():
     first = BOOM_GOODS[game.getSorenRandNum(len(BOOM_GOODS), "Market boom 1")]
     others = [g for g in BOOM_GOODS if g[2] != first[2]]
     second = others[game.getSorenRandNum(len(others), "Market boom 2")]
-    booms = (first, second)
+    rest = [g for g in BOOM_GOODS if g != first and g != second]
+    third = rest[game.getSorenRandNum(len(rest), "Market boom 3")]
+    booms = (first, second, third)
 
     kings = []
     for iPlayer in range(gc.getMAX_PLAYERS()):
@@ -125,5 +127,5 @@ def _showBoom(iPlayer, king, booms):
     popupInfo.setText(szText)
     popupInfo.addPopup(iPlayer)
 
-    CyInterface().addMessage(iPlayer, True, 10, localText.getText("TXT_KEY_MARKET_BOOM_MESSAGE", (szNames[0], szNames[1])),
+    CyInterface().addMessage(iPlayer, True, 10, localText.getText("TXT_KEY_MARKET_BOOM_MESSAGE", (szNames[0], szNames[1], szNames[2])),
                              "", 0, "", ColorTypes(8), -1, -1, False, False)
