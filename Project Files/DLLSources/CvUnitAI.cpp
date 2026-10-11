@@ -2412,7 +2412,8 @@ void CvUnitAI::AI_treasureMove()
 		}
 		// R&R, ray , Native Treasures - END
 
-		if (!GET_PLAYER(getOwnerINLINE()).AI_hasSeaTransport(this) || bAtWar)
+		// WTP: from 8 waiting treasures the king transports them too, even with a galleon (it could not keep up)
+		if (!GET_PLAYER(getOwnerINLINE()).AI_hasSeaTransport(this) || bAtWar || GET_PLAYER(getOwnerINLINE()).AI_totalUnitAIs(UNITAI_TREASURE) >= 8)
 		{
 			if (canKingTransport())
 			{
