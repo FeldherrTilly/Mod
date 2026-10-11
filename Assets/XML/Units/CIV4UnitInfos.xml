@@ -8016,11 +8016,11 @@
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_ORE</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_RAW_SALT</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 			</BonusYieldChanges>
 			<bLandYieldChanges>1</bLandYieldChanges>
@@ -8582,7 +8582,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_COAL</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_ORE</YieldType>
@@ -10340,15 +10340,15 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_LUMBER</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_VALUABLE_WOOD</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_LOGWOOD</YieldType>
@@ -10918,15 +10918,15 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_LUMBER</YieldType>
-					<iChange>3</iChange>
+					<iChange>4</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_VALUABLE_WOOD</YieldType>
-					<iChange>3</iChange>
+					<iChange>4</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iChange>3</iChange>
+					<iChange>4</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_LOGWOOD</YieldType>
@@ -11504,7 +11504,7 @@
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_STONE</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 			</BonusYieldChanges>
 			<bLandYieldChanges>1</bLandYieldChanges>
@@ -12062,11 +12062,11 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_CLAY</YieldType>
-					<iChange>3</iChange>
+					<iChange>4</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_PEAT</YieldType>
-					<iChange>3</iChange>
+					<iChange>4</iChange>
 				</BonusYieldChange>
 			</BonusYieldChanges>
 			<bLandYieldChanges>1</bLandYieldChanges>
@@ -12630,7 +12630,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_TOBACCO</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_HEMP</YieldType>
@@ -13202,7 +13202,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_YERBA_LEAVES</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_LOGWOOD</YieldType>
@@ -13772,7 +13772,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_HEMP</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_TOBACCO</YieldType>
@@ -14342,7 +14342,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_FLAX</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_RAPE</YieldType>
@@ -14914,7 +14914,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_COTTON</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_RED_PEPPER</YieldType>
@@ -15486,7 +15486,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_INDIGO</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_COTTON</YieldType>
@@ -16062,7 +16062,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_LOGWOOD</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_LUMBER</YieldType>
@@ -16638,7 +16638,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_COCHINEAL</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_COTTON</YieldType>
@@ -17210,7 +17210,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_SUGAR</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_COFFEE_BERRIES</YieldType>
@@ -17786,7 +17786,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_COCA_LEAVES</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_COCOA_FRUITS</YieldType>
@@ -18358,7 +18358,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_COCOA_FRUITS</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_COCA_LEAVES</YieldType>
@@ -18930,7 +18930,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_COFFEE_BERRIES</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_COCOA_FRUITS</YieldType>
@@ -19502,7 +19502,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_PEANUTS</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_COCOA_FRUITS</YieldType>
@@ -20078,7 +20078,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_RED_PEPPER</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_VANILLA_PODS</YieldType>
@@ -20658,7 +20658,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_VANILLA_PODS</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_RED_PEPPER</YieldType>
@@ -21230,7 +21230,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_MAPLE_SIRUP</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_RED_PEPPER</YieldType>
@@ -21802,7 +21802,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_KAUTSCHUK</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_MAPLE_SIRUP</YieldType>
@@ -22380,11 +22380,11 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_FOOD</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_BARLEY</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_PEANUTS</YieldType>
@@ -22960,7 +22960,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_RICE</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_FOOD</YieldType>
@@ -23528,7 +23528,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_CASSAVA</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_RICE</YieldType>
@@ -24102,7 +24102,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_GRAPES</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_FRUITS</YieldType>
@@ -24672,7 +24672,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_FRUITS</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_GRAPES</YieldType>
@@ -25242,7 +25242,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_OLIVES</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_GRAPES</YieldType>
@@ -25812,7 +25812,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_RAPE</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_FLAX</YieldType>
@@ -26390,11 +26390,11 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_FUR</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_WILD_FEATHERS</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_PREMIUM_FUR</YieldType>
@@ -26970,11 +26970,11 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_FUR</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_WILD_FEATHERS</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_PREMIUM_FUR</YieldType>
@@ -27558,7 +27558,7 @@
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_PREMIUM_FUR</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 			</BonusYieldChanges>
 			<bLandYieldChanges>1</bLandYieldChanges>
@@ -28120,7 +28120,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_FOOD</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 			</BonusYieldChanges>
 			<bLandYieldChanges>0</bLandYieldChanges>
@@ -28682,7 +28682,7 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_FOOD</YieldType>
-					<iChange>3</iChange>
+					<iChange>4</iChange>
 				</BonusYieldChange>
 			</BonusYieldChanges>
 			<bLandYieldChanges>0</bLandYieldChanges>
@@ -49584,11 +49584,11 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_CATTLE</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_HORSES</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 			</BonusYieldChanges>
 			<bLandYieldChanges>1</bLandYieldChanges>
@@ -50154,11 +50154,11 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_CHICKEN</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_GEESE</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 			</BonusYieldChanges>
 			<bLandYieldChanges>1</bLandYieldChanges>
@@ -50728,15 +50728,15 @@
 			<BonusYieldChanges>
 				<BonusYieldChange>
 					<YieldType>YIELD_SHEEP</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_GOATS</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 				<BonusYieldChange>
 					<YieldType>YIELD_PIGS</YieldType>
-					<iChange>2</iChange>
+					<iChange>3</iChange>
 				</BonusYieldChange>
 			</BonusYieldChanges>
 			<bLandYieldChanges>1</bLandYieldChanges>

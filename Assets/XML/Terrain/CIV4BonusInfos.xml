@@ -16,7 +16,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_LUMBER</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -192,7 +192,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_VALUABLE_WOOD</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -256,7 +256,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_VALUABLE_WOOD</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -320,7 +320,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -709,7 +709,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_ORE</YieldType>
-					<iValue>1</iValue>
+					<iValue>3</iValue>
 				</YieldIntegerPair>
 				<YieldIntegerPair>
 					<YieldType>YIELD_SILVER</YieldType>
@@ -1669,7 +1669,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_PEAT</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -1838,7 +1838,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FOOD</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -1984,7 +1984,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FOOD</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -2117,7 +2117,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FOOD</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -2267,7 +2267,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FOOD</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -2413,7 +2413,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FOOD</YieldType>
-					<iValue>1</iValue>
+					<iValue>2</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -2562,7 +2562,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_RICE</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -2683,7 +2683,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_CASSAVA</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -2800,7 +2800,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FOOD</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -2942,7 +2942,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FOOD</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -3076,7 +3076,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FOOD</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -3210,7 +3210,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FOOD</YieldType>
-					<iValue>1</iValue>
+					<iValue>2</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -3344,7 +3344,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FOOD</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -3473,7 +3473,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FOOD</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -3594,7 +3594,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FOOD</YieldType>
-					<iValue>3</iValue>
+					<iValue>7</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -3739,11 +3739,11 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FOOD</YieldType>
-					<iValue>1</iValue>
+					<iValue>2</iValue>
 				</YieldIntegerPair>
 				<YieldIntegerPair>
 					<YieldType>YIELD_COCHINEAL</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -3865,7 +3865,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FOOD</YieldType>
-					<iValue>1</iValue>
+					<iValue>2</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -3994,7 +3994,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_PEANUTS</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -4112,7 +4112,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FRUITS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -4221,7 +4221,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FRUITS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -4338,7 +4338,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FRUITS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -4455,7 +4455,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FRUITS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -4572,7 +4572,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FRUITS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -4681,7 +4681,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FRUITS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -4798,7 +4798,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FRUITS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -4923,7 +4923,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FRUITS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -5057,7 +5057,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FRUITS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -5191,7 +5191,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FRUITS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -5324,7 +5324,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FRUITS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -5461,7 +5461,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FRUITS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -5598,7 +5598,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FRUITS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -5723,7 +5723,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FRUITS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -6720,7 +6720,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_WILD_FEATHERS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -6858,7 +6858,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_WILD_FEATHERS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -6945,7 +6945,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_WILD_FEATHERS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -7040,7 +7040,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_WILD_FEATHERS</YieldType>
-					<iValue>4</iValue>
+					<iValue>8</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -7139,7 +7139,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_WILD_FEATHERS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -7234,7 +7234,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_WILD_FEATHERS</YieldType>
-					<iValue>4</iValue>
+					<iValue>8</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -7329,7 +7329,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_WILD_FEATHERS</YieldType>
-					<iValue>5</iValue>
+					<iValue>10</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -7447,7 +7447,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_WILD_FEATHERS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -7565,7 +7565,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_WILD_FEATHERS</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -7886,7 +7886,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_CATTLE</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -8028,7 +8028,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_PIGS</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -8162,7 +8162,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_CHICKEN</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -8308,7 +8308,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_GEESE</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -8450,7 +8450,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_SHEEP</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -8604,7 +8604,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_GOATS</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -8746,7 +8746,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FUR</YieldType>
-					<iValue>5</iValue>
+					<iValue>8</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -9055,7 +9055,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FUR</YieldType>
-					<iValue>5</iValue>
+					<iValue>8</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -9189,7 +9189,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FUR</YieldType>
-					<iValue>5</iValue>
+					<iValue>8</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -9323,7 +9323,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FUR</YieldType>
-					<iValue>5</iValue>
+					<iValue>8</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -9457,7 +9457,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FUR</YieldType>
-					<iValue>5</iValue>
+					<iValue>8</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -9591,7 +9591,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FUR</YieldType>
-					<iValue>5</iValue>
+					<iValue>8</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -9709,7 +9709,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FUR</YieldType>
-					<iValue>5</iValue>
+					<iValue>8</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -9827,7 +9827,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FUR</YieldType>
-					<iValue>5</iValue>
+					<iValue>8</iValue>
 				</YieldIntegerPair>
 				<YieldIntegerPair>
 					<YieldType>YIELD_SHEEP</YieldType>
@@ -9965,7 +9965,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FUR</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 				<YieldIntegerPair>
 					<YieldType>YIELD_SHEEP</YieldType>
@@ -10107,7 +10107,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FUR</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 				<YieldIntegerPair>
 					<YieldType>YIELD_SHEEP</YieldType>
@@ -10272,7 +10272,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FOOD</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -10394,7 +10394,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_PREMIUM_FUR</YieldType>
-					<iValue>5</iValue>
+					<iValue>8</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -10454,7 +10454,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FUR</YieldType>
-					<iValue>5</iValue>
+					<iValue>8</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -10514,7 +10514,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FUR</YieldType>
-					<iValue>5</iValue>
+					<iValue>8</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -10571,7 +10571,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_PREMIUM_FUR</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -10715,7 +10715,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_PREMIUM_FUR</YieldType>
-					<iValue>5</iValue>
+					<iValue>8</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -10792,7 +10792,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_PREMIUM_FUR</YieldType>
-					<iValue>5</iValue>
+					<iValue>8</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -10946,7 +10946,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_PREMIUM_FUR</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -11090,7 +11090,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_COTTON</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -11219,7 +11219,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_INDIGO</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -11348,7 +11348,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_LOGWOOD</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -11404,7 +11404,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_SUGAR</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -11545,7 +11545,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_TOBACCO</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -11678,7 +11678,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_HEMP</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -11811,7 +11811,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_FLAX</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -11945,7 +11945,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_COCOA_FRUITS</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -12006,7 +12006,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_COFFEE_BERRIES</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -12148,7 +12148,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_RED_PEPPER</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -12278,7 +12278,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_VANILLA_PODS</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -12408,7 +12408,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_MAPLE_SIRUP</YieldType>
-					<iValue>3</iValue>
+					<iValue>6</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -12482,7 +12482,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_KAUTSCHUK</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -12538,7 +12538,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_RAW_SALT</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -12655,7 +12655,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_BARLEY</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -12772,7 +12772,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_GRAPES</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -12902,7 +12902,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_OLIVES</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -13032,7 +13032,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_RAPE</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>0</iHealthEffectFromRessource>
@@ -13162,7 +13162,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_COCA_LEAVES</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
@@ -13300,7 +13300,7 @@
 			<YieldChanges>
 				<YieldIntegerPair>
 					<YieldType>YIELD_YERBA_LEAVES</YieldType>
-					<iValue>2</iValue>
+					<iValue>4</iValue>
 				</YieldIntegerPair>
 			</YieldChanges>
 			<iHealthEffectFromRessource>1</iHealthEffectFromRessource>
