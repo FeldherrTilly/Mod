@@ -18282,22 +18282,47 @@ bool CvPlayerAI::AI_wantsAfricaFoodWorkers()
 // WTP: number of own colonies the ship can enter (adjacent water it may sail that is reachable from the ocean)
 int CvPlayerAI::AI_shipReachableColonies(UnitTypes eUnit) const
 {
-	const CvUnitInfo& kUnit = GC.getUnitInfo(eUnit);
 	int iCount = 0;
 	int iLoop;
 	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
 	{
-		for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+		if (AI_shipCanReachCity(eUnit, *pCity))
 		{
-			const CvPlot* const pAdjacent = plotDirection(pCity->getX_INLINE(), pCity->getY_INLINE(), (DirectionTypes)iI);
-			if (pAdjacent != NULL && pAdjacent->isWater() && pAdjacent->isEuropeAccessable() && !kUnit.getTerrainImpassable(pAdjacent->getTerrainType()))
-			{
-				++iCount;
-				break;
-			}
+			++iCount;
 		}
 	}
 	return iCount;
+}
+
+// WTP: a ship type can reach a colony if it may enter one of the colony's water plots that is accessible from Europe
+// (galleons and other big ships do not enter shallow coast, most ships no large rivers)
+bool CvPlayerAI::AI_shipCanReachCity(UnitTypes eUnit, const CvCity& kCity)
+{
+	const CvUnitInfo& kUnit = GC.getUnitInfo(eUnit);
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		const CvPlot* const pAdjacent = plotDirection(kCity.getX_INLINE(), kCity.getY_INLINE(), (DirectionTypes)iI);
+		if (pAdjacent != NULL && pAdjacent->isWater() && pAdjacent->isEuropeAccessable() && !kUnit.getTerrainImpassable(pAdjacent->getTerrainType()))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+// WTP: a colony with restricted water access (shallow coast or large river only) is not reached by all of our
+// transports; the transports that do reach it give it priority
+bool CvPlayerAI::AI_isRestrictedWaterCity(const CvCity& kCity) const
+{
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && !AI_shipCanReachCity(pLoopUnit->getUnitType(), kCity))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 // WTP: best ship of a unit AI to buy in Europe. It must reach as many colonies as the best reaching ship of that

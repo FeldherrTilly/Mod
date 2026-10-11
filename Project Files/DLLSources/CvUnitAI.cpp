@@ -4962,6 +4962,16 @@ void CvUnitAI::AI_transportCoastMove()
 	return;
 }
 
+// WTP: the colony a unit waiting for a ship wants to go to (an expert on its way to its job), NULL if unknown
+CvCity* CvUnitAI::AI_transportDestinationCity() const
+{
+	if (m_iWfTask == WF_EXPERT_JOB)
+	{
+		return GET_PLAYER(getOwnerINLINE()).getCity(m_iWfCityID);
+	}
+	return NULL;
+}
+
 // WTP: an expert on its way to a far colony walks to the nearest own coastal colony, boards a transport there (or
 // waits for one) and is carried to its destination; returns false if no port is useful
 bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget)
@@ -4972,6 +4982,17 @@ bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget)
 		return false;
 	}
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	// at least one of our transports has to reach the target (e.g. a colony on a large river only by a caravel)
+	bool bReachable = false;
+	int iShipLoop;
+	for (CvUnit* pLoopUnit = kOwner.firstUnit(&iShipLoop); pLoopUnit != NULL && !bReachable; pLoopUnit = kOwner.nextUnit(&iShipLoop))
+	{
+		bReachable = pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && CvPlayerAI::AI_shipCanReachCity(pLoopUnit->getUnitType(), kTarget);
+	}
+	if (!bReachable)
+	{
+		return false;
+	}
 	const int iDistance = plotDistance(getX_INLINE(), getY_INLINE(), kTarget.getX_INLINE(), kTarget.getY_INLINE());
 
 	CvCity* pPort = plot()->getPlotCity();
@@ -5019,7 +5040,8 @@ bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget)
 	{
 		CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
 		if (pLoopUnit != NULL && pLoopUnit != this && pLoopUnit->getOwnerINLINE() == getOwnerINLINE() && pLoopUnit->getDomainType() == DOMAIN_SEA
-			&& pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && canLoadUnit(pLoopUnit, plot(), true))
+			&& pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && CvPlayerAI::AI_shipCanReachCity(pLoopUnit->getUnitType(), kTarget)
+			&& canLoadUnit(pLoopUnit, plot(), true))
 		{
 			loadUnit(pLoopUnit);
 			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_FOUND, kTarget.plot());
@@ -10246,6 +10268,22 @@ bool CvUnitAI::AI_respondToPickup(int iMaxPath, UnitAITypes eUnitAI)
 							}
 							// TAC - AI Improved Naval AI - koma13 - END
 
+							// WTP: only pick up a unit whose destination this ship can reach (no galleon for a colony on
+							// shallow coast or a large river); such destinations are preferred by the ships reaching them
+							const CvCity* const pDestination = static_cast<CvUnitAI*>(pHeadUnit)->AI_transportDestinationCity();
+							bool bRestricted = false;
+							if (bValid && pDestination != NULL)
+							{
+								if (!CvPlayerAI::AI_shipCanReachCity(getUnitType(), *pDestination))
+								{
+									bValid = false;
+								}
+								else
+								{
+									bRestricted = kOwner.AI_isRestrictedWaterCity(*pDestination);
+								}
+							}
+
 							int iBestDirectionValue = MAX_INT;
 
 							if (bValid)
@@ -10298,6 +10336,10 @@ bool CvUnitAI::AI_respondToPickup(int iMaxPath, UnitAITypes eUnitAI)
 									iValue *= 100;
 									iValue /= 100 + ((100 * iDistance) / pLoopSelectionGroup->baseMoves());
 									if (pHeadUnit->AI_getUnitAIType() == UNITAI_TREASURE)
+									{
+										iValue *= 3;
+									}
+									if (bRestricted)
 									{
 										iValue *= 3;
 									}
