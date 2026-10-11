@@ -597,7 +597,8 @@ void CvPlayerAI::AI_doTurnUnitsPre()
 	AI_updateBestYieldPlots();
 	// WTP: rating every plot of the map is expensive; every 3 turns is enough (spread over the players).
 	// Players without a colony keep rating every turn
-	if (getNumCities() == 0 || (GC.getGameINLINE().getGameTurn() + getID()) % 3 == 0)
+	// Kings (they never found colonies) and the wild animals skip it, players without a colony rate every turn
+	if (!isEurope() && !GET_TEAM(getTeam()).isBarbarian() && (getNumCities() == 0 || (GC.getGameINLINE().getGameTurn() + getID()) % 3 == 0))
 	{
 		AI_updateFoundValues();
 	}
