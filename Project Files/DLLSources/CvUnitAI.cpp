@@ -7729,7 +7729,8 @@ bool CvUnitAI::AI_travelToPort(int iMinPercent, int iMaxPath)
 	int iLoop;
 	for (CvCity* pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
 	{
-		if (!atPlot(pLoopCity->plot()) && AI_plotValid(pLoopCity->plot()))
+		// WTP: only colonies this ship type can enter (no galleon to a colony on shallow coast or a large river)
+		if (!atPlot(pLoopCity->plot()) && AI_plotValid(pLoopCity->plot()) && CvPlayerAI::AI_shipCanReachCity(getUnitType(), *pLoopCity))
 		{
 			if (!(pLoopCity->plot()->isVisibleEnemyUnit(this)))
 			{
