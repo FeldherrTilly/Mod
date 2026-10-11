@@ -9237,6 +9237,9 @@ void CvPlayerAI::AI_doEurope()
 		}
 		// WTP, Schmiddie, AI Minimum Fleet - END
 
+		// WTP: civilian needs come before buying military units
+		AI_doCivilianPurchases();
+
 		//Always refresh at start of new turn (maybe do this smarter but it's okay for now)
 		AI_updateNextBuyUnit();
 		// Don't by profession units for now until we find a better way to decide who we can productively employ
@@ -12214,7 +12217,8 @@ int CvPlayerAI::AI_unitAIValueMultipler(UnitAITypes eUnitAI)
 				}
 
 				// TAC - AI purchases military units - koma13 - START
-				if (!isEurope() && !isNative())
+				// WTP: only while planning or fighting a war, not as a permanent incentive
+				if (!isEurope() && !isNative() && GET_TEAM(getTeam()).getAnyWarPlanCount() > 0)
 				{
 					iValue += 1500 / (40 + iCount);
 				}
@@ -17050,6 +17054,285 @@ int CvPlayerAI::AI_countPromotions(PromotionTypes ePromotion, CvPlot* pPlot, int
 		*piUnitCount = iUnitCount;
 	}
 	return iCount;
+}
+
+// WTP: gold rules for civilian purchases: before turn 15 keep 300 gold, afterwards only buy with at least
+// 1500 gold in the treasury (still keeping 300)
+bool CvPlayerAI::AI_canAffordCivilianPurchase(int iCost) const
+{
+	if (iCost <= 0)
+	{
+		return false;
+	}
+	if (GC.getGameINLINE().getElapsedGameTurns() >= 15 && getGold() < 1500)
+	{
+		return false;
+	}
+	return getGold() - iCost >= 300;
+}
+
+// WTP: buy a unit in Europe, give it a unit AI and if needed equip it for a profession (bought there as well)
+bool CvPlayerAI::AI_buyCivilianUnit(UnitTypes eUnit, UnitAITypes eUnitAI, ProfessionTypes eProfession)
+{
+	if (eUnit == NO_UNIT || !AI_canAffordCivilianPurchase(getEuropeUnitBuyPrice(eUnit)))
+	{
+		if (gPlayerLogLevel >= 1 && eUnit != NO_UNIT) logBBAI("WTP decision:   cannot afford %S (%d gold, have %d)",
+			GC.getUnitInfo(eUnit).getDescription(), getEuropeUnitBuyPrice(eUnit), getGold());
+		return false;
+	}
+	CvUnit* pUnit = buyEuropeUnit(eUnit, 100);
+	if (pUnit == NULL)
+	{
+		return false;
+	}
+	if (eProfession != NO_PROFESSION && pUnit->getProfession() != eProfession && pUnit->canHaveProfession(eProfession, false))
+	{
+		int iEquipCost = 0;
+		for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
+		{
+			const int iMissing = pUnit->getProfessionChangeYieldRequired(eProfession, eYield);
+			if (iMissing > 0)
+			{
+				iEquipCost += iMissing * GET_PLAYER(getParent()).getYieldSellPrice(eYield);
+			}
+		}
+		if (getGold() >= iEquipCost)
+		{
+			changeProfessionEurope(pUnit->getID(), eProfession);
+		}
+	}
+	pUnit->AI_setUnitAIType(eUnitAI);
+	if (gPlayerLogLevel >= 1)
+	{
+		logBBAI("  Player %S buys civilian unit %S (unitAI %d)", getCivilizationDescription(), pUnit->getName().GetCString(), (int)eUnitAI);
+	}
+	return true;
+}
+
+// WTP: hurry the cheapest immigrant on the docks, if that is cheaper than buying a colonist
+bool CvPlayerAI::AI_hurryCheapImmigrant(bool bUnconditional)
+{
+	const UnitTypes eColonist = GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits((UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_COLONIST"));
+	const int iColonistPrice = (eColonist != NO_UNIT) ? getEuropeUnitBuyPrice(eColonist) : MAX_INT;
+
+	int iBestIndex = -1;
+	int iBestCost = MAX_INT;
+	for (unsigned int iIndex = 0; iIndex < getNumUnitsOnDock(); ++iIndex)
+	{
+		if (getDocksNextUnit(iIndex) != NO_UNIT && canHurry(HURRY_IMMIGRANT, iIndex))
+		{
+			const int iCost = getHurryGold(HURRY_IMMIGRANT, iIndex);
+			if (iCost < iBestCost)
+			{
+				iBestCost = iCost;
+				iBestIndex = iIndex;
+			}
+		}
+	}
+	if (iBestIndex < 0 || (!bUnconditional && iBestCost >= iColonistPrice) || !AI_canAffordCivilianPurchase(iBestCost))
+	{
+		return false;
+	}
+	hurry(HURRY_IMMIGRANT, iBestIndex);
+	return true;
+}
+
+// WTP: priority of buying the expert of a city profession, 0 = not bought this way. Carpenters before preachers,
+// preachers before statesmen; at most 5 of an expert, from the 4th on with half the priority
+int CvPlayerAI::AI_civilianExpertPriority(ProfessionTypes eProfession, UnitClassTypes& eExpertClass)
+{
+	const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+	eExpertClass = (UnitClassTypes)kProfession.LbD_getExpert();
+	if (!kProfession.isCitizen() || eExpertClass == NO_UNITCLASS || eExpertClass == (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_COLONIST"))
+	{
+		return 0;
+	}
+
+	int iPriority = 0;
+	const CvString szType = kProfession.getType();
+	if (szType == "PROFESSION_CARPENTER") iPriority = 100;
+	else if (szType == "PROFESSION_PREACHER") iPriority = 90;
+	else if (szType == "PROFESSION_JUDGE") iPriority = 85;
+	else if (szType == "PROFESSION_STATESMAN") iPriority = 80;
+	else if (szType == "PROFESSION_LUMBERJACK" || szType == "PROFESSION_ORE_MINER" || szType == "PROFESSION_SILVER_MINER" || szType == "PROFESSION_GOLD_MINER"
+		|| szType == "PROFESSION_FISHERMAN" || szType == "PROFESSION_FARMER" || szType == "PROFESSION_HUNTER" || szType == "PROFESSION_FUR_TRAPPER")
+		iPriority = 70;
+	else if (!kProfession.isWorkPlot() && kProfession.getYieldsConsumed(0) != NO_YIELD) iPriority = 40; // processing experts
+	else return 0;
+
+	const int iOwned = getUnitClassCount(eExpertClass);
+	if (iOwned >= 5)
+	{
+		return 0;
+	}
+	if (iOwned >= 3)
+	{
+		iPriority /= 2;
+	}
+	return iPriority;
+}
+
+void CvPlayerAI::AI_doCivilianPurchases()
+{
+	if (isHuman() || isNative() || isEurope() || getParent() == NO_PLAYER || !canTradeWithEurope())
+	{
+		return;
+	}
+	// defence first while at war
+	if (GET_TEAM(getTeam()).getAnyWarPlanCount() > 0 && AI_totalDefendersNeeded(NULL, NULL, true) > 0)
+	{
+		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) skips civilian purchases, war and %d defenders needed",
+			getID(), getCivilizationDescription(0), AI_totalDefendersNeeded(NULL, NULL, true));
+		return;
+	}
+
+	const CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
+	const UnitTypes eColonist = kCiv.getCivilizationUnits((UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_COLONIST"));
+	const UnitClassTypes eHardyPioneerClass = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_PIONEER");
+	const ProfessionTypes eSettlerProfession = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_SETTLER");
+	const ProfessionTypes ePioneerProfession = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_PIONEER");
+	int iBought = 0;
+
+	if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) civilian purchases: gold %d cities %d desired %d settlers %d workers %d wanted %d",
+		getID(), getCivilizationDescription(0), getGold(), getNumCities(), AI_desiredCityCount(), AI_totalUnitAIs(UNITAI_SETTLER),
+		AI_totalUnitAIs(UNITAI_WORKER), std::min(AI_neededWorkers(NULL), std::max(2, (getNumCities() + 1) / 2)));
+
+	// 1. settlers: a hurried immigrant or a colonist equipped as settler in Europe
+	if (getNumCities() > 0 && AI_desiredCityCount() > getNumCities() + AI_totalUnitAIs(UNITAI_SETTLER))
+	{
+		if (AI_hurryCheapImmigrant(false) || AI_buyCivilianUnit(eColonist, UNITAI_SETTLER, eSettlerProfession))
+		{
+			++iBought;
+		}
+	}
+
+	// 2. pioneers: 2 pioneers improve plots one after the other, so do not buy one per plot to improve;
+	// at most 2 hardy pioneers, further pioneers are equipped colonists
+	const int iWantedPioneers = std::min(AI_neededWorkers(NULL), std::max(2, (getNumCities() + 1) / 2));
+	if (iBought < 2 && AI_totalUnitAIs(UNITAI_WORKER) < iWantedPioneers)
+	{
+		const UnitTypes eHardyPioneer = (eHardyPioneerClass != NO_UNITCLASS) ? kCiv.getCivilizationUnits(eHardyPioneerClass) : NO_UNIT;
+		bool bDone = false;
+		if (eHardyPioneer != NO_UNIT && getUnitClassCount(eHardyPioneerClass) < 2)
+		{
+			bDone = AI_buyCivilianUnit(eHardyPioneer, UNITAI_WORKER, ePioneerProfession);
+		}
+		if (!bDone)
+		{
+			bDone = AI_buyCivilianUnit(eColonist, UNITAI_WORKER, ePioneerProfession);
+		}
+		if (bDone)
+		{
+			++iBought;
+		}
+	}
+
+	if (iBought >= 2 || getNumCities() == 0)
+	{
+		return;
+	}
+
+	// 3. sometimes hurry an immigrant instead of buying an expert
+	if (GC.getGameINLINE().getSorenRandNum(100, "AI civilian hurry instead of expert") < 25)
+	{
+		if (gPlayerLogLevel >= 1) logBBAI("WTP decision:   random immigrant hurry instead of expert");
+		AI_hurryCheapImmigrant(false);
+		return;
+	}
+
+	// 4. experts: replace non-experts in their profession or fill free building slots that have enough input;
+	// raw material experts (except lumber) are learned from nearby native villages instead of bought
+	UnitClassTypes eBestClass = NO_UNITCLASS;
+	int iBestPriority = 0;
+	bool bLearnFromNatives = false;
+	int iLoop;
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	{
+		for (ProfessionTypes eProfession = FIRST_PROFESSION; eProfession < NUM_PROFESSION_TYPES; ++eProfession)
+		{
+			UnitClassTypes eExpertClass = NO_UNITCLASS;
+			const int iPriority = AI_civilianExpertPriority(eProfession, eExpertClass);
+			if (iPriority <= iBestPriority || !kCiv.isValidProfession(eProfession))
+			{
+				continue;
+			}
+			const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+			const CvString szType = kProfession.getType();
+			if (szType == "PROFESSION_JUDGE" && pLoopCity->getCityCrime() <= pLoopCity->getCityLaw())
+			{
+				continue;
+			}
+
+			int iUsed = 0;
+			int iNonExperts = 0;
+			for (int i = 0; i < pLoopCity->getPopulation(); ++i)
+			{
+				const CvUnit* const pCitizen = pLoopCity->getPopulationUnitByIndex(i);
+				if (pCitizen != NULL && pCitizen->getProfession() == eProfession)
+				{
+					++iUsed;
+					if (pCitizen->getUnitClassType() != eExpertClass)
+					{
+						++iNonExperts;
+					}
+				}
+			}
+
+			bool bDemand = iNonExperts > 0;
+			if (!bDemand && !kProfession.isWorkPlot() && pLoopCity->getNumProfessionBuildingSlots(eProfession) > iUsed)
+			{
+				const YieldTypes eInput = (YieldTypes)kProfession.getYieldsConsumed(0);
+				bDemand = (eInput == NO_YIELD) || (pLoopCity->getRawYieldProduced(eInput) + pLoopCity->getYieldStored(eInput) - pLoopCity->getRawYieldConsumed(eInput) >= 3);
+			}
+			if (!bDemand)
+			{
+				continue;
+			}
+
+			// can the expert be learned from a native village within 8 plots?
+			bool bLearnable = false;
+			if (kProfession.isWorkPlot() && szType != "PROFESSION_LUMBERJACK")
+			{
+				for (int iPlayer = 0; iPlayer < MAX_PLAYERS && !bLearnable; ++iPlayer)
+				{
+					CvPlayer& kNative = GET_PLAYER((PlayerTypes)iPlayer);
+					if (!kNative.isAlive() || !kNative.isNative())
+					{
+						continue;
+					}
+					int iNativeLoop;
+					for (CvCity* pVillage = kNative.firstCity(&iNativeLoop); pVillage != NULL; pVillage = kNative.nextCity(&iNativeLoop))
+					{
+						if (pVillage->getTeachUnitClass() == eExpertClass && plotDistance(pVillage->getX_INLINE(), pVillage->getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE()) <= 8)
+						{
+							bLearnable = true;
+							break;
+						}
+					}
+				}
+			}
+			if (bLearnable)
+			{
+				bLearnFromNatives = true;
+				continue;
+			}
+
+			iBestPriority = iPriority;
+			eBestClass = eExpertClass;
+		}
+	}
+
+	if (gPlayerLogLevel >= 1) logBBAI("WTP decision:   best expert %S priority %d, learnable from natives %d",
+		eBestClass != NO_UNITCLASS ? GC.getUnitClassInfo(eBestClass).getDescription() : L"none", iBestPriority, (int)bLearnFromNatives);
+	if (eBestClass != NO_UNITCLASS)
+	{
+		AI_buyCivilianUnit(kCiv.getCivilizationUnits(eBestClass), UNITAI_COLONIST, NO_PROFESSION);
+	}
+	else if (bLearnFromNatives)
+	{
+		// a cheap immigrant can learn the profession from the natives
+		AI_hurryCheapImmigrant(false);
+	}
 }
 
 // TAC - AI More Immigrants - koma13 - START
