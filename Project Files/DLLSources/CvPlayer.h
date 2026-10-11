@@ -58,6 +58,7 @@ public:
 	bool getDisableHuman( );
 protected:
 	bool m_bDisableHuman;
+	int m_aiTradesSincePriceCheck[NUM_TRADELOCATION_TYPES]; // WTP, not saved
 	CvIdVector<CvTradeRouteGroup> m_aTradeGroups; //R&R mod, vetiarvind, trade groups
 public:
 	// Dale - AoD: AI Autoplay END
@@ -1257,6 +1258,9 @@ protected:
 	void doTaxRaises(); //WTP, jburet, Tax Reform
 	void doAfricaPrices(); // R&R, ray, Africa
 	void doPortRoyalPrices(); // R&R, ray, Port Royal
+	// WTP: price check after a trade: only the traded yield, only every 3rd trade
+	void doTradePriceCheck(TradeLocationTypes eLocation, YieldTypes eYield);
+	void doYieldPriceUpdate(TradeLocationTypes eLocation, YieldTypes eYield);
 	void wipeRoyalYieldScore(); //WTP, jburet, Tax Reform
 
 	const int getFullYieldScore(bool fullCalculation);//WTP, jburet, Tax Reform
