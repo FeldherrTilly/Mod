@@ -4217,7 +4217,12 @@ int CvCityAI::AI_citizenProfessionValue(
 	for (int i = 0; i < numIn; ++i)
 	{
 		YieldTypes y = inYields[i];
-		int avail = getRawYieldProduced(y) + getYieldStored(y);
+		// WTP: subtract what other workers already use up, so no more workers are put on a job than input exists
+		int avail = getRawYieldProduced(y) + getYieldStored(y) - getRawYieldConsumed(y);
+		if (pUnit->getProfession() == eProfession)
+		{
+			avail += getProfessionInput(eProfession, pUnit);
+		}
 		if (avail <= 0)
 		{
 			// 3. empty store used to hard-zero the roaster/smith. then nobody grew berries
@@ -4349,14 +4354,15 @@ int CvCityAI::AI_citizenProfessionValue(
 				}
 			}
 		}
-		// WTP: keep a lumber stockpile of about 50; lumber may also come from other sources
+		// WTP: keep the lumber stock from falling below 50: a lumber job is wanted as long as the stock would drop
+		// below 50 within 5 turns without this worker (no flip-flopping around 50); only from 150 on it is worth less
 		else if (eY == YIELD_LUMBER)
 		{
-			if (getYieldStored(YIELD_LUMBER) < 50)
+			if (AI_projectedLumberWithout(pUnit) < 50)
 			{
 				combined *= 2;
 			}
-			else
+			else if (getYieldStored(YIELD_LUMBER) >= 150)
 			{
 				combined /= 2;
 			}
@@ -4368,8 +4374,10 @@ int CvCityAI::AI_citizenProfessionValue(
 	}
 
 	// WTP: as long as lumber is available, making hammers beats any non-food plot job producing fewer than 10
-	// units (precious metals and gems excepted, they keep their own value)
-	if (!isNative() && yieldsOut.count > 0)
+	// units (precious metals and gems excepted, they keep their own value).
+	// None of these job floors apply while the colony does not produce enough food.
+	const bool bFoodDeficit = getRawYieldProduced(YIELD_FOOD) < getPopulation() * GLOBAL_DEFINE_FOOD_CONSUMPTION_PER_POPULATION;
+	if (!isNative() && yieldsOut.count > 0 && !bFoodDeficit)
 	{
 		if (!kProfInfo.isWorkPlot() && totalInput > 0)
 		{
@@ -4381,15 +4389,40 @@ int CvCityAI::AI_citizenProfessionValue(
 					bMakesHammers = true;
 				}
 			}
-			if (bMakesHammers && getYieldStored(YIELD_LUMBER) + getRawYieldProduced(YIELD_LUMBER) >= totalInput)
+			int iLumberLeft = getYieldStored(YIELD_LUMBER) + getRawYieldProduced(YIELD_LUMBER) - getRawYieldConsumed(YIELD_LUMBER);
+			if (pUnit->getProfession() == eProfession)
+			{
+				iLumberLeft += totalInput;
+			}
+			if (bMakesHammers && iLumberLeft >= totalInput)
 			{
 				combined = branchless::max(combined, AI_hammerJobMinValue());
 			}
 		}
-		else if (kProfInfo.isWorkPlot() && getYieldStored(YIELD_LUMBER) + getRawYieldProduced(YIELD_LUMBER) > 0)
+		// WTP: job order for colonists: preachers, then lumber (while the stockpile is low), then statesmen, then
+		// carpenters (see above), all before mining or gathering small amounts of raw materials.
+		// H = AI_hammerJobMinValue() = value of 10 units of the city's best non-food raw material
+		else if (!kProfInfo.isWorkPlot() && totalInput == 0)
 		{
 			const YieldTypes eY = yieldsOut.yields[0].eYield;
-			if (eY == YIELD_SILVER || eY == YIELD_GOLD || eY == YIELD_GEMS)
+			if (eY == YIELD_CROSSES)
+			{
+				combined = branchless::max(combined, AI_hammerJobMinValue() * 2);
+			}
+			else if (eY == YIELD_BELLS)
+			{
+				combined = branchless::max(combined, AI_hammerJobMinValue() * 6 / 5);
+			}
+		}
+		else if (kProfInfo.isWorkPlot())
+		{
+			const YieldTypes eY = yieldsOut.yields[0].eYield;
+			// additive, so better lumber plots stay ahead; statesmen get 1.2 H, preachers 2 H
+			if (eY == YIELD_LUMBER && yieldsOut.yields[0].iAmount >= 3 && AI_projectedLumberWithout(pUnit) < 50)
+			{
+				combined = branchless::max(combined, 0) + AI_hammerJobMinValue() * 5 / 4;
+			}
+			else if ((eY == YIELD_SILVER || eY == YIELD_GOLD || eY == YIELD_GEMS) && getYieldStored(YIELD_LUMBER) + getRawYieldProduced(YIELD_LUMBER) > 0)
 			{
 				combined = branchless::max(combined, AI_hammerJobMinValue());
 			}
@@ -4409,7 +4442,17 @@ int CvCityAI::AI_citizenProfessionValue(
 		}
 	}
 
-	return branchless::max(0, combined);
+	// WTP: indentured and enslaved units have a heavy malus on all building jobs. They should work plots, so a
+	// building job is only their last resort (not 0, that would throw them out of the city) and swapping with a
+	// free colonist on a plot is always better
+	if (!kProfInfo.isWorkPlot() && combined > 0)
+	{
+		const CitizenStatusTypes eStatus = pUnit->getUnitInfo().getCitizenStatus();
+		if (eStatus == CITIZEN_STATUS_INDENTURED || eStatus == CITIZEN_STATUS_ENSLAVED)
+		{
+			return 1;
+		}
+	}
 
 	return branchless::max(0, combined);
 }
@@ -4823,6 +4866,21 @@ const int YIELD_TOOLS_BASE_VALUE = 10;
 
 // WTP: the value a hammer job is worth at least while lumber is available: 10 units of the most valuable
 // non-food yield found on the city's plots, precious metals and gems not counted
+// WTP: lumber stock in 5 turns if this unit does not cut lumber (its current lumber output is taken out)
+int CvCityAI::AI_projectedLumberWithout(const CvUnit* pUnit) const
+{
+	int iFlow = getRawYieldProduced(YIELD_LUMBER) - getRawYieldConsumed(YIELD_LUMBER);
+	if (pUnit != NULL)
+	{
+		const CvPlot* const pWorked = getPlotWorkedByUnit(pUnit);
+		if (pWorked != NULL && pUnit->getProfession() != NO_PROFESSION && GC.getProfessionInfo(pUnit->getProfession()).getYieldsProduced(0) == YIELD_LUMBER)
+		{
+			iFlow -= pWorked->getYield(YIELD_LUMBER);
+		}
+	}
+	return getYieldStored(YIELD_LUMBER) + 5 * iFlow;
+}
+
 // WTP: marks the plot yields whose expert a native village within 8 plots on the same landmass teaches
 void CvCityAI::AI_getYieldsTaughtNearby(bool* abYields) const
 {
