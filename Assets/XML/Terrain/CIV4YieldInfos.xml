@@ -413,10 +413,10 @@
 					<PriceTable>
 						<location>TRADE_LOCATION_EUROPE</location>
 						<iBuyLow>1</iBuyLow>
-						<iBuyHigh>2</iBuyHigh>
+						<iBuyHigh>3</iBuyHigh>
 						<iBuyLowInit>1</iBuyLowInit>
-						<iBuyHighInit>2</iBuyHighInit>
-						<iSellPriceDifference>3</iSellPriceDifference>
+						<iBuyHighInit>1</iBuyHighInit>
+						<iSellPriceDifference>5</iSellPriceDifference>
 						<iVolumeAttrition>2</iVolumeAttrition>
 					</PriceTable>
 					<PriceTable>
@@ -478,10 +478,10 @@
 					<PriceTable>
 						<location>TRADE_LOCATION_EUROPE</location>
 						<iBuyLow>1</iBuyLow>
-						<iBuyHigh>2</iBuyHigh>
+						<iBuyHigh>3</iBuyHigh>
 						<iBuyLowInit>1</iBuyLowInit>
-						<iBuyHighInit>2</iBuyHighInit>
-						<iSellPriceDifference>3</iSellPriceDifference>
+						<iBuyHighInit>1</iBuyHighInit>
+						<iSellPriceDifference>5</iSellPriceDifference>
 						<iVolumeAttrition>2</iVolumeAttrition>
 					</PriceTable>
 					<PriceTable>
