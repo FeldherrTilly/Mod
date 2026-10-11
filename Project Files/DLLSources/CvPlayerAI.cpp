@@ -261,6 +261,8 @@ void CvPlayerAI::AI_doTurnPre()
 
 	AI_doCitizenRelocation();
 
+	AI_doReclaimTerritory();
+
 	AI_logStatusSummary();
 }
 
@@ -7948,11 +7950,68 @@ bool CvPlayerAI::AI_doDiploCancelDeals(PlayerTypes ePlayer)
 }
 
 
+// WTP: a native player can still claim this plot if one of its villages is within 3 plots
+static bool nativeCanClaimPlot(const CvPlot& kPlot, PlayerTypes eNative)
+{
+	int iLoop;
+	CvPlayer& kNative = GET_PLAYER(eNative);
+	for (CvCity* pVillage = kNative.firstCity(&iLoop); pVillage != NULL; pVillage = kNative.nextCity(&iLoop))
+	{
+		if (plotDistance(pVillage->getX_INLINE(), pVillage->getY_INLINE(), kPlot.getX_INLINE(), kPlot.getY_INLINE()) <= 3)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+// WTP: take back up to 3 plots per turn whose influence was given up, if no native village can claim them
+// anymore or we are stronger than every native player with a claim on them
+void CvPlayerAI::AI_doReclaimTerritory()
+{
+	if (isHuman() || isNative() || isEurope() || getParent() == NO_PLAYER || getNumCities() == 0)
+	{
+		return;
+	}
+	int iReclaimed = 0;
+	for (int iI = 0; iI < GC.getMap().numPlotsINLINE() && iReclaimed < 3; ++iI)
+	{
+		CvPlot* pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
+		if (!pLoopPlot->isNotCulture(getID()))
+		{
+			continue;
+		}
+		bool bReclaim = true;
+		for (int iPlayer = 0; iPlayer < MAX_PLAYERS && bReclaim; ++iPlayer)
+		{
+			const PlayerTypes eNative = (PlayerTypes)iPlayer;
+			const CvPlayer& kNative = GET_PLAYER(eNative);
+			if (kNative.isAlive() && kNative.isNative() && nativeCanClaimPlot(*pLoopPlot, eNative) && getPower() <= kNative.getPower())
+			{
+				bReclaim = false;
+			}
+		}
+		if (bReclaim)
+		{
+			pLoopPlot->setNotCulture(getID(), false);
+			++iReclaimed;
+			if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) turn %d reclaims plot %d,%d", getID(), getCivilizationDescription(0),
+				GC.getGameINLINE().getGameTurn(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+		}
+	}
+}
+
 void CvPlayerAI::AI_doNativeLandReturn(PlayerTypes eNativePlayer)
 {
 	CvPlayerAI& kNativePlayer = GET_PLAYER(eNativePlayer);
 
 	if (!kNativePlayer.isNative())
+	{
+		return;
+	}
+
+	// WTP: no land is given back to natives we are stronger than (it would be reclaimed right away)
+	if (getPower() > kNativePlayer.getPower())
 	{
 		return;
 	}
