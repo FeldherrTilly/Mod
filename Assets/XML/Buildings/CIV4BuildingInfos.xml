@@ -769,7 +769,7 @@
 			<bNationalWonder>0</bNationalWonder>
 			<bNeverCapture>0</bNeverCapture>
 			<bCenterInCity>0</bCenterInCity>
-			<iAIWeight>100</iAIWeight>
+			<iAIWeight>300</iAIWeight>
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
@@ -919,7 +919,7 @@
 			<bNationalWonder>0</bNationalWonder>
 			<bNeverCapture>0</bNeverCapture>
 			<bCenterInCity>0</bCenterInCity>
-			<iAIWeight>60</iAIWeight>
+			<iAIWeight>180</iAIWeight>
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
@@ -1608,7 +1608,7 @@
 			<bNationalWonder>0</bNationalWonder>
 			<bNeverCapture>0</bNeverCapture>
 			<bCenterInCity>0</bCenterInCity>
-			<iAIWeight>100</iAIWeight>
+			<iAIWeight>300</iAIWeight>
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
@@ -1695,7 +1695,7 @@
 			<bNationalWonder>0</bNationalWonder>
 			<bNeverCapture>0</bNeverCapture>
 			<bCenterInCity>0</bCenterInCity>
-			<iAIWeight>60</iAIWeight>
+			<iAIWeight>180</iAIWeight>
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
@@ -2014,7 +2014,7 @@
 			<bNationalWonder>0</bNationalWonder>
 			<bNeverCapture>0</bNeverCapture>
 			<bCenterInCity>0</bCenterInCity>
-			<iAIWeight>80</iAIWeight>
+			<iAIWeight>240</iAIWeight>
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
@@ -2115,7 +2115,7 @@
 			<bNationalWonder>0</bNationalWonder>
 			<bNeverCapture>0</bNeverCapture>
 			<bCenterInCity>0</bCenterInCity>
-			<iAIWeight>60</iAIWeight>
+			<iAIWeight>180</iAIWeight>
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
@@ -2711,7 +2711,7 @@
 			<bNationalWonder>0</bNationalWonder>
 			<bNeverCapture>0</bNeverCapture>
 			<bCenterInCity>1</bCenterInCity>
-			<iAIWeight>80</iAIWeight>
+			<iAIWeight>240</iAIWeight>
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
@@ -2794,7 +2794,7 @@
 			<bNationalWonder>0</bNationalWonder>
 			<bNeverCapture>0</bNeverCapture>
 			<bCenterInCity>1</bCenterInCity>
-			<iAIWeight>60</iAIWeight>
+			<iAIWeight>180</iAIWeight>
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
@@ -3457,7 +3457,7 @@
 			<bNationalWonder>0</bNationalWonder>
 			<bNeverCapture>0</bNeverCapture>
 			<bCenterInCity>0</bCenterInCity>
-			<iAIWeight>80</iAIWeight>
+			<iAIWeight>240</iAIWeight>
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
@@ -3565,7 +3565,7 @@
 			<bNationalWonder>0</bNationalWonder>
 			<bNeverCapture>0</bNeverCapture>
 			<bCenterInCity>0</bCenterInCity>
-			<iAIWeight>60</iAIWeight>
+			<iAIWeight>120</iAIWeight>
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
@@ -8770,7 +8770,7 @@
 			<bNationalWonder>0</bNationalWonder>
 			<bNeverCapture>0</bNeverCapture>
 			<bCenterInCity>0</bCenterInCity>
-			<iAIWeight>100</iAIWeight>
+			<iAIWeight>300</iAIWeight>
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
@@ -9801,7 +9801,7 @@
 			<bNationalWonder>0</bNationalWonder>
 			<bNeverCapture>0</bNeverCapture>
 			<bCenterInCity>0</bCenterInCity>
-			<iAIWeight>100</iAIWeight>
+			<iAIWeight>300</iAIWeight>
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
@@ -9898,7 +9898,7 @@
 			<bNationalWonder>0</bNationalWonder>
 			<bNeverCapture>0</bNeverCapture>
 			<bCenterInCity>0</bCenterInCity>
-			<iAIWeight>80</iAIWeight>
+			<iAIWeight>240</iAIWeight>
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
