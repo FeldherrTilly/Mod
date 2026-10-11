@@ -4863,7 +4863,9 @@ bool CvUnitAI::AI_sailToPreferredPort(bool bMove)
 		const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 
 		// WTP: fetch farm workers from Africa if a colony needs food and slaves are the cheaper choice
-		if (AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && GET_PLAYER(getOwnerINLINE()).AI_wantsAfricaFoodWorkers())
+		// WTP: no trips to Africa while more than 3 units wait in Europe
+		const bool bEuropeWaiting = GET_PLAYER(getOwnerINLINE()).getNumEuropeUnits() > 3;
+		if (!bEuropeWaiting && AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && GET_PLAYER(getOwnerINLINE()).AI_wantsAfricaFoodWorkers())
 		{
 			if (gUnitLogLevel >= 1) logBBAI("WTP ship: Player %d (%S) ship %S sails to Africa for farm workers", getOwnerINLINE(),
 				kOwner.getCivilizationDescription(0), getName().GetCString());
@@ -4897,12 +4899,12 @@ bool CvUnitAI::AI_sailToPreferredPort(bool bMove)
 
 		// We should expand on this in a future iteration but this will suffice for now
 		//if (bAfricaRatio && bAfricaBetterValue && iPriceDifference > 0)
-		if (iAfricaBetterValue > 0 && iPriceDifference > 0)
+		if (!bEuropeWaiting && iAfricaBetterValue > 0 && iPriceDifference > 0)
 		{
 			return AI_sailToAfrica(bMove);
 		}
 		// Pick Africa if much better value
-		else if (iAfricaBetterValue >= 100 * cargoSpace())
+		else if (!bEuropeWaiting && iAfricaBetterValue >= 100 * cargoSpace())
 		{
 			return AI_sailToAfrica(bMove);
 		}
