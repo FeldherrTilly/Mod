@@ -558,6 +558,11 @@
 		<iDefineIntVal>2</iDefineIntVal>
 	</Define>
 	<Define>
+		<!-- attitude loss of natives towards a player who builds a fort on their land (the fort plot passes to the builder) -->
+		<DefineName>FORT_ON_NATIVE_LAND_ATTITUDE_PENALTY</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<Define>
 		<DefineName>MAX_NATIVE_BARGAIN_MODIFIER</DefineName>
 		<iDefineIntVal>75</iDefineIntVal>
 	</Define>
