@@ -9395,6 +9395,9 @@ void CvPlayerAI::AI_doEurope()
 			return;
 		}
 
+		// WTP: after the ships the missing pioneers come first
+		AI_doEquipPioneersInEurope();
+
 		// WTP: civilian needs come before buying military units
 		AI_doCivilianPurchases();
 
@@ -9452,34 +9455,6 @@ void CvPlayerAI::AI_doEurope()
 			}
 
 			AI_updateNextBuyUnit();
-		}
-	}
-	// Restore AI pioneer equipment from WTP 4.2.1
-	if (!isHuman() && !isNative() && !isEurope() && !AI_isStrategy(STRATEGY_MILITARY_BUILDUP))
-	{
-		ProfessionTypes eDefaultProfession = GC.getCivilizationInfo(getCivilizationType()).getDefaultProfession();
-
-		for (int i = 0; i < getNumEuropeUnits(); ++i)
-		{
-			// WTP: only while there are fewer pioneers than needed (the need is never 0 with a colony, so every
-			// non-expert on the docks became a pioneer)
-			if (AI_totalUnitAIs(UNITAI_WORKER) >= AI_neededWorkers(NULL))
-			{
-				break;
-			}
-
-			CvUnit* pUnit = getEuropeUnit(i);
-
-			if (pUnit->getUnitInfo().getTeacherWeight() <= 0 && pUnit->getProfession() == eDefaultProfession)
-			{
-				ProfessionTypes eProfession = AI_idealProfessionForUnitAIType(UNITAI_WORKER);
-
-				if (eProfession != NO_PROFESSION && pUnit->canHaveProfession(eProfession, false))
-				{
-					changeProfessionEurope(pUnit->getID(), eProfession);
-					pUnit->AI_setUnitAIType(UNITAI_WORKER);
-				}
-			}
 		}
 	}
 }
@@ -17669,6 +17644,68 @@ CvCity* CvPlayerAI::AI_wfTeachingVillage(UnitClassTypes eExpertClass, const CvCi
 	return NULL;
 }
 
+// WTP: an expert whose specialty is useless: the raw materials of its expert job are nowhere near the colonies (no
+// colony produces them, no plot within the colonies' radius + 1 can); aiYieldAvailable caches the yields (-1 unknown)
+bool CvPlayerAI::AI_isUselessExpert(const CvUnitAI& kUnit, std::vector<int>& aiYieldAvailable)
+{
+	const int iRadius = GC.getGameINLINE().isOption(GAMEOPTION_TWO_PLOT_CITY_RADIUS) ? 2 : 1;
+	const ProfessionTypes eIdeal = kUnit.AI_getIdealProfession();
+	if (eIdeal == NO_PROFESSION)
+	{
+		return false;
+	}
+	const CvProfessionInfo& kIdeal = GC.getProfessionInfo(eIdeal);
+	std::vector<YieldTypes> aeRaw;
+	if (kIdeal.isWorkPlot())
+	{
+		aeRaw.push_back((YieldTypes)kIdeal.getYieldsProduced(0));
+	}
+	else
+	{
+		for (int j = 0; j < kIdeal.getNumYieldsConsumed(); ++j)
+		{
+			aeRaw.push_back((YieldTypes)kIdeal.getYieldsConsumed(j));
+		}
+	}
+	// all inputs have to be available (an expert needing two goods is useless if one of them is missing)
+	bool bUseful = true;
+	for (uint j = 0; j < aeRaw.size() && bUseful; ++j)
+	{
+		const YieldTypes eRaw = aeRaw[j];
+		if (eRaw == NO_YIELD)
+		{
+			continue;
+		}
+		if (aiYieldAvailable[eRaw] < 0)
+		{
+			aiYieldAvailable[eRaw] = 0;
+			int iCityLoop;
+			for (CvCity* pLoopCity = firstCity(&iCityLoop); pLoopCity != NULL && aiYieldAvailable[eRaw] == 0; pLoopCity = nextCity(&iCityLoop))
+			{
+				if (pLoopCity->getRawYieldProduced(eRaw) > 0)
+				{
+					aiYieldAvailable[eRaw] = 1;
+					break;
+				}
+				for (int iDX = -(iRadius + 1); iDX <= iRadius + 1 && aiYieldAvailable[eRaw] == 0; ++iDX)
+				{
+					for (int iDY = -(iRadius + 1); iDY <= iRadius + 1; ++iDY)
+					{
+						const CvPlot* const pLoopPlot = plotXY(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), iDX, iDY);
+						if (pLoopPlot != NULL && pLoopPlot->calculateBestNatureYield(eRaw, getTeam()) > 0)
+						{
+							aiYieldAvailable[eRaw] = 1;
+							break;
+						}
+					}
+				}
+			}
+		}
+		bUseful = aiYieldAvailable[eRaw] > 0;
+	}
+	return !bUseful;
+}
+
 void CvPlayerAI::AI_doWorkforcePlan()
 {
 	MOD_PROFILE("CvPlayerAI::AI_doWorkforcePlan");
@@ -17721,60 +17758,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				{
 					continue;
 				}
-				const ProfessionTypes eIdeal = pCitizen->AI_getIdealProfession();
-				if (eIdeal == NO_PROFESSION)
-				{
-					continue;
-				}
-				const CvProfessionInfo& kIdeal = GC.getProfessionInfo(eIdeal);
-				std::vector<YieldTypes> aeRaw;
-				if (kIdeal.isWorkPlot())
-				{
-					aeRaw.push_back((YieldTypes)kIdeal.getYieldsProduced(0));
-				}
-				else
-				{
-					for (int j = 0; j < kIdeal.getNumYieldsConsumed(); ++j)
-					{
-						aeRaw.push_back((YieldTypes)kIdeal.getYieldsConsumed(j));
-					}
-				}
-				// all inputs have to be available (an expert needing two goods is useless if one of them is missing)
-				bool bUseful = true;
-				for (uint j = 0; j < aeRaw.size() && bUseful; ++j)
-				{
-					const YieldTypes eRaw = aeRaw[j];
-					if (eRaw == NO_YIELD)
-					{
-						continue;
-					}
-					if (aiYieldAvailable[eRaw] < 0)
-					{
-						aiYieldAvailable[eRaw] = 0;
-						int iCityLoop;
-						for (CvCity* pLoopCity = firstCity(&iCityLoop); pLoopCity != NULL && aiYieldAvailable[eRaw] == 0; pLoopCity = nextCity(&iCityLoop))
-						{
-							if (pLoopCity->getRawYieldProduced(eRaw) > 0)
-							{
-								aiYieldAvailable[eRaw] = 1;
-								break;
-							}
-							for (int iDX = -(iRadius + 1); iDX <= iRadius + 1 && aiYieldAvailable[eRaw] == 0; ++iDX)
-							{
-								for (int iDY = -(iRadius + 1); iDY <= iRadius + 1; ++iDY)
-								{
-									const CvPlot* const pLoopPlot = plotXY(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), iDX, iDY);
-									if (pLoopPlot != NULL && pLoopPlot->calculateBestNatureYield(eRaw, getTeam()) > 0)
-									{
-										aiYieldAvailable[eRaw] = 1;
-										break;
-									}
-								}
-							}
-						}
-					}
-					bUseful = aiYieldAvailable[eRaw] > 0;
-				}
+				const bool bUseful = !AI_isUselessExpert(*pCitizen, aiYieldAvailable);
 				if (!bUseful)
 				{
 					apToClear.push_back(pCitizen);
@@ -18725,6 +18709,74 @@ bool CvPlayerAI::AI_doColonyTransportPurchase()
 			getID(), getCivilizationDescription(0), pUnit->getName().GetCString(), iTransports, getNumCities());
 	}
 	return false;
+}
+
+// WTP: missing pioneers are equipped in Europe: free colonists and indentured servants on the docks without a task of
+// the workforce plan, and experts whose specialty is useless anyway. Free colonists come first.
+void CvPlayerAI::AI_doEquipPioneersInEurope()
+{
+	if (isHuman() || isNative() || isEurope() || AI_isStrategy(STRATEGY_MILITARY_BUILDUP))
+	{
+		return;
+	}
+	const ProfessionTypes eDefaultProfession = GC.getCivilizationInfo(getCivilizationType()).getDefaultProfession();
+	const ProfessionTypes ePioneer = AI_idealProfessionForUnitAIType(UNITAI_WORKER);
+	if (ePioneer == NO_PROFESSION)
+	{
+		return;
+	}
+	std::vector<int> aiYieldAvailable(NUM_YIELD_TYPES, -1);
+	while (AI_totalUnitAIs(UNITAI_WORKER) < AI_neededWorkers(NULL))
+	{
+		CvUnit* pBest = NULL;
+		int iBestValue = 0;
+		for (int i = 0; i < getNumEuropeUnits(); ++i)
+		{
+			CvUnit* const pUnit = getEuropeUnit(i);
+			if (pUnit == NULL || pUnit->getProfession() != eDefaultProfession || !pUnit->canHaveProfession(ePioneer, false))
+			{
+				continue;
+			}
+			const CvUnitAI& kUnit = static_cast<const CvUnitAI&>(*pUnit);
+			const UnitAITypes eUnitAI = kUnit.AI_getUnitAIType();
+			if (kUnit.AI_getWfTask() != CvUnitAI::WF_NONE || eUnitAI == UNITAI_SETTLER || eUnitAI == UNITAI_WORKER)
+			{
+				continue;
+			}
+			int iValue = 0;
+			const UnitClassTypes eClass = pUnit->getUnitClassType();
+			if (eClass == UNITCLASS_COLONIST)
+			{
+				iValue = 3;
+			}
+			else if (eClass == (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_INDENTURED_SERVANT"))
+			{
+				iValue = 2;
+			}
+			else if (kUnit.AI_getIdealProfession() != NO_PROFESSION && pUnit->canClearSpecialty() && pUnit->getUnitInfo().NBMOD_GetTeachLevel() < 3
+				&& AI_isUselessExpert(kUnit, aiYieldAvailable))
+			{
+				iValue = 1;
+			}
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				pBest = pUnit;
+			}
+		}
+		if (pBest == NULL)
+		{
+			return;
+		}
+		changeProfessionEurope(pBest->getID(), ePioneer);
+		if (pBest->getProfession() != ePioneer)
+		{
+			return; // not affordable
+		}
+		pBest->AI_setUnitAIType(UNITAI_WORKER);
+		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) equips %S as pioneer in Europe (%d pioneers, %d needed)", getID(), getCivilizationDescription(0),
+			pBest->getName().GetCString(), AI_totalUnitAIs(UNITAI_WORKER), AI_neededWorkers(NULL));
+	}
 }
 
 // WTP: buy another transport if more units wait in Europe than one load of all our transports.
