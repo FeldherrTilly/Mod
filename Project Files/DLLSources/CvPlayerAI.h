@@ -472,6 +472,7 @@ public:
 	UnitTypes AI_bestShipToBuy(UnitAITypes eUnitAI, bool bCheapest);
 	bool AI_doTransportPurchase();
 	void AI_doCitizenRelocation(); // WTP
+	void AI_doReclaimTerritory(); // WTP
 	// WTP: food workers for colonies short of food when no new colonies are wanted
 	CvCity* AI_bestFoodWorkerCity(bool& bWater);
 	UnitTypes AI_africaFoodWorker();
