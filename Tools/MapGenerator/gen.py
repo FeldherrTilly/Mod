@@ -2472,6 +2472,110 @@ for x, y in cove_cands:
         if cy < H - 1:
             nofr.pop(I(cx, cy + 1), None)
 
+# ---------------------------------------------------------------- Caribbean revision
+# Late changes (own random stream, so the rest of the map stays as it was): the westernmost gulf island makes way for a narrow strip of
+# Atlantic Europe plots, most plain reefs of the island sea disappear, an ocean current curves in from the east towards the strip,
+# and part of the shrubland in the southern continent turns into desert.
+car_rng = random.Random(SEED * 7 + 25)
+west_isle = min(archipelago, key=lambda c: min(x for x, _ in c))
+archipelago.remove(west_isle)
+for x, y in west_isle:
+    j = I(x, y)
+    land[j], ocean[j], plot_type[j], terrain[j], feature[j] = False, True, 3, 'COAST', None
+    IMPROVEMENT.pop(j, None)
+    ROUTE.pop(j, None)
+    wofr.pop(j, None)
+    nofr.pop(j, None)
+    wofr.pop(I(x - 1, y), None)
+    nofr.pop(I(x, y + 1), None)
+wx = int(round(sum(x for x, _ in west_isle) / float(len(west_isle))))
+wy = int(round(sum(y for _, y in west_isle) / float(len(west_isle))))
+CARIB_EUROPE = [I(wx, wy + d) for d in range(-2, 3)]          # a narrow strip, five plots long
+for i in CARIB_EUROPE:
+    terrain[i], feature[i] = 'OCEAN', None
+    for qx, qy in nbrs(i % W, i // W):
+        j = I(qx, qy)
+        if ocean[j] and not large[j] and not lake[j] and j not in CARIB_EUROPE:
+            if terrain[j] == 'SHALLOW_COAST':
+                terrain[j] = 'COAST'
+            if feature[j] in ('REEF', 'STONE_REEF', 'PEARL_REEF', 'SEAGRASS', 'KELP'):
+                feature[j] = None
+    SHALLOW_WATER.discard(i)
+    HARBOUR_WATER.discard(i)
+
+# the strip must stay reachable for large ships: join it to the main body of deep water if necessary
+deep = lambda i: ocean[i] and terrain[i] in ('OCEAN', 'COAST') and not large[i]
+comps = sorted(components([deep(i) for i in range(W * H)]), key=len)
+main_deep = set(I(x, y) for x, y in comps[-1])
+if CARIB_EUROPE[0] not in main_deep:
+    prev, dq, found = {CARIB_EUROPE[0]: None}, deque([CARIB_EUROPE[0]]), None
+    while dq and found is None:
+        i = dq.popleft()
+        for nx, ny in nbrs(i % W, i // W):
+            j = I(nx, ny)
+            if j in prev or not ocean[j] or large[j] or lake[j]:
+                continue
+            prev[j] = i
+            if j in main_deep:
+                found = j
+                break
+            dq.append(j)
+    while found is not None and prev[found] is not None:
+        found = prev[found]
+        if terrain[found] == 'SHALLOW_COAST':
+            terrain[found] = 'COAST'
+            feature[found] = None
+
+# most plain reefs of the island sea go (coral = stone reefs and pearl reefs stay)
+reefs_removed = 0
+for x in range(38, 69):
+    for y in range(28, 53):
+        i = I(x, y)
+        if feature[i] == 'REEF' and car_rng.random() < 0.75:
+            feature[i] = None
+            reefs_removed += 1
+
+# warm current: a narrow, interrupted half circle from the east ocean through the island sea to the strip; arrows only fit on open ocean,
+# so plain deep coast without land next to it (no features) is opened up as ocean where the arc crosses it
+cx_, cy_ = (wx + 66) / 2.0, float(wy - 2)
+ax_, by_ = cx_ - wx, 6.5
+CAR_ARROWS, prev_pt = 0, None
+for k in range(401):
+    t = math.pi * k / 400.0                                          # from the east point over the north to the west point
+    gx, gy = int(round(cx_ + ax_ * math.cos(t))), int(round(cy_ + by_ * math.sin(t)))
+    if (gx, gy) == prev_pt or not inb(gx, gy):
+        continue
+    prev_pt = (gx, gy)
+    i = I(gx, gy)
+    if not ocean[i] or large[i] or lake[i] or feature[i] is not None or i in CARIB_EUROPE:
+        continue
+    if terrain[i] == 'COAST' and not any(land[I(nx, ny)] for nx, ny in nbrs(gx, gy)):
+        terrain[i] = 'OCEAN'
+    if terrain[i] == 'OCEAN':
+        ang = math.atan2(by_ * math.cos(t), -ax_ * math.sin(t))     # tangent in the direction of travel
+        feature[i] = 'ARROW_' + DIRS[int(round(ang / (math.pi / 4))) % 8]
+        CAR_ARROWS += 1
+
+# shrubland of the southern continent turns into desert, starting where it already borders desert (about 30 %)
+south_shrub = [I(x, y) for x, y in ALL if y <= 30 and land[I(x, y)] and terrain[I(x, y)] == 'SHRUBLAND']
+dd = bfs_dist([i for i in range(W * H) if land[i] and terrain[i] == 'DESERT'], lambda j: True)
+protected = set()
+for ox, oy in oases:
+    for dx in range(-3, 4):
+        for dy in range(-3, 4):
+            if inb(ox + dx, oy + dy):
+                protected.add(I(ox + dx, oy + dy))
+elig = [i for i in south_shrub if i not in protected and not has_river(i % W, i // W)
+        and not any(lake[I(nx, ny)] or large[I(nx, ny)] for nx, ny in nbrs(i % W, i // W))]
+elig.sort(key=lambda i: dd[i] + car_rng.uniform(0, 4))
+to_desert = elig[:int(0.3 * len(south_shrub))]
+for i in to_desert:
+    terrain[i] = 'DESERT'
+    if feature[i] not in (None, 'ROCK_FORMATIONS_DESERT', 'CACTUS_TREES', 'BARREL_CACTUS'):
+        feature[i] = None
+print('caribbean revision: west isle', len(west_isle), 'strip', [(i % W, i // W) for i in CARIB_EUROPE], 'reefs removed', reefs_removed, 'current arrows', CAR_ARROWS,
+      'shrubland south', len(south_shrub), 'to desert', len(to_desert))
+
 # ---------------------------------------------------------------- landmark names
 # map signs (landmarks visible to every player) give the invented landscape its names;
 # captions are plain ASCII, without commas or '='
@@ -2645,6 +2749,7 @@ wofr = dict((i + W * EXT_ROWS, d) for i, d in wofr.items())
 nofr = dict((i + W * EXT_ROWS, d) for i, d in nofr.items())
 SIGNS = [(x, y + EXT_ROWS, c) for x, y, c in SIGNS]
 HARBOUR_WATER = set(i + W * EXT_ROWS for i in HARBOUR_WATER)
+CARIB_EUROPE = [i + W * EXT_ROWS for i in CARIB_EUROPE]
 IMPROVEMENT = dict((i + W * EXT_ROWS, v) for i, v in IMPROVEMENT.items())
 ROUTE = dict((i + W * EXT_ROWS, v) for i, v in ROUTE.items())
 
@@ -2780,6 +2885,8 @@ if EXT_LAND:
 dland = bfs_dist([i for i in range(W * H) if not ocean[i]], lambda j: True)
 europe = [ocean[i] and terrain[i] == 'OCEAN' and i % W >= W - 16 and dland[i] >= 5 for i in range(W * H)]
 pacific = [ocean[i] and terrain[i] == 'OCEAN' and i % W < 12 and dland[i] >= 5 for i in range(W * H)]
+for i in CARIB_EUROPE:
+    europe[i] = True                         # narrow Atlantic strip inside the island sea
 # where the west coast runs close to the map edge, the outermost columns still open to the Pacific
 for y in range(H):
     if not any(pacific[I(x, y)] for x in range(12)):
