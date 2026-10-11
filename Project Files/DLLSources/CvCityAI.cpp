@@ -89,6 +89,7 @@ void CvCityAI::AI_reset()
 	m_iNativeAssignPopulation = -1;
 	m_iCacheAngryNativeTurn = -1;
 	m_iCacheAngryNativeDefenders = 0;
+	m_iFoodShortageTurn = -100;
 }
 
 
@@ -378,6 +379,9 @@ void CvCityAI::AI_assignWorkingPlots()
 			}
 		}
 	}
+
+	// WTP: no negative food while non-experts work ordinary plots for other goods
+	AI_fixFoodShortage();
 
 	AI_setAssignWorkDirty(false);
 
@@ -4115,6 +4119,101 @@ CvUnit* CvCityAI::AI_assignToBestJob(CvUnit* pUnit, bool bIndoorOnly)
 //iValueB2 - Value of loop unit with loop profession.
 
 // WTP: give a citizen the best job that is free (no other citizen is displaced)
+// WTP: while the colony loses food, non-experts working a plot without a resource for another good move to the best free
+// food plot, the least productive first. Pioneers then build farms first for 5 turns (AI_isFoodShortage).
+void CvCityAI::AI_fixFoodShortage()
+{
+	if (isNative() || isHuman())
+	{
+		return;
+	}
+	const CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
+	for (int iGuard = 0; iGuard < getPopulation() && foodDifference() < 0; ++iGuard)
+	{
+		// the least productive non-expert on an ordinary plot for another good
+		CvUnit* pWorst = NULL;
+		int iWorstValue = MAX_INT;
+		for (uint i = 0; i < m_aPopulationUnits.size(); ++i)
+		{
+			CvUnit* const pCitizen = m_aPopulationUnits[i];
+			if (pCitizen == NULL || pCitizen->isColonistLocked() || pCitizen->getProfession() == NO_PROFESSION)
+			{
+				continue;
+			}
+			const ProfessionTypes eProfession = pCitizen->getProfession();
+			const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+			const YieldTypes eYield = (YieldTypes)kProfession.getYieldsProduced(0);
+			const CvPlot* const pWorked = getPlotWorkedByUnit(pCitizen);
+			if (!kProfession.isWorkPlot() || pWorked == NULL || eYield == YIELD_FOOD || pCitizen->AI_getIdealProfession() == eProfession)
+			{
+				continue;
+			}
+			const BonusTypes eBonus = pWorked->getBonusType();
+			if (eBonus != NO_BONUS && GC.getBonusInfo(eBonus).getYieldChange(eYield) > 0)
+			{
+				continue;
+			}
+			const int iValue = AI_citizenProfessionValue(eProfession, *pCitizen, pWorked, NULL);
+			if (iValue < iWorstValue)
+			{
+				iWorstValue = iValue;
+				pWorst = pCitizen;
+			}
+		}
+		if (pWorst == NULL)
+		{
+			return;
+		}
+		// the best free food plot for it
+		int iBestFood = 0;
+		ProfessionTypes eBestProfession = NO_PROFESSION;
+		CityPlotTypes eBestPlot = NO_CITY_PLOT;
+		for (ProfessionTypes eProfession = FIRST_PROFESSION; eProfession < NUM_PROFESSION_TYPES; ++eProfession)
+		{
+			const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+			if (!kProfession.isCitizen() || !kProfession.isWorkPlot() || (YieldTypes)kProfession.getYieldsProduced(0) != YIELD_FOOD
+				|| !kCiv.isValidProfession(eProfession) || !pWorst->canHaveProfession(eProfession, false))
+			{
+				continue;
+			}
+			FOREACH(CityPlot)
+			{
+				if (eLoopCityPlot == CITY_HOME_PLOT || isPlotProducingYields(eLoopCityPlot))
+				{
+					continue;
+				}
+				const CvPlot* const pLoopPlot = getCityIndexPlot(eLoopCityPlot);
+				if (pLoopPlot == NULL || !canWork(pLoopPlot))
+				{
+					continue;
+				}
+				const int iFood = pLoopPlot->calculatePotentialYield(YIELD_FOOD, pWorst, false);
+				if (iFood > iBestFood)
+				{
+					iBestFood = iFood;
+					eBestProfession = eProfession;
+					eBestPlot = eLoopCityPlot;
+				}
+			}
+		}
+		if (eBestProfession == NO_PROFESSION || iBestFood <= 0)
+		{
+			return;
+		}
+		if (gCityLogLevel >= 1) logBBAI("WTP food: Player %S City %S food %d: %S (%S) moves to a food plot (%d food)", GET_PLAYER(getOwnerINLINE()).getCivilizationDescription(),
+			getName().GetCString(), foodDifference(), pWorst->getName().GetCString(), GC.getProfessionInfo(pWorst->getProfession()).getDescription(), iBestFood);
+		clearUnitWorkingPlot(getPlotWorkedByUnit(pWorst));
+		pWorst->setProfession(eBestProfession);
+		setUnitWorkingPlot(eBestPlot, pWorst->getID());
+		m_iFoodShortageTurn = GC.getGameINLINE().getGameTurn();
+	}
+}
+
+bool CvCityAI::AI_isFoodShortage() const
+{
+	return GC.getGameINLINE().getGameTurn() - m_iFoodShortageTurn <= 5;
+}
+
 bool CvCityAI::AI_assignFreeJob(CvUnit& kUnit)
 {
 	const CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
@@ -6460,6 +6559,12 @@ void CvCityAI::AI_bestPlotBuild(const CvPlot* pPlot, int* piBestValue, BuildType
 
 			int iValue = AI_plotYieldValue(pPlot, aiFinalYields);
 
+			// WTP: while colonists work food plots because of a food shortage, builds that raise the food come first
+			if (AI_isFoodShortage() && pPlot->getYieldWithBuild(eBuild, YIELD_FOOD, true) > pPlot->getYield(YIELD_FOOD))
+			{
+				iValue *= 4;
+			}
+
 			// WTP: keep forest for lumber: never clear the last forest next to the city or one of the last 3 in the
 			// colony radius (see AI_canClearLumberFeature); lodges and sawmills are worth double
 			if (bRemoveFeature && GC.getFeatureInfo(eFeature).getYieldChange(YIELD_LUMBER) > 0 && !AI_canClearLumberFeature(pPlot))
@@ -7222,6 +7327,11 @@ void CvCityAI::AI_updateWorkersNeededHere()
 	else
 	{
 		m_iWorkersNeeded = branchless::max(1, iValue / 100);
+	}
+	// WTP: a colony with a food shortage wants a pioneer for farms
+	if (AI_isFoodShortage())
+	{
+		m_iWorkersNeeded += 1;
 	}
 }
 
