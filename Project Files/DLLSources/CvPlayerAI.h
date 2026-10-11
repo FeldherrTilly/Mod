@@ -475,6 +475,7 @@ public:
 	bool AI_doTransportPurchase();
 	bool AI_doTreasureShipPurchase();
 	bool AI_doColonyTransportPurchase();
+	void AI_doScoutPurchase();
 	void AI_doEquipPioneersInEurope();
 	bool AI_isUselessExpert(const CvUnitAI& kUnit, std::vector<int>& aiYieldAvailable);
 	UnitTypes AI_transportToBuy();
