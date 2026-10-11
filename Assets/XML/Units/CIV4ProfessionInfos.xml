@@ -5790,7 +5790,7 @@
 			<bCanFound>1</bCanFound>
 			<bUnarmed>0</bUnarmed>
 			<bNoDefensiveBonus>0</bNoDefensiveBonus>
-			<iCombatChange>4</iCombatChange>
+			<iCombatChange>2</iCombatChange>
 			<iBarracksSpaceNeededChange>1</iBarracksSpaceNeededChange>
 			<iMovesChange>0</iMovesChange>
 			<bMoveIntoPeak>1</bMoveIntoPeak>
@@ -5835,7 +5835,7 @@
 			<bCanFound>1</bCanFound>
 			<bUnarmed>0</bUnarmed>
 			<bNoDefensiveBonus>1</bNoDefensiveBonus>
-			<iCombatChange>5</iCombatChange>
+			<iCombatChange>4</iCombatChange>
 			<iBarracksSpaceNeededChange>1</iBarracksSpaceNeededChange>
 			<iMovesChange>1</iMovesChange>
 			<bMoveIntoPeak>1</bMoveIntoPeak>
@@ -5885,7 +5885,7 @@
 			<bCanFound>1</bCanFound>
 			<bUnarmed>0</bUnarmed>
 			<bNoDefensiveBonus>0</bNoDefensiveBonus>
-			<iCombatChange>5</iCombatChange>
+			<iCombatChange>4</iCombatChange>
 			<iBarracksSpaceNeededChange>1</iBarracksSpaceNeededChange>
 			<iMovesChange>0</iMovesChange>
 			<bMoveIntoPeak>1</bMoveIntoPeak>
@@ -5935,7 +5935,7 @@
 			<bCanFound>1</bCanFound>
 			<bUnarmed>0</bUnarmed>
 			<bNoDefensiveBonus>1</bNoDefensiveBonus>
-			<iCombatChange>6</iCombatChange>
+			<iCombatChange>5</iCombatChange>
 			<iBarracksSpaceNeededChange>1</iBarracksSpaceNeededChange>
 			<iMovesChange>2</iMovesChange>
 			<bMoveIntoPeak>0</bMoveIntoPeak>
