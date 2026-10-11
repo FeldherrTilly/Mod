@@ -777,7 +777,7 @@ public:
 	int getSellToEuropeProfit(YieldTypes eYield, int iAmount) const;
 	int getYieldSellPrice(YieldTypes eYield) const;
 	int getYieldBuyPrice(YieldTypes eYield) const;
-	void setYieldBuyPrice(YieldTypes eYield, int iPrice, bool bMessage);
+	void setYieldBuyPrice(YieldTypes eYield, int iPrice, bool bMessage, bool bAllowAboveMax = false);
 	/*** TRIANGLETRADE 10/24/08 by DPII ***/
 	void sellYieldUnitToAfrica(CvUnit* pUnit, int iAmount, int iCommission);
 	int getAfricaUnitBuyPrice(UnitTypes eUnit) const;

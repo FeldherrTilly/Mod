@@ -279,6 +279,7 @@ public:
 	int getYieldSellPrice(int /*YieldTypes*/ eYield);
 	int getYieldBuyPrice(int /*YieldTypes*/ eYield);
 	void setYieldBuyPrice(int /*YieldTypes*/ eYield, int iPrice, bool bMessage);
+	void setYieldBuyPriceAboveMax(int /*YieldTypes*/ eYield, int iPrice, bool bMessage);
 
 	// R&R, ray, Africa
 	int getYieldAfricaSellPrice(int /*YieldTypes*/ eYield);
