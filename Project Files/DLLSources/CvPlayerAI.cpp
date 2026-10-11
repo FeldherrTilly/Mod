@@ -225,6 +225,9 @@ void CvPlayerAI::AI_reset()
 
 void CvPlayerAI::AI_doTurnPre()
 {
+#ifdef PROFILING_ENABLED
+	Profiler profileSession(isNative() ? "CvPlayerAI::AI_doTurnPre (native)" : "CvPlayerAI::AI_doTurnPre");
+#endif
 	PROFILE_FUNC();
 
 	FAssertMsg(getPersonalityType() != NO_LEADER, "getPersonalityType() is not expected to be equal with NO_LEADER");
@@ -260,6 +263,8 @@ void CvPlayerAI::AI_doTurnPre()
 	AI_updateYieldValues();
 
 	AI_doCitizenRelocation();
+
+	AI_doWorkforcePlan();
 
 	AI_doReclaimTerritory();
 
@@ -300,6 +305,21 @@ void CvPlayerAI::AI_logStatusSummary()
 		}
 	}
 
+	// settlers: where they are and what they are heading for
+	for (CvUnit* pSettler = firstUnit(&iLoop); pSettler != NULL; pSettler = nextUnit(&iLoop))
+	{
+		if (pSettler->AI_getUnitAIType() != UNITAI_SETTLER || !pSettler->isOnMap())
+		{
+			continue;
+		}
+		CvSelectionGroup* const pGroup = pSettler->getGroup();
+		const CvPlot* const pTarget = (pGroup != NULL) ? pGroup->AI_getMissionAIPlot() : NULL;
+		logBBAI("WTP status:   settler %S at %d,%d%s missionAI %d target %d,%d since turn %d",
+			pSettler->getNameAndProfession().GetCString(), pSettler->getX_INLINE(), pSettler->getY_INLINE(), pSettler->isCargo() ? " (on ship)" : "",
+			(pGroup != NULL) ? (int)pGroup->AI_getMissionAIType() : -1,
+			(pTarget != NULL) ? pTarget->getX_INLINE() : -1, (pTarget != NULL) ? pTarget->getY_INLINE() : -1, static_cast<const CvUnitAI*>(pSettler)->AI_getLastAIChangeTurn());
+	}
+
 	for (CvUnit* pShip = firstUnit(&iLoop); pShip != NULL; pShip = nextUnit(&iLoop))
 	{
 		if (pShip->getDomainType() != DOMAIN_SEA)
@@ -318,6 +338,32 @@ void CvPlayerAI::AI_logStatusSummary()
 
 	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
 	{
+		// professions of the citizens, e.g. "Farmer 2, Carpenter 1"
+		CvWString szJobs;
+		std::vector<std::pair<ProfessionTypes, int> > aJobs;
+		for (int i = 0; i < pCity->getPopulation(); ++i)
+		{
+			const CvUnit* const pCitizen = pCity->getPopulationUnitByIndex(i);
+			const ProfessionTypes eJob = (pCitizen != NULL) ? pCitizen->getProfession() : NO_PROFESSION;
+			bool bFound = false;
+			for (uint j = 0; j < aJobs.size() && !bFound; ++j)
+			{
+				if (aJobs[j].first == eJob)
+				{
+					++aJobs[j].second;
+					bFound = true;
+				}
+			}
+			if (!bFound)
+			{
+				aJobs.push_back(std::make_pair(eJob, 1));
+			}
+		}
+		for (uint j = 0; j < aJobs.size(); ++j)
+		{
+			szJobs += CvWString::format(L"%s%s %d", j > 0 ? L", " : L"", aJobs[j].first != NO_PROFESSION ? GC.getProfessionInfo(aJobs[j].first).getDescription() : L"none", aJobs[j].second);
+		}
+		logBBAI("WTP status:     jobs in %S: %S", pCity->getName().GetCString(), szJobs.GetCString());
 		logBBAI("WTP status:   city %S pop %d food %+d (%d/%d) hammers %d lumber %d builds %S",
 			pCity->getName().GetCString(), pCity->getPopulation(), pCity->foodDifference(), pCity->getFood(), pCity->growthThreshold(),
 			pCity->getCurrentProductionDifference(false), pCity->getYieldStored(YIELD_LUMBER), pCity->getProductionName());
@@ -327,6 +373,9 @@ void CvPlayerAI::AI_logStatusSummary()
 
 void CvPlayerAI::AI_doTurnPost()
 {
+#ifdef PROFILING_ENABLED
+	Profiler profileSession(isNative() ? "CvPlayerAI::AI_doTurnPost (native)" : "CvPlayerAI::AI_doTurnPost");
+#endif
 	PROFILE_FUNC();
 
 	if (isHuman())
@@ -541,9 +590,17 @@ void CvPlayerAI::AI_doFleetModernization()
 
 void CvPlayerAI::AI_doTurnUnitsPre()
 {
+#ifdef PROFILING_ENABLED
+	Profiler profileSession(isNative() ? "CvPlayerAI::AI_doTurnUnitsPre (native)" : "CvPlayerAI::AI_doTurnUnitsPre");
+#endif
 	PROFILE_FUNC();
 	AI_updateBestYieldPlots();
-	AI_updateFoundValues();
+	// WTP: rating every plot of the map is expensive; every 3 turns is enough (spread over the players).
+	// Players without a colony keep rating every turn
+	if (getNumCities() == 0 || (GC.getGameINLINE().getGameTurn() + getID()) % 3 == 0)
+	{
+		AI_updateFoundValues();
+	}
 	AI_doEmotions();
 
 	if (!isHuman())
@@ -579,6 +636,9 @@ void CvPlayerAI::AI_doTurnUnitsPre()
 
 void CvPlayerAI::AI_doTurnUnitsPost()
 {
+#ifdef PROFILING_ENABLED
+	Profiler profileSession(isNative() ? "CvPlayerAI::AI_doTurnUnitsPost (native)" : "CvPlayerAI::AI_doTurnUnitsPost");
+#endif
 	PROFILE_FUNC();
 
 	CvUnit* pLoopUnit;
@@ -907,6 +967,9 @@ void CvPlayerAI::AI_doPeace()
 
 void CvPlayerAI::AI_updateFoundValues(bool bStartingLoc)
 {
+#ifdef PROFILING_ENABLED
+	Profiler profileSession(isNative() ? "CvPlayerAI::AI_updateFoundValues (native)" : "CvPlayerAI::AI_updateFoundValues");
+#endif
 	PROFILE_FUNC();
 
 	int iLoop;
@@ -1088,6 +1151,9 @@ int CvPlayerAI::AI_movementPriority(CvSelectionGroup* pGroup)
 
 void CvPlayerAI::AI_unitUpdate()
 {
+#ifdef PROFILING_ENABLED
+	Profiler profileSession(isNative() ? "CvPlayerAI::AI_unitUpdate (native)" : "CvPlayerAI::AI_unitUpdate");
+#endif
 	PROFILE_FUNC();
 
 	CLLNode<int>* pCurrUnitNode;
@@ -2176,12 +2242,7 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 		}
 		else
 		{
-			//ray,  reduce founding chances at Hostile Goodies - START
-			if (pLoopPlot->isGoodyForSpawningHostileCriminals() || pLoopPlot->isGoodyForSpawningHostileNatives() ||  pLoopPlot->isGoodyForSpawningHostileAnimals())
-			{
-				iValue /= 2; // should normally make this an upleasant place
-			}
-			//ray,  reduce founding chances at Hostile Goodies - END
+			// WTP: hostile camps nearby do not matter for founding (ray's penalty removed)
 
 			if (pLoopPlot->isCityRadius())
 			{
@@ -2404,12 +2465,7 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 						if (plotDistance(iX, iY, pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) <= iRange)
 						{
 
-							//ray,  reduce founding chances at Hostile Goodies - START
-							if (pLoopPlot->isGoodyForSpawningHostileCriminals() || pLoopPlot->isGoodyForSpawningHostileNatives() || pLoopPlot->isGoodyForSpawningHostileAnimals())
-							{
-								iGreaterBadTile += 12; // should normally ensure it does not found there the first City
-							}
-							//ray,  reduce founding chances at Hostile Goodies - END
+							// WTP: hostile camps nearby do not matter for founding (ray's penalty removed)
 
 						    int iTempValue = 0;
 							iTempValue += (pLoopPlot->calculatePotentialYield(YIELD_FOOD, NULL, false) * 15);
@@ -7594,6 +7650,9 @@ void CvPlayerAI::AI_doCounter()
 
 void CvPlayerAI::AI_doMilitary()
 {
+#ifdef PROFILING_ENABLED
+	Profiler profileSession(isNative() ? "CvPlayerAI::AI_doMilitary (native)" : "CvPlayerAI::AI_doMilitary");
+#endif
 
 
 	AI_setAttackOddsChange(GC.getLeaderHeadInfo(getPersonalityType()).getBaseAttackOddsChange() +
@@ -7603,6 +7662,9 @@ void CvPlayerAI::AI_doMilitary()
 
 void CvPlayerAI::AI_doDiplo()
 {
+#ifdef PROFILING_ENABLED
+	Profiler profileSession(isNative() ? "CvPlayerAI::AI_doDiplo (native)" : "CvPlayerAI::AI_doDiplo");
+#endif
 	PROFILE_FUNC();
 
 	FAssert(!isHuman());
@@ -7969,6 +8031,7 @@ static bool nativeCanClaimPlot(const CvPlot& kPlot, PlayerTypes eNative)
 // anymore or we are stronger than every native player with a claim on them
 void CvPlayerAI::AI_doReclaimTerritory()
 {
+	MOD_PROFILE("CvPlayerAI::AI_doReclaimTerritory");
 	if (isHuman() || isNative() || isEurope() || getParent() == NO_PLAYER || getNumCities() == 0)
 	{
 		return;
@@ -9256,6 +9319,7 @@ void CvPlayerAI::AI_doProfessions()
 
 void CvPlayerAI::AI_doEurope()
 {
+	MOD_PROFILE("CvPlayerAI::AI_doEurope");
 	//Buy Units.
 	UnitTypes eBuyUnit;
 	UnitAITypes eBuyUnitAI;
@@ -9320,6 +9384,9 @@ void CvPlayerAI::AI_doEurope()
 
 		// WTP: civilian needs come before buying military units
 		AI_doCivilianPurchases();
+
+		// WTP: missing defenders in peace are colonists equipped as colonial militia
+		AI_doMilitiaPurchase();
 
 		//Always refresh at start of new turn (maybe do this smarter but it's okay for now)
 		AI_updateNextBuyUnit();
@@ -9462,6 +9529,16 @@ void CvPlayerAI::AI_nativeYieldGift(CvUnit* pUnit)
 }
 
 // R&R, ray, Natives Trading - START
+// WTP: price per unit of goods the natives bring to a colony: 1 less than their usual price, fur 2
+int CvPlayerAI::AI_nativeDeliveryPrice(YieldTypes eYield)
+{
+	if (eYield == YIELD_FUR)
+	{
+		return 2;
+	}
+	return std::max(0, GC.getYieldInfo(eYield).getNativeSellPrice() - 1);
+}
+
 void CvPlayerAI::AI_nativeTrade(CvUnit* pUnit)
 {
 	FAssert(pUnit != NULL);
@@ -9501,7 +9578,7 @@ void CvPlayerAI::AI_nativeTrade(CvUnit* pUnit)
 		if(iYieldAmount > 0)
 		{
 			CvPlayer& kOtherPlayer = GET_PLAYER(pOtherCity->getOwnerINLINE());
-			int priceToPay = GC.getYieldInfo(eBestYield).getNativeSellPrice() * iYieldAmount;
+			int priceToPay = AI_nativeDeliveryPrice(eBestYield) * iYieldAmount; // WTP
 
 			// simple case for AI
 			if(!kOtherPlayer.isHuman())
@@ -16295,9 +16372,15 @@ void CvPlayerAI::AI_updateNextBuyUnit(bool bPriceLimit)
 	UnitAITypes eBestUnitAI = NO_UNITAI;
 
 	// WTP: in peace only buy defenders that are missing, keeping the same gold reserve as civilian purchases;
+	// while more colonies are wanted only for undefended colonies (the gold is saved for settlers);
 	// warships only from 3 colonies and turn 45 on
 	const bool bWar = GET_TEAM(getTeam()).getAnyWarPlanCount() > 0;
-	const bool bDefendersMissing = bWar || AI_totalDefendersNeeded(NULL) > 0;
+	int iUndefended = 0;
+	const int iDefendersMissing = AI_totalDefendersNeeded(&iUndefended);
+	const bool bExpanding = AI_desiredCityCount() > getNumCities() + AI_totalUnitAIs(UNITAI_SETTLER);
+	const bool bDefendersMissing = bWar || (bExpanding ? iUndefended > 0 : iDefendersMissing > 0);
+	static const UnitClassTypes eTownGuardClass = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_VETERAN_TOWN_GUARD");
+	static const UnitClassTypes eLightArtilleryClass = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_LIGHT_ARTILLERY");
 	const bool bWarshipsAllowed = getNumCities() >= 3 && GC.getGameINLINE().getGameTurn() >= 45;
 
 	const int len = sizeof(validUnitAITypes) / sizeof(validUnitAITypes[0]);
@@ -16333,6 +16416,9 @@ void CvPlayerAI::AI_updateNextBuyUnit(bool bPriceLimit)
 				// Only consider units that default to this unit ai
 				const CvUnitInfo& kUnitInfo = GC.getUnitInfo(eLoopUnit);
 				if (kUnitInfo.getDefaultUnitAIType() != eLoopUnitAI)
+					continue;
+				// WTP: in peace colonial militia (bought separately, see AI_doMilitiaPurchase) instead of town guards and light artillery
+				if (!bWar && (eUnitClass == eTownGuardClass || eUnitClass == eLightArtilleryClass))
 					continue;
 
 				//if (kUnitInfo.getDefaultProfession() == NO_PROFESSION || kUnitInfo.getDefaultUnitAIType() == UNITAI_DEFENSIVE || kUnitInfo.getDefaultUnitAIType() == UNITAI_COUNTER)
@@ -17151,14 +17237,14 @@ int CvPlayerAI::AI_countPromotions(PromotionTypes ePromotion, CvPlot* pPlot, int
 }
 
 // WTP: gold rules for civilian purchases: before turn 15 keep 300 gold, afterwards only buy with at least
-// 1500 gold in the treasury (still keeping 300)
+// 1000 gold in the treasury (still keeping 300)
 bool CvPlayerAI::AI_canAffordCivilianPurchase(int iCost) const
 {
 	if (iCost <= 0)
 	{
 		return false;
 	}
-	if (GC.getGameINLINE().getElapsedGameTurns() >= 15 && getGold() < 1500)
+	if (GC.getGameINLINE().getElapsedGameTurns() >= 15 && getGold() < 1000)
 	{
 		return false;
 	}
@@ -17204,7 +17290,7 @@ bool CvPlayerAI::AI_buyCivilianUnit(UnitTypes eUnit, UnitAITypes eUnitAI, Profes
 }
 
 // WTP: hurry the cheapest immigrant on the docks, if that is cheaper than buying a colonist
-bool CvPlayerAI::AI_hurryCheapImmigrant(bool bUnconditional)
+CvUnit* CvPlayerAI::AI_hurryCheapImmigrant(bool bUnconditional, bool bNonExpertOnly)
 {
 	const UnitTypes eColonist = GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits((UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_COLONIST"));
 	const int iColonistPrice = (eColonist != NO_UNIT) ? getEuropeUnitBuyPrice(eColonist) : MAX_INT;
@@ -17213,7 +17299,9 @@ bool CvPlayerAI::AI_hurryCheapImmigrant(bool bUnconditional)
 	int iBestCost = MAX_INT;
 	for (unsigned int iIndex = 0; iIndex < getNumUnitsOnDock(); ++iIndex)
 	{
-		if (getDocksNextUnit(iIndex) != NO_UNIT && canHurry(HURRY_IMMIGRANT, iIndex))
+		if (getDocksNextUnit(iIndex) != NO_UNIT && canHurry(HURRY_IMMIGRANT, iIndex)
+			&& (!bNonExpertOnly || (AI_idealProfessionForUnit(getDocksNextUnit(iIndex)) == NO_PROFESSION
+				&& GC.getUnitInfo(getDocksNextUnit(iIndex)).getDefaultProfession() == GC.getCivilizationInfo(getCivilizationType()).getDefaultProfession())))
 		{
 			const int iCost = getHurryGold(HURRY_IMMIGRANT, iIndex);
 			if (iCost < iBestCost)
@@ -17225,10 +17313,24 @@ bool CvPlayerAI::AI_hurryCheapImmigrant(bool bUnconditional)
 	}
 	if (iBestIndex < 0 || (!bUnconditional && iBestCost >= iColonistPrice) || !AI_canAffordCivilianPurchase(iBestCost))
 	{
-		return false;
+		return NULL;
+	}
+	// the new immigrant is the one on the docks that was not there before
+	std::vector<int> aiBefore;
+	for (int i = 0; i < getNumEuropeUnits(); ++i)
+	{
+		aiBefore.push_back(getEuropeUnit(i)->getID());
 	}
 	hurry(HURRY_IMMIGRANT, iBestIndex);
-	return true;
+	for (int i = 0; i < getNumEuropeUnits(); ++i)
+	{
+		CvUnit* const pUnit = getEuropeUnit(i);
+		if (std::find(aiBefore.begin(), aiBefore.end(), pUnit->getID()) == aiBefore.end())
+		{
+			return pUnit;
+		}
+	}
+	return NULL;
 }
 
 // WTP: priority of buying the expert of a city profession, 0 = not bought this way. Carpenters before preachers,
@@ -17272,6 +17374,7 @@ int CvPlayerAI::AI_civilianExpertPriority(ProfessionTypes eProfession, UnitClass
 // the colonies and found trade posts.
 void CvPlayerAI::AI_doCitizenRelocation()
 {
+	MOD_PROFILE("CvPlayerAI::AI_doCitizenRelocation");
 	if (isHuman() || isNative() || isEurope() || getParent() == NO_PLAYER || getNumCities() == 0)
 	{
 		return;
@@ -17317,6 +17420,98 @@ void CvPlayerAI::AI_doCitizenRelocation()
 		}
 	}
 
+	// citizens without any job (no free plot, buildings full) leave: as settlers while more colonies are wanted,
+	// otherwise as colonists for another colony. The jobs are assigned once more first, so nobody who just
+	// joined is sent away.
+	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+	{
+		bool bJobless = false;
+		for (int i = 0; i < pCity->getPopulation() && !bJobless; ++i)
+		{
+			const CvUnit* const pCitizen = pCity->getPopulationUnitByIndex(i);
+			bJobless = pCitizen != NULL && pCitizen->getProfession() == NO_PROFESSION;
+		}
+		if (!bJobless || pCity->getPopulation() <= 1)
+		{
+			continue;
+		}
+		pCity->AI_assignWorkingPlots();
+		std::vector<CvUnit*> apJobless;
+		for (int i = 0; i < pCity->getPopulation(); ++i)
+		{
+			CvUnit* const pCitizen = pCity->getPopulationUnitByIndex(i);
+			if (pCitizen != NULL && pCitizen->getProfession() == NO_PROFESSION && !pCitizen->isColonistLocked())
+			{
+				apJobless.push_back(pCitizen);
+			}
+		}
+		for (uint i = 0; i < apJobless.size() && pCity->getPopulation() > 1; ++i)
+		{
+			const bool bSettler = AI_desiredCityCount() > getNumCities() + AI_totalUnitAIs(UNITAI_SETTLER) && apJobless[i]->getUnitInfo().isFound();
+			if (pCity->removePopulationUnit(CREATE_ASSERT_DATA, apJobless[i], false, eDefaultProfession))
+			{
+				apJobless[i]->AI_setUnitAIType(bSettler ? UNITAI_SETTLER : UNITAI_COLONIST);
+				if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) turn %d jobless %S leaves %S as %s", getID(), getCivilizationDescription(0),
+					GC.getGameINLINE().getGameTurn(), apJobless[i]->getName().GetCString(), pCity->getName().GetCString(), bSettler ? "settler" : "colonist");
+			}
+		}
+	}
+
+	// more colonies wanted, but no settler on its way: the largest colony (6 or more colonists) sends one of its
+	// least valuable non-experts out as settler, once per turn. Without gold for settlers from Europe a single
+	// colony used to grow to more than 20 colonists while the wanted colonies were never founded.
+	if (AI_desiredCityCount() > getNumCities() + AI_totalUnitAIs(UNITAI_SETTLER))
+	{
+		CvCity* pLargest = NULL;
+		for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+		{
+			if (pCity->getPopulation() >= 6 && pCity->area()->getBestFoundValue(getID()) > 0
+				&& (pLargest == NULL || pCity->getPopulation() > pLargest->getPopulation()))
+			{
+				pLargest = pCity;
+			}
+		}
+		// the colony has to equip the settler (tools, lumber, food); settlers should rather come from Europe
+		const ProfessionTypes eSettlerProfession = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_SETTLER");
+		bool bCanEquip = pLargest != NULL && eSettlerProfession != NO_PROFESSION;
+		for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES && bCanEquip; ++eYield)
+		{
+			const int iAmount = GC.getProfessionInfo(eSettlerProfession).getYieldEquipmentAmount(eYield);
+			if (iAmount > 0 && pLargest->getYieldStored(eYield) < iAmount)
+			{
+				bCanEquip = false;
+			}
+		}
+		if (pLargest != NULL && bCanEquip)
+		{
+			CvUnit* pSettler = NULL;
+			int iLowestValue = MAX_INT;
+			for (int i = 0; i < pLargest->getPopulation(); ++i)
+			{
+				CvUnit* const pCitizen = pLargest->getPopulationUnitByIndex(i);
+				if (pCitizen == NULL || pCitizen->isColonistLocked() || !pCitizen->getUnitInfo().isFound() || pCitizen->AI_getIdealProfession() != NO_PROFESSION
+					|| pCitizen->getProfession() == NO_PROFESSION)
+				{
+					continue;
+				}
+				const CvPlot* const pWorked = pLargest->getPlotWorkedByUnit(pCitizen);
+				const int iValue = pLargest->AI().AI_citizenProfessionValue(pCitizen->getProfession(), *pCitizen, pWorked, NULL);
+				if (iValue < iLowestValue)
+				{
+					iLowestValue = iValue;
+					pSettler = pCitizen;
+				}
+			}
+			if (pSettler != NULL && pLargest->removePopulationUnit(CREATE_ASSERT_DATA, pSettler, false,
+				pSettler->canHaveProfession(eSettlerProfession, false) ? eSettlerProfession : eDefaultProfession))
+			{
+				pSettler->AI_setUnitAIType(UNITAI_SETTLER);
+				if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) turn %d %S leaves %S (%d colonists) as settler", getID(), getCivilizationDescription(0),
+					GC.getGameINLINE().getGameTurn(), pSettler->getName().GetCString(), pLargest->getName().GetCString(), pLargest->getPopulation() + 1);
+			}
+		}
+	}
+
 	// starving colonies: one worker who does not produce food leaves and joins a colony where he is fed
 	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
 	{
@@ -17351,132 +17546,668 @@ void CvPlayerAI::AI_doCitizenRelocation()
 		}
 	}
 
-	// idle citizens: at most one per turn
-	const ProfessionTypes eJobProfessions[3] = {
-		(ProfessionTypes)GC.getInfoTypeForString("PROFESSION_PREACHER"),
-		(ProfessionTypes)GC.getInfoTypeForString("PROFESSION_STATESMAN"),
-		(ProfessionTypes)GC.getInfoTypeForString("PROFESSION_CARPENTER") };
+	// idle citizens are handled by the workforce plan (AI_doWorkforcePlan)
 
-	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+}
+
+// WTP: workforce plan. Every turn the colonial AI collects the opportunities of its colonies (plots, above all
+// with resources or improvements, and building slots that have their input) and fills them with the best
+// experts. Experts without any use for their profession (no opportunity, no such building finishing within
+// 15 turns) give up their specialty and learn a needed profession in a native village; free colonists learn
+// as well. Everybody else is general workforce for the colony AI.
+namespace
+{
+	struct WfOpportunity
 	{
-		if (pCity->getPopulation() < 3)
+		CvCity* pCity;
+		ProfessionTypes eProfession;
+		CvPlot* pPlot; // NULL for building jobs
+		UnitClassTypes eExpertClass;
+		int iValue;
+		bool bNotable; // resource or improvement plot, or building with input: worth learning for
+		CvUnit* pAssigned;
+	};
+
+	bool wfOpportunityGreater(const WfOpportunity& a, const WfOpportunity& b)
+	{
+		return a.iValue > b.iValue;
+	}
+
+	// the unit is an expert for this profession; expert missionaries (university level, cross bonus) also count
+	// as experts for the church jobs
+	bool wfIsExpertFor(const CvUnitAI& kUnit, ProfessionTypes eProfession)
+	{
+		if (eProfession == NO_PROFESSION)
+		{
+			return false;
+		}
+		if (kUnit.AI_getIdealProfession() == eProfession)
+		{
+			return true;
+		}
+		const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+		const CvUnitInfo& kInfo = kUnit.getUnitInfo();
+		return !kProfession.isWorkPlot() && (YieldTypes)kProfession.getYieldsProduced(0) == YIELD_CROSSES && kInfo.NBMOD_GetTeachLevel() == 3
+			&& (kInfo.getYieldChange(YIELD_CROSSES) > 0 || kInfo.getYieldModifier(YIELD_CROSSES) > 0);
+	}
+
+	bool wfMatches(const WfOpportunity& kOpp, int iCityID, ProfessionTypes eProfession, int iX, int iY)
+	{
+		if (kOpp.pCity->getID() != iCityID || kOpp.eProfession != eProfession)
+		{
+			return false;
+		}
+		if (kOpp.pPlot == NULL)
+		{
+			return iX < 0;
+		}
+		return kOpp.pPlot->getX_INLINE() == iX && kOpp.pPlot->getY_INLINE() == iY;
+	}
+}
+
+// the native village (same landmass as the colony, at most 7 plots from it) that teaches eExpertClass and that no
+// other unit of ours is heading for or learning in; NULL if there is none
+CvCity* CvPlayerAI::AI_wfTeachingVillage(UnitClassTypes eExpertClass, const CvCity& kNearCity) const
+{
+	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
+	{
+		CvPlayer& kNative = GET_PLAYER((PlayerTypes)iPlayer);
+		if (!kNative.isAlive() || !kNative.isNative() || GET_TEAM(getTeam()).isAtWar(kNative.getTeam()))
 		{
 			continue;
 		}
+		int iLoop;
+		for (CvCity* pVillage = kNative.firstCity(&iLoop); pVillage != NULL; pVillage = kNative.nextCity(&iLoop))
+		{
+			if (pVillage->getTeachUnitClass() != eExpertClass || !pVillage->isScoutVisited(getTeam()) || pVillage->area() != kNearCity.area()
+				|| plotDistance(pVillage->getX_INLINE(), pVillage->getY_INLINE(), kNearCity.getX_INLINE(), kNearCity.getY_INLINE()) > 7)
+			{
+				continue;
+			}
+			bool bTaken = false;
+			int iUnitLoop;
+			for (CvUnit* pLoopUnit = firstUnit(&iUnitLoop); pLoopUnit != NULL && !bTaken; pLoopUnit = nextUnit(&iUnitLoop))
+			{
+				const CvUnitAI& kLoopAI = static_cast<const CvUnitAI&>(*pLoopUnit);
+				if ((kLoopAI.AI_getWfTask() == CvUnitAI::WF_LEARN || kLoopAI.AI_getWfTask() == CvUnitAI::WF_RETRAIN)
+					&& kLoopAI.AI_getWfVillageX() == pVillage->getX_INLINE() && kLoopAI.AI_getWfVillageY() == pVillage->getY_INLINE())
+				{
+					bTaken = true;
+				}
+				else if (pLoopUnit->getUnitTravelState() == UNIT_TRAVEL_STATE_LIVE_AMONG_NATIVES && pLoopUnit->getX_INLINE() == pVillage->getX_INLINE()
+					&& pLoopUnit->getY_INLINE() == pVillage->getY_INLINE())
+				{
+					bTaken = true;
+				}
+			}
+			if (!bTaken)
+			{
+				return pVillage;
+			}
+		}
+	}
+	return NULL;
+}
+
+void CvPlayerAI::AI_doWorkforcePlan()
+{
+	MOD_PROFILE("CvPlayerAI::AI_doWorkforcePlan");
+	if (isHuman() || isNative() || isEurope() || getParent() == NO_PLAYER || getNumCities() == 0)
+	{
+		return;
+	}
+
+	const CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+
+	// professions with an expert, split into plot and building jobs
+	std::vector<ProfessionTypes> aePlotProfessions;
+	std::vector<ProfessionTypes> aeBuildingProfessions;
+	for (ProfessionTypes eProfession = FIRST_PROFESSION; eProfession < NUM_PROFESSION_TYPES; ++eProfession)
+	{
+		const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+		const UnitClassTypes eExpert = (UnitClassTypes)kProfession.LbD_getExpert();
+		if (!kProfession.isCitizen() || eExpert == NO_UNITCLASS || eExpert == GLOBAL_DEFINE_DEFAULT_POPULATION_UNIT
+			|| !kCiv.isValidProfession(eProfession) || kCiv.getCivilizationUnits(eExpert) == NO_UNIT
+			|| (YieldTypes)kProfession.getYieldsProduced(0) == NO_YIELD)
+		{
+			continue;
+		}
+		if (kProfession.isWorkPlot())
+		{
+			aePlotProfessions.push_back(eProfession);
+		}
+		else
+		{
+			aeBuildingProfessions.push_back(eProfession);
+		}
+	}
+
+	int iLoop;
+
+	// 0. experts working in a colony whose raw material is nowhere to be had (no plot within the colonies'
+	// radius + 1 can produce it, no colony produces it) become free colonists right away: these can still
+	// become experts by learning by doing. Experts trained at the university (teach level 3) always stay.
+	{
+		const int iRadius = GC.getGameINLINE().isOption(GAMEOPTION_TWO_PLOT_CITY_RADIUS) ? 2 : 1;
+		std::vector<int> aiYieldAvailable(NUM_YIELD_TYPES, -1); // -1 unknown, 0 no, 1 yes
+		std::vector<CvUnit*> apToClear;
+		for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+		{
+			for (int i = 0; i < pCity->getPopulation(); ++i)
+			{
+				CvUnitAI* const pCitizen = static_cast<CvUnitAI*>(pCity->getPopulationUnitByIndex(i));
+				if (pCitizen == NULL || pCitizen->isColonistLocked() || !pCitizen->canClearSpecialty() || pCitizen->getUnitInfo().NBMOD_GetTeachLevel() >= 3)
+				{
+					continue;
+				}
+				const ProfessionTypes eIdeal = pCitizen->AI_getIdealProfession();
+				if (eIdeal == NO_PROFESSION)
+				{
+					continue;
+				}
+				const CvProfessionInfo& kIdeal = GC.getProfessionInfo(eIdeal);
+				std::vector<YieldTypes> aeRaw;
+				if (kIdeal.isWorkPlot())
+				{
+					aeRaw.push_back((YieldTypes)kIdeal.getYieldsProduced(0));
+				}
+				else
+				{
+					for (int j = 0; j < kIdeal.getNumYieldsConsumed(); ++j)
+					{
+						aeRaw.push_back((YieldTypes)kIdeal.getYieldsConsumed(j));
+					}
+				}
+				// all inputs have to be available (an expert needing two goods is useless if one of them is missing)
+				bool bUseful = true;
+				for (uint j = 0; j < aeRaw.size() && bUseful; ++j)
+				{
+					const YieldTypes eRaw = aeRaw[j];
+					if (eRaw == NO_YIELD)
+					{
+						continue;
+					}
+					if (aiYieldAvailable[eRaw] < 0)
+					{
+						aiYieldAvailable[eRaw] = 0;
+						int iCityLoop;
+						for (CvCity* pLoopCity = firstCity(&iCityLoop); pLoopCity != NULL && aiYieldAvailable[eRaw] == 0; pLoopCity = nextCity(&iCityLoop))
+						{
+							if (pLoopCity->getRawYieldProduced(eRaw) > 0)
+							{
+								aiYieldAvailable[eRaw] = 1;
+								break;
+							}
+							for (int iDX = -(iRadius + 1); iDX <= iRadius + 1 && aiYieldAvailable[eRaw] == 0; ++iDX)
+							{
+								for (int iDY = -(iRadius + 1); iDY <= iRadius + 1; ++iDY)
+								{
+									const CvPlot* const pLoopPlot = plotXY(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), iDX, iDY);
+									if (pLoopPlot != NULL && pLoopPlot->calculateBestNatureYield(eRaw, getTeam()) > 0)
+									{
+										aiYieldAvailable[eRaw] = 1;
+										break;
+									}
+								}
+							}
+						}
+					}
+					bUseful = aiYieldAvailable[eRaw] > 0;
+				}
+				if (!bUseful)
+				{
+					apToClear.push_back(pCitizen);
+				}
+			}
+		}
+		for (uint i = 0; i < apToClear.size(); ++i)
+		{
+			if (gPlayerLogLevel >= 1) logBBAI("WTP plan: Player %d (%S) turn %d %S gives up its specialty: its raw material is nowhere near the colonies",
+				getID(), getCivilizationDescription(0), iTurn, apToClear[i]->getName().GetCString());
+			apToClear[i]->clearSpecialty();
+		}
+	}
+
+	// tasks held already: their opportunities stay (no flip-flopping when prices or the lumber stock change)
+	std::vector<const CvUnitAI*> apHolders;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (static_cast<const CvUnitAI*>(pLoopUnit)->AI_getWfTask() != CvUnitAI::WF_NONE)
+		{
+			apHolders.push_back(static_cast<const CvUnitAI*>(pLoopUnit));
+		}
+	}
+	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+	{
+		for (int i = 0; i < pCity->getPopulation(); ++i)
+		{
+			const CvUnitAI* const pCitizen = static_cast<const CvUnitAI*>(pCity->getPopulationUnitByIndex(i));
+			if (pCitizen != NULL && pCitizen->AI_getWfTask() != CvUnitAI::WF_NONE && std::find(apHolders.begin(), apHolders.end(), pCitizen) == apHolders.end())
+			{
+				apHolders.push_back(pCitizen);
+			}
+		}
+	}
+
+	// 1. opportunities
+	std::vector<WfOpportunity> aOpps;
+	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+	{
+		FOREACH(CityPlot)
+		{
+			if (eLoopCityPlot == CITY_HOME_PLOT)
+			{
+				continue;
+			}
+			CvPlot* const pLoopPlot = pCity->getCityIndexPlot(eLoopCityPlot);
+			if (pLoopPlot == NULL || pLoopPlot->getWorkingCity() != pCity || (!pCity->canWork(pLoopPlot) && pCity->getUnitWorkingPlot(pLoopPlot) == NULL))
+			{
+				continue;
+			}
+			WfOpportunity kBest;
+			kBest.iValue = 0;
+			for (uint i = 0; i < aePlotProfessions.size(); ++i)
+			{
+				const ProfessionTypes eProfession = aePlotProfessions[i];
+				const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+				const YieldTypes eYield = (YieldTypes)kProfession.getYieldsProduced(0);
+				const UnitClassTypes eExpert = (UnitClassTypes)kProfession.LbD_getExpert();
+				const int iOutput = pCity->AI_professionBasicOutput(eProfession, kCiv.getCivilizationUnits(eExpert), pLoopPlot);
+				if (iOutput <= 0)
+				{
+					continue;
+				}
+				const int iValue = pCity->AI_estimateYieldValue(eYield, iOutput);
+				if (iValue > kBest.iValue)
+				{
+					kBest.pCity = pCity;
+					kBest.eProfession = eProfession;
+					kBest.pPlot = pLoopPlot;
+					kBest.eExpertClass = eExpert;
+					kBest.iValue = iValue;
+					const BonusTypes eBonus = pLoopPlot->getBonusType();
+					kBest.bNotable = (eBonus != NO_BONUS && GC.getBonusInfo(eBonus).getYieldChange(eYield) > 0) || pLoopPlot->getImprovementType() != NO_IMPROVEMENT;
+					kBest.pAssigned = NULL;
+				}
+			}
+			if (kBest.iValue > 0)
+			{
+				for (uint iHolder = 0; iHolder < apHolders.size(); ++iHolder)
+				{
+					const CvUnitAI& kHolder = *apHolders[iHolder];
+					if (kHolder.AI_getWfCityID() != pCity->getID() || kHolder.AI_getWfPlotX() != pLoopPlot->getX_INLINE() || kHolder.AI_getWfPlotY() != pLoopPlot->getY_INLINE()
+						|| kHolder.AI_getWfProfession() == kBest.eProfession || kHolder.AI_getWfProfession() == NO_PROFESSION)
+					{
+						continue;
+					}
+					const ProfessionTypes eHeld = kHolder.AI_getWfProfession();
+					const CvProfessionInfo& kHeld = GC.getProfessionInfo(eHeld);
+					const UnitClassTypes eHeldExpert = (UnitClassTypes)kHeld.LbD_getExpert();
+					const UnitTypes eHeldUnit = (eHeldExpert != NO_UNITCLASS) ? kCiv.getCivilizationUnits(eHeldExpert) : NO_UNIT;
+					const int iHeldOutput = (eHeldUnit != NO_UNIT) ? pCity->AI_professionBasicOutput(eHeld, eHeldUnit, pLoopPlot) : 0;
+					const int iHeldValue = (iHeldOutput > 0) ? pCity->AI_estimateYieldValue((YieldTypes)kHeld.getYieldsProduced(0), iHeldOutput) : 0;
+					if (iHeldValue > 0 && iHeldValue * 3 / 2 >= kBest.iValue)
+					{
+						kBest.eProfession = eHeld;
+						kBest.eExpertClass = eHeldExpert;
+						kBest.iValue = iHeldValue;
+						const BonusTypes eBonus = pLoopPlot->getBonusType();
+						kBest.bNotable = (eBonus != NO_BONUS && GC.getBonusInfo(eBonus).getYieldChange((YieldTypes)kHeld.getYieldsProduced(0)) > 0) || pLoopPlot->getImprovementType() != NO_IMPROVEMENT;
+					}
+					break;
+				}
+				aOpps.push_back(kBest);
+			}
+		}
+
+		for (uint i = 0; i < aeBuildingProfessions.size(); ++i)
+		{
+			const ProfessionTypes eProfession = aeBuildingProfessions[i];
+			const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+			const int iSlots = pCity->getNumProfessionBuildingSlots(eProfession);
+			if (iSlots <= 0)
+			{
+				continue;
+			}
+			bool bInput = true;
+			for (int j = 0; j < kProfession.getNumYieldsConsumed(); ++j)
+			{
+				const YieldTypes eInput = (YieldTypes)kProfession.getYieldsConsumed(j);
+				if (eInput != NO_YIELD && pCity->getRawYieldProduced(eInput) + pCity->getYieldStored(eInput) <= 0)
+				{
+					bInput = false;
+				}
+			}
+			int iSlotsToAdd = iSlots;
+			if (!bInput)
+			{
+				int iHeld = 0;
+				for (uint iHolder = 0; iHolder < apHolders.size(); ++iHolder)
+				{
+					if (apHolders[iHolder]->AI_getWfCityID() == pCity->getID() && apHolders[iHolder]->AI_getWfProfession() == eProfession && apHolders[iHolder]->AI_getWfPlotX() < 0)
+					{
+						++iHeld;
+					}
+				}
+				if (iHeld == 0)
+				{
+					continue;
+				}
+				iSlotsToAdd = std::min(iSlots, iHeld);
+			}
+			const UnitClassTypes eExpert = (UnitClassTypes)kProfession.LbD_getExpert();
+			const YieldTypes eYield = (YieldTypes)kProfession.getYieldsProduced(0);
+			const int iOutput = pCity->AI_professionBasicOutput(eProfession, kCiv.getCivilizationUnits(eExpert), NULL);
+			if (iOutput <= 0)
+			{
+				continue;
+			}
+			WfOpportunity kOpp;
+			kOpp.pCity = pCity;
+			kOpp.eProfession = eProfession;
+			kOpp.pPlot = NULL;
+			kOpp.eExpertClass = eExpert;
+			kOpp.iValue = pCity->AI_estimateYieldValue(eYield, iOutput);
+			kOpp.bNotable = true;
+			kOpp.pAssigned = NULL;
+			for (int iSlot = 0; iSlot < iSlotsToAdd; ++iSlot)
+			{
+				aOpps.push_back(kOpp);
+			}
+		}
+	}
+	std::stable_sort(aOpps.begin(), aOpps.end(), wfOpportunityGreater);
+
+	// 2. candidates: citizens, colonists on the map and colonists waiting in Europe
+	std::vector<CvUnit*> apUnits;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->getDomainType() != DOMAIN_LAND || pLoopUnit->isGoods() || pLoopUnit->isExpertNativeTrader())
+		{
+			continue;
+		}
+		const bool bCitizen = getPopulationUnitCity(pLoopUnit->getID()) != NULL;
+		const bool bLearning = pLoopUnit->getUnitTravelState() == UNIT_TRAVEL_STATE_LIVE_AMONG_NATIVES;
+		const bool bColonist = pLoopUnit->AI_getUnitAIType() == UNITAI_COLONIST
+			&& (pLoopUnit->isOnMap() || pLoopUnit->getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE);
+		if (bCitizen || bLearning || bColonist)
+		{
+			apUnits.push_back(pLoopUnit);
+		}
+		else
+		{
+			static_cast<CvUnitAI*>(pLoopUnit)->AI_clearWfTask();
+		}
+	}
+	// the citizens of the colonies are not in the player's unit list
+	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+	{
 		for (int i = 0; i < pCity->getPopulation(); ++i)
 		{
 			CvUnit* const pCitizen = pCity->getPopulationUnitByIndex(i);
-			if (pCitizen == NULL || pCitizen->isColonistLocked() || pCitizen->AI_hasAIChanged(5))
+			if (pCitizen != NULL && !pCitizen->isExpertNativeTrader() && std::find(apUnits.begin(), apUnits.end(), pCitizen) == apUnits.end())
 			{
-				continue;
+				apUnits.push_back(pCitizen);
 			}
-			const ProfessionTypes eProfession = pCitizen->getProfession();
-			if (eProfession == NO_PROFESSION || !GC.getProfessionInfo(eProfession).isWorkPlot() || pCitizen->AI_getIdealProfession() != NO_PROFESSION)
-			{
-				continue;
-			}
-			// indentured and enslaved units are meant for raw materials
-			const CitizenStatusTypes eStatus = pCitizen->getUnitInfo().getCitizenStatus();
-			if (eStatus == CITIZEN_STATUS_INDENTURED || eStatus == CITIZEN_STATUS_ENSLAVED)
-			{
-				continue;
-			}
-			const CvPlot* const pWorkedPlot = pCity->getPlotWorkedByUnit(pCitizen);
-			if (pWorkedPlot == NULL || pWorkedPlot->getBonusType() != NO_BONUS)
-			{
-				continue;
-			}
-			const YieldTypes eYield = (YieldTypes)GC.getProfessionInfo(eProfession).getYieldsProduced(0);
-			if (eYield == NO_YIELD || eYield == YIELD_FOOD || eYield == YIELD_LUMBER || eYield == YIELD_ORE || eYield == YIELD_STONE || eYield == YIELD_CLAY
-				|| eYield == YIELD_HORSES || eYield == YIELD_SILVER || eYield == YIELD_GOLD || eYield == YIELD_GEMS
-				|| pCity->AI_getNeededYield(eYield) > pCity->getYieldStored(eYield))
-			{
-				continue;
-			}
-
-			// a) a native village within 8 plots that can teach it
-			bool bLearn = false;
-			if (pCitizen->getUnitInfo().getLearnTime() >= 0 && GC.getGameINLINE().AI_gameCompletePercent() < 25)
-			{
-				for (int iPlayer = 0; iPlayer < MAX_PLAYERS && !bLearn; ++iPlayer)
-				{
-					CvPlayer& kNative = GET_PLAYER((PlayerTypes)iPlayer);
-					if (!kNative.isAlive() || !kNative.isNative() || GET_TEAM(getTeam()).isAtWar(kNative.getTeam()))
-					{
-						continue;
-					}
-					int iNativeLoop;
-					for (CvCity* pVillage = kNative.firstCity(&iNativeLoop); pVillage != NULL; pVillage = kNative.nextCity(&iNativeLoop))
-					{
-						if (pVillage->getTeachUnitClass() != NO_UNITCLASS && pVillage->getTeachUnitClass() != pCitizen->getUnitClassType()
-							&& pVillage->area() == pCity->area()
-							&& plotDistance(pVillage->getX_INLINE(), pVillage->getY_INLINE(), pCity->getX_INLINE(), pCity->getY_INLINE()) <= 8)
-						{
-							bLearn = true;
-							break;
-						}
-					}
-				}
-			}
-
-			// b) another colony on the same landmass with a free preacher, statesman or carpenter slot
-			CvCity* pTargetCity = NULL;
-			if (!bLearn)
-			{
-				int iTargetLoop;
-				for (CvCity* pLoopCity = firstCity(&iTargetLoop); pLoopCity != NULL && pTargetCity == NULL; pLoopCity = nextCity(&iTargetLoop))
-				{
-					if (pLoopCity == pCity || pLoopCity->area() != pCity->area())
-					{
-						continue;
-					}
-					for (int iJob = 0; iJob < 3; ++iJob)
-					{
-						const ProfessionTypes eJob = eJobProfessions[iJob];
-						if (eJob == NO_PROFESSION || !pCitizen->canHaveProfession(eJob, true))
-						{
-							continue;
-						}
-						if (eJob == eJobProfessions[2] && pLoopCity->getYieldStored(YIELD_LUMBER) < 20)
-						{
-							continue;
-						}
-						int iUsed = 0;
-						for (int j = 0; j < pLoopCity->getPopulation(); ++j)
-						{
-							const CvUnit* const pOther = pLoopCity->getPopulationUnitByIndex(j);
-							if (pOther != NULL && pOther->getProfession() == eJob)
-							{
-								++iUsed;
-							}
-						}
-						if (pLoopCity->getNumProfessionBuildingSlots(eJob) > iUsed)
-						{
-							pTargetCity = pLoopCity;
-							break;
-						}
-					}
-				}
-			}
-
-			if (!bLearn && pTargetCity == NULL)
-			{
-				continue;
-			}
-			if (pCity->removePopulationUnit(CREATE_ASSERT_DATA, pCitizen, false, eDefaultProfession))
-			{
-				pCitizen->AI_setUnitAIType(UNITAI_COLONIST);
-				if (pTargetCity != NULL && pCitizen->getGroup() != NULL)
-				{
-					pCitizen->getGroup()->pushMission(MISSION_MOVE_TO, pTargetCity->getX_INLINE(), pTargetCity->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_FOUND, pTargetCity->plot());
-				}
-				if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) turn %d takes idle %S (%S) out of %S to %S",
-					getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pCitizen->getName().GetCString(),
-					GC.getYieldInfo(eYield).getDescription(), pCity->getName().GetCString(),
-					bLearn ? L"learn from the natives" : pTargetCity->getName().GetCString());
-			}
-			return;
 		}
+	}
+
+	// 3. keep valid tasks
+	for (uint i = 0; i < apUnits.size(); ++i)
+	{
+		CvUnitAI& kUnit = static_cast<CvUnitAI&>(*apUnits[i]);
+		if (kUnit.AI_getWfTask() == CvUnitAI::WF_NONE)
+		{
+			continue;
+		}
+		bool bKept = false;
+		for (uint j = 0; j < aOpps.size() && !bKept; ++j)
+		{
+			if (aOpps[j].pAssigned == NULL && wfMatches(aOpps[j], kUnit.AI_getWfCityID(), kUnit.AI_getWfProfession(), kUnit.AI_getWfPlotX(), kUnit.AI_getWfPlotY()))
+			{
+				aOpps[j].pAssigned = &kUnit;
+				bKept = true;
+			}
+		}
+		// a unit already living among the natives finishes learning in any case
+		if (!bKept && kUnit.getUnitTravelState() != UNIT_TRAVEL_STATE_LIVE_AMONG_NATIVES)
+		{
+			if (gPlayerLogLevel >= 1) logBBAI("WTP plan: Player %d (%S) turn %d drops task %d of %S (opportunity gone)", getID(), getCivilizationDescription(0), iTurn,
+				kUnit.AI_getWfTask(), kUnit.getName().GetCString());
+			kUnit.AI_clearWfTask();
+		}
+	}
+
+	// 4a. experts already working in their profession keep that job (no moving around for a slightly better one)
+	for (uint i = 0; i < apUnits.size(); ++i)
+	{
+		CvUnitAI& kUnit = static_cast<CvUnitAI&>(*apUnits[i]);
+		CvCity* const pPopCity = getPopulationUnitCity(kUnit.getID());
+		if (kUnit.AI_getWfTask() != CvUnitAI::WF_NONE || pPopCity == NULL || !wfIsExpertFor(kUnit, kUnit.getProfession()))
+		{
+			continue;
+		}
+		const CvPlot* const pWorked = pPopCity->getPlotWorkedByUnit(&kUnit);
+		for (uint j = 0; j < aOpps.size(); ++j)
+		{
+			WfOpportunity& kOpp = aOpps[j];
+			if (kOpp.pAssigned == NULL && kOpp.pCity == pPopCity && kOpp.eProfession == kUnit.getProfession() && kOpp.pPlot == pWorked)
+			{
+				kOpp.pAssigned = &kUnit;
+				kUnit.AI_setWfTask(CvUnitAI::WF_EXPERT_JOB, pPopCity->getID(), kOpp.eProfession,
+					pWorked != NULL ? pWorked->getX_INLINE() : -1, pWorked != NULL ? pWorked->getY_INLINE() : -1, -1, -1);
+				break;
+			}
+		}
+	}
+
+	// 4b. other experts into their own profession, preferably where they already are
+	for (uint j = 0; j < aOpps.size(); ++j)
+	{
+		WfOpportunity& kOpp = aOpps[j];
+		if (kOpp.pAssigned != NULL)
+		{
+			continue;
+		}
+		CvUnitAI* pBest = NULL;
+		int iBestScore = 0;
+		for (uint i = 0; i < apUnits.size(); ++i)
+		{
+			CvUnitAI& kUnit = static_cast<CvUnitAI&>(*apUnits[i]);
+			if (kUnit.AI_getWfTask() != CvUnitAI::WF_NONE || !wfIsExpertFor(kUnit, kOpp.eProfession))
+			{
+				continue;
+			}
+			const CvCity* const pPopCity = getPopulationUnitCity(kUnit.getID());
+			int iScore = 0;
+			if (pPopCity == kOpp.pCity)
+			{
+				iScore = 1000;
+			}
+			else if (kUnit.getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE)
+			{
+				iScore = 300;
+			}
+			else
+			{
+				const CvPlot* const pFrom = (pPopCity != NULL) ? pPopCity->plot() : kUnit.plot();
+				if (pFrom == NULL || (!kUnit.isCargo() && pFrom->area() != kOpp.pCity->area()))
+				{
+					continue;
+				}
+				iScore = 600 - plotDistance(pFrom->getX_INLINE(), pFrom->getY_INLINE(), kOpp.pCity->getX_INLINE(), kOpp.pCity->getY_INLINE());
+			}
+			if (iScore > iBestScore)
+			{
+				iBestScore = iScore;
+				pBest = &kUnit;
+			}
+		}
+		if (pBest != NULL)
+		{
+			kOpp.pAssigned = pBest;
+			pBest->AI_setWfTask(CvUnitAI::WF_EXPERT_JOB, kOpp.pCity->getID(), kOpp.eProfession,
+				kOpp.pPlot != NULL ? kOpp.pPlot->getX_INLINE() : -1, kOpp.pPlot != NULL ? kOpp.pPlot->getY_INLINE() : -1, -1, -1);
+			if (gPlayerLogLevel >= 1) logBBAI("WTP plan: Player %d (%S) turn %d %S -> expert job %S in %S at %d,%d", getID(), getCivilizationDescription(0), iTurn,
+				pBest->getName().GetCString(), GC.getProfessionInfo(kOpp.eProfession).getDescription(), kOpp.pCity->getName().GetCString(),
+				kOpp.pPlot != NULL ? kOpp.pPlot->getX_INLINE() : -1, kOpp.pPlot != NULL ? kOpp.pPlot->getY_INLINE() : -1);
+
+			// a citizen of another colony on the same landmass leaves for its job
+			CvCity* const pPopCity = getPopulationUnitCity(pBest->getID());
+			if (pPopCity != NULL && pPopCity != kOpp.pCity && pPopCity->getPopulation() > 1 && !pBest->isColonistLocked())
+			{
+				if (pPopCity->removePopulationUnit(CREATE_ASSERT_DATA, pBest, false, kCiv.getDefaultProfession()))
+				{
+					pBest->AI_setUnitAIType(UNITAI_COLONIST);
+				}
+			}
+		}
+	}
+
+	// 5. learning: unfilled opportunities whose expert a near village teaches. Free colonists first, then experts
+	// without any prospect for their profession (they give up their specialty first); at most 2 new per turn
+	int iNewLearners = 0;
+	for (uint j = 0; j < aOpps.size() && iNewLearners < 2; ++j)
+	{
+		WfOpportunity& kOpp = aOpps[j];
+		if (kOpp.pAssigned != NULL)
+		{
+			continue;
+		}
+		const bool bFood = (YieldTypes)GC.getProfessionInfo(kOpp.eProfession).getYieldsProduced(0) == YIELD_FOOD;
+		if (!kOpp.bNotable && !bFood)
+		{
+			continue;
+		}
+		CvCity* const pVillage = AI_wfTeachingVillage(kOpp.eExpertClass, *kOpp.pCity);
+		if (pVillage == NULL)
+		{
+			continue;
+		}
+
+		CvUnitAI* pBest = NULL;
+		int iBestScore = 0;
+		bool bBestRetrain = false;
+		for (uint i = 0; i < apUnits.size(); ++i)
+		{
+			CvUnitAI& kUnit = static_cast<CvUnitAI&>(*apUnits[i]);
+			if (kUnit.AI_getWfTask() != CvUnitAI::WF_NONE || kUnit.isCargo() || kUnit.isColonistLocked()
+				|| kUnit.getUnitTravelState() != NO_UNIT_TRAVEL_STATE)
+			{
+				continue;
+			}
+			CvCity* const pPopCity = getPopulationUnitCity(kUnit.getID());
+			const CvPlot* const pFrom = (pPopCity != NULL) ? pPopCity->plot() : kUnit.plot();
+			if (pFrom == NULL || pFrom->area() != pVillage->area())
+			{
+				continue;
+			}
+			// citizens in building jobs fill the important gaps (churches, statesmen, carpenters) and stay
+			if (pPopCity != NULL && (kUnit.getProfession() == NO_PROFESSION || !GC.getProfessionInfo(kUnit.getProfession()).isWorkPlot()))
+			{
+				continue;
+			}
+			const int iDistance = plotDistance(pFrom->getX_INLINE(), pFrom->getY_INLINE(), pVillage->getX_INLINE(), pVillage->getY_INLINE());
+			if (iDistance > 7)
+			{
+				continue;
+			}
+			bool bRetrain = false;
+			if (kUnit.AI_getIdealProfession() == NO_PROFESSION)
+			{
+				if (kUnit.getUnitInfo().getLearnTime() < 0)
+				{
+					continue;
+				}
+				// food jobs that are not special are only learned by idle colonists
+				if (!kOpp.bNotable && pPopCity != NULL)
+				{
+					continue;
+				}
+			}
+			else
+			{
+				// an expert: only if its profession has no opportunity at all and no such building finishes within 15 turns
+				if (!kUnit.canClearSpecialty())
+				{
+					continue;
+				}
+				const ProfessionTypes eOwn = kUnit.AI_getIdealProfession();
+				bool bProspect = false;
+				for (uint k = 0; k < aOpps.size() && !bProspect; ++k)
+				{
+					bProspect = aOpps[k].eProfession == eOwn;
+				}
+				const int iSpecialBuilding = GC.getProfessionInfo(eOwn).getSpecialBuilding();
+				int iCityLoop;
+				for (CvCity* pLoopCity = firstCity(&iCityLoop); pLoopCity != NULL && !bProspect; pLoopCity = nextCity(&iCityLoop))
+				{
+					const BuildingTypes eBuilding = pLoopCity->getProductionBuilding();
+					bProspect = eBuilding != NO_BUILDING && iSpecialBuilding != NO_SPECIALBUILDING
+						&& GC.getBuildingInfo(eBuilding).getSpecialBuildingType() == iSpecialBuilding && pLoopCity->getProductionTurnsLeft() <= 15;
+				}
+				if (bProspect)
+				{
+					continue;
+				}
+				bRetrain = true;
+			}
+			// free colonists before experts, then the nearest
+			const int iScore = (bRetrain ? 100 : 200) - iDistance;
+			if (iScore > iBestScore)
+			{
+				iBestScore = iScore;
+				pBest = &kUnit;
+				bBestRetrain = bRetrain;
+			}
+		}
+		if (pBest == NULL)
+		{
+			continue;
+		}
+		kOpp.pAssigned = pBest;
+		++iNewLearners;
+		pBest->AI_setWfTask(bBestRetrain ? CvUnitAI::WF_RETRAIN : CvUnitAI::WF_LEARN, kOpp.pCity->getID(), kOpp.eProfession,
+			kOpp.pPlot != NULL ? kOpp.pPlot->getX_INLINE() : -1, kOpp.pPlot != NULL ? kOpp.pPlot->getY_INLINE() : -1,
+			pVillage->getX_INLINE(), pVillage->getY_INLINE());
+		if (gPlayerLogLevel >= 1) logBBAI("WTP plan: Player %d (%S) turn %d %S -> %s at village %S (%d,%d) as %S for %S in %S at %d,%d", getID(), getCivilizationDescription(0), iTurn,
+			pBest->getName().GetCString(), bBestRetrain ? "give up specialty and learn" : "learn", pVillage->getName().GetCString(), pVillage->getX_INLINE(), pVillage->getY_INLINE(),
+			GC.getUnitClassInfo(kOpp.eExpertClass).getDescription(), GC.getProfessionInfo(kOpp.eProfession).getDescription(), kOpp.pCity->getName().GetCString(),
+			kOpp.pPlot != NULL ? kOpp.pPlot->getX_INLINE() : -1, kOpp.pPlot != NULL ? kOpp.pPlot->getY_INLINE() : -1);
+
+		CvCity* const pPopCity = getPopulationUnitCity(pBest->getID());
+		if (pPopCity != NULL && pPopCity->getPopulation() > 1)
+		{
+			if (pPopCity->removePopulationUnit(CREATE_ASSERT_DATA, pBest, false, kCiv.getDefaultProfession()))
+			{
+				pBest->AI_setUnitAIType(UNITAI_COLONIST);
+			}
+		}
+		else if (pPopCity != NULL)
+		{
+			pBest->AI_clearWfTask(); // the last citizen stays
+			kOpp.pAssigned = NULL;
+		}
+	}
+
+	if (gPlayerLogLevel >= 1)
+	{
+		int iFilled = 0;
+		int iNotable = 0;
+		for (uint j = 0; j < aOpps.size(); ++j)
+		{
+			iFilled += (aOpps[j].pAssigned != NULL) ? 1 : 0;
+			iNotable += aOpps[j].bNotable ? 1 : 0;
+		}
+		int iLearners = 0;
+		for (uint i = 0; i < apUnits.size(); ++i)
+		{
+			const int iTask = static_cast<CvUnitAI*>(apUnits[i])->AI_getWfTask();
+			iLearners += (iTask == CvUnitAI::WF_LEARN || iTask == CvUnitAI::WF_RETRAIN) ? 1 : 0;
+		}
+		logBBAI("WTP plan: Player %d (%S) turn %d opportunities %d (notable %d), planned %d, learning %d, workforce units %d",
+			getID(), getCivilizationDescription(0), iTurn, (int)aOpps.size(), iNotable, iFilled, iLearners, (int)apUnits.size());
 	}
 }
 
@@ -17546,12 +18277,7 @@ UnitTypes CvPlayerAI::AI_africaFoodWorker()
 // WTP: a colony needs a farm worker and a slave from Africa is cheaper than an expert farmer from Europe
 bool CvPlayerAI::AI_wantsAfricaFoodWorkers()
 {
-	bool bWater;
-	const CvCity* const pCity = AI_bestFoodWorkerCity(bWater);
-	if (pCity == NULL || bWater)
-	{
-		return false;
-	}
+	// cheap checks first, this is asked by every transport choosing a port
 	const UnitTypes eSlave = AI_africaFoodWorker();
 	if (eSlave == NO_UNIT || !AI_canAffordCivilianPurchase(getAfricaUnitBuyPrice(eSlave)))
 	{
@@ -17559,7 +18285,13 @@ bool CvPlayerAI::AI_wantsAfricaFoodWorkers()
 	}
 	const UnitClassTypes eFarmerClass = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_FARMER");
 	const UnitTypes eFarmer = (eFarmerClass != NO_UNITCLASS) ? GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(eFarmerClass) : NO_UNIT;
-	return eFarmer == NO_UNIT || getEuropeUnitBuyPrice(eFarmer) <= 0 || getAfricaUnitBuyPrice(eSlave) < getEuropeUnitBuyPrice(eFarmer);
+	if (eFarmer != NO_UNIT && getEuropeUnitBuyPrice(eFarmer) > 0 && getAfricaUnitBuyPrice(eSlave) >= getEuropeUnitBuyPrice(eFarmer))
+	{
+		return false;
+	}
+	bool bWater;
+	const CvCity* const pCity = AI_bestFoodWorkerCity(bWater);
+	return pCity != NULL && !bWater;
 }
 
 // WTP: number of own colonies the ship can enter (adjacent water it may sail that is reachable from the ocean)
@@ -17675,8 +18407,52 @@ bool CvPlayerAI::AI_doTransportPurchase()
 	return false;
 }
 
+// WTP: in peace missing defenders are free colonists equipped as colonial militia in Europe (cheaper than town
+// guards and light artillery); while more colonies are wanted only for undefended colonies
+void CvPlayerAI::AI_doMilitiaPurchase()
+{
+	if (isHuman() || isNative() || isEurope() || getParent() == NO_PLAYER || !canTradeWithEurope() || GET_TEAM(getTeam()).getAnyWarPlanCount() > 0)
+	{
+		return;
+	}
+	int iUndefended = 0;
+	const int iMissing = AI_totalDefendersNeeded(&iUndefended);
+	const bool bExpanding = AI_desiredCityCount() > getNumCities() + AI_totalUnitAIs(UNITAI_SETTLER);
+	if (bExpanding ? iUndefended <= 0 : iMissing <= 0)
+	{
+		return;
+	}
+	const ProfessionTypes eMilitia = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_COLONIAL_MILITIA");
+	const UnitTypes eColonist = GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(GLOBAL_DEFINE_DEFAULT_POPULATION_UNIT);
+	if (eMilitia == NO_PROFESSION || eColonist == NO_UNIT || getEuropeUnitBuyPrice(eColonist) <= 0)
+	{
+		return;
+	}
+	int iEquipCost = 0;
+	for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
+	{
+		iEquipCost += GET_PLAYER(getParent()).getYieldSellPrice(eYield) * GC.getProfessionInfo(eMilitia).getYieldEquipmentAmount(eYield);
+	}
+	if (!AI_canAffordCivilianPurchase(getEuropeUnitBuyPrice(eColonist) + iEquipCost))
+	{
+		return;
+	}
+	CvUnit* const pUnit = buyEuropeUnit(eColonist, 100);
+	if (pUnit != NULL)
+	{
+		if (pUnit->canHaveProfession(eMilitia, false))
+		{
+			changeProfessionEurope(pUnit->getID(), eMilitia);
+		}
+		pUnit->AI_setUnitAIType(UNITAI_DEFENSIVE);
+		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) buys colonial militia %S (%d defenders missing, %d colonies undefended)",
+			getID(), getCivilizationDescription(0), pUnit->getNameAndProfession().GetCString(), iMissing, iUndefended);
+	}
+}
+
 void CvPlayerAI::AI_doCivilianPurchases()
 {
+	MOD_PROFILE("CvPlayerAI::AI_doCivilianPurchases");
 	if (isHuman() || isNative() || isEurope() || getParent() == NO_PLAYER || !canTradeWithEurope())
 	{
 		return;
@@ -17696,6 +18472,45 @@ void CvPlayerAI::AI_doCivilianPurchases()
 	const ProfessionTypes ePioneerProfession = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_PIONEER");
 	int iBought = 0;
 
+	// 0. two scouts before anybody else (the first one comes free with the first colony): exploring brings gold
+	// and shows the villages nearby (teachers, trade).
+	// The gold reserve does not apply, the scout only has to be paid in full including its horses.
+	if (AI_totalUnitAIs(UNITAI_SCOUT) < 2 && GC.getGameINLINE().getGameTurn() <= 80)
+	{
+		const ProfessionTypes eScoutProfession = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_SCOUT");
+		// a free colonist with scout equipment (a seasoned scout costs too much for the AI early on)
+		const UnitTypes aeScoutUnits[1] = { eColonist };
+		for (int iCandidate = 0; iCandidate < 1 && eScoutProfession != NO_PROFESSION; ++iCandidate)
+		{
+			const UnitTypes eUnit = aeScoutUnits[iCandidate];
+			if (eUnit == NO_UNIT || getEuropeUnitBuyPrice(eUnit) <= 0)
+			{
+				continue;
+			}
+			int iEquipCost = 0;
+			for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
+			{
+				iEquipCost += GET_PLAYER(getParent()).getYieldSellPrice(eYield) * GC.getProfessionInfo(eScoutProfession).getYieldEquipmentAmount(eYield);
+			}
+			if (getGold() < getEuropeUnitBuyPrice(eUnit) + iEquipCost)
+			{
+				continue;
+			}
+			CvUnit* const pScout = buyEuropeUnit(eUnit, 100);
+			if (pScout != NULL)
+			{
+				if (pScout->getProfession() != eScoutProfession && pScout->canHaveProfession(eScoutProfession, false))
+				{
+					changeProfessionEurope(pScout->getID(), eScoutProfession);
+				}
+				pScout->AI_setUnitAIType(UNITAI_SCOUT);
+				if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) buys scout %S", getID(), getCivilizationDescription(0), pScout->getNameAndProfession().GetCString());
+				++iBought;
+				break;
+			}
+		}
+	}
+
 	if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) civilian purchases: gold %d cities %d desired %d settlers %d workers %d wanted %d",
 		getID(), getCivilizationDescription(0), getGold(), getNumCities(), AI_desiredCityCount(), AI_totalUnitAIs(UNITAI_SETTLER),
 		AI_totalUnitAIs(UNITAI_WORKER), std::min(AI_neededWorkers(NULL), std::max(2, getNumCities())));
@@ -17703,7 +18518,32 @@ void CvPlayerAI::AI_doCivilianPurchases()
 	// 1. settlers: a hurried immigrant or a colonist equipped as settler in Europe
 	if (getNumCities() > 0 && AI_desiredCityCount() > getNumCities() + AI_totalUnitAIs(UNITAI_SETTLER))
 	{
-		if (AI_hurryCheapImmigrant(false) || AI_buyCivilianUnit(eColonist, UNITAI_SETTLER, eSettlerProfession))
+		// only a non-expert becomes a settler; otherwise a free colonist is bought
+		CvUnit* const pImmigrant = AI_hurryCheapImmigrant(false, true);
+		if (pImmigrant != NULL)
+		{
+			// WTP: the immigrant hurried for this becomes the settler (it used to join a colony as a colonist)
+			pImmigrant->AI_setUnitAIType(UNITAI_SETTLER);
+			if (eSettlerProfession != NO_PROFESSION && pImmigrant->getProfession() != eSettlerProfession && pImmigrant->canHaveProfession(eSettlerProfession, false))
+			{
+				int iEquipCost = 0;
+				for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
+				{
+					const int iMissing = pImmigrant->getProfessionChangeYieldRequired(eSettlerProfession, eYield);
+					if (iMissing > 0)
+					{
+						iEquipCost += iMissing * GET_PLAYER(getParent()).getYieldSellPrice(eYield);
+					}
+				}
+				if (getGold() >= iEquipCost)
+				{
+					changeProfessionEurope(pImmigrant->getID(), eSettlerProfession);
+				}
+			}
+			if (gPlayerLogLevel >= 1) logBBAI("WTP decision:   hurried immigrant %S becomes a settler", pImmigrant->getNameAndProfession().GetCString());
+			++iBought;
+		}
+		else if (AI_buyCivilianUnit(eColonist, UNITAI_SETTLER, eSettlerProfession))
 		{
 			++iBought;
 		}
@@ -18200,6 +19040,24 @@ int CvPlayerAI::AI_estimateUnemploymentCount() const
 
 // WTP: the first colony needs a landmass of more than 40 plots to expand on, at least 4 usable land plots next
 // to the city center and must not be founded within 5 plots of another European's colony
+// WTP: whether the plot belongs to the radius of a colony of another non-native player
+bool CvPlayerAI::AI_isInForeignColonyRadius(const CvPlot& kPlot) const
+{
+	for (int iDX = -2; iDX <= 2; ++iDX)
+	{
+		for (int iDY = -2; iDY <= 2; ++iDY)
+		{
+			const CvPlot* const pLoopPlot = plotXY(kPlot.getX_INLINE(), kPlot.getY_INLINE(), iDX, iDY);
+			const CvCity* const pCity = (pLoopPlot != NULL) ? pLoopPlot->getPlotCity() : NULL;
+			if (pCity != NULL && pCity->getOwnerINLINE() != getID() && !pCity->isNative() && pCity->getCityPlotIndex(&kPlot) != NO_CITY_PLOT)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 bool CvPlayerAI::AI_isFirstColonySiteAllowed(const CvPlot& kPlot) const
 {
 	// WTP: the longer we look for a first site, the more the soft rules are relaxed (the coast rule always stays):
@@ -18236,7 +19094,8 @@ bool CvPlayerAI::AI_isFirstColonySiteAllowed(const CvPlot& kPlot) const
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 	{
 		const CvPlot* const pLoopPlot = plotDirection(kPlot.getX_INLINE(), kPlot.getY_INLINE(), (DirectionTypes)iI);
-		if (pLoopPlot != NULL && !pLoopPlot->isWater() && !pLoopPlot->isImpassable() && !pLoopPlot->isCityRadius()
+		// WTP: land of native villages is usable, only plots in the radius of another European colony are not
+		if (pLoopPlot != NULL && !pLoopPlot->isWater() && !pLoopPlot->isImpassable() && !AI_isInForeignColonyRadius(*pLoopPlot)
 			&& (!pLoopPlot->isOwned() || pLoopPlot->getOwnerINLINE() == getID() || GET_PLAYER(pLoopPlot->getOwnerINLINE()).isNative()))
 		{
 			++iUsableLand;
@@ -18290,19 +19149,14 @@ int CvPlayerAI::AI_firstCityFoundValue(const CvPlot& kPlot)
 	if (kPlot.getNearestEurope() == NO_EUROPE)
 		return 0;
 
-	// Hard reject if any hostile camp/equivalent exists in BFC
+	// Hard reject if an enemy city is in the BFC (WTP: hostile camps do not matter anymore)
 	for (int i = 0; i < NUM_CITY_PLOTS_2_PLOTS; ++i)
 	{
 		CvPlot* p = plotCity(kPlot.getX_INLINE(), kPlot.getY_INLINE(), i);
 		if (p == NULL) continue;
 
-		if (p->isGoodyForSpawningHostileCriminals() ||
-			p->isGoodyForSpawningHostileNatives() ||
-			p->isGoodyForSpawningHostileAnimals())	
-			return 0;
-
-		// Enemy city inside BFC
-		if (p->getPlotCity() != NULL && p->getTeam() != eTeam)
+		// Enemy city inside BFC (WTP: native villages are allowed)
+		if (p->getPlotCity() != NULL && p->getTeam() != eTeam && !p->getPlotCity()->isNative())
 			return 0;
 	}
 
@@ -18399,22 +19253,6 @@ int CvPlayerAI::AI_firstCityFoundValue(const CvPlot& kPlot)
 	{
 		if (surplus > 6) surplus = 6;
 		val += surplus * 50LL * 100LL;
-	}
-
-	// Mild penalty for dangerous goodies (not camps, those are hard reject)
-	int hostile = 0;
-	for (int i = 0; i < NUM_CITY_PLOTS; ++i)
-	{
-		CvPlot* p = plotCity(kPlot.getX_INLINE(), kPlot.getY_INLINE(), i);
-		if (p && (p->isGoodyForSpawningHostileCriminals() ||
-			p->isGoodyForSpawningHostileNatives() ||
-			p->isGoodyForSpawningHostileAnimals()))
-			hostile += 5;
-	}
-	if (hostile > 0)
-	{
-		if (hostile > 50) hostile = 50;
-		val = (val * (100 - hostile)) / 100LL;
 	}
 
 	// Europe distance penalty only (no settler position or reveal-based penalties anymore)

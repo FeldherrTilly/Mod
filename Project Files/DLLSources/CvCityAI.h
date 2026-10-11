@@ -152,6 +152,8 @@ public:
 	bool AI_canClearLumberFeature(const CvPlot* pPlot) const;
 	void AI_getYieldsTaughtNearby(bool* abYields) const; // WTP
 	int AI_projectedLumberWithout(const CvUnit* pUnit) const; // WTP
+	int AI_nativeFoodSurplus() const; // WTP
+	bool AI_assignFreeJob(CvUnit& kUnit); // WTP
 
 	int AI_getTargetSize() const;
 	void AI_setTargetSize(int iNewValue);
@@ -251,6 +253,18 @@ protected:
 	// WTP: per-turn cache for AI_hammerJobMinValue, not saved
 	mutable int m_iCacheHammerJobMinTurn;
 	mutable int m_iCacheHammerJobMinValue;
+	// WTP: per-turn cache for AI_getYieldsTaughtNearby, not saved
+	mutable int m_iCacheTaughtYieldsTurn;
+	// WTP: food surplus of a native village, refreshed every 5 turns, not saved
+	mutable int m_iCacheNativeFoodTurn;
+	mutable int m_iCacheNativeFoodSurplus;
+	// WTP: last full job assignment of a native village, not saved
+	int m_iNativeAssignTurn;
+	int m_iNativeAssignPopulation;
+	// WTP: extra defenders against angry natives nearby, refreshed every turn, not saved
+	mutable int m_iCacheAngryNativeTurn;
+	mutable int m_iCacheAngryNativeDefenders;
+	mutable bool m_abCacheTaughtYields[NUM_YIELD_TYPES];
 	mutable int m_iCachePlayerClosenessDistance;
 	EnumMap<PlayerTypes,int> m_em_iPlayerCloseness;
 

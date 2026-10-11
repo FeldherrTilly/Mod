@@ -86,6 +86,7 @@ void CvTeamAI::AI_doTurnPre()
 
 void CvTeamAI::AI_doTurnPost()
 {
+	MOD_PROFILE("CvTeamAI::AI_doTurnPost");
 	AI_updateWorstEnemy();
 
 	AI_updateAreaStragies(false);

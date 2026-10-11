@@ -397,6 +397,7 @@ void CvUnit::convert(CvUnit* pUnit, bool bKill)
 
 	setName(pUnit->getNameNoDesc());
 	setLeaderUnitType(pUnit->getLeaderUnitType());
+	static_cast<CvUnitAI*>(this)->AI_copyWfTask(*static_cast<CvUnitAI*>(pUnit)); // WTP: workforce plan task
 
 	// WTP, Attached Land Leader - START
 	m_szAttachedLeaderName = pUnit->m_szAttachedLeaderName;

@@ -5450,6 +5450,7 @@ void CvGame::addShipName(const CvWString& szName)
 
 void CvGame::doTurn()
 {
+	MOD_PROFILE("CvGame::doTurn");
 	PROFILE_FUNC();
 
 	int iLoopPlayer;

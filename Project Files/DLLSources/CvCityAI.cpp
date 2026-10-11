@@ -82,11 +82,21 @@ void CvCityAI::AI_reset()
 	m_iWorkforceHack = 0;
 	m_iCacheHammerJobMinTurn = -1;
 	m_iCacheHammerJobMinValue = 0;
+	m_iCacheTaughtYieldsTurn = -1;
+	m_iCacheNativeFoodTurn = -100;
+	m_iCacheNativeFoodSurplus = 0;
+	m_iNativeAssignTurn = -100;
+	m_iNativeAssignPopulation = -1;
+	m_iCacheAngryNativeTurn = -1;
+	m_iCacheAngryNativeDefenders = 0;
 }
 
 
 void CvCityAI::AI_doTurn()
 {
+#ifdef PROFILING_ENABLED
+	Profiler profileSession(isNative() ? "CvCityAI::AI_doTurn (native)" : "CvCityAI::AI_doTurn");
+#endif
 	PROFILE_FUNC();
 
 	UnitTypes eUnit = GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(GLOBAL_DEFINE_DEFAULT_POPULATION_UNIT);
@@ -101,7 +111,11 @@ void CvCityAI::AI_doTurn()
 
 	AI_updateWorkersNeededHere();
 
-	AI_updateBestBuild();
+	// WTP: native villages choose their plot improvements only every 3 turns (spread over the villages)
+	if (!isNative() || (GC.getGameINLINE().getGameTurn() + getID()) % 3 == 0)
+	{
+		AI_updateBestBuild();
+	}
 
 	AI_updateRouteToCity();
 
@@ -164,6 +178,9 @@ tbb::mutex jobMutex;
 
 void CvCityAI::AI_assignWorkingPlots()
 {
+#ifdef PROFILING_ENABLED
+	Profiler profileSession(isNative() ? "CvCityAI::AI_assignWorkingPlots (native)" : "CvCityAI::AI_assignWorkingPlots");
+#endif
 	PROFILE_FUNC();
 
 	if (isOccupation())
@@ -174,6 +191,30 @@ void CvCityAI::AI_assignWorkingPlots()
 	if (getPopulation() == 0)
 	{
 		return;
+	}
+
+	// WTP: a full job assignment of a native village is very expensive (it was most of the AI turn time) and
+	// called several times per turn. Natives reassign at most every 3 turns, unless the population changed
+	// or a villager has no job or has lost its plot.
+	if (isNative() && !isHuman())
+	{
+		const int iTurn = GC.getGameINLINE().getGameTurn();
+		bool bAllEmployed = true;
+		for (uint i = 0; i < m_aPopulationUnits.size() && bAllEmployed; ++i)
+		{
+			const CvUnit* const pCitizen = m_aPopulationUnits[i];
+			if (pCitizen == NULL || pCitizen->getProfession() == NO_PROFESSION
+				|| (GC.getProfessionInfo(pCitizen->getProfession()).isWorkPlot() && getPlotWorkedByUnit(pCitizen) == NULL))
+			{
+				bAllEmployed = false;
+			}
+		}
+		if (bAllEmployed && getPopulation() == m_iNativeAssignPopulation && iTurn >= m_iNativeAssignTurn && iTurn - m_iNativeAssignTurn < 3)
+		{
+			return;
+		}
+		m_iNativeAssignTurn = iTurn;
+		m_iNativeAssignPopulation = getPopulation();
 	}
 
 	// 1. needed yields are workforce-invariant. compute them first so the city-center
@@ -299,6 +340,19 @@ void CvCityAI::AI_assignWorkingPlots()
 				FAssertMsg(false, s.c_str());
 			}
 			break;
+		}
+	}
+
+	// WTP: the loop above stops after a number of displacements. Citizens left without a job (or with a plot job
+	// but no plot) used to idle, even next to a free carpenter slot; they now get the best free job
+	for (uint i = 0; i < m_aPopulationUnits.size(); ++i)
+	{
+		CvUnit* const pCitizen = m_aPopulationUnits[i];
+		if (pCitizen != NULL && !pCitizen->isColonistLocked()
+			&& (pCitizen->getProfession() == NO_PROFESSION
+				|| (GC.getProfessionInfo(pCitizen->getProfession()).isWorkPlot() && getPlotWorkedByUnit(pCitizen) == NULL)))
+		{
+			AI_assignFreeJob(*pCitizen);
 		}
 	}
 
@@ -444,6 +498,9 @@ bool CvCityAI::AI_ignoreGrowth() const
 
 void CvCityAI::AI_chooseProduction()
 {
+#ifdef PROFILING_ENABLED
+	Profiler profileSession(isNative() ? "CvCityAI::AI_chooseProduction (native)" : "CvCityAI::AI_chooseProduction");
+#endif
 	PROFILE_FUNC();
 
 	CvArea* pWaterArea;
@@ -1895,6 +1952,37 @@ int CvCityAI::AI_neededDefenders() const
 	{
 		iDefenders++;
 	}
+
+	// WTP: angry natives nearby: +1 defender if a village within 8 plots is annoyed, +2 if furious (once per turn)
+	if (m_iCacheAngryNativeTurn != GC.getGameINLINE().getGameTurn())
+	{
+		m_iCacheAngryNativeTurn = GC.getGameINLINE().getGameTurn();
+		m_iCacheAngryNativeDefenders = 0;
+		for (int iPlayer = 0; iPlayer < MAX_PLAYERS && m_iCacheAngryNativeDefenders < 2; ++iPlayer)
+		{
+			CvPlayerAI& kNative = GET_PLAYER((PlayerTypes)iPlayer);
+			if (!kNative.isAlive() || !kNative.isNative())
+			{
+				continue;
+			}
+			const AttitudeTypes eAttitude = kNative.AI_getAttitude(getOwnerINLINE());
+			const int iExtra = (eAttitude <= ATTITUDE_FURIOUS) ? 2 : ((eAttitude <= ATTITUDE_ANNOYED) ? 1 : 0);
+			if (iExtra <= m_iCacheAngryNativeDefenders)
+			{
+				continue;
+			}
+			int iLoop;
+			for (CvCity* pVillage = kNative.firstCity(&iLoop); pVillage != NULL; pVillage = kNative.nextCity(&iLoop))
+			{
+				if (plotDistance(pVillage->getX_INLINE(), pVillage->getY_INLINE(), getX_INLINE(), getY_INLINE()) <= 8)
+				{
+					m_iCacheAngryNativeDefenders = iExtra;
+					break;
+				}
+			}
+		}
+	}
+	iDefenders += m_iCacheAngryNativeDefenders;
 	return iDefenders;
 }
 
@@ -2278,6 +2366,9 @@ int CvCityAI::AI_countBestBuilds(CvArea* pArea) const
 // Improved worker AI provided by Blake - thank you!
 void CvCityAI::AI_updateBestBuild()
 {
+#ifdef PROFILING_ENABLED
+	Profiler profileSession(isNative() ? "CvCityAI::AI_updateBestBuild (native)" : "CvCityAI::AI_updateBestBuild");
+#endif
 	PROFILE_FUNC();
 
 	// reset all data, but do not release the memory if allocated
@@ -4017,6 +4108,70 @@ CvUnit* CvCityAI::AI_assignToBestJob(CvUnit* pUnit, bool bIndoorOnly)
 //iValueB1  - Value of loop unit with original profession.
 //iValueB2 - Value of loop unit with loop profession.
 
+// WTP: give a citizen the best job that is free (no other citizen is displaced)
+bool CvCityAI::AI_assignFreeJob(CvUnit& kUnit)
+{
+	const CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
+	int iBestValue = 0;
+	ProfessionTypes eBestProfession = NO_PROFESSION;
+	CityPlotTypes eBestPlot = NO_CITY_PLOT;
+	for (ProfessionTypes eProfession = FIRST_PROFESSION; eProfession < NUM_PROFESSION_TYPES; ++eProfession)
+	{
+		const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+		if (!kProfession.isCitizen() || !kCiv.isValidProfession(eProfession) || !kUnit.canHaveProfession(eProfession, false))
+		{
+			continue;
+		}
+		if (kProfession.isWorkPlot())
+		{
+			FOREACH(CityPlot)
+			{
+				if (eLoopCityPlot == CITY_HOME_PLOT || isPlotProducingYields(eLoopCityPlot))
+				{
+					continue;
+				}
+				const CvPlot* const pLoopPlot = getCityIndexPlot(eLoopCityPlot);
+				if (pLoopPlot == NULL || !canWork(pLoopPlot))
+				{
+					continue;
+				}
+				const int iValue = AI_citizenProfessionValue(eProfession, kUnit, pLoopPlot, NULL);
+				if (iValue > iBestValue)
+				{
+					iBestValue = iValue;
+					eBestProfession = eProfession;
+					eBestPlot = eLoopCityPlot;
+				}
+			}
+		}
+		else
+		{
+			const int iValue = AI_citizenProfessionValue(eProfession, kUnit, NULL, NULL);
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				eBestProfession = eProfession;
+				eBestPlot = NO_CITY_PLOT;
+			}
+		}
+	}
+	if (eBestProfession == NO_PROFESSION)
+	{
+		return false;
+	}
+	CvPlot* const pWorked = getPlotWorkedByUnit(&kUnit);
+	if (pWorked != NULL)
+	{
+		clearUnitWorkingPlot(pWorked);
+	}
+	kUnit.setProfession(eBestProfession);
+	if (eBestPlot != NO_CITY_PLOT)
+	{
+		setUnitWorkingPlot(eBestPlot, kUnit.getID());
+	}
+	return true;
+}
+
 CvUnit* CvCityAI::AI_juggleColonist(CvUnit* pUnit)
 {
 	const ProfessionTypes eProfession = pUnit->getProfession();
@@ -4180,6 +4335,22 @@ int CvCityAI::AI_citizenProfessionValue(
 	if (!kProfInfo.isCitizen())
 		return 0;
 
+	// WTP: natives have at most 2 villagers producing culture
+	if (isNative() && !kProfInfo.isWorkPlot() && (YieldTypes)kProfInfo.getYieldsProduced(0) == YIELD_CULTURE)
+	{
+		int iCultureWorkers = 0;
+		for (uint i = 0; i < m_aPopulationUnits.size(); ++i)
+		{
+			const CvUnit* const pOther = m_aPopulationUnits[i];
+			if (pOther != NULL && pOther != &kUnit && pOther != pDisplaceUnit && pOther->getProfession() == eProfession)
+			{
+				++iCultureWorkers;
+			}
+		}
+		if (iCultureWorkers >= 2)
+			return 0;
+	}
+
 	// 3) gather consumed yields
 	YieldTypes inYields[MAX_INPUT_YIELDS];
 	int numIn = 0;
@@ -4315,8 +4486,30 @@ int CvCityAI::AI_citizenProfessionValue(
 		}
 		// WTP, Schmiddie, Native food surplus END
 
+		// WTP: a village producing less food than it eats works food first (checked cheaply on every evaluation;
+		// the 5 turn surplus below is too slow for that and let villages starve for lumber)
+		const bool bNativeFoodDeficit = isNative() && getRawYieldProduced(YIELD_FOOD) < getPopulation() * GLOBAL_DEFINE_FOOD_CONSUMPTION_PER_POPULATION;
+		if (bNativeFoodDeficit)
+		{
+			if (eY == YIELD_FOOD)
+			{
+				iOutputValue *= 3;
+			}
+			else
+			{
+				iOutputValue /= 3;
+			}
+		}
+
+		// WTP: villages with a food surplus below 14 focus a bit more on food (surplus refreshed every 5 turns)
+		const int iNativeFoodSurplus = isNative() ? AI_nativeFoodSurplus() : 0;
+		if (isNative() && !bNativeFoodDeficit && eY == YIELD_FOOD && iNativeFoodSurplus < 14)
+		{
+			iOutputValue = iOutputValue * 3 / 2;
+		}
+
 		// WTP: villages with a food surplus of 20 or more work less food and furs and more other goods (lumber unchanged)
-		if (isNative() && foodDifference() >= 20)
+		if (isNative() && !bNativeFoodDeficit && iNativeFoodSurplus >= 20)
 		{
 			if (eY == YIELD_FOOD || eY == YIELD_FUR)
 			{
@@ -4388,6 +4581,14 @@ int CvCityAI::AI_citizenProfessionValue(
 		{
 			combined *= 3;
 		}
+
+		// WTP: while lumber runs short, a plot that can give lumber is not used for other goods (e.g. exotic wood
+		// instead of lumber while the carpenters have nothing to work with)
+		if (eY != YIELD_LUMBER && eY != YIELD_FOOD && pPlot != NULL && pPlot->calculateBestNatureYield(YIELD_LUMBER, getTeam()) >= 3
+			&& AI_projectedLumberWithout(pUnit) < 50)
+		{
+			combined /= 4;
+		}
 	}
 
 	// WTP: as long as lumber is available, making hammers beats any non-food plot job producing fewer than 10
@@ -4457,6 +4658,12 @@ int CvCityAI::AI_citizenProfessionValue(
 		{
 			combined /= 2;
 		}
+	}
+
+	// WTP: the workforce plan reserved this job for this unit
+	if (!isNative() && static_cast<const CvUnitAI&>(kUnit).AI_isWfJob(*this, eProfession, kProfInfo.isWorkPlot() ? pPlot : NULL))
+	{
+		combined = branchless::max(combined, 1) * 4;
 	}
 
 	// WTP: indentured and enslaved units have a heavy malus on all building jobs. They should work plots, so a
@@ -4883,6 +5090,18 @@ const int YIELD_TOOLS_BASE_VALUE = 10;
 
 // WTP: the value a hammer job is worth at least while lumber is available: 10 units of the most valuable
 // non-food yield found on the city's plots, precious metals and gems not counted
+// WTP: food surplus of a native village for its job priorities, refreshed every 5 turns
+int CvCityAI::AI_nativeFoodSurplus() const
+{
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+	if (iTurn - m_iCacheNativeFoodTurn >= 5 || iTurn < m_iCacheNativeFoodTurn)
+	{
+		m_iCacheNativeFoodSurplus = foodDifference();
+		m_iCacheNativeFoodTurn = iTurn;
+	}
+	return m_iCacheNativeFoodSurplus;
+}
+
 // WTP: lumber stock in 5 turns if this unit does not cut lumber (its current lumber output is taken out)
 int CvCityAI::AI_projectedLumberWithout(const CvUnit* pUnit) const
 {
@@ -4901,6 +5120,14 @@ int CvCityAI::AI_projectedLumberWithout(const CvUnit* pUnit) const
 // WTP: marks the plot yields whose expert a native village within 8 plots on the same landmass teaches
 void CvCityAI::AI_getYieldsTaughtNearby(bool* abYields) const
 {
+	if (m_iCacheTaughtYieldsTurn == GC.getGameINLINE().getGameTurn())
+	{
+		for (int iYield = 0; iYield < NUM_YIELD_TYPES; ++iYield)
+		{
+			abYields[iYield] = m_abCacheTaughtYields[iYield];
+		}
+		return;
+	}
 	for (int iYield = 0; iYield < NUM_YIELD_TYPES; ++iYield)
 	{
 		abYields[iYield] = false;
@@ -4931,28 +5158,43 @@ void CvCityAI::AI_getYieldsTaughtNearby(bool* abYields) const
 			}
 		}
 	}
+	for (int iYield = 0; iYield < NUM_YIELD_TYPES; ++iYield)
+	{
+		m_abCacheTaughtYields[iYield] = abYields[iYield];
+	}
+	m_iCacheTaughtYieldsTurn = GC.getGameINLINE().getGameTurn();
 }
 
-// WTP: whether a lumber feature (forest) on pPlot may be cleared without leaving the city short of lumber plots:
-// at least 1 forest has to stay next to the city center and at least 4 in the 5x5 around it
+// WTP: whether a forest on pPlot may be cleared without leaving the colony short of lumber plots: at least 1 forest
+// has to stay in the 3x3 around the city center and at least 3 in the colony radius (the 5x5 without its corners;
+// forests on the corners are not worked by the colony, do not count and may always be cleared)
 bool CvCityAI::AI_canClearLumberFeature(const CvPlot* pPlot) const
 {
 	int iNear = 0;
 	int iTotal = 0;
+	bool bTargetInRadius = false;
+	bool bTargetNear = false;
 	for (int iDX = -2; iDX <= 2; ++iDX)
 	{
 		for (int iDY = -2; iDY <= 2; ++iDY)
 		{
 			const CvPlot* const pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
-			if (pLoopPlot == NULL || pLoopPlot == pPlot || (iDX == 0 && iDY == 0))
+			if (pLoopPlot == NULL || (iDX == 0 && iDY == 0) || (std::abs(iDX) == 2 && std::abs(iDY) == 2))
 			{
+				continue;
+			}
+			const bool bNear = std::abs(iDX) <= 1 && std::abs(iDY) <= 1;
+			if (pLoopPlot == pPlot)
+			{
+				bTargetInRadius = true;
+				bTargetNear = bNear;
 				continue;
 			}
 			const FeatureTypes eLoopFeature = pLoopPlot->getFeatureType();
 			if (eLoopFeature != NO_FEATURE && GC.getFeatureInfo(eLoopFeature).getYieldChange(YIELD_LUMBER) > 0)
 			{
 				++iTotal;
-				if (std::abs(iDX) <= 1 && std::abs(iDY) <= 1)
+				if (bNear)
 				{
 					++iNear;
 				}
@@ -4960,12 +5202,15 @@ bool CvCityAI::AI_canClearLumberFeature(const CvPlot* pPlot) const
 		}
 	}
 
-	const bool bNear = std::abs(pPlot->getX_INLINE() - getX_INLINE()) <= 1 && std::abs(pPlot->getY_INLINE() - getY_INLINE()) <= 1;
-	if (bNear && iNear < 1)
+	if (!bTargetInRadius)
+	{
+		return true;
+	}
+	if (bTargetNear && iNear < 1)
 	{
 		return false;
 	}
-	return iTotal >= 4;
+	return iTotal >= 3;
 }
 
 int CvCityAI::AI_hammerJobMinValue() const
@@ -5433,7 +5678,17 @@ void CvCityAI::AI_updateNeededYields()
 
 			if (kLoopProfession.isCitizen() && !kLoopProfession.isWorkPlot())
 			{
-				const int iSlots = getNumProfessionBuildingSlots(eLoopProfession);
+				// WTP: only the slots that are worked need their input (an empty workshop used to mark its input
+				// as needed for good and gave e.g. exotic wood plots three times their value)
+				int iSlots = 0;
+				for (uint iCitizen = 0; iCitizen < m_aPopulationUnits.size(); ++iCitizen)
+				{
+					if (m_aPopulationUnits[iCitizen] != NULL && m_aPopulationUnits[iCitizen]->getProfession() == eLoopProfession)
+					{
+						++iSlots;
+					}
+				}
+				iSlots = std::min(iSlots, getNumProfessionBuildingSlots(eLoopProfession));
 
 				if (iSlots > 0)
 				{
@@ -6199,8 +6454,8 @@ void CvCityAI::AI_bestPlotBuild(const CvPlot* pPlot, int* piBestValue, BuildType
 
 			int iValue = AI_plotYieldValue(pPlot, aiFinalYields);
 
-			// WTP: keep forest for lumber: never clear the last forest next to the city or one of the last 4 in the
-			// 5x5 around it; lodges and sawmills are worth double
+			// WTP: keep forest for lumber: never clear the last forest next to the city or one of the last 3 in the
+			// colony radius (see AI_canClearLumberFeature); lodges and sawmills are worth double
 			if (bRemoveFeature && GC.getFeatureInfo(eFeature).getYieldChange(YIELD_LUMBER) > 0 && !AI_canClearLumberFeature(pPlot))
 			{
 				continue;

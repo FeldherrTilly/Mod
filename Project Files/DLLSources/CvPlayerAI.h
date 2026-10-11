@@ -472,14 +472,19 @@ public:
 	UnitTypes AI_bestShipToBuy(UnitAITypes eUnitAI, bool bCheapest);
 	bool AI_doTransportPurchase();
 	void AI_doCitizenRelocation(); // WTP
+	void AI_doWorkforcePlan(); // WTP
+	static int AI_nativeDeliveryPrice(YieldTypes eYield); // WTP
+	CvCity* AI_wfTeachingVillage(UnitClassTypes eExpertClass, const CvCity& kNearCity) const; // WTP
 	void AI_doReclaimTerritory(); // WTP
+	bool AI_isInForeignColonyRadius(const CvPlot& kPlot) const; // WTP
 	// WTP: food workers for colonies short of food when no new colonies are wanted
 	CvCity* AI_bestFoodWorkerCity(bool& bWater);
 	UnitTypes AI_africaFoodWorker();
 	bool AI_wantsAfricaFoodWorkers();
 	bool AI_canAffordCivilianPurchase(int iCost) const;
 	bool AI_buyCivilianUnit(UnitTypes eUnit, UnitAITypes eUnitAI, ProfessionTypes eProfession);
-	bool AI_hurryCheapImmigrant(bool bUnconditional);
+	CvUnit* AI_hurryCheapImmigrant(bool bUnconditional, bool bNonExpertOnly = false);
+	void AI_doMilitiaPurchase(); // WTP
 	int AI_civilianExpertPriority(ProfessionTypes eProfession, UnitClassTypes& eExpertClass);
 	// TAC - AI More Immigrants - koma13 - END
 
