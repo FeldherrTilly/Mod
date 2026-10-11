@@ -824,7 +824,8 @@ public:
 	// R&R, vetiarvind, Price dependent tax rate change - End
 
 	int getYieldBoughtTotal(TradeLocationTypes eLocation, YieldTypes eYield) const;
-	void changeYieldTradedTaxCounter(TradeLocationTypes eLocation, YieldTypes eYield, int iAmountSold);
+	void changeYieldTradedTaxCounter(TradeLocationTypes eLocation, YieldTypes eYield, int iAmountSold, bool bRefreshQuests = true);
+	void refreshHumanQuestMessages();
 
 	// WTP, ray, Yields Traded Total for Africa and Port Royal - START
 	//int getYieldBoughtTotalAfrica(YieldTypes eYield) const;
