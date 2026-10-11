@@ -1,4 +1,4 @@
-## Market boom: at the end of the first turn two random cash crops from different climate zones (and the
+## Market boom: at the start of the game two random cash crops from different climate zones (and the
 ## goods made from them) become fashionable in Europe and Port Royal. The raw good is lifted to a fixed price
 ## for every European colony, the goods made from it rise as well (capped); all of them slowly drift back
 ## to equilibrium through the normal price correction.
@@ -52,8 +52,8 @@ BOOM_GOODS = (
 )
 
 
-def checkMarketBoom(iGameTurn):
-    "Called from onBeginGameTurn; the boom happens once, when the first turn ends"
+def checkMarketBoom():
+    "Called from onGameStart, so the boom is announced in the first turn"
     if CyGame().getElapsedGameTurns() != 0:
         return
 
