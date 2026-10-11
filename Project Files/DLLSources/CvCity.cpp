@@ -8460,7 +8460,9 @@ void CvCity::doNativeTradePost()
 		
 		int iNativeTradeModifierNation = 100 + GET_PLAYER(getOwnerINLINE()).getNativeTradeModifier();
 		int iNativeTradeModifierTradePostOwner = 100 + GET_PLAYER(ePlayer).getNativeTradeModifier();
-		int iNativeTradeRateCity = 100 + getNativeTradeRate();
+		// trade rate scales gold relative to the base Native Trader (Expert = 2x)
+		int iBaseNativeTradeRate = std::max(1, GC.getProfessionInfo(PROFESSION_NATIVE_TRADER).getNativeTradeRate());
+		int iNativeTradeRateCity = getNativeTradeRate() * 100 / iBaseNativeTradeRate;
 		int iNativeVillagePopulation = getPopulation();
 		int iGoldPerNative = GC.getTRADE_POST_GOLD_PER_NATIVE();
 
