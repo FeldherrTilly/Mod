@@ -80342,15 +80342,15 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>20</iCost>
+					<iCost>25</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>20</iCost>
+					<iCost>25</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iCost>20</iCost>
+					<iCost>40</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
@@ -80358,15 +80358,15 @@
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>10</iCost>
+					<iCost>5</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>20</iCost>
+					<iCost>5</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>60</iCost>
+					<iCost>115</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1492</iGameYearAvailable>
@@ -80376,8 +80376,8 @@
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
 			<iEuropeCost>-1</iEuropeCost>
 			<iEuropeCostIncrease>0</iEuropeCostIncrease>
-			<iAfricaCost>1800</iAfricaCost>
-			<iAfricaCostIncrease>300</iAfricaCostIncrease>
+			<iAfricaCost>2050</iAfricaCost>
+			<iAfricaCostIncrease>600</iAfricaCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -80604,31 +80604,31 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>55</iCost>
+					<iCost>50</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>55</iCost>
+					<iCost>50</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
-					<iCost>55</iCost>
+					<iCost>65</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
-					<iCost>60</iCost>
+					<iCost>50</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>50</iCost>
+					<iCost>35</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>50</iCost>
+					<iCost>35</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>160</iCost>
+					<iCost>185</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1650</iGameYearAvailable>
@@ -80637,8 +80637,8 @@
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
 			<iEuropeCost>-1</iEuropeCost>
 			<iEuropeCostIncrease>0</iEuropeCostIncrease>
-			<iAfricaCost>2800</iAfricaCost>
-			<iAfricaCostIncrease>600</iAfricaCostIncrease>
+			<iAfricaCost>4350</iAfricaCost>
+			<iAfricaCostIncrease>850</iAfricaCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -82645,11 +82645,11 @@
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_SAILCLOTH</YieldType>
-					<iCost>60</iCost>
+					<iCost>45</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_ROPE</YieldType>
-					<iCost>60</iCost>
+					<iCost>45</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HARDWOOD</YieldType>
@@ -82657,15 +82657,15 @@
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_TOOLS</YieldType>
-					<iCost>70</iCost>
+					<iCost>40</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_CANNONS</YieldType>
-					<iCost>60</iCost>
+					<iCost>15</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLACK_POWDER</YieldType>
-					<iCost>60</iCost>
+					<iCost>15</iCost>
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_BLADES</YieldType>
@@ -82673,7 +82673,7 @@
 				</YieldCost>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
-					<iCost>140</iCost>
+					<iCost>145</iCost>
 				</YieldCost>
 			</YieldCosts>
 			<iGameYearAvailable>1492</iGameYearAvailable>
@@ -82684,7 +82684,7 @@
 			<iEuropeCost>-1</iEuropeCost>
 			<iEuropeCostIncrease>0</iEuropeCostIncrease>
 			<iPortRoyalCost>5000</iPortRoyalCost>
-			<iPortRoyalCostIncrease>500</iPortRoyalCostIncrease>
+			<iPortRoyalCostIncrease>1000</iPortRoyalCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -82999,8 +82999,8 @@
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
 			<iEuropeCost>4000</iEuropeCost>
 			<iEuropeCostIncrease>800</iEuropeCostIncrease>
-			<iPortRoyalCost>3500</iPortRoyalCost>
-			<iPortRoyalCostIncrease>500</iPortRoyalCostIncrease>
+			<iPortRoyalCost>3600</iPortRoyalCost>
+			<iPortRoyalCostIncrease>700</iPortRoyalCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -83229,8 +83229,8 @@
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
 			<iEuropeCost>-1</iEuropeCost>
 			<iEuropeCostIncrease>0</iEuropeCostIncrease>
-			<iPortRoyalCost>5500</iPortRoyalCost>
-			<iPortRoyalCostIncrease>1000</iPortRoyalCostIncrease>
+			<iPortRoyalCost>5600</iPortRoyalCost>
+			<iPortRoyalCostIncrease>1100</iPortRoyalCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
@@ -83437,8 +83437,8 @@
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
 			<iEuropeCost>-1</iEuropeCost>
 			<iEuropeCostIncrease>0</iEuropeCostIncrease>
-			<iPortRoyalCost>3000</iPortRoyalCost>
-			<iPortRoyalCostIncrease>750</iPortRoyalCostIncrease>
+			<iPortRoyalCost>2950</iPortRoyalCost>
+			<iPortRoyalCostIncrease>900</iPortRoyalCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>24</iMinAreaSize>
@@ -83627,8 +83627,8 @@
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
 			<iEuropeCost>-1</iEuropeCost>
 			<iEuropeCostIncrease>0</iEuropeCostIncrease>
-			<iPortRoyalCost>2200</iPortRoyalCost>
-			<iPortRoyalCostIncrease>600</iPortRoyalCostIncrease>
+			<iPortRoyalCost>2350</iPortRoyalCost>
+			<iPortRoyalCostIncrease>700</iPortRoyalCostIncrease>
 			<iImmigrationWeight>0</iImmigrationWeight>
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>-1</iMinAreaSize>
