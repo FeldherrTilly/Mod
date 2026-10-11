@@ -2474,7 +2474,7 @@ for x, y in cove_cands:
 
 # ---------------------------------------------------------------- Caribbean revision
 # Late changes (own random stream, so the rest of the map stays as it was): the westernmost gulf island makes way for a narrow strip of
-# Atlantic Europe plots, most plain reefs of the island sea disappear, an ocean current curves in from the east towards the strip,
+# Atlantic Europe plots, most rock reefs of the island sea disappear, an ocean current curves in from the east towards the strip,
 # and part of the shrubland in the southern continent turns into desert.
 car_rng = random.Random(SEED * 7 + 25)
 west_isle = min(archipelago, key=lambda c: min(x for x, _ in c))
@@ -2526,12 +2526,12 @@ if CARIB_EUROPE[0] not in main_deep:
             terrain[found] = 'COAST'
             feature[found] = None
 
-# most plain reefs of the island sea go (coral = stone reefs and pearl reefs stay)
+# most rock reefs (FEATURE_STONE_REEF) of the island sea go; coral reefs (FEATURE_REEF) and pearl reefs stay
 reefs_removed = 0
 for x in range(38, 69):
     for y in range(28, 53):
         i = I(x, y)
-        if feature[i] == 'REEF' and car_rng.random() < 0.75:
+        if feature[i] == 'STONE_REEF' and car_rng.random() < 0.75:
             feature[i] = None
             reefs_removed += 1
 
@@ -2556,7 +2556,7 @@ for k in range(401):
         feature[i] = 'ARROW_' + DIRS[int(round(ang / (math.pi / 4))) % 8]
         CAR_ARROWS += 1
 
-# shrubland of the southern continent turns into desert, starting where it already borders desert (about 30 %)
+# shrubland of the southern continent turns into desert, starting where it already borders desert (about 30 %); the cape in the far south keeps its shrubland
 south_shrub = [I(x, y) for x, y in ALL if y <= 30 and land[I(x, y)] and terrain[I(x, y)] == 'SHRUBLAND']
 dd = bfs_dist([i for i in range(W * H) if land[i] and terrain[i] == 'DESERT'], lambda j: True)
 protected = set()
@@ -2565,7 +2565,7 @@ for ox, oy in oases:
         for dy in range(-3, 4):
             if inb(ox + dx, oy + dy):
                 protected.add(I(ox + dx, oy + dy))
-elig = [i for i in south_shrub if i not in protected and not has_river(i % W, i // W)
+elig = [i for i in south_shrub if i not in protected and i // W > 4 and not has_river(i % W, i // W)
         and not any(lake[I(nx, ny)] or large[I(nx, ny)] for nx, ny in nbrs(i % W, i // W))]
 elig.sort(key=lambda i: dd[i] + car_rng.uniform(0, 4))
 to_desert = elig[:int(0.3 * len(south_shrub))]
@@ -2573,7 +2573,7 @@ for i in to_desert:
     terrain[i] = 'DESERT'
     if feature[i] not in (None, 'ROCK_FORMATIONS_DESERT', 'CACTUS_TREES', 'BARREL_CACTUS'):
         feature[i] = None
-print('caribbean revision: west isle', len(west_isle), 'strip', [(i % W, i // W) for i in CARIB_EUROPE], 'reefs removed', reefs_removed, 'current arrows', CAR_ARROWS,
+print('caribbean revision: west isle', len(west_isle), 'strip', [(i % W, i // W) for i in CARIB_EUROPE], 'rock reefs removed', reefs_removed, 'current arrows', CAR_ARROWS,
       'shrubland south', len(south_shrub), 'to desert', len(to_desert))
 
 # ---------------------------------------------------------------- landmark names
