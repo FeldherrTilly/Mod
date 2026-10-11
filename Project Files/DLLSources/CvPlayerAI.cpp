@@ -9333,6 +9333,9 @@ void CvPlayerAI::AI_doEurope()
 
 	if (!isHuman() && !isNative() && !isEurope())
 	{
+		// WTP: the second scout before anything else
+		AI_doScoutPurchase();
+
 		// WTP: from 5 waiting treasures a galleon (the only ship that carries them) comes first
 		if (AI_doTreasureShipPurchase())
 		{
@@ -18865,6 +18868,54 @@ bool CvPlayerAI::AI_buyExpertForOpportunity()
 	return true;
 }
 
+// WTP: two scouts before anything else (the first one comes free with the first colony)
+void CvPlayerAI::AI_doScoutPurchase()
+{
+	if (isHuman() || isNative() || isEurope() || getParent() == NO_PLAYER || !canTradeWithEurope())
+	{
+		return;
+	}
+	const UnitTypes eColonist = GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits((UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_COLONIST"));
+	// 0. two scouts before anybody else (the first one comes free with the first colony): exploring brings gold
+	// and shows the villages nearby (teachers, trade).
+	// The gold reserve does not apply, the scout only has to be paid in full including its horses.
+	if (AI_totalUnitAIs(UNITAI_SCOUT) < 2 && GC.getGameINLINE().getGameTurn() <= 80)
+	{
+		const ProfessionTypes eScoutProfession = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_SCOUT");
+		// a free colonist with scout equipment (a seasoned scout costs too much for the AI early on)
+		const UnitTypes aeScoutUnits[1] = { eColonist };
+		for (int iCandidate = 0; iCandidate < 1 && eScoutProfession != NO_PROFESSION; ++iCandidate)
+		{
+			const UnitTypes eUnit = aeScoutUnits[iCandidate];
+			if (eUnit == NO_UNIT || getEuropeUnitBuyPrice(eUnit) <= 0)
+			{
+				continue;
+			}
+			int iEquipCost = 0;
+			for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
+			{
+				iEquipCost += GET_PLAYER(getParent()).getYieldSellPrice(eYield) * GC.getProfessionInfo(eScoutProfession).getYieldEquipmentAmount(eYield);
+			}
+			if (getGold() < getEuropeUnitBuyPrice(eUnit) + iEquipCost)
+			{
+				continue;
+			}
+			CvUnit* const pScout = buyEuropeUnit(eUnit, 100);
+			if (pScout != NULL)
+			{
+				if (pScout->getProfession() != eScoutProfession && pScout->canHaveProfession(eScoutProfession, false))
+				{
+					changeProfessionEurope(pScout->getID(), eScoutProfession);
+				}
+				pScout->AI_setUnitAIType(UNITAI_SCOUT);
+				if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) buys scout %S", getID(), getCivilizationDescription(0), pScout->getNameAndProfession().GetCString());
+				break;
+			}
+		}
+	}
+
+}
+
 // WTP: buy another transport if more units wait in Europe than one load of all our transports.
 // Returns true while saving gold for it, then nothing else is bought.
 bool CvPlayerAI::AI_doTransportPurchase()
@@ -18980,45 +19031,6 @@ void CvPlayerAI::AI_doCivilianPurchases()
 	const ProfessionTypes eSettlerProfession = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_SETTLER");
 	const ProfessionTypes ePioneerProfession = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_PIONEER");
 	int iBought = 0;
-
-	// 0. two scouts before anybody else (the first one comes free with the first colony): exploring brings gold
-	// and shows the villages nearby (teachers, trade).
-	// The gold reserve does not apply, the scout only has to be paid in full including its horses.
-	if (AI_totalUnitAIs(UNITAI_SCOUT) < 2 && GC.getGameINLINE().getGameTurn() <= 80)
-	{
-		const ProfessionTypes eScoutProfession = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_SCOUT");
-		// a free colonist with scout equipment (a seasoned scout costs too much for the AI early on)
-		const UnitTypes aeScoutUnits[1] = { eColonist };
-		for (int iCandidate = 0; iCandidate < 1 && eScoutProfession != NO_PROFESSION; ++iCandidate)
-		{
-			const UnitTypes eUnit = aeScoutUnits[iCandidate];
-			if (eUnit == NO_UNIT || getEuropeUnitBuyPrice(eUnit) <= 0)
-			{
-				continue;
-			}
-			int iEquipCost = 0;
-			for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
-			{
-				iEquipCost += GET_PLAYER(getParent()).getYieldSellPrice(eYield) * GC.getProfessionInfo(eScoutProfession).getYieldEquipmentAmount(eYield);
-			}
-			if (getGold() < getEuropeUnitBuyPrice(eUnit) + iEquipCost)
-			{
-				continue;
-			}
-			CvUnit* const pScout = buyEuropeUnit(eUnit, 100);
-			if (pScout != NULL)
-			{
-				if (pScout->getProfession() != eScoutProfession && pScout->canHaveProfession(eScoutProfession, false))
-				{
-					changeProfessionEurope(pScout->getID(), eScoutProfession);
-				}
-				pScout->AI_setUnitAIType(UNITAI_SCOUT);
-				if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) buys scout %S", getID(), getCivilizationDescription(0), pScout->getNameAndProfession().GetCString());
-				++iBought;
-				break;
-			}
-		}
-	}
 
 	if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) civilian purchases: gold %d cities %d desired %d settlers %d workers %d wanted %d",
 		getID(), getCivilizationDescription(0), getGold(), getNumCities(), AI_desiredCityCount(), AI_totalUnitAIs(UNITAI_SETTLER),
