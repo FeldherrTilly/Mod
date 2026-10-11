@@ -17305,7 +17305,31 @@ int CvPlayerAI::AI_estimateUnemploymentCount() const
 // to the city center and must not be founded within 5 plots of another European's colony
 bool CvPlayerAI::AI_isFirstColonySiteAllowed(const CvPlot& kPlot) const
 {
-	if (kPlot.area()->getNumTiles() <= 40)
+	// WTP: the longer we look for a first site, the more the soft rules are relaxed (the coast rule always stays):
+	// from 10 turns on map edge 5 -> 2 and foreign colonies 5 -> 3 plots, from 20 turns landmass 40 -> 20 and usable land 4 -> 3
+	const int iSearchTurns = GC.getGameINLINE().getGameTurn() - GC.getGameINLINE().getStartTurn();
+	const bool bRelaxed = iSearchTurns >= 10;
+	const bool bVeryRelaxed = iSearchTurns >= 20;
+
+	if (kPlot.area()->getNumTiles() <= (bVeryRelaxed ? 20 : 40))
+	{
+		return false;
+	}
+
+	// the first colony is the port to Europe: it needs real coast, not only a large river, a lake or shallow coast
+	if (!kPlot.hasDeepWaterCoast())
+	{
+		return false;
+	}
+
+	// not within 5 plots of the map edge (wrapping directions have no edge)
+	const CvMap& kMap = GC.getMap();
+	const int iEdgeDistance = bRelaxed ? 2 : 5;
+	if (!kMap.isWrapXINLINE() && (kPlot.getX_INLINE() < iEdgeDistance || kPlot.getX_INLINE() >= kMap.getGridWidth() - iEdgeDistance))
+	{
+		return false;
+	}
+	if (!kMap.isWrapYINLINE() && (kPlot.getY_INLINE() < iEdgeDistance || kPlot.getY_INLINE() >= kMap.getGridHeight() - iEdgeDistance))
 	{
 		return false;
 	}
@@ -17321,12 +17345,12 @@ bool CvPlayerAI::AI_isFirstColonySiteAllowed(const CvPlot& kPlot) const
 			++iUsableLand;
 		}
 	}
-	if (iUsableLand < 4)
+	if (iUsableLand < (bVeryRelaxed ? 3 : 4))
 	{
 		return false;
 	}
 
-	const int iRange = 5;
+	const int iRange = bRelaxed ? 3 : 5;
 	for (int iDX = -iRange; iDX <= iRange; ++iDX)
 	{
 		for (int iDY = -iRange; iDY <= iRange; ++iDY)
