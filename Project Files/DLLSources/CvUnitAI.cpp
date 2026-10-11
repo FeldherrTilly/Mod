@@ -10255,6 +10255,9 @@ bool CvUnitAI::AI_respondToPickup(int iMaxPath, UnitAITypes eUnitAI)
 								if ((atPlot(pMissionPlot) || (canMoveInto(*pMissionPlot) && generatePath(pMissionPlot, MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns))) && (iPathTurns <= iMaxPathTurns))
 								{
 									pLoopPlot = pMissionPlot;
+									// WTP: the path cost of the direct path; it stayed MAX_INT and the value below overflowed to
+									// nothing, so units waiting in a colony (settlers, experts, treasures) were never picked up
+									iBestDirectionValue = atPlot(pMissionPlot) ? 0 : getPathCost();
 								}
 								else
 								{
