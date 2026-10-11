@@ -6284,12 +6284,22 @@ int CvPlayerAI::AI_neededWorkers(CvArea* pArea) const
 		}
 	}
 
-	if (iCount <= 0)
+	// WTP: on top of the improvement needs about one pioneer per colony (roads, later improvements)
+	int iCities = 0;
+	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
-		return 0;
+		if ((pArea == NULL) || (pLoopCity->getArea() == pArea->getID()))
+		{
+			++iCities;
+		}
 	}
 
-	return std::max(1, (iCount * 2) / 3);
+	if (iCount <= 0)
+	{
+		return iCities;
+	}
+
+	return std::max(1, (iCount * 2) / 3) + iCities;
 }
 
 int CvPlayerAI::AI_adjacentPotentialAttackers(CvPlot* pPlot, bool bTestCanMove)
@@ -17594,7 +17604,7 @@ void CvPlayerAI::AI_doCivilianPurchases()
 
 	if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) civilian purchases: gold %d cities %d desired %d settlers %d workers %d wanted %d",
 		getID(), getCivilizationDescription(0), getGold(), getNumCities(), AI_desiredCityCount(), AI_totalUnitAIs(UNITAI_SETTLER),
-		AI_totalUnitAIs(UNITAI_WORKER), std::min(AI_neededWorkers(NULL), std::max(2, (getNumCities() + 1) / 2)));
+		AI_totalUnitAIs(UNITAI_WORKER), std::min(AI_neededWorkers(NULL), std::max(2, getNumCities())));
 
 	// 1. settlers: a hurried immigrant or a colonist equipped as settler in Europe
 	if (getNumCities() > 0 && AI_desiredCityCount() > getNumCities() + AI_totalUnitAIs(UNITAI_SETTLER))
@@ -17605,9 +17615,9 @@ void CvPlayerAI::AI_doCivilianPurchases()
 		}
 	}
 
-	// 2. pioneers: 2 pioneers improve plots one after the other, so do not buy one per plot to improve;
+	// 2. pioneers: about one per colony, not one per plot to improve;
 	// at most 2 hardy pioneers, further pioneers are equipped colonists
-	const int iWantedPioneers = std::min(AI_neededWorkers(NULL), std::max(2, (getNumCities() + 1) / 2));
+	const int iWantedPioneers = std::min(AI_neededWorkers(NULL), std::max(2, getNumCities()));
 	if (iBought < 2 && AI_totalUnitAIs(UNITAI_WORKER) < iWantedPioneers)
 	{
 		const UnitTypes eHardyPioneer = (eHardyPioneerClass != NO_UNITCLASS) ? kCiv.getCivilizationUnits(eHardyPioneerClass) : NO_UNIT;
