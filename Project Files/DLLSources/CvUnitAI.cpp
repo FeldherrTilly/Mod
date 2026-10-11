@@ -4847,6 +4847,15 @@ void CvUnitAI::AI_transportSettler()
 		if (AI_deliverUnits(UNITAI_SETTLER))
 			return;
 
+		// WTP: nothing legal in sight - explore further instead of waiting until someone else reveals a site
+		if (kOwner.getNumCities() == 0)
+		{
+			if (gUnitLogLevel >= 1) logBBAI("WTP ship: Player %d (%S) turn %d settler ship %S finds no first colony site, explores",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString());
+			if (AI_exploreCoast(3) || AI_exploreOcean(2) || AI_exploreDeep())
+				return;
+		}
+
 		getGroup()->pushMission(MISSION_SKIP);
 		return;
 	}
