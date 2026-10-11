@@ -5229,6 +5229,15 @@ void CvUnitAI::AI_transportSeaMove()
 			return;
 		}
 
+		// WTP: a transport with room also picks up settlers and experts waiting nearby (within 2 turns), not only an
+		// empty one; a settler waited in port for many turns while loaded transports passed by
+		if (!bEmpty && !isFull() && getUnitAICargo(UNITAI_TREASURE) == 0
+			&& (AI_respondToPickup(2, UNITAI_SETTLER) || AI_respondToPickup(2, UNITAI_COLONIST)))
+		{
+			AI_setUnitAIState(UNITAI_STATE_PICKUP);
+			return;
+		}
+
 		if (kOwner.AI_totalUnitAIs(UNITAI_TREASURE) > 0)
 		{
 			if (AI_respondToPickup(20, UNITAI_TREASURE))
