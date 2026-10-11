@@ -471,9 +471,13 @@ public:
 	int AI_shipReachableColonies(UnitTypes eUnit) const;
 	static bool AI_shipCanReachCity(UnitTypes eUnit, const CvCity& kCity);
 	bool AI_isRestrictedWaterCity(const CvCity& kCity) const;
-	UnitTypes AI_bestShipToBuy(UnitAITypes eUnitAI, bool bCheapest);
+	UnitTypes AI_bestShipToBuy(UnitAITypes eUnitAI, bool bCheapest, TerrainTypes eRequiredTerrain = NO_TERRAIN);
 	bool AI_doTransportPurchase();
 	bool AI_doTreasureShipPurchase();
+	bool AI_doColonyTransportPurchase();
+	UnitTypes AI_transportToBuy();
+	enum { WATER_ACCESS_NONE, WATER_ACCESS_DEEP, WATER_ACCESS_SHALLOW, WATER_ACCESS_RIVER };
+	static int AI_cityWaterAccess(const CvCity& kCity);
 	void AI_doSurplusPioneers();
 	CvCity* AI_surplusPioneerCity(int iUnitID) const;
 	void AI_clearSurplusPioneer();
