@@ -2800,7 +2800,7 @@ with open(wb, 'w', newline='\r\n') as f:
     for p in range(49):
         f.write('BeginPlayer\n\tTeam=%d\n\tLeaderType=NONE\n\tCivType=NONE\nEndPlayer\n' % p)
     f.write('BeginMap\n\tgrid width=%d\n\tgrid height=%d\n\ttop latitude=%d\n\tbottom latitude=%d\n' % (W, H, TOP_LAT, BOTTOM_LAT))
-    f.write('\twrap X=0\n\twrap Y=0\n\tworld size=WORLDSIZE_LARGE\n\tclimate=CLIMATE_TEMPERATE\n\tsealevel=SEALEVEL_MEDIUM\n')
+    f.write('\twrap X=0\n\twrap Y=0\n\tworld size=WORLDSIZE_HUGE\n\tclimate=CLIMATE_TEMPERATE\n\tsealevel=SEALEVEL_MEDIUM\n')
     f.write('\tnum plots written=%d\n\tnum signs written=%d\n' % (W * H, len(SIGNS)))
     f.write('\tRandomize Features=false\n\tRandomize Resources=true\n\tRandomize Goodies=true\nEndMap\n\n### Plot Info ###\n')
     for x in range(W):
