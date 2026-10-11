@@ -1898,29 +1898,29 @@
 				<PriceTables>
 					<PriceTable>
 						<location>TRADE_LOCATION_EUROPE</location>
-						<iBuyLow>6</iBuyLow>
-						<iBuyHigh>12</iBuyHigh>
-						<iBuyLowInit>10</iBuyLowInit>
-						<iBuyHighInit>12</iBuyHighInit>
-						<iSellPriceDifference>2</iSellPriceDifference>
+						<iBuyLow>4</iBuyLow>
+						<iBuyHigh>10</iBuyHigh>
+						<iBuyLowInit>8</iBuyLowInit>
+						<iBuyHighInit>10</iBuyHighInit>
+						<iSellPriceDifference>4</iSellPriceDifference>
 						<iVolumeAttrition>5</iVolumeAttrition>
 					</PriceTable>
 					<PriceTable>
 						<location>TRADE_LOCATION_AFRICA</location>
-						<iBuyLow>11</iBuyLow>
-						<iBuyHigh>13</iBuyHigh>
-						<iBuyLowInit>11</iBuyLowInit>
-						<iBuyHighInit>13</iBuyHighInit>
-						<iSellPriceDifference>2</iSellPriceDifference>
+						<iBuyLow>9</iBuyLow>
+						<iBuyHigh>11</iBuyHigh>
+						<iBuyLowInit>9</iBuyLowInit>
+						<iBuyHighInit>11</iBuyHighInit>
+						<iSellPriceDifference>4</iSellPriceDifference>
 						<iVolumeAttrition>5</iVolumeAttrition>
 					</PriceTable>
 					<PriceTable>
 						<location>TRADE_LOCATION_PORT_ROYAL</location>
-						<iBuyLow>12</iBuyLow>
-						<iBuyHigh>14</iBuyHigh>
-						<iBuyLowInit>12</iBuyLowInit>
-						<iBuyHighInit>14</iBuyHighInit>
-						<iSellPriceDifference>2</iSellPriceDifference>
+						<iBuyLow>10</iBuyLow>
+						<iBuyHigh>12</iBuyHigh>
+						<iBuyLowInit>10</iBuyLowInit>
+						<iBuyHighInit>12</iBuyHighInit>
+						<iSellPriceDifference>4</iSellPriceDifference>
 						<iVolumeAttrition>5</iVolumeAttrition>
 					</PriceTable>
 				</PriceTables>
