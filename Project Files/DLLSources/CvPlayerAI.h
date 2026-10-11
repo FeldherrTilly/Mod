@@ -627,7 +627,16 @@ protected:
 	int m_iSurplusPioneerID;
 	int m_iSurplusPioneerCityID;
 	int m_iSavingGoldTurn; // WTP: last turn the AI saved gold for a ship or the militia (not saved)
+	// WTP: units waiting in a village to learn (unit id, first turn of waiting), not saved
+	std::map<int, int> m_mapWfLearnWait;
+	// WTP: expert to buy instead of learning it (learning was blocked for 15 turns), not saved
+	UnitClassTypes m_eWfExpertToBuy;
+	bool AI_doWfExpertPurchase();
 public:
+	int AI_wfLearnWaitTurns(int iUnitID, bool bStart);
+	void AI_clearWfLearnWait(int iUnitID);
+	void AI_setWfExpertToBuy(UnitClassTypes eExpertClass);
+	UnitClassTypes AI_getWfExpertToBuy() const { return m_eWfExpertToBuy; }
 	static bool AI_isProtectedSpecialty(UnitClassTypes eUnitClass);
 protected:
 	// WTP: open (unfilled) opportunities of the last workforce plan, for buying experts (not saved, made again each turn)
