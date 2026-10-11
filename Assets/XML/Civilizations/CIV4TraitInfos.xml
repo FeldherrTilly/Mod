@@ -152,7 +152,7 @@
 			<iNativeAngerModifier>-50</iNativeAngerModifier>
 			<iLearnTimeModifier>-50</iLearnTimeModifier>
 			<iNativeCombatModifier>0</iNativeCombatModifier>
-			<iMissionaryModifier>100</iMissionaryModifier>
+			<iMissionaryModifier>75</iMissionaryModifier>
 			<iNativeTradeModifier>0</iNativeTradeModifier>
 			<iRebelCombatModifier>0</iRebelCombatModifier>
 			<iTaxRateThresholdModifier>0</iTaxRateThresholdModifier>
@@ -2257,7 +2257,7 @@
 			<iNativeAngerModifier>0</iNativeAngerModifier>
 			<iLearnTimeModifier>0</iLearnTimeModifier>
 			<iNativeCombatModifier>0</iNativeCombatModifier>
-			<iMissionaryModifier>150</iMissionaryModifier>
+			<iMissionaryModifier>75</iMissionaryModifier>
 			<iNativeTradeModifier>10</iNativeTradeModifier>
 			<iRebelCombatModifier>0</iRebelCombatModifier>
 			<iTaxRateThresholdModifier>0</iTaxRateThresholdModifier>
