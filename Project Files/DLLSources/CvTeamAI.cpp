@@ -590,7 +590,8 @@ bool CvTeamAI::AI_isLandTarget(TeamTypes eTeam) const
 		return false;
 	}
 
-	if (AI_calculateAdjacentLandPlots(eTeam) < 8)
+	// WTP: minimum number of eTeam's land plots bordering our territory, was 8
+	if (AI_calculateAdjacentLandPlots(eTeam) < GLOBAL_DEFINE_LAND_TARGET_MIN_ADJACENT_PLOTS)
 	{
 		return false;
 	}

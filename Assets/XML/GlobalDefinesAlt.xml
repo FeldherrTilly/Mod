@@ -563,6 +563,11 @@
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 	<Define>
+		<!-- AI: minimum number of a team's land plots bordering the AI's territory for it to count as a land target (vanilla 8) -->
+		<DefineName>LAND_TARGET_MIN_ADJACENT_PLOTS</DefineName>
+		<iDefineIntVal>3</iDefineIntVal>
+	</Define>
+	<Define>
 		<DefineName>MAX_NATIVE_BARGAIN_MODIFIER</DefineName>
 		<iDefineIntVal>75</iDefineIntVal>
 	</Define>
