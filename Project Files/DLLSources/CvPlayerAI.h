@@ -475,6 +475,8 @@ public:
 	bool AI_doTransportPurchase();
 	bool AI_doTreasureShipPurchase();
 	bool AI_doColonyTransportPurchase();
+	void AI_doEquipPioneersInEurope();
+	bool AI_isUselessExpert(const CvUnitAI& kUnit, std::vector<int>& aiYieldAvailable);
 	UnitTypes AI_transportToBuy();
 	enum { WATER_ACCESS_NONE, WATER_ACCESS_DEEP, WATER_ACCESS_SHALLOW, WATER_ACCESS_RIVER };
 	static int AI_firstColonyMinDistance(); // WTP: first colonies of the Europeans are at least this many plots apart
