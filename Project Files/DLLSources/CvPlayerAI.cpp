@@ -2633,60 +2633,27 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 				iValue /= iFactor + iMinDistance;
 			}
 
-			if (iCityDistance > iMaxDistance)
+			// WTP: farther than iMaxDistance from the nearest own colony the value falls steadily, on any landmass. It
+			// used to be capped at 10 plots, and the distance to the primary colony did not count on another landmass,
+			// so an empty landmass 35 plots away was as good as a site next to the colonies.
+			int iNearest = MAX_INT;
+			int iLoop;
+			for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 			{
-				// TAC - AI City Sites - koma13 - START
-
-				//iValue *= iMaxDistance;
-				//iValue /= iCityDistance;
-
-				CvArea* pArea = pPlot->area();
-				bool bEuropeCities = false;
-
-				if (pArea->getNumCities() > 0)
-				{
-					for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
-					{
-						CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-						if (kLoopPlayer.isAlive() && !kLoopPlayer.isNative())
-						{
-							if (pArea->getCitiesPerPlayer((PlayerTypes)iPlayer) > 0)
-							{
-								bEuropeCities = true;
-								break;
-							}
-						}
-					}
-				}
-
-				if (bEuropeCities)
-				{
-					iValue *= iMaxDistance;
-					iValue /= iCityDistance;
-				}
-
-				// TAC - AI City Sites - koma13 - END
+				iNearest = std::min(iNearest, plotDistance(iX, iY, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE()));
 			}
-
-			CvCity* pPrimaryCity = AI_getPrimaryCity();
-			if (pPrimaryCity != NULL)
+			if (iNearest > iMaxDistance)
 			{
-				int iDistance = stepDistance(iX, iY, pPrimaryCity->getX_INLINE(), pPrimaryCity->getY_INLINE());
-
-				// TAC - AI City Sites - koma13 - START
-				if (pPlot->getArea() != pPrimaryCity->plot()->getArea())
+				// factor = iMaxDistance / d, beyond iMaxDistance + 3 also * 3 / (d - iMaxDistance); the malus (1 - factor)
+				// is reduced by 15 %
+				int iNum = iMaxDistance;
+				int iDen = iNearest;
+				if (iNearest > iMaxDistance + 3)
 				{
-					iDistance = iMinDistance;
+					iNum *= 3;
+					iDen *= iNearest - iMaxDistance;
 				}
-				// TAC - AI City Sites - koma13 - END
-
-				iValue *= 6;
-				iValue /= 3 + iDistance;
-				if (iDistance > 9)
-				{
-					iValue *= 3;
-					iValue /= iDistance - 6;
-				}
+				iValue = (int)(((__int64)iValue * (15 * iDen + 85 * iNum)) / (100 * iDen));
 			}
 		}
 	}
