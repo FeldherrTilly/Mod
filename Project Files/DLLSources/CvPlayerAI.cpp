@@ -6981,6 +6981,31 @@ CvCity* CvPlayerAI::AI_findBestPort(CvArea* pArea, CvCity* pNoAccessCity) const
 					int iPortValue = 100000 / std::max(2, pLoopCity->plot()->getDistanceToOcean());
 					iPortValue /= 100 + pLoopCity->getGameTurnFounded();
 
+					// WTP: the port has to be reached by our transports; the more of them reach it (deep water), the
+					// better (a colony on shallow coast or a large river is no port for galleons)
+					int iTransports = 0;
+					int iReaching = 0;
+					int iUnitLoop;
+					for (CvUnit* pLoopUnit = firstUnit(&iUnitLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iUnitLoop))
+					{
+						if (pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA)
+						{
+							++iTransports;
+							if (AI_shipCanReachCity(pLoopUnit->getUnitType(), *pLoopCity))
+							{
+								++iReaching;
+							}
+						}
+					}
+					if (iTransports > 0)
+					{
+						if (iReaching == 0)
+						{
+							continue;
+						}
+						iPortValue = iPortValue * (1 + 4 * iReaching / iTransports) + 1;
+					}
+
 					if (iPortValue > iBestValue)
 					{
 						pBestCity = pLoopCity;
