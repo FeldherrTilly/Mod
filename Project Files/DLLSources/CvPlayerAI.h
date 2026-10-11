@@ -498,7 +498,7 @@ public:
 	bool AI_canAffordCivilianPurchase(int iCost) const;
 	bool AI_buyCivilianUnit(UnitTypes eUnit, UnitAITypes eUnitAI, ProfessionTypes eProfession);
 	CvUnit* AI_hurryCheapImmigrant(bool bUnconditional, bool bNonExpertOnly = false);
-	void AI_doMilitiaPurchase(); // WTP
+	bool AI_doMilitiaPurchase(); // WTP
 	int AI_civilianExpertPriority(ProfessionTypes eProfession, UnitClassTypes& eExpertClass);
 	// TAC - AI More Immigrants - koma13 - END
 
