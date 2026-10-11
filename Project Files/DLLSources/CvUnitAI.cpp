@@ -12366,13 +12366,17 @@ bool CvUnitAI::AI_explore(bool bFavorOpenBorders)
 
 	bool bNoContact = (GC.getGameINLINE().countCivTeamsAlive() > GET_TEAM(getTeam()).getHasMetCivCount());
 
+	// WTP: a path for every explorable plot of the map was very slow (frontier plots grow with the explored map);
+	// rate them by distance first and only find paths for the best ones
+	std::vector<std::pair<int, int> > aCandidates;
+	const int iMoves = std::max(1, baseMoves());
 	for (iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
 	{
 		PROFILE("AI_explore 1");
 
 		CvPlot* pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
 
-		if (AI_plotValid(pLoopPlot))
+		if (AI_plotValid(pLoopPlot) && !atPlot(pLoopPlot))
 		{
 			int iValue = AI_explorePlotValue(pLoopPlot, false);
 
@@ -12382,31 +12386,45 @@ bool CvUnitAI::AI_explore(bool bFavorOpenBorders)
 				{
 					if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_EXPLORE, getGroup(), 3) == 0)
 					{
-						if (!atPlot(pLoopPlot) && generatePath(pLoopPlot, MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns))
+						const int iDistance = plotDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+						int iEstimate = iValue + 125 * iDistance + (pLoopPlot->isAdjacentToLand() ? 10000 : 0);
+						if (bFavorOpenBorders && pLoopPlot->isOwned())
 						{
-							iValue += GC.getGameINLINE().getSorenRandNum(250 * abs(xDistance(getX_INLINE(), pLoopPlot->getX_INLINE())) + abs(yDistance(getY_INLINE(), pLoopPlot->getY_INLINE())), "AI explore");
-
-							if (pLoopPlot->isAdjacentToLand())
-							{
-								iValue += 10000;
-							}
-
-							if (bFavorOpenBorders && pLoopPlot->isOwned())
-							{
-								iValue *= 2;
-							}
-
-							iValue /= 3 + std::max(1, iPathTurns);
-
-							if (iValue > iBestValue)
-							{
-								iBestValue = iValue;
-								pBestPlot = pLoopPlot->isRevealedGoody(getTeam()) ? getPathEndTurnPlot() : pLoopPlot;
-								pBestExplorePlot = pLoopPlot;
-							}
+							iEstimate *= 2;
 						}
+						aCandidates.push_back(std::make_pair(iEstimate / (3 + std::max(1, iDistance / iMoves)), iI));
 					}
 				}
+			}
+		}
+	}
+
+	std::sort(aCandidates.begin(), aCandidates.end(), std::greater<std::pair<int, int> >());
+	for (uint iCandidate = 0; iCandidate < aCandidates.size() && iCandidate < 10; ++iCandidate)
+	{
+		CvPlot* pLoopPlot = GC.getMap().plotByIndexINLINE(aCandidates[iCandidate].second);
+		int iValue = AI_explorePlotValue(pLoopPlot, false);
+		if (generatePath(pLoopPlot, MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns))
+		{
+			iValue += GC.getGameINLINE().getSorenRandNum(250 * abs(xDistance(getX_INLINE(), pLoopPlot->getX_INLINE())) + abs(yDistance(getY_INLINE(), pLoopPlot->getY_INLINE())), "AI explore");
+
+			if (pLoopPlot->isAdjacentToLand())
+			{
+				iValue += 10000;
+			}
+
+			if (bFavorOpenBorders && pLoopPlot->isOwned())
+			{
+				iValue *= 2;
+			}
+
+			iValue /= 3 + std::max(1, iPathTurns);
+
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				pBestPlot = pLoopPlot->isRevealedGoody(getTeam()) ? getPathEndTurnPlot() : pLoopPlot;
+				pBestExplorePlot = pLoopPlot;
 			}
 		}
 	}
@@ -12512,6 +12530,8 @@ bool CvUnitAI::AI_exploreFromShip(int iMaxPath)
 
 	int iRange = iMaxPath * pTransportUnit->baseMoves();
 	bool bTransportPath = false;
+	// WTP: a path for every land plot in range was very slow; rate them by distance first, paths for the best ones
+	std::vector<std::pair<int, std::pair<int, int> > > aCandidates;
 	for (int iX = -iRange; iX <= iRange; iX++)
 	{
 		for (int iY = -iRange; iY <= iRange; iY++)
@@ -12541,34 +12561,43 @@ bool CvUnitAI::AI_exploreFromShip(int iMaxPath)
 						{
 							if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_EXPLORE, getGroup(), 3) == 0)
 							{
-								bool bTransport = (plotDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) > 1);
-								int iPathTurns = 0;
-								bool bValid;
-								if (bTransport)
-								{
-									bValid = pTransportUnit->generatePath(pLoopPlot, 0, bTransportPath, &iPathTurns, iMaxPath);
-								}
-								else
-								{
-									bValid = generatePath(pLoopPlot, 0, !bTransportPath, &iPathTurns, iMaxPath);
-								}
-
-								if (bValid)
-								{
-									iValue *= 100;
-									iValue /= 100 + getPathCost();
-
-									if (iValue > iBestValue)
-									{
-										iBestValue = iValue;
-										pBestExplorePlot = pLoopPlot;
-										pBestPlot = bTransport ? pTransportUnit->getPathEndTurnPlot() : pLoopPlot;
-									}
-								}
+								const int iDistance = plotDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+								aCandidates.push_back(std::make_pair(iValue * 10 / (1 + iDistance), std::make_pair(iValue, GC.getMap().plotNumINLINE(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()))));
 							}
 						}
 					}
 				}
+			}
+		}
+	}
+
+	std::sort(aCandidates.begin(), aCandidates.end(), std::greater<std::pair<int, std::pair<int, int> > >());
+	for (uint iCandidate = 0; iCandidate < aCandidates.size() && iCandidate < 10; ++iCandidate)
+	{
+		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(aCandidates[iCandidate].second.second);
+		int iValue = aCandidates[iCandidate].second.first;
+		bool bTransport = (plotDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) > 1);
+		int iPathTurns = 0;
+		bool bValid;
+		if (bTransport)
+		{
+			bValid = pTransportUnit->generatePath(pLoopPlot, 0, bTransportPath, &iPathTurns, iMaxPath);
+		}
+		else
+		{
+			bValid = generatePath(pLoopPlot, 0, !bTransportPath, &iPathTurns, iMaxPath);
+		}
+
+		if (bValid)
+		{
+			iValue *= 100;
+			iValue /= 100 + getPathCost();
+
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				pBestExplorePlot = pLoopPlot;
+				pBestPlot = bTransport ? pTransportUnit->getPathEndTurnPlot() : pLoopPlot;
 			}
 		}
 	}
@@ -12802,6 +12831,9 @@ bool CvUnitAI::AI_exploreDeep()
 	CvPlot* pBestPlot = NULL;
 	CvPlot* pBestExplorePlot = NULL;
 
+	// WTP: a path for every frontier plot of the map was very slow (e.g. next to a large unexplored polar sea);
+	// rate them by distance first and only find paths for the best ones
+	std::vector<std::pair<int, std::pair<int, int> > > aCandidates;
 	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
@@ -12865,28 +12897,37 @@ bool CvUnitAI::AI_exploreDeep()
 					{
 						if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_EXPLORE, getGroup(), 3) == 0)
 						{
-							int iPathTurns;
-							if (generatePath(pLoopPlot, MOVE_BUST_FOG, true, &iPathTurns))
-							{
-								iValue += GC.getGameINLINE().getSorenRandNum(10, "AI find land deep search");
-
-								iValue *= 5;
-								iValue /= 5 + pLoopPlot->getDistanceToOcean();
-
-								iValue *= 10000;
-
-								iValue /= 100 + getPathCost();
-
-								if (iValue > iBestValue)
-								{
-									iBestValue = iValue;
-									pBestPlot = getPathEndTurnPlot();
-									pBestExplorePlot = pLoopPlot;
-								}
-							}
+							const int iDistance = plotDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+							aCandidates.push_back(std::make_pair(iValue * 5 / (5 + pLoopPlot->getDistanceToOcean()) * 100 / (1 + iDistance), std::make_pair(iValue, iI)));
 						}
 					}
 				}
+			}
+		}
+	}
+
+	std::sort(aCandidates.begin(), aCandidates.end(), std::greater<std::pair<int, std::pair<int, int> > >());
+	for (uint iCandidate = 0; iCandidate < aCandidates.size() && iCandidate < 10; ++iCandidate)
+	{
+		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(aCandidates[iCandidate].second.second);
+		int iValue = aCandidates[iCandidate].second.first;
+		int iPathTurns;
+		if (generatePath(pLoopPlot, MOVE_BUST_FOG, true, &iPathTurns))
+		{
+			iValue += GC.getGameINLINE().getSorenRandNum(10, "AI find land deep search");
+
+			iValue *= 5;
+			iValue /= 5 + pLoopPlot->getDistanceToOcean();
+
+			iValue *= 10000;
+
+			iValue /= 100 + getPathCost();
+
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				pBestPlot = getPathEndTurnPlot();
+				pBestExplorePlot = pLoopPlot;
 			}
 		}
 	}
