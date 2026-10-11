@@ -18963,7 +18963,7 @@ bool CvPlayerAI::AI_doTransportPurchase()
 	return false;
 }
 
-// WTP: two defenders per colony (in peace too) before civilian units are bought; missing defenders are free colonists
+// WTP: two defenders per colony (one before turn 25, in peace too) before civilian units are bought; missing defenders are free colonists
 // equipped as colonial militia in Europe (cheaper than town guards and light artillery). Returns true while defenders
 // are missing (then no civilian units are bought).
 bool CvPlayerAI::AI_doMilitiaPurchase()
@@ -18973,7 +18973,7 @@ bool CvPlayerAI::AI_doMilitiaPurchase()
 		return false;
 	}
 	const int iDefenders = AI_totalUnitAIs(UNITAI_DEFENSIVE);
-	const int iWanted = 2 * getNumCities();
+	const int iWanted = ((GC.getGameINLINE().getGameTurn() >= 25) ? 2 : 1) * getNumCities();
 	if (iDefenders >= iWanted)
 	{
 		return false;
