@@ -20549,26 +20549,48 @@ bool CvUnitAI::AI_doWfTask()
 		CvPlot* const pVillage = GC.getMap().plotINLINE(m_iWfVillageX, m_iWfVillageY);
 		if (pVillage == NULL || !pVillage->isCity() || isCargo())
 		{
+			if (gUnitLogLevel >= 1) logBBAI("WTP plan: Player %d (%S) %S cannot learn: village gone or on a ship", getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString());
 			AI_clearWfTask();
 			return false;
 		}
 		if (atPlot(pVillage))
 		{
-			if (canLearn())
+			// the natives do not teach while they are furious
+			const bool bFurious = GET_PLAYER(pVillage->getOwnerINLINE()).AI_getAttitude(getOwnerINLINE()) == ATTITUDE_FURIOUS;
+			if (!bFurious && canLearn())
 			{
 				if (gUnitLogLevel >= 1) logBBAI("WTP plan: Player %d (%S) %S learns in %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString(),
 					pVillage->getPlotCity()->getName().GetCString());
+				kOwner.AI_clearWfLearnWait(getID());
 				learn();
 				return true;
 			}
-			AI_clearWfTask();
-			return false;
+			// WTP: learning is blocked (another colonist learns here, or the natives are furious): wait in the village and try
+			// again; after 15 turns the expert is bought in Europe or Africa instead and this unit is free again
+			const int iWaited = kOwner.AI_wfLearnWaitTurns(getID(), true);
+			if (iWaited >= 15)
+			{
+				const UnitClassTypes eTeach = pVillage->getPlotCity()->getTeachUnitClass();
+				if (gUnitLogLevel >= 1) logBBAI("WTP plan: Player %d (%S) %S gives up learning in %S after %d turns, %S is bought instead", getOwnerINLINE(),
+					kOwner.getCivilizationDescription(0), getName().GetCString(), pVillage->getPlotCity()->getName().GetCString(), iWaited,
+					eTeach != NO_UNITCLASS ? GC.getUnitClassInfo(eTeach).getDescription() : L"-");
+				kOwner.AI_setWfExpertToBuy(eTeach);
+				kOwner.AI_clearWfLearnWait(getID());
+				AI_clearWfTask();
+				return false;
+			}
+			if (gUnitLogLevel >= 1 && iWaited == 0) logBBAI("WTP plan: Player %d (%S) %S waits in %S to learn (learn unit %d, moves %d)", getOwnerINLINE(),
+				kOwner.getCivilizationDescription(0), getName().GetCString(), pVillage->getPlotCity()->getName().GetCString(), (int)getLearnUnitType(pVillage), (int)canMove());
+			getGroup()->pushMission(MISSION_SKIP);
+			return true;
 		}
 		if (generatePath(pVillage, MOVE_NO_ENEMY_TERRITORY, true))
 		{
 			getGroup()->pushMission(MISSION_MOVE_TO, pVillage->getX_INLINE(), pVillage->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_LEARN, pVillage);
 			return true;
 		}
+		if (gUnitLogLevel >= 1) logBBAI("WTP plan: Player %d (%S) %S cannot learn: no path to %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString(),
+			pVillage->getPlotCity()->getName().GetCString());
 		AI_clearWfTask();
 		return false;
 	}

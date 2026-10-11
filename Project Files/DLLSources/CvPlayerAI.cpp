@@ -9340,6 +9340,12 @@ void CvPlayerAI::AI_doEurope()
 			return;
 		}
 
+		// WTP: then an expert whose learning was blocked (saving until it is bought)
+		if (AI_doWfExpertPurchase())
+		{
+			return;
+		}
+
 		// WTP: from 5 waiting treasures a galleon (the only ship that carries them) comes first
 		if (AI_doTreasureShipPurchase())
 		{
@@ -17659,6 +17665,67 @@ bool CvPlayerAI::AI_isProtectedSpecialty(UnitClassTypes eUnitClass)
 		|| eUnitClass == (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_FISHERMAN"));
 }
 
+// WTP: a unit waiting in a village to learn: the number of turns it waits (bStart: it waits from now on if not yet)
+int CvPlayerAI::AI_wfLearnWaitTurns(int iUnitID, bool bStart)
+{
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+	std::map<int, int>::iterator it = m_mapWfLearnWait.find(iUnitID);
+	if (it == m_mapWfLearnWait.end())
+	{
+		if (bStart)
+		{
+			m_mapWfLearnWait[iUnitID] = iTurn;
+		}
+		return 0;
+	}
+	return iTurn - it->second;
+}
+
+void CvPlayerAI::AI_clearWfLearnWait(int iUnitID)
+{
+	m_mapWfLearnWait.erase(iUnitID);
+}
+
+// WTP: learning the expert was blocked for 15 turns: the expert is bought instead (in Europe or Africa), saving gold for it
+void CvPlayerAI::AI_setWfExpertToBuy(UnitClassTypes eExpertClass)
+{
+	m_eWfExpertToBuy = eExpertClass;
+}
+
+bool CvPlayerAI::AI_doWfExpertPurchase()
+{
+	if (m_eWfExpertToBuy == NO_UNITCLASS || isHuman() || isNative() || isEurope() || getParent() == NO_PLAYER)
+	{
+		return false;
+	}
+	const UnitTypes eExpert = GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(m_eWfExpertToBuy);
+	const int iEuropePrice = (eExpert != NO_UNIT && canTradeWithEurope()) ? getEuropeUnitBuyPrice(eExpert) : -1;
+	const int iAfricaPrice = (eExpert != NO_UNIT) ? getAfricaUnitBuyPrice(eExpert) : -1;
+	const bool bAfrica = iAfricaPrice > 0 && (iEuropePrice <= 0 || iAfricaPrice < iEuropePrice);
+	const int iPrice = bAfrica ? iAfricaPrice : iEuropePrice;
+	if (iPrice <= 0)
+	{
+		m_eWfExpertToBuy = NO_UNITCLASS; // not for sale
+		return false;
+	}
+	if (getGold() < iPrice)
+	{
+		AI_setSavingGold();
+		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) saves for %S in %s (%d gold, have %d): learning it was blocked", getID(),
+			getCivilizationDescription(0), GC.getUnitClassInfo(m_eWfExpertToBuy).getDescription(), bAfrica ? "Africa" : "Europe", iPrice, getGold());
+		return true;
+	}
+	CvUnit* const pUnit = bAfrica ? buyAfricaUnit(eExpert, 100) : buyEuropeUnit(eExpert, 100);
+	if (pUnit != NULL)
+	{
+		pUnit->AI_setUnitAIType(UNITAI_COLONIST);
+		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) buys %S in %s instead of learning it", getID(), getCivilizationDescription(0),
+			pUnit->getName().GetCString(), bAfrica ? "Africa" : "Europe");
+	}
+	m_eWfExpertToBuy = NO_UNITCLASS;
+	return false;
+}
+
 // WTP: an expert whose specialty is useless: the raw materials of its expert job are nowhere near the colonies (no
 // colony produces them, no plot within the colonies' radius + 1 can); aiYieldAvailable caches the yields (-1 unknown)
 bool CvPlayerAI::AI_isUselessExpert(const CvUnitAI& kUnit, std::vector<int>& aiYieldAvailable)
@@ -18096,6 +18163,11 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		}
 		const bool bFood = (YieldTypes)GC.getProfessionInfo(kOpp.eProfession).getYieldsProduced(0) == YIELD_FOOD;
 		if (!kOpp.bNotable && !bFood)
+		{
+			continue;
+		}
+		// WTP: an expert to be bought (learning was blocked) is not learned again
+		if (kOpp.eExpertClass == m_eWfExpertToBuy)
 		{
 			continue;
 		}
