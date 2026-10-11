@@ -19453,19 +19453,31 @@ bool CvPlayerAI::AI_isFirstColonySiteAllowed(const CvPlot& kPlot) const
 		return false;
 	}
 
-	const int iRange = bRelaxed ? 3 : 5;
-	for (int iDX = -iRange; iDX <= iRange; ++iDX)
+	// WTP: the first colonies of the Europeans are at least 12 plots apart (8 after 15 turns of searching)
+	const int iMinDistance = AI_firstColonyMinDistance();
+	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
 	{
-		for (int iDY = -iRange; iDY <= iRange; ++iDY)
+		const CvPlayer& kOther = GET_PLAYER((PlayerTypes)iPlayer);
+		if (iPlayer == getID() || !kOther.isAlive() || kOther.isNative())
 		{
-			const CvPlot* const pLoopPlot = plotXY(kPlot.getX_INLINE(), kPlot.getY_INLINE(), iDX, iDY);
-			if (pLoopPlot != NULL && pLoopPlot->isCity() && pLoopPlot->getOwnerINLINE() != getID() && !GET_PLAYER(pLoopPlot->getOwnerINLINE()).isNative())
+			continue;
+		}
+		int iLoop;
+		for (const CvCity* pLoopCity = kOther.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kOther.nextCity(&iLoop))
+		{
+			if (plotDistance(kPlot.getX_INLINE(), kPlot.getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE()) < iMinDistance)
 			{
 				return false;
 			}
 		}
 	}
 	return true;
+}
+
+// WTP: minimum distance between the first colonies of the Europeans: 12 plots, 8 after 15 turns of searching
+int CvPlayerAI::AI_firstColonyMinDistance()
+{
+	return (GC.getGameINLINE().getGameTurn() - GC.getGameINLINE().getStartTurn() >= 15) ? 8 : 12;
 }
 
 int CvPlayerAI::AI_firstCityFoundValue(const CvPlot& kPlot)

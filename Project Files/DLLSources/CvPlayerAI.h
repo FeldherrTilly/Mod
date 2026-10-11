@@ -477,6 +477,7 @@ public:
 	bool AI_doColonyTransportPurchase();
 	UnitTypes AI_transportToBuy();
 	enum { WATER_ACCESS_NONE, WATER_ACCESS_DEEP, WATER_ACCESS_SHALLOW, WATER_ACCESS_RIVER };
+	static int AI_firstColonyMinDistance(); // WTP: first colonies of the Europeans are at least this many plots apart
 	static int AI_cityWaterAccess(const CvCity& kCity);
 	void AI_doSurplusPioneers();
 	CvCity* AI_surplusPioneerCity(int iUnitID) const;
