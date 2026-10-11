@@ -1757,7 +1757,7 @@
 			<bIsExportYield>1</bIsExportYield>
 			<Prices>
 				<iDomesticPriceBonus>2</iDomesticPriceBonus>
-				<iPriceChangeThreshold>600</iPriceChangeThreshold>
+				<iPriceChangeThreshold>400</iPriceChangeThreshold>
 				<iPriceCorrectionPercent>1</iPriceCorrectionPercent>
 				<NativePrice>
 					<iNativeBuyPrice>8</iNativeBuyPrice>
@@ -1768,30 +1768,30 @@
 				<PriceTables>
 					<PriceTable>
 						<location>TRADE_LOCATION_EUROPE</location>
-						<iBuyLow>3</iBuyLow>
-						<iBuyHigh>7</iBuyHigh>
-						<iBuyLowInit>6</iBuyLowInit>
-						<iBuyHighInit>7</iBuyHighInit>
+						<iBuyLow>5</iBuyLow>
+						<iBuyHigh>11</iBuyHigh>
+						<iBuyLowInit>7</iBuyLowInit>
+						<iBuyHighInit>8</iBuyHighInit>
 						<iSellPriceDifference>2</iSellPriceDifference>
-						<iVolumeAttrition>5</iVolumeAttrition>
+						<iVolumeAttrition>-5</iVolumeAttrition>
 					</PriceTable>
 					<PriceTable>
 						<location>TRADE_LOCATION_AFRICA</location>
-						<iBuyLow>7</iBuyLow>
-						<iBuyHigh>8</iBuyHigh>
-						<iBuyLowInit>7</iBuyLowInit>
-						<iBuyHighInit>8</iBuyHighInit>
+						<iBuyLow>5</iBuyLow>
+						<iBuyHigh>12</iBuyHigh>
+						<iBuyLowInit>9</iBuyLowInit>
+						<iBuyHighInit>10</iBuyHighInit>
 						<iSellPriceDifference>2</iSellPriceDifference>
-						<iVolumeAttrition>5</iVolumeAttrition>
+						<iVolumeAttrition>-5</iVolumeAttrition>
 					</PriceTable>
 					<PriceTable>
 						<location>TRADE_LOCATION_PORT_ROYAL</location>
-						<iBuyLow>7</iBuyLow>
-						<iBuyHigh>8</iBuyHigh>
-						<iBuyLowInit>7</iBuyLowInit>
-						<iBuyHighInit>8</iBuyHighInit>
+						<iBuyLow>5</iBuyLow>
+						<iBuyHigh>12</iBuyHigh>
+						<iBuyLowInit>9</iBuyLowInit>
+						<iBuyHighInit>10</iBuyHighInit>
 						<iSellPriceDifference>2</iSellPriceDifference>
-						<iVolumeAttrition>5</iVolumeAttrition>
+						<iVolumeAttrition>-5</iVolumeAttrition>
 					</PriceTable>
 				</PriceTables>
 			</Prices>

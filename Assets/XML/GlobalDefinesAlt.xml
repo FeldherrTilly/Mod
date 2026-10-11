@@ -1792,6 +1792,6 @@
 	<Define>
 		<!-- see comments for TRADE_DECAY_TURN -->
 		<DefineName>TRADE_DECAY_PRICE_CHANGE</DefineName>
-		<iDefineIntVal>128</iDefineIntVal>
+		<iDefineIntVal>512</iDefineIntVal>
 	</Define>
 </Civ4Defines>
