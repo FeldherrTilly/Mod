@@ -8770,7 +8770,7 @@
 			<bNationalWonder>0</bNationalWonder>
 			<bNeverCapture>0</bNeverCapture>
 			<bCenterInCity>0</bCenterInCity>
-			<iAIWeight>300</iAIWeight>
+			<iAIWeight>1000</iAIWeight>
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
@@ -9801,7 +9801,7 @@
 			<bNationalWonder>0</bNationalWonder>
 			<bNeverCapture>0</bNeverCapture>
 			<bCenterInCity>0</bCenterInCity>
-			<iAIWeight>300</iAIWeight>
+			<iAIWeight>5000</iAIWeight>
 			<YieldCosts>
 				<YieldCost>
 					<YieldType>YIELD_HAMMERS</YieldType>
