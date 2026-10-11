@@ -149,6 +149,8 @@ public:
 
 	int AI_estimateYieldValue(YieldTypes eYield, int iAmount) const;
 	int AI_hammerJobMinValue() const;
+	bool AI_canClearLumberFeature(const CvPlot* pPlot) const;
+	void AI_getYieldsTaughtNearby(bool* abYields) const; // WTP
 
 	int AI_getTargetSize() const;
 	void AI_setTargetSize(int iNewValue);
