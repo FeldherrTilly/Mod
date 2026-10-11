@@ -8544,6 +8544,12 @@ bool CvUnit::build(BuildTypes eBuild)
 				{
 					plot()->setOwner(getOwnerINLINE(),true);
 				}
+				// WTP, forts on native land: the fort plot passes to the builder, the natives resent it
+				else if (GET_PLAYER(plot()->getOwnerINLINE()).isNative() && !GET_PLAYER(getOwnerINLINE()).isNative())
+				{
+					GET_PLAYER(plot()->getOwnerINLINE()).AI_changeAttitudeExtra(getOwnerINLINE(), -GLOBAL_DEFINE_FORT_ON_NATIVE_LAND_ATTITUDE_PENALTY);
+					plot()->setOwner(getOwnerINLINE(),true);
+				}
 			}
 		}
 		// Super Forts end

@@ -148,6 +148,7 @@ public:
 	bool canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam = NO_TEAM, bool bPotential = false, bool bIgnoreFeature = false) const; // build feature removal detection - Nightinggale
 
 	bool canBuild(BuildTypes eBuild, PlayerTypes ePlayer = NO_PLAYER, bool bTestVisible = false) const;
+	bool canBuildFortOnNativeLand(ImprovementTypes eImprovement) const;
 	int getBuildTime(BuildTypes eBuild) const;
 	int getBuildTurnsLeft(BuildTypes eBuild, int iNowExtra, int iThenExtra) const;
 	int getFeatureYield(BuildTypes eBuild, YieldTypes eYield, TeamTypes eTeam, CvCity** ppCity) const;
