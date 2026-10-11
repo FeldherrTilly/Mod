@@ -251,6 +251,11 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	m_bDisableHuman = false;
 	// Dale - AoD: AI Autoplay END
 
+	for (int iLocation = 0; iLocation < (int)NUM_TRADELOCATION_TYPES; ++iLocation)
+	{
+		m_aiTradesSincePriceCheck[iLocation] = 0;
+	}
+
 	m_uiStartTime = 0;
 	m_em_iDiploYieldAmount.reset();
 
@@ -17243,6 +17248,7 @@ void CvPlayer::setYieldBuyPrice(YieldTypes eYield, int iPrice, bool bMessage, bo
 
 void CvPlayer::sellYieldUnitToEurope(CvUnit* pUnit, int iAmount, int iCommission)
 {
+	const YieldTypes eTradedYield = (pUnit != NULL) ? pUnit->getYield() : NO_YIELD; // WTP, for the price check below
 	FAssert(pUnit != NULL);
 	if (pUnit != NULL)
 	{
@@ -17380,7 +17386,8 @@ void CvPlayer::sellYieldUnitToEurope(CvUnit* pUnit, int iAmount, int iCommission
 	}
 
 	// PatchMod: Check Europe prices after each trade START
-	GET_PLAYER(getParent()).doPrices();
+	// WTP: only the traded yield, every 3rd trade
+	doTradePriceCheck(TRADE_LOCATION_EUROPE, eTradedYield);
 	// PatchMod: Check Europe prices after each trade END
 }
 
@@ -17535,17 +17542,8 @@ CvUnit* CvPlayer::buyYieldUnit(YieldTypes eYield, int iAmount, CvUnit* pTranspor
 	}
 
 	// PatchMod: Check prices after each trade based on location
-	switch (eLocation) {
-	case TRADE_LOCATION_EUROPE:
-		GET_PLAYER(getParent()).doPrices();
-		break;
-	case TRADE_LOCATION_AFRICA:
-		GET_PLAYER(getParent()).doAfricaPrices();
-		break;
-	case TRADE_LOCATION_PORT_ROYAL:
-		GET_PLAYER(getParent()).doPortRoyalPrices();
-		break;
-	}
+	// WTP: only the traded yield, every 3rd trade
+	doTradePriceCheck(eLocation, eYield);
 
 	return pUnit;
 }
@@ -18063,6 +18061,7 @@ CvUnit* CvPlayer::buyYieldUnitFromAfrica(YieldTypes eYield, int iAmount, CvUnit*
 
 void CvPlayer::sellYieldUnitToAfrica(CvUnit* pUnit, int iAmount, int iCommission)
 {
+	const YieldTypes eTradedYield = (pUnit != NULL) ? pUnit->getYield() : NO_YIELD; // WTP, for the price check below
 	FAssert(pUnit != NULL);
 	if (pUnit != NULL)
 	{
@@ -18193,7 +18192,8 @@ void CvPlayer::sellYieldUnitToAfrica(CvUnit* pUnit, int iAmount, int iCommission
 	}
 
 	// PatchMod: Check Africa prices after each trade START
-	GET_PLAYER(getParent()).doAfricaPrices();
+	// WTP: only the traded yield, every 3rd trade
+	doTradePriceCheck(TRADE_LOCATION_AFRICA, eTradedYield);
 	// PatchMod: Check Africa prices after each trade END
 }
 // R&R, ray, Africa - END
@@ -18642,6 +18642,7 @@ CvUnit* CvPlayer::buyYieldUnitFromPortRoyal(YieldTypes eYield, int iAmount, CvUn
 
 void CvPlayer::sellYieldUnitToPortRoyal(CvUnit* pUnit, int iAmount, int iCommission)
 {
+	const YieldTypes eTradedYield = (pUnit != NULL) ? pUnit->getYield() : NO_YIELD; // WTP, for the price check below
 	FAssert(pUnit != NULL);
 	if (pUnit != NULL)
 	{
@@ -18722,7 +18723,8 @@ void CvPlayer::sellYieldUnitToPortRoyal(CvUnit* pUnit, int iAmount, int iCommiss
 	}
 
 	// PatchMod: Check Port Royal prices after each trade START
-	GET_PLAYER(getParent()).doPortRoyalPrices();
+	// WTP: only the traded yield, every 3rd trade
+	doTradePriceCheck(TRADE_LOCATION_PORT_ROYAL, eTradedYield);
 	// PatchMod: Check Port Royal prices after each trade END
 }
 // R&R, ray, Port Royal - END
@@ -20379,6 +20381,67 @@ bool CvPlayer::isProfessionValid(ProfessionTypes eProfession, UnitTypes eUnit) c
 }
 
 
+
+// WTP: after a trade only the traded yield gets an extra price update, and only on every 3rd trade; the full
+// update of all yields (random target, price correction and market memory decay) stays at the end of the turn
+void CvPlayer::doTradePriceCheck(TradeLocationTypes eLocation, YieldTypes eYield)
+{
+	if (getParent() == NO_PLAYER || eYield == NO_YIELD || (int)eLocation < 0 || (int)eLocation >= (int)NUM_TRADELOCATION_TYPES)
+	{
+		return;
+	}
+	if (++m_aiTradesSincePriceCheck[(int)eLocation] < 3)
+	{
+		return;
+	}
+	m_aiTradesSincePriceCheck[(int)eLocation] = 0;
+	GET_PLAYER(getParent()).doYieldPriceUpdate(eLocation, eYield);
+}
+
+// WTP: the price update of doPrices / doAfricaPrices / doPortRoyalPrices for a single yield, without the
+// per-turn decay of the market memory
+void CvPlayer::doYieldPriceUpdate(TradeLocationTypes eLocation, YieldTypes eYield)
+{
+	FAssertMsg(isEurope(), "Only the European Homeland player - i.e the King - should calculate price changes");
+	const CvYieldInfo& kYield = GC.getYieldInfo(eYield);
+	const int iSpeedModifier = GC.getHandicapInfo(getHandicapType()).getEuropePriceThresholdMultiplier() * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getGrowthPercent();
+	const int iBaseThreshold = kYield.getPriceChangeThreshold() * iSpeedModifier / 10000;
+
+	int iNewPrice = kYield.price(eLocation).buyLow + GC.getGameINLINE().getSorenRandNum(kYield.price(eLocation).buyHigh - kYield.price(eLocation).buyLow + 1, "Price selection");
+	iNewPrice += getYieldBoughtTotal(eLocation, eYield) / std::max(1, iBaseThreshold);
+
+	int iCurrentPrice;
+	switch (eLocation)
+	{
+	case TRADE_LOCATION_AFRICA:
+		iCurrentPrice = getYieldAfricaBuyPriceNoModifier(eYield);
+		break;
+	case TRADE_LOCATION_PORT_ROYAL:
+		iCurrentPrice = getYieldPortRoyalBuyPriceNoModifier(eYield);
+		break;
+	default:
+		iCurrentPrice = getYieldBuyPrice(eYield);
+		break;
+	}
+
+	if (GC.getGameINLINE().getSorenRandNum(100, "Price correction") < kYield.getPriceCorrectionPercent() * std::abs(iNewPrice - iCurrentPrice))
+	{
+		iNewPrice = std::min(iNewPrice, iCurrentPrice + 1);
+		iNewPrice = std::max(iNewPrice, iCurrentPrice - 1);
+		switch (eLocation)
+		{
+		case TRADE_LOCATION_AFRICA:
+			setYieldAfricaBuyPrice(eYield, iNewPrice, true);
+			break;
+		case TRADE_LOCATION_PORT_ROYAL:
+			setYieldPortRoyalBuyPrice(eYield, iNewPrice, true);
+			break;
+		default:
+			setYieldBuyPrice(eYield, iNewPrice, true);
+			break;
+		}
+	}
+}
 
 void CvPlayer::doPrices()
 {
