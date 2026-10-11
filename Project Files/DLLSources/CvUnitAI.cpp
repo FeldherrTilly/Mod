@@ -2127,7 +2127,25 @@ void CvUnitAI::AI_scoutMove()
 			}
 		}
 		*/
-		if (AI_exploreFromShip(6))
+		// WTP: a scout does not steer a transport that carries other passengers (settlers and colonists were
+		// taken along on exploring trips for many turns); after the early game scouts on ships retire
+		bool bOtherPassengers = false;
+		CvUnit* const pScoutTransport = getTransportUnit();
+		if (pScoutTransport != NULL)
+		{
+			CLLNode<IDInfo>* pPassengerNode = plot()->headUnitNode();
+			while (pPassengerNode != NULL)
+			{
+				const CvUnit* const pPassenger = plot()->getUnitNodeLoop(pPassengerNode);
+				if (pPassenger != NULL && pPassenger != this && pPassenger->getTransportUnit() == pScoutTransport && !pPassenger->isGoods()
+					&& pPassenger->AI_getUnitAIType() != UNITAI_SCOUT)
+				{
+					bOtherPassengers = true;
+					break;
+				}
+			}
+		}
+		if (!bOtherPassengers && GC.getGameINLINE().getGameTurn() <= 60 && AI_exploreFromShip(6))
 		{
 			return;
 		}
