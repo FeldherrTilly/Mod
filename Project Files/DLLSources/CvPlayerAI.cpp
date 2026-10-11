@@ -16213,10 +16213,23 @@ void CvPlayerAI::AI_updateNextBuyUnit(bool bPriceLimit)
 	UnitTypes eBestUnit = NO_UNIT;
 	UnitAITypes eBestUnitAI = NO_UNITAI;
 
+	// WTP: in peace only buy defenders that are missing, keeping the same gold reserve as civilian purchases;
+	// warships only from 3 colonies and turn 45 on
+	const bool bWar = GET_TEAM(getTeam()).getAnyWarPlanCount() > 0;
+	const bool bDefendersMissing = bWar || AI_totalDefendersNeeded(NULL) > 0;
+	const bool bWarshipsAllowed = getNumCities() >= 3 && GC.getGameINLINE().getGameTurn() >= 45;
+
 	const int len = sizeof(validUnitAITypes) / sizeof(validUnitAITypes[0]);
 	for (int iUnitAIidx = 0; iUnitAIidx < len; ++iUnitAIidx)
 	{
 		const UnitAITypes eLoopUnitAI = validUnitAITypes[iUnitAIidx];
+
+		if ((eLoopUnitAI == UNITAI_COMBAT_SEA || eLoopUnitAI == UNITAI_PIRATE_SEA) && !bWarshipsAllowed)
+			continue;
+		if (!bWar && (eLoopUnitAI == UNITAI_OFFENSIVE || eLoopUnitAI == UNITAI_COUNTER))
+			continue;
+		if (eLoopUnitAI == UNITAI_DEFENSIVE && !bDefendersMissing)
+			continue;
 
 		int iMultiplier = AI_unitAIValueMultipler(eLoopUnitAI);
 		if (iMultiplier <= 0)
@@ -16249,7 +16262,7 @@ void CvPlayerAI::AI_updateNextBuyUnit(bool bPriceLimit)
 					int iInitialPrice = getEuropeUnitBuyPrice(eLoopUnit, false);
 					//int iMaxPrice = (iInitialPrice * GC.getDefineINT("AI_EUROPE_PRICE_LIMIT_PERCENT")) / 100;
 					//if ((iPrice > 0) && ((iPrice < iMaxPrice) || !bPriceLimit)) // && (iPrice <= getGold()))
-					if ((iPrice > 0)  && (iPrice <= getGold()))
+					if ((iPrice > 0)  && (iPrice <= getGold()) && (bWar || AI_canAffordCivilianPurchase(iPrice)))
 					{
 						if (kUnitInfo.getDefaultUnitAIType() == UNITAI_COMBAT_SEA)
 						{
