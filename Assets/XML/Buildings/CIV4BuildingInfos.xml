@@ -10408,7 +10408,7 @@
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>-1</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iProfessionOutput>3</iProfessionOutput>
+			<iProfessionOutput>4</iProfessionOutput>
 			<iMaxWorkers>2</iMaxWorkers>
 			<iMinAreaSize>-1</iMinAreaSize>
 			<iConquestProb>100</iConquestProb>
