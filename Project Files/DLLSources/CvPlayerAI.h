@@ -467,6 +467,10 @@ public:
 	// WTP: civilian purchases in Europe (settlers, pioneers, experts) and hurrying immigrants
 	void AI_doCivilianPurchases();
 	void AI_logStatusSummary(); // WTP: per turn AI status in BBAI.log
+	// WTP: ship purchases that respect where the colonies are
+	int AI_shipReachableColonies(UnitTypes eUnit) const;
+	UnitTypes AI_bestShipToBuy(UnitAITypes eUnitAI, bool bCheapest);
+	bool AI_doTransportPurchase();
 	bool AI_canAffordCivilianPurchase(int iCost) const;
 	bool AI_buyCivilianUnit(UnitTypes eUnit, UnitAITypes eUnitAI, ProfessionTypes eProfession);
 	bool AI_hurryCheapImmigrant(bool bUnconditional);

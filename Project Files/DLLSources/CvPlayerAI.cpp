@@ -9165,7 +9165,8 @@ void CvPlayerAI::AI_doEurope()
 		// WTP, Schmiddie, AI Minimum Fleet - START
 		UnitAITypes eRequiredShipAI = NO_UNITAI;
 
-		if (AI_totalUnitAIs(UNITAI_COMBAT_SEA) < 1)
+		// WTP: a warship only from 3 colonies and turn 45 on, before that the gold is needed for the colonies
+		if (AI_totalUnitAIs(UNITAI_COMBAT_SEA) < 1 && getNumCities() >= 3 && GC.getGameINLINE().getGameTurn() >= 45)
 		{
 			eRequiredShipAI = UNITAI_COMBAT_SEA;
 		}
@@ -9176,45 +9177,8 @@ void CvPlayerAI::AI_doEurope()
 
 		if (eRequiredShipAI != NO_UNITAI)
 		{
-			UnitTypes eBestShip = NO_UNIT;
-			int iBestShipValue = 0;
-
-			for (UnitClassTypes eUnitClass = FIRST_UNITCLASS; eUnitClass < NUM_UNITCLASS_TYPES; ++eUnitClass)
-			{
-				UnitTypes eLoopUnit = GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(eUnitClass);
-
-				if (eLoopUnit == NO_UNIT)
-				{
-					continue;
-				}
-
-				const CvUnitInfo& kUnitInfo = GC.getUnitInfo(eLoopUnit);
-
-				if (kUnitInfo.getDefaultUnitAIType() != eRequiredShipAI)
-				{
-					continue;
-				}
-
-				if (!isUnitWithinGameYearWindow(eLoopUnit))
-				{
-					continue;
-				}
-
-				int iPrice = getEuropeUnitBuyPrice(eLoopUnit);
-
-				if (iPrice <= 0)
-				{
-					continue;
-				}
-
-				int iValue = AI_unitGoldValue(eLoopUnit, eRequiredShipAI, NULL);
-
-				if (iValue > iBestShipValue)
-				{
-					iBestShipValue = iValue;
-					eBestShip = eLoopUnit;
-				}
-			}
+			// WTP: the cheapest warship is enough, transports by value per price; both must reach our colonies
+			const UnitTypes eBestShip = AI_bestShipToBuy(eRequiredShipAI, eRequiredShipAI == UNITAI_COMBAT_SEA);
 
 			if (eBestShip != NO_UNIT)
 			{
@@ -9231,11 +9195,22 @@ void CvPlayerAI::AI_doEurope()
 						pUnit->AI_setUnitAIType(eRequiredShipAI);
 					}
 				}
+				else if (gPlayerLogLevel >= 1)
+				{
+					logBBAI("WTP decision: Player %d (%S) saves for minimum fleet ship %S (%d gold, have %d)",
+						getID(), getCivilizationDescription(0), GC.getUnitInfo(eBestShip).getDescription(), iShipPrice, getGold());
+				}
 
 				return;
 			}
 		}
 		// WTP, Schmiddie, AI Minimum Fleet - END
+
+		// WTP: enough ships to bring the people waiting in Europe come first; while saving for one, buy nothing else
+		if (AI_doTransportPurchase())
+		{
+			return;
+		}
 
 		// WTP: civilian needs come before buying military units
 		AI_doCivilianPurchases();
@@ -17183,6 +17158,119 @@ int CvPlayerAI::AI_civilianExpertPriority(ProfessionTypes eProfession, UnitClass
 		iPriority /= 2;
 	}
 	return iPriority;
+}
+
+// WTP: number of own colonies the ship can enter (adjacent water it may sail that is reachable from the ocean)
+int CvPlayerAI::AI_shipReachableColonies(UnitTypes eUnit) const
+{
+	const CvUnitInfo& kUnit = GC.getUnitInfo(eUnit);
+	int iCount = 0;
+	int iLoop;
+	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+	{
+		for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+		{
+			const CvPlot* const pAdjacent = plotDirection(pCity->getX_INLINE(), pCity->getY_INLINE(), (DirectionTypes)iI);
+			if (pAdjacent != NULL && pAdjacent->isWater() && pAdjacent->isEuropeAccessable() && !kUnit.getTerrainImpassable(pAdjacent->getTerrainType()))
+			{
+				++iCount;
+				break;
+			}
+		}
+	}
+	return iCount;
+}
+
+// WTP: best ship of a unit AI to buy in Europe. It must reach as many colonies as the best reaching ship of that
+// unit AI (all coastal ones if possible), then the cheapest one or the one with the best value per price is taken.
+UnitTypes CvPlayerAI::AI_bestShipToBuy(UnitAITypes eUnitAI, bool bCheapest)
+{
+	const CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
+	int iBestReach = 0;
+	for (UnitClassTypes eUnitClass = FIRST_UNITCLASS; eUnitClass < NUM_UNITCLASS_TYPES; ++eUnitClass)
+	{
+		const UnitTypes eLoopUnit = kCiv.getCivilizationUnits(eUnitClass);
+		if (eLoopUnit != NO_UNIT && GC.getUnitInfo(eLoopUnit).getDefaultUnitAIType() == eUnitAI && isUnitWithinGameYearWindow(eLoopUnit)
+			&& getEuropeUnitBuyPrice(eLoopUnit) > 0)
+		{
+			iBestReach = std::max(iBestReach, AI_shipReachableColonies(eLoopUnit));
+		}
+	}
+
+	UnitTypes eBestShip = NO_UNIT;
+	int iBestValue = 0;
+	for (UnitClassTypes eUnitClass = FIRST_UNITCLASS; eUnitClass < NUM_UNITCLASS_TYPES; ++eUnitClass)
+	{
+		const UnitTypes eLoopUnit = kCiv.getCivilizationUnits(eUnitClass);
+		if (eLoopUnit == NO_UNIT)
+		{
+			continue;
+		}
+		const CvUnitInfo& kUnitInfo = GC.getUnitInfo(eLoopUnit);
+		if (kUnitInfo.getDefaultUnitAIType() != eUnitAI || !isUnitWithinGameYearWindow(eLoopUnit) || kUnitInfo.isHiddenNationality())
+		{
+			continue;
+		}
+		const int iPrice = getEuropeUnitBuyPrice(eLoopUnit);
+		if (iPrice <= 0 || AI_shipReachableColonies(eLoopUnit) < iBestReach)
+		{
+			continue;
+		}
+		const int iValue = bCheapest ? (1000000 / iPrice) : (1000 * AI_unitGoldValue(eLoopUnit, eUnitAI, NULL) / iPrice);
+		if (iValue > iBestValue)
+		{
+			iBestValue = iValue;
+			eBestShip = eLoopUnit;
+		}
+	}
+	return eBestShip;
+}
+
+// WTP: buy another transport if more units wait in Europe than one load of all our transports.
+// Returns true while saving gold for it, then nothing else is bought.
+bool CvPlayerAI::AI_doTransportPurchase()
+{
+	if (getNumCities() == 0)
+	{
+		return false;
+	}
+	int iCapacity = 0;
+	int iTransports = 0;
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA)
+		{
+			iCapacity += pLoopUnit->cargoSpace();
+			++iTransports;
+		}
+	}
+	const int iWaiting = getNumEuropeUnits();
+	if (iWaiting <= iCapacity || iTransports >= std::max(3, getNumCities() + 1))
+	{
+		return false;
+	}
+
+	const UnitTypes eShip = AI_bestShipToBuy(UNITAI_TRANSPORT_SEA, false);
+	if (eShip == NO_UNIT)
+	{
+		return false;
+	}
+	const int iPrice = getEuropeUnitBuyPrice(eShip);
+	if (getGold() < iPrice)
+	{
+		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) saves for transport %S (%d gold, have %d): %d units wait in Europe, capacity %d in %d transports",
+			getID(), getCivilizationDescription(0), GC.getUnitInfo(eShip).getDescription(), iPrice, getGold(), iWaiting, iCapacity, iTransports);
+		return true;
+	}
+	CvUnit* pUnit = buyEuropeUnit(eShip, 100);
+	if (pUnit != NULL)
+	{
+		pUnit->AI_setUnitAIType(UNITAI_TRANSPORT_SEA);
+		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) buys transport %S: %d units wait in Europe, capacity was %d in %d transports",
+			getID(), getCivilizationDescription(0), pUnit->getName().GetCString(), iWaiting, iCapacity, iTransports);
+	}
+	return false;
 }
 
 void CvPlayerAI::AI_doCivilianPurchases()
