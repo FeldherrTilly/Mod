@@ -471,6 +471,10 @@ public:
 	int AI_shipReachableColonies(UnitTypes eUnit) const;
 	UnitTypes AI_bestShipToBuy(UnitAITypes eUnitAI, bool bCheapest);
 	bool AI_doTransportPurchase();
+	// WTP: food workers for colonies short of food when no new colonies are wanted
+	CvCity* AI_bestFoodWorkerCity(bool& bWater);
+	UnitTypes AI_africaFoodWorker();
+	bool AI_wantsAfricaFoodWorkers();
 	bool AI_canAffordCivilianPurchase(int iCost) const;
 	bool AI_buyCivilianUnit(UnitTypes eUnit, UnitAITypes eUnitAI, ProfessionTypes eProfession);
 	bool AI_hurryCheapImmigrant(bool bUnconditional);

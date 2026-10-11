@@ -17160,6 +17160,88 @@ int CvPlayerAI::AI_civilianExpertPriority(ProfessionTypes eProfession, UnitClass
 	return iPriority;
 }
 
+// WTP: a colony with a food surplus below 2 and a free food plot, if no new colonies are wanted
+CvCity* CvPlayerAI::AI_bestFoodWorkerCity(bool& bWater)
+{
+	bWater = false;
+	if (getNumCities() == 0 || AI_desiredCityCount() > getNumCities() + AI_totalUnitAIs(UNITAI_SETTLER))
+	{
+		return NULL;
+	}
+	CvCity* pBestCity = NULL;
+	int iBestShortage = 0;
+	int iLoop;
+	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+	{
+		const int iShortage = 2 - pCity->foodDifference();
+		if (iShortage <= iBestShortage)
+		{
+			continue;
+		}
+		bool bFreeLand = false;
+		bool bFreeWater = false;
+		FOREACH(CityPlot)
+		{
+			const CvPlot* const pLoopPlot = pCity->getCityIndexPlot(eLoopCityPlot);
+			if (pLoopPlot == NULL || pLoopPlot == pCity->plot() || pLoopPlot->isBeingWorked() || !pCity->canWork(pLoopPlot)
+				|| pLoopPlot->calculateBestNatureYield(YIELD_FOOD, getTeam()) < 3)
+			{
+				continue;
+			}
+			if (pLoopPlot->isWater())
+			{
+				bFreeWater = true;
+			}
+			else
+			{
+				bFreeLand = true;
+			}
+		}
+		if (bFreeLand || bFreeWater)
+		{
+			iBestShortage = iShortage;
+			pBestCity = pCity;
+			bWater = !bFreeLand;
+		}
+	}
+	return pBestCity;
+}
+
+// WTP: African slaves are good farm workers; NO_UNIT if they cannot be bought
+UnitTypes CvPlayerAI::AI_africaFoodWorker()
+{
+	if (!canTradeWithAfrica())
+	{
+		return NO_UNIT;
+	}
+	const UnitClassTypes eSlaveClass = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_AFRICAN_SLAVE");
+	const UnitTypes eSlave = (eSlaveClass != NO_UNITCLASS) ? GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(eSlaveClass) : NO_UNIT;
+	if (eSlave == NO_UNIT || getAfricaUnitBuyPrice(eSlave) <= 0)
+	{
+		return NO_UNIT;
+	}
+	return eSlave;
+}
+
+// WTP: a colony needs a farm worker and a slave from Africa is cheaper than an expert farmer from Europe
+bool CvPlayerAI::AI_wantsAfricaFoodWorkers()
+{
+	bool bWater;
+	const CvCity* const pCity = AI_bestFoodWorkerCity(bWater);
+	if (pCity == NULL || bWater)
+	{
+		return false;
+	}
+	const UnitTypes eSlave = AI_africaFoodWorker();
+	if (eSlave == NO_UNIT || !AI_canAffordCivilianPurchase(getAfricaUnitBuyPrice(eSlave)))
+	{
+		return false;
+	}
+	const UnitClassTypes eFarmerClass = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_FARMER");
+	const UnitTypes eFarmer = (eFarmerClass != NO_UNITCLASS) ? GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(eFarmerClass) : NO_UNIT;
+	return eFarmer == NO_UNIT || getEuropeUnitBuyPrice(eFarmer) <= 0 || getAfricaUnitBuyPrice(eSlave) < getEuropeUnitBuyPrice(eFarmer);
+}
+
 // WTP: number of own colonies the ship can enter (adjacent water it may sail that is reachable from the ocean)
 int CvPlayerAI::AI_shipReachableColonies(UnitTypes eUnit) const
 {
@@ -17329,6 +17411,37 @@ void CvPlayerAI::AI_doCivilianPurchases()
 	}
 
 	if (iBought >= 2 || getNumCities() == 0)
+	{
+		return;
+	}
+
+	// 2b. food: colonies short of food while no new colonies are wanted get an expert farmer or fisherman;
+	// on land an African slave is bought instead when it is cheaper (a transport fetches it from Africa)
+	if (iBought < 2)
+	{
+		bool bWater = false;
+		CvCity* const pFoodCity = AI_bestFoodWorkerCity(bWater);
+		if (pFoodCity != NULL)
+		{
+			if (!bWater && AI_wantsAfricaFoodWorkers())
+			{
+				if (gPlayerLogLevel >= 1) logBBAI("WTP decision:   %S needs food (%+d), an African slave will be bought in Africa", pFoodCity->getName().GetCString(), pFoodCity->foodDifference());
+			}
+			else
+			{
+				const UnitClassTypes eFoodClass = (UnitClassTypes)GC.getInfoTypeForString(bWater ? "UNITCLASS_FISHERMAN" : "UNITCLASS_FARMER");
+				const UnitTypes eFoodExpert = (eFoodClass != NO_UNITCLASS) ? kCiv.getCivilizationUnits(eFoodClass) : NO_UNIT;
+				if (gPlayerLogLevel >= 1) logBBAI("WTP decision:   %S needs food (%+d), buying %S", pFoodCity->getName().GetCString(), pFoodCity->foodDifference(),
+					eFoodExpert != NO_UNIT ? GC.getUnitInfo(eFoodExpert).getDescription() : L"nothing");
+				if (AI_buyCivilianUnit(eFoodExpert, UNITAI_COLONIST, NO_PROFESSION))
+				{
+					++iBought;
+				}
+			}
+		}
+	}
+
+	if (iBought >= 2)
 	{
 		return;
 	}
