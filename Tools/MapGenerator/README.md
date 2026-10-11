@@ -1,6 +1,6 @@
 # Fantasy New World map generator
 
-Generates `PrivateMaps/Fantasy New World Large.ColonizationWBSave` (80x110, 70°N–40°S, Europe east and west) plus a PNG preview. Python 3, standard library only.
+Generates `PrivateMaps/Fantasy New World Large.ColonizationWBSave` (80x110, world size HUGE for 18 players / 12 natives, 70°N–40°S, Europe east and west) plus a PNG preview. Python 3, standard library only.
 
 ```
 python Tools/MapGenerator/gen.py [seed] [output dir]      # default: seed 1, Tools/MapGenerator/out
