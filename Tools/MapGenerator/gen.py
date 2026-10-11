@@ -2413,6 +2413,65 @@ dland = bfs_dist([i for i in range(W * H) if not ocean[i]], lambda j: True)
 europe = [ocean[i] and terrain[i] == 'OCEAN' and i % W >= W - 16 and dland[i] >= 5 for i in range(W * H)]
 pacific = [ocean[i] and terrain[i] == 'OCEAN' and i % W < 12 and dland[i] >= 5 for i in range(W * H)]
 
+# ---------------------------------------------------------------- Atlantic coves
+# three small coves on the east coast of the southern continent; carved last (own random stream) so the rest of the map stays as it was
+SE_COVES = []
+cove_rng = random.Random(SEED * 7 + 24)
+cove_cands = []
+for x, y in ALL:
+    i = I(x, y)
+    if x < 58 or y > 34 or not land[i] or plot_type[i] == 0 or i in IMPROVEMENT or i in ROUTE:
+        continue
+    if [(dx, dy) for dx, dy in N4 if ocean[I(x + dx, y + dy)]] != [(1, 0)]:
+        continue
+    if feature[I(x + 1, y)] in ('REEF', 'STONE_REEF', 'PEARL_REEF'):
+        continue
+    cove_cands.append((x, y))
+cove_rng.shuffle(cove_cands)
+for x, y in cove_cands:
+    if len(SE_COVES) >= 3:
+        break
+    if any(abs(y - cy) < 6 for cx, cy in SE_COVES) or any(math.hypot(x - hx, y - hy) < 9 for hx, hy, _, _ in harbours):
+        continue
+    if any(math.hypot(x - r % W, y - r // W) < 4 for r in river_cells) or any(large[I(x + dx, y + dy)] for dx in range(-3, 4) for dy in range(-3, 4) if inb(x + dx, y + dy)):
+        continue
+    water_cells = [(x, y), (x - 1, y)]                  # a short random walk inland, no fixed shape
+    want = cove_rng.randint(3, 5)
+    for _ in range(30):
+        if len(water_cells) >= want:
+            break
+        bx, by = cove_rng.choice(water_cells[1:])
+        dx, dy = cove_rng.choice(N4)
+        if dx > 0 or (bx + dx, by + dy) in water_cells or bx + dx - x > -1:
+            continue
+        water_cells.append((bx + dx, by + dy))
+    ok = all(inb(cx, cy) and land[I(cx, cy)] and plot_type[I(cx, cy)] != 0 and not lake[I(cx, cy)] and I(cx, cy) not in IMPROVEMENT and I(cx, cy) not in ROUTE
+             for cx, cy in water_cells)
+    for cx, cy in water_cells:
+        for qx, qy in nbrs(cx, cy):
+            if (qx, qy) in water_cells or qx - x > 0:
+                continue
+            if not inb(qx, qy) or not land[I(qx, qy)]:
+                ok = False
+    if not ok:
+        continue
+    SE_COVES.append((x, y))
+    mode = cove_rng.random()                            # shallow cove, shallow inner part, or deep anchorage
+    for n, (cx, cy) in enumerate(water_cells):
+        j = I(cx, cy)
+        land[j], ocean[j], plot_type[j], feature[j] = False, True, 3, None
+        if mode < 0.4 or (mode < 0.7 and n >= 2):
+            terrain[j] = 'SHALLOW_COAST'
+            SHALLOW_WATER.add(j)
+        else:
+            terrain[j] = 'COAST'
+            HARBOUR_WATER.add(j)
+        for key in (j, I(cx - 1, cy) if cx > 0 else None):    # river edges inside the cove disappear
+            wofr.pop(key, None)
+        nofr.pop(j, None)
+        if cy < H - 1:
+            nofr.pop(I(cx, cy + 1), None)
+
 # ---------------------------------------------------------------- landmark names
 # map signs (landmarks visible to every player) give the invented landscape its names;
 # captions are plain ASCII, without commas or '='
