@@ -2711,7 +2711,7 @@ bool CvSelectionGroup::groupDeclareWar(CvPlot* pPlot, bool bForce)
 	{
 		if (ePlotTeam != NO_TEAM && kTeam.AI_isSneakAttackReady(ePlotTeam))
 		{
-			if (kTeam.canDeclareWar(ePlotTeam))
+			if (kTeam.canDeclareWar(ePlotTeam) && kTeam.AI_mayDeclareWarAsNative(ePlotTeam))
 			{
 				kTeam.declareWar(ePlotTeam, true, NO_WARPLAN);
 			}

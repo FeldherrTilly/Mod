@@ -13621,7 +13621,7 @@ void CvPlayerAI::AI_doMilitaryStrategy()
 
 			if (bKnockKnock_WhoseThere_Monty_MontyWho_MontyAndHisHordeDieDieDie)
 			{
-				if (!atWar(getTeam(), kLoopPlayer.getTeam()))
+				if (!atWar(getTeam(), kLoopPlayer.getTeam()) && kTeam.AI_mayDeclareWarAsNative(kLoopPlayer.getTeam()))
 				{
 					WarPlanTypes eNewWarplan = WARPLAN_TOTAL;
 
@@ -16062,6 +16062,11 @@ void CvPlayerAI::AI_diplomaticHissyFit(PlayerTypes ePlayer, int iAttitudeChange)
 	}
 
 	if (GET_TEAM(getTeam()).AI_performNoWarRolls(kPlayer.getTeam()))
+	{
+		return;
+	}
+
+	if (!GET_TEAM(getTeam()).AI_mayDeclareWarAsNative(kPlayer.getTeam()))
 	{
 		return;
 	}

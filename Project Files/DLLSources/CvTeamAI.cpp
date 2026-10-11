@@ -3319,3 +3319,13 @@ bool CvTeamAI::AI_isKing() const
 }
 
 // Private Functions...
+
+// WTP: natives only declare war on their own when they are furious with the other team (wild animals excepted)
+bool CvTeamAI::AI_mayDeclareWarAsNative(TeamTypes eTeam) const
+{
+	if (!hasNativePlayer() || eTeam == NO_TEAM || GET_TEAM(eTeam).isBarbarian())
+	{
+		return true;
+	}
+	return AI_getAttitude(eTeam) == ATTITUDE_FURIOUS;
+}
