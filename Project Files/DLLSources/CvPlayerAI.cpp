@@ -1896,6 +1896,41 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 		return 0;
 	}
 
+	// WTP: later colonies need at least 5 land plots besides the city plot in the 5x5 around it,
+	// unless pearls, gold or silver are there (no colonies on meaningless tiny islands)
+	if (!isNative() && !bStartingLoc && getNumCities() > 0)
+	{
+		static const BonusTypes ePearls = (BonusTypes)GC.getInfoTypeForString("BONUS_PEARLS");
+		static const BonusTypes eGold = (BonusTypes)GC.getInfoTypeForString("BONUS_GOLD");
+		static const BonusTypes eSilver = (BonusTypes)GC.getInfoTypeForString("BONUS_SILVER");
+		int iLandPlots = 0;
+		bool bPreciousBonus = false;
+		for (int iDX = -2; iDX <= 2; ++iDX)
+		{
+			for (int iDY = -2; iDY <= 2; ++iDY)
+			{
+				const CvPlot* const pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+				if (pLoopPlot == NULL)
+				{
+					continue;
+				}
+				const BonusTypes eBonus = pLoopPlot->getBonusType();
+				if (eBonus != NO_BONUS && (eBonus == ePearls || eBonus == eGold || eBonus == eSilver))
+				{
+					bPreciousBonus = true;
+				}
+				if ((iDX != 0 || iDY != 0) && !pLoopPlot->isWater() && !pLoopPlot->isImpassable())
+				{
+					++iLandPlots;
+				}
+			}
+		}
+		if (iLandPlots < 5 && !bPreciousBonus)
+		{
+			return 0;
+		}
+	}
+
 	bool bNeedMoreExploring = false;
 	if (getNumCities() == 0 && (pPlot->area()->getNumRevealedTiles(getTeam()) < 10))
 	{
