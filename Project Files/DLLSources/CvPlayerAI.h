@@ -623,6 +623,17 @@ protected:
 	// WTP: the surplus pioneer on its way to join a colony (not saved, the choice is simply made again)
 	int m_iSurplusPioneerID;
 	int m_iSurplusPioneerCityID;
+	// WTP: open (unfilled) opportunities of the last workforce plan, for buying experts (not saved, made again each turn)
+	struct WfOpenOpportunity
+	{
+		int iCityID;
+		ProfessionTypes eProfession;
+		int iPlotIndex; // -1 for building jobs
+		UnitClassTypes eExpertClass;
+		int iValue;
+	};
+	std::vector<WfOpenOpportunity> m_aWfOpenOpportunities;
+	bool AI_buyExpertForOpportunity();
 
 	void AI_doTradeRoutes();
 	void AI_doCounter();

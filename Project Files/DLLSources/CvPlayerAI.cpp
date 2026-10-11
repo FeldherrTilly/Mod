@@ -18195,6 +18195,22 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		}
 	}
 
+	// WTP: the open opportunities are filled by buying experts (AI_buyExpertForOpportunity)
+	m_aWfOpenOpportunities.clear();
+	for (uint j = 0; j < aOpps.size(); ++j)
+	{
+		if (aOpps[j].pAssigned == NULL && aOpps[j].eExpertClass != NO_UNITCLASS)
+		{
+			WfOpenOpportunity kOpen;
+			kOpen.iCityID = aOpps[j].pCity->getID();
+			kOpen.eProfession = aOpps[j].eProfession;
+			kOpen.iPlotIndex = (aOpps[j].pPlot != NULL) ? GC.getMap().plotNumINLINE(aOpps[j].pPlot->getX_INLINE(), aOpps[j].pPlot->getY_INLINE()) : -1;
+			kOpen.eExpertClass = aOpps[j].eExpertClass;
+			kOpen.iValue = aOpps[j].iValue;
+			m_aWfOpenOpportunities.push_back(kOpen);
+		}
+	}
+
 	if (gPlayerLogLevel >= 1)
 	{
 		int iFilled = 0;
@@ -18779,6 +18795,76 @@ void CvPlayerAI::AI_doEquipPioneersInEurope()
 	}
 }
 
+// WTP: buy the expert for the most valuable open opportunity of the workforce plan. In at least 30 % of the cases a plot
+// opportunity (raw material) is taken instead of a building job (processor, carpenter, statesman, preacher). Raw
+// material experts a native village within 8 plots teaches are learned there instead (except lumberjacks).
+// Returns true if an opportunity was chosen (bought or not affordable), false if there is none.
+bool CvPlayerAI::AI_buyExpertForOpportunity()
+{
+	const CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
+	const bool bPlotFirst = GC.getGameINLINE().getSorenRandNum(100, "AI expert for a plot opportunity") < 30;
+	int iBest = -1;
+	int iBestPlot = -1;
+	for (uint i = 0; i < m_aWfOpenOpportunities.size(); ++i)
+	{
+		const WfOpenOpportunity& kOpp = m_aWfOpenOpportunities[i];
+		const CvCity* const pCity = getCity(kOpp.iCityID);
+		const UnitTypes eExpert = kCiv.getCivilizationUnits(kOpp.eExpertClass);
+		if (pCity == NULL || eExpert == NO_UNIT || getEuropeUnitBuyPrice(eExpert) <= 0)
+		{
+			continue;
+		}
+		if (kOpp.iPlotIndex >= 0 && CvString(GC.getProfessionInfo(kOpp.eProfession).getType()) != "PROFESSION_LUMBERJACK")
+		{
+			bool bLearnable = false;
+			for (int iPlayer = 0; iPlayer < MAX_PLAYERS && !bLearnable; ++iPlayer)
+			{
+				CvPlayer& kNative = GET_PLAYER((PlayerTypes)iPlayer);
+				if (!kNative.isAlive() || !kNative.isNative())
+				{
+					continue;
+				}
+				int iNativeLoop;
+				for (CvCity* pVillage = kNative.firstCity(&iNativeLoop); pVillage != NULL; pVillage = kNative.nextCity(&iNativeLoop))
+				{
+					if (pVillage->getTeachUnitClass() == kOpp.eExpertClass && plotDistance(pVillage->getX_INLINE(), pVillage->getY_INLINE(), pCity->getX_INLINE(), pCity->getY_INLINE()) <= 8)
+					{
+						bLearnable = true;
+						break;
+					}
+				}
+			}
+			if (bLearnable)
+			{
+				continue;
+			}
+		}
+		if (iBest < 0 || kOpp.iValue > m_aWfOpenOpportunities[iBest].iValue)
+		{
+			iBest = i;
+		}
+		if (kOpp.iPlotIndex >= 0 && (iBestPlot < 0 || kOpp.iValue > m_aWfOpenOpportunities[iBestPlot].iValue))
+		{
+			iBestPlot = i;
+		}
+	}
+	const int iChosen = (bPlotFirst && iBestPlot >= 0) ? iBestPlot : iBest;
+	if (iChosen < 0)
+	{
+		return false;
+	}
+	const WfOpenOpportunity kOpp = m_aWfOpenOpportunities[iChosen];
+	const CvCity* const pCity = getCity(kOpp.iCityID);
+	if (gPlayerLogLevel >= 1) logBBAI("WTP decision:   expert %S for the opportunity %S in %S%s (value %d)", GC.getUnitClassInfo(kOpp.eExpertClass).getDescription(),
+		GC.getProfessionInfo(kOpp.eProfession).getDescription(), pCity->getName().GetCString(), (kOpp.iPlotIndex >= 0) ? L" (plot)" : L"", kOpp.iValue);
+	if (AI_buyCivilianUnit(kCiv.getCivilizationUnits(kOpp.eExpertClass), UNITAI_COLONIST, NO_PROFESSION))
+	{
+		// bought: the opportunity is no longer open (the plan assigns the expert next turn)
+		m_aWfOpenOpportunities.erase(m_aWfOpenOpportunities.begin() + iChosen);
+	}
+	return true;
+}
+
 // WTP: buy another transport if more units wait in Europe than one load of all our transports.
 // Returns true while saving gold for it, then nothing else is bought.
 bool CvPlayerAI::AI_doTransportPurchase()
@@ -19037,7 +19123,13 @@ void CvPlayerAI::AI_doCivilianPurchases()
 		return;
 	}
 
-	// 4. experts: replace non-experts in their profession or fill free building slots that have enough input;
+	// 4. experts for the open opportunities of the workforce plan; without any (e.g. right after loading) the old rule
+	if (AI_buyExpertForOpportunity())
+	{
+		return;
+	}
+
+	// 4b. experts: replace non-experts in their profession or fill free building slots that have enough input;
 	// raw material experts (except lumber) are learned from nearby native villages instead of bought
 	UnitClassTypes eBestClass = NO_UNITCLASS;
 	int iBestPriority = 0;
