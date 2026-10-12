@@ -337,6 +337,11 @@ bool CvUnitAI::AI_update()
 				{
 					AI_nativeTradeShipMove();
 				}
+				else if (AI_getUnitAIState() == UNITAI_STATE_EXPLORER_SHIP)
+				{
+					s_szWtpShipReason = "explorer ship";
+					AI_exploreSeaMove();
+				}
 				else
 				{
 					AI_transportSeaMove();
@@ -422,6 +427,11 @@ bool CvUnitAI::AI_europeUpdate()
 		if (AI_isNativeTradeShip() && getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE)
 		{
 			AI_nativeTradeEurope();
+			return false;
+		}
+		if (AI_getUnitAIState() == UNITAI_STATE_EXPLORER_SHIP && getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE)
+		{
+			AI_crossFromEurope();
 			return false;
 		}
 		if (getGroup()->isAutomated() && (getGroup()->getAutomateType() == AUTOMATE_FULL))
@@ -7509,7 +7519,7 @@ bool CvUnitAI::AI_europe()
 		*/
 		// TAC - AI Economy - koma13 - END
 
-		if (kOwner.AI_getEuropeYieldSpending() < kOwner.AI_getTotalIncome() / 12)	// TAC - AI Economy - koma13
+		if (kOwner.AI_getEuropeYieldSpending() < kOwner.AI_getTotalIncome() / 12 && !kOwner.AI_isEarlyPhaseActive())	// TAC - AI Economy - koma13
 		{
 			if (!kOwner.AI_isStrategy(STRATEGY_MILITARY_BUILDUP))	// TAC - AI Military Buildup - koma13
 			{
@@ -10137,6 +10147,16 @@ bool CvUnitAI::AI_spreadTradePosts()
 
 				if (kLoopPlayer.AI_getAttitude(getOwnerINLINE()) >= ATTITUDE_ANNOYED)
 				{
+					// WTP: our trade posts of this tribe
+					int ownTradePostsOfTribe = 0;
+					int iPostLoop;
+					for (const CvCity* pPostCity = kLoopPlayer.firstCity(&iPostLoop); pPostCity != NULL; pPostCity = kLoopPlayer.nextCity(&iPostLoop))
+					{
+						if (pPostCity->getTradePostCivilization() == getCivilizationType())
+						{
+							++ownTradePostsOfTribe;
+						}
+					}
 					int iLoop;
 					for (CvCity* pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kLoopPlayer.nextCity(&iLoop))
 					{
@@ -10148,6 +10168,10 @@ bool CvUnitAI::AI_spreadTradePosts()
 								if ((pLoopCity->getTradePostCivilization() != getCivilizationType()) && (pLoopPlot->calculateCulturePercent(pLoopPlot->getOwnerINLINE()) == 100)
 									&& pLoopCity->getTradeBlockingFortOwner(getOwnerINLINE()) == NO_PLAYER) // WTP, forts block foreign trade
 								{
+									if (ownTradePostsOfTribe >= 2)
+									{
+										continue; // WTP: at most 2 trade posts of our own per tribe
+									}
 									if (kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_SPREAD, getGroup()) == 0)
 									{
 										int iPathTurns;
@@ -15891,6 +15915,8 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 	CvUnit* pTransportUnit = getTransportUnit();
 
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	// WTP: a settler of the early strategy Opportunistic Resources founds next to a precious resource, however far away
+	const bool bEarlyResourceSettler = kOwner.AI_isEarlyResourceSettler(getID());
 
 	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;
@@ -15965,12 +15991,14 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 			if (!bTakenByOthers && canFound(pLoopPlot))
 			{
 				int iValue = 0;
-				if (bFirstCity)
+				if (bEarlyResourceSettler)
+					iValue = kOwner.AI_earlyResourceSiteValue(*pLoopPlot);
+				else if (bFirstCity)
 					iValue = kOwner.AI_firstCityFoundValue(*pLoopPlot);
 				else
 					iValue = AI_foundValue(pLoopPlot);
 
-				if (iValue > iMinValue)
+				if (iValue > (bEarlyResourceSettler ? 0 : iMinValue))
 				{
 					if (!(pLoopPlot->isVisibleEnemyUnit(this)))
 					{
@@ -16012,7 +16040,7 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 			{
 				bValid = pTransportUnit->generatePath(pLoopPlot, 0, bTransportPath, &iPathTurns);
 				// WTP: later colonies are founded near the existing ones; far targets made transports dither for many turns
-				if (bValid && !bFirstCity && iPathTurns > 6)
+				if (bValid && !bFirstCity && !bEarlyResourceSettler && iPathTurns > 6)
 				{
 					bValid = false;
 				}
@@ -17191,7 +17219,13 @@ bool CvUnitAI::AI_nativeTradeEurope()
 		}
 	}
 
-	// leave for the colonies like AI_europe does
+	return AI_crossFromEurope();
+}
+
+// WTP: leave Europe for the colonies like AI_europe does (the ship appears next to the colony AI_bestDestinationPlot names)
+bool CvUnitAI::AI_crossFromEurope()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	CvPlot* const pStartingPlot = kOwner.getStartingPlot();
 	if (kOwner.getNumCities() > 0)
 	{

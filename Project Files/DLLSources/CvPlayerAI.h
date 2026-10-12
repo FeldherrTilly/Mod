@@ -174,6 +174,22 @@ public:
 	PlayerTypes AI_leastLikedColonialPlayer() const;
 	int AI_minTreasureTransportSize() const;
 	void AI_updateNativeTradeShip();
+	// WTP: early game. Phase 0 (until the first scout is bought) and the early strategy afterwards lock most spending
+	enum EarlyStrategies
+	{
+		EARLY_NONE,
+		EARLY_EXPLORER,
+		EARLY_NATIVE_TRADER,
+		EARLY_SHIP_TRADER,
+		EARLY_IMPROVEMENT,
+		EARLY_RESOURCES,
+		NUM_EARLY_STRATEGIES
+	};
+	bool AI_isEarlyPhaseActive() const;
+	bool AI_mayHurryBuildingEarly(BuildingTypes eBuilding) const;
+	void AI_doEarlyPhase();
+	bool AI_isEarlyResourceSettler(int iUnitID) const;
+	int AI_earlyResourceSiteValue(const CvPlot& kPlot) const;
 
 	int AI_calculateDamages(TeamTypes eTeam);
 
@@ -488,7 +504,7 @@ public:
 	bool AI_doTransportPurchase();
 	bool AI_doTreasureShipPurchase();
 	bool AI_doColonyTransportPurchase();
-	bool AI_doScoutPurchase();
+	bool AI_doScoutPurchase(bool bExtra = false);
 	void AI_setSavingGold();
 	bool AI_isSavingGold() const;
 	void AI_doEquipPioneersInEurope();
@@ -644,6 +660,25 @@ protected:
 	int m_iSurplusPioneerID;
 	int m_iSurplusPioneerCityID;
 	int m_iSavingGoldTurn; // WTP: last turn the AI saved gold for a ship or the militia (not saved)
+	// WTP: early game: phase 0 until the first scout is bought, then one of the early strategies; all saved
+	int m_iEarlyPhase; // 0 = before the first scout was bought, 1 = early strategy running, 2 = early game over
+	int m_iEarlyStrategy; // EarlyStrategies
+	int m_iEarlyProgress; // purchases made by the strategy
+	int m_iEarlyScoutsBought;
+	int m_aiEarlySettlerIDs[2]; // settlers of Opportunistic Resources
+	void AI_startEarlyStrategy();
+	bool AI_doEarlyExplorer();
+	bool AI_doEarlyNativeTrader();
+	bool AI_doEarlyShipTrader();
+	bool AI_doEarlyImprovement();
+	bool AI_doEarlyResources();
+	bool AI_earlyHurryDockUnit();
+	CvUnit* AI_earlyGetColonist(int iExtraCost);
+	int AI_earlyEquipCost(ProfessionTypes eProfession) const;
+	bool AI_earlyEquip(CvUnit* pUnit, ProfessionTypes eProfession, UnitAITypes eUnitAI);
+	void AI_earlyEnd();
+	UnitTypes AI_cheapestSeaUnitToBuy(int iMinCargo) const;
+	CvPlot* AI_earlyResourceSite(BonusTypes* peBonus, int* piValue) const;
 	// WTP: units waiting in a village to learn (unit id, first turn of waiting), not saved
 	std::map<int, int> m_mapWfLearnWait;
 	// WTP: native villages the native trade ship visited (plot key, turn), not saved

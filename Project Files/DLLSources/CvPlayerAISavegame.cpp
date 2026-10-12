@@ -29,6 +29,9 @@ const int defaultTurnLastManagedPop = -1;
 const int defaultMoveQueuePasses = 0;
 const int defaultLastWave = -1;
 const int defaultWaveIndex = -1;
+// WTP: early game strategy
+const int defaultEarlyZero = 0;
+const int defaultEarlyId = -1;
 
 
 enum SavegameVariableTypes
@@ -75,6 +78,12 @@ enum SavegameVariableTypes
 	PlayerSaveAI_MoveQueuePasses,
 	PlayerSaveAI_LastWave,
 	PlayerSaveAI_WaveIndex,
+	PlayerSaveAI_EarlyPhase,
+	PlayerSaveAI_EarlyStrategy,
+	PlayerSaveAI_EarlyProgress,
+	PlayerSaveAI_EarlyScoutsBought,
+	PlayerSaveAI_EarlySettlerId0,
+	PlayerSaveAI_EarlySettlerId1,
 
 	PlayerSaveAI_AICitySites,
 	PlayerSaveAI_unitPriorityHeap,
@@ -144,6 +153,12 @@ const char* getSavedEnumNamePlayerAi(SavegameVariableTypes eType)
 	case PlayerSaveAI_MoveQueuePasses: return "PlayerSaveAI_MoveQueuePasses";
 	case PlayerSaveAI_LastWave: return "PlayerSaveAI_LastWave";
 	case PlayerSaveAI_WaveIndex: return "PlayerSaveAI_WaveIndex";
+	case PlayerSaveAI_EarlyPhase: return "PlayerSaveAI_EarlyPhase";
+	case PlayerSaveAI_EarlyStrategy: return "PlayerSaveAI_EarlyStrategy";
+	case PlayerSaveAI_EarlyProgress: return "PlayerSaveAI_EarlyProgress";
+	case PlayerSaveAI_EarlyScoutsBought: return "PlayerSaveAI_EarlyScoutsBought";
+	case PlayerSaveAI_EarlySettlerId0: return "PlayerSaveAI_EarlySettlerId0";
+	case PlayerSaveAI_EarlySettlerId1: return "PlayerSaveAI_EarlySettlerId1";
 
 		case PlayerSaveAI_AICitySites: return "PlayerSaveAI_AICitySites";
 		case PlayerSaveAI_unitPriorityHeap: return "PlayerSaveAI_unitPriorityHeap";
@@ -230,6 +245,12 @@ void CvPlayerAI::AI_resetSavedData()
 	m_iMoveQueuePasses = defaultMoveQueuePasses;
 	m_iLastWave = defaultLastWave;
 	m_iWaveIndex = defaultWaveIndex;
+	m_iEarlyPhase = defaultEarlyZero;
+	m_iEarlyStrategy = defaultEarlyZero;
+	m_iEarlyProgress = defaultEarlyZero;
+	m_iEarlyScoutsBought = defaultEarlyZero;
+	m_aiEarlySettlerIDs[0] = defaultEarlyId;
+	m_aiEarlySettlerIDs[1] = defaultEarlyId;
 
 	m_aiAICitySites.clear();
 	m_unitPriorityHeap.clear();
@@ -314,6 +335,12 @@ void CvPlayerAI::read(CvSavegameReader reader)
 		case PlayerSaveAI_MoveQueuePasses: reader.Read(m_iMoveQueuePasses); break;
 		case PlayerSaveAI_LastWave: reader.Read(m_iLastWave); break;
 		case PlayerSaveAI_WaveIndex: reader.Read(m_iWaveIndex); break;
+		case PlayerSaveAI_EarlyPhase: reader.Read(m_iEarlyPhase); break;
+		case PlayerSaveAI_EarlyStrategy: reader.Read(m_iEarlyStrategy); break;
+		case PlayerSaveAI_EarlyProgress: reader.Read(m_iEarlyProgress); break;
+		case PlayerSaveAI_EarlyScoutsBought: reader.Read(m_iEarlyScoutsBought); break;
+		case PlayerSaveAI_EarlySettlerId0: reader.Read(m_aiEarlySettlerIDs[0]); break;
+		case PlayerSaveAI_EarlySettlerId1: reader.Read(m_aiEarlySettlerIDs[1]); break;
 
 		case PlayerSaveAI_AICitySites: reader.Read(m_aiAICitySites); break;
 		case PlayerSaveAI_unitPriorityHeap: reader.Read(m_unitPriorityHeap); break;
@@ -392,6 +419,12 @@ void CvPlayerAI::write(CvSavegameWriter writer)
 	writer.Write(PlayerSaveAI_MoveQueuePasses, m_iMoveQueuePasses, defaultMoveQueuePasses);
 	writer.Write(PlayerSaveAI_LastWave, m_iLastWave, defaultLastWave);
 	writer.Write(PlayerSaveAI_WaveIndex, m_iWaveIndex, defaultWaveIndex);
+	writer.Write(PlayerSaveAI_EarlyPhase, m_iEarlyPhase, defaultEarlyZero);
+	writer.Write(PlayerSaveAI_EarlyStrategy, m_iEarlyStrategy, defaultEarlyZero);
+	writer.Write(PlayerSaveAI_EarlyProgress, m_iEarlyProgress, defaultEarlyZero);
+	writer.Write(PlayerSaveAI_EarlyScoutsBought, m_iEarlyScoutsBought, defaultEarlyZero);
+	writer.Write(PlayerSaveAI_EarlySettlerId0, m_aiEarlySettlerIDs[0], defaultEarlyId);
+	writer.Write(PlayerSaveAI_EarlySettlerId1, m_aiEarlySettlerIDs[1], defaultEarlyId);
 
 	writer.Write(PlayerSaveAI_AICitySites, m_aiAICitySites);
 	writer.Write(PlayerSaveAI_unitPriorityHeap, m_unitPriorityHeap);
