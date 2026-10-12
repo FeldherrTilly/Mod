@@ -616,6 +616,8 @@ void CvPlayerAI::AI_doTurnUnitsPre()
 			AI_doFleetModernization();
 			// WTP, Schmiddie, AI Fleet Modernization END
 
+			AI_updateNativeTradeShip(); // WTP: one ship trades with the natives
+
 			AI_doProfessions();
 			AI_doEurope();
 		}
@@ -5315,6 +5317,58 @@ PlayerTypes CvPlayerAI::AI_leastLikedColonialPlayer() const
 		}
 	}
 	return eWorst;
+}
+
+// WTP: the smallest cargo space a ship needs to carry a treasure (galleons); such ships are kept for the treasures
+int CvPlayerAI::AI_minTreasureTransportSize() const
+{
+	int iMin = MAX_INT;
+	for (int iUnit = 0; iUnit < GC.getNumUnitInfos(); ++iUnit)
+	{
+		const CvUnitInfo& kUnit = GC.getUnitInfo((UnitTypes)iUnit);
+		if (kUnit.getDefaultUnitAIType() == UNITAI_TREASURE)
+		{
+			iMin = std::min(iMin, kUnit.getRequiredTransportSize());
+		}
+	}
+	return iMin;
+}
+
+// WTP: every colonial AI keeps one native trade ship once it has a colony. It is a transport that cannot carry
+// treasures and has no passengers; the one with the largest cargo space is taken (also as the replacement of a lost one).
+void CvPlayerAI::AI_updateNativeTradeShip()
+{
+	if (isHuman() || isNative() || isEurope() || getParent() == NO_PLAYER || getNumCities() == 0)
+	{
+		return;
+	}
+
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		const UnitAIStates eState = pLoopUnit->AI_getUnitAIState();
+		if (pLoopUnit->getDomainType() == DOMAIN_SEA && (eState == UNITAI_STATE_NATIVE_TRADE_BUY || eState == UNITAI_STATE_NATIVE_TRADE_EUROPE || eState == UNITAI_STATE_NATIVE_TRADE_SELL))
+		{
+			return;
+		}
+	}
+
+	const int iTreasureSize = AI_minTreasureTransportSize();
+	CvUnit* pBest = NULL;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && pLoopUnit->cargoSpace() < iTreasureSize
+			&& !pLoopUnit->hasAnyUnitInCargo() && (pBest == NULL || pLoopUnit->cargoSpace() > pBest->cargoSpace()))
+		{
+			pBest = pLoopUnit;
+		}
+	}
+	if (pBest != NULL)
+	{
+		pBest->AI_setUnitAIState(UNITAI_STATE_NATIVE_TRADE_BUY);
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_TRADE, getID(), "WTP native trade: Player %d (%S) turn %d makes %S (cargo %d, treasures need %d) its native trade ship",
+			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pBest->getName().GetCString(), pBest->cargoSpace(), iTreasureSize);
+	}
 }
 
 // WTP: profit of buying iAmount of a yield from a native tribe and selling it in Europe (after tax).

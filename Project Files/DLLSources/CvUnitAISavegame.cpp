@@ -16,6 +16,7 @@ const int defaultWfTask = 0;
 const int defaultWfCityID = -1;
 const ProfessionTypes defaultWfProfession = NO_PROFESSION;
 const int defaultWfCoord = -1;
+const int defaultNativeTradeBuyTurn = -1;
 
 enum SavegameVariableTypes
 {
@@ -35,6 +36,7 @@ enum SavegameVariableTypes
 	UnitSaveAI_WfPlotY,
 	UnitSaveAI_WfVillageX,
 	UnitSaveAI_WfVillageY,
+	UnitSaveAI_NativeTradeBuyTurn,
 	NUM_SAVE_ENUM_VALUES,
 };
 
@@ -58,6 +60,7 @@ const char* getSavedEnumNameUnitAi(SavegameVariableTypes eType)
 	case UnitSaveAI_WfPlotY: return "UnitSaveAI_WfPlotY";
 	case UnitSaveAI_WfVillageX: return "UnitSaveAI_WfVillageX";
 	case UnitSaveAI_WfVillageY: return "UnitSaveAI_WfVillageY";
+	case UnitSaveAI_NativeTradeBuyTurn: return "UnitSaveAI_NativeTradeBuyTurn";
 
 }
 	FAssertMsg(0, "Missing case");
@@ -87,6 +90,7 @@ void CvUnitAI::AI_resetSavedData()
 	m_iWfPlotY = defaultWfCoord;
 	m_iWfVillageX = defaultWfCoord;
 	m_iWfVillageY = defaultWfCoord;
+	m_iNativeTradeBuyTurn = defaultNativeTradeBuyTurn;
 }
 
 void CvUnitAI::read(CvSavegameReader reader)
@@ -125,6 +129,7 @@ void CvUnitAI::read(CvSavegameReader reader)
 		case UnitSaveAI_WfPlotY: reader.Read(m_iWfPlotY); break;
 		case UnitSaveAI_WfVillageX: reader.Read(m_iWfVillageX); break;
 		case UnitSaveAI_WfVillageY: reader.Read(m_iWfVillageY); break;
+		case UnitSaveAI_NativeTradeBuyTurn: reader.Read(m_iNativeTradeBuyTurn); break;
 		}
 	}
 	
@@ -160,5 +165,6 @@ void CvUnitAI::write(CvSavegameWriter writer)
 	writer.Write(UnitSaveAI_WfPlotY, m_iWfPlotY, defaultWfCoord);
 	writer.Write(UnitSaveAI_WfVillageX, m_iWfVillageX, defaultWfCoord);
 	writer.Write(UnitSaveAI_WfVillageY, m_iWfVillageY, defaultWfCoord);
+	writer.Write(UnitSaveAI_NativeTradeBuyTurn, m_iNativeTradeBuyTurn, defaultNativeTradeBuyTurn);
 	writer.Write(UnitSaveAI_END);
 }

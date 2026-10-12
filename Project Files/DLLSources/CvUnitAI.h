@@ -145,7 +145,8 @@ protected:
 	int m_iWfPlotY;
 	int m_iWfVillageX;
 	int m_iWfVillageY;
-	
+	int m_iNativeTradeBuyTurn; // WTP: native trade ship: turn of its last purchase at a village
+
 	mutable ProfessionTypes m_eIdealProfessionCache;
 
 	// < JAnimals Mod Start >
@@ -378,6 +379,10 @@ protected:
 	bool AI_yieldNativeDestination(int iMaxPath = MAX_INT);
 	bool AI_tradeWithCity();
 	// WTP: native trade ship, deals with the native village on this plot
+	bool AI_isNativeTradeShip() const;
+	int AI_nativeTradeCargoCount(bool bGoods, bool* pbMuskets) const;
+	void AI_nativeTradeShipMove();
+	bool AI_nativeTradeEurope();
 	int AI_nativeTradeSell();
 	int AI_nativeTradeBuy();
 	bool AI_canTradeWithVillage(const CvCity& kCity) const;

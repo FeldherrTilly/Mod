@@ -2128,6 +2128,11 @@ enum UnitAIStates
 	UNITAI_STATE_YIELD_BOUGHT_OFFMAP,
 
 	UNITAI_STATE_TRANSPORT_SETTLER,
+
+	// WTP: native trade ship (the role is the state): buying goods at the villages, bringing goods to Europe, selling goods to the villages
+	UNITAI_STATE_NATIVE_TRADE_BUY,
+	UNITAI_STATE_NATIVE_TRADE_EUROPE,
+	UNITAI_STATE_NATIVE_TRADE_SELL,
 	NUM_UNITAI_STATES,
 };
 

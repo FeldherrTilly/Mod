@@ -333,7 +333,14 @@ bool CvUnitAI::AI_update()
 			//End TAC Whaling, ray
 			case UNITAI_TRANSPORT_SEA:
 				s_szWtpShipReason = "other";
-				AI_transportSeaMove();
+				if (AI_isNativeTradeShip())
+				{
+					AI_nativeTradeShipMove();
+				}
+				else
+				{
+					AI_transportSeaMove();
+				}
 				AI_logShipTarget();
 				break;
 
@@ -411,6 +418,12 @@ bool CvUnitAI::AI_europeUpdate()
 	}
 	else
 	{
+		// WTP: the native trade ship has its own routine in Europe
+		if (AI_isNativeTradeShip() && getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE)
+		{
+			AI_nativeTradeEurope();
+			return false;
+		}
 		if (getGroup()->isAutomated() && (getGroup()->getAutomateType() == AUTOMATE_FULL))
 		{
 			if (getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE)
@@ -16897,6 +16910,315 @@ int CvUnitAI::AI_nativeTradeBuy()
 	return iDeals;
 }
 
+// WTP: the native trade ship is a transport whose role is its UnitAI state
+bool CvUnitAI::AI_isNativeTradeShip() const
+{
+	const UnitAIStates eState = AI_getUnitAIState();
+	return getDomainType() == DOMAIN_SEA && (eState == UNITAI_STATE_NATIVE_TRADE_BUY || eState == UNITAI_STATE_NATIVE_TRADE_EUROPE || eState == UNITAI_STATE_NATIVE_TRADE_SELL);
+}
+
+// WTP: units aboard that are goods (bGoods) or passengers; pbMuskets tells whether muskets are among the goods
+int CvUnitAI::AI_nativeTradeCargoCount(bool bGoods, bool* pbMuskets) const
+{
+	int iCount = 0;
+	if (pbMuskets != NULL)
+	{
+		*pbMuskets = false;
+	}
+	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		const CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && pLoopUnit->isGoods() == bGoods)
+		{
+			++iCount;
+			if (pbMuskets != NULL && bGoods && pLoopUnit->getYield() == YIELD_MUSKETS)
+			{
+				*pbMuskets = true;
+			}
+		}
+	}
+	return iCount;
+}
+
+// WTP: native trade ship on the map, called when it has no mission (it is at its target or idle). Buying: visits the villages
+// and buys goods; with a full hold, or 2 turns after the last purchase, it sails to Europe. Selling: brings the goods from
+// Europe to the villages. Passengers come first: they are put ashore in the nearest colony.
+void CvUnitAI::AI_nativeTradeShipMove()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+
+	if (AI_retreatFromDanger())
+	{
+		s_szWtpShipReason = "native trade: flees danger";
+		return;
+	}
+
+	CvCity* const pHere = plot()->getPlotCity();
+	const bool bAtVillage = pHere != NULL && GET_PLAYER(pHere->getOwnerINLINE()).isNative();
+
+	if (AI_nativeTradeCargoCount(false, NULL) > 0)
+	{
+		if (pHere != NULL && pHere->getOwnerINLINE() == getOwnerINLINE())
+		{
+			AI_unloadPassengers(true);
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S puts its passengers ashore in %S",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pHere->getName().GetCString());
+		}
+		else
+		{
+			CvCity* pNearest = NULL;
+			int iNearestTurns = MAX_INT;
+			int iLoop;
+			for (CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kOwner.nextCity(&iLoop))
+			{
+				int iPathTurns;
+				if (CvPlayerAI::AI_shipCanReachCity(getUnitType(), *pLoopCity) && generatePath(pLoopCity->plot(), 0, true, &iPathTurns) && iPathTurns < iNearestTurns)
+				{
+					iNearestTurns = iPathTurns;
+					pNearest = pLoopCity;
+				}
+			}
+			if (pNearest != NULL)
+			{
+				getGroup()->pushMission(MISSION_MOVE_TO, pNearest->getX_INLINE(), pNearest->getY_INLINE(), 0, false, false, MISSIONAI_TRANSPORT_SEA, pNearest->plot());
+				s_szWtpShipReason = "native trade: brings passengers to the nearest colony";
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S brings %d passengers to %S (%d turns)",
+					getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), AI_nativeTradeCargoCount(false, NULL), pNearest->getName().GetCString(), iNearestTurns);
+				return;
+			}
+		}
+	}
+
+	bool bMuskets;
+	int iGoods = AI_nativeTradeCargoCount(true, &bMuskets);
+
+	if (AI_getUnitAIState() == UNITAI_STATE_NATIVE_TRADE_EUROPE)
+	{
+		s_szWtpShipReason = "native trade: sails to Europe";
+		if (!AI_sailToEurope())
+		{
+			getGroup()->pushMission(MISSION_SKIP);
+		}
+		return;
+	}
+
+	if (AI_getUnitAIState() == UNITAI_STATE_NATIVE_TRADE_SELL)
+	{
+		if (bAtVillage && kOwner.AI_getNativeVillageVisitTurn(*pHere) != iTurn)
+		{
+			const int iSold = AI_nativeTradeSell();
+			kOwner.AI_setNativeVillageVisited(*pHere);
+			iGoods = AI_nativeTradeCargoCount(true, &bMuskets);
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S visited %S to sell: result %d, %d goods units left",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pHere->getName().GetCString(), iSold, iGoods);
+		}
+		if (iGoods == 0)
+		{
+			AI_setUnitAIState(UNITAI_STATE_NATIVE_TRADE_BUY);
+		}
+		else
+		{
+			// muskets go to the tribe near the colonial player the natives like least, if there is one (else to any village)
+			CvCity* const pFavourite = AI_nativeTradeBuyVillage();
+			CvCity* pTarget = AI_nativeTradeSellVillage(pFavourite, bMuskets);
+			if (pTarget == NULL && bMuskets)
+			{
+				pTarget = AI_nativeTradeSellVillage(pFavourite, false);
+			}
+			if (pTarget == NULL)
+			{
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S finds no village that buys its goods, sails back to Europe",
+					getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString());
+				AI_setUnitAIState(UNITAI_STATE_NATIVE_TRADE_EUROPE);
+				s_szWtpShipReason = "native trade: no buyer for the goods";
+				if (!AI_sailToEurope())
+				{
+					getGroup()->pushMission(MISSION_SKIP);
+				}
+				return;
+			}
+			getGroup()->pushMission(MISSION_MOVE_TO, pTarget->getX_INLINE(), pTarget->getY_INLINE(), 0, false, false, MISSIONAI_TRANSPORT_SEA, pTarget->plot());
+			s_szWtpShipReason = "native trade: sells goods";
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S sails to %S (%S, gold %d) to sell%s",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pTarget->getName().GetCString(),
+				GET_PLAYER(pTarget->getOwnerINLINE()).getCivilizationDescription(0), GET_PLAYER(pTarget->getOwnerINLINE()).getGold(), bMuskets ? " (muskets)" : "");
+			return;
+		}
+	}
+
+	// buying
+	if (bAtVillage && kOwner.AI_getNativeVillageVisitTurn(*pHere) != iTurn)
+	{
+		const int iDeals = AI_nativeTradeBuy();
+		kOwner.AI_setNativeVillageVisited(*pHere);
+		if (iDeals > 0)
+		{
+			m_iNativeTradeBuyTurn = iTurn;
+		}
+		iGoods = AI_nativeTradeCargoCount(true, NULL);
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S visited %S to buy: %d deals, cargo %d/%d",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pHere->getName().GetCString(), iDeals, getCargo(), cargoSpace());
+	}
+
+	if (iGoods > 0 && (isFull() || iTurn - m_iNativeTradeBuyTurn >= 2))
+	{
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S sails to Europe with %d goods units (%s)",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), iGoods, isFull() ? "hold is full" : "2 turns since the last purchase");
+		AI_setUnitAIState(UNITAI_STATE_NATIVE_TRADE_EUROPE);
+		s_szWtpShipReason = "native trade: brings goods to Europe";
+		if (!AI_sailToEurope())
+		{
+			getGroup()->pushMission(MISSION_SKIP);
+		}
+		return;
+	}
+
+	// pulled off for a while: many immigrants wait in Europe and the colonies have work for few of them
+	if (iGoods == 0 && kOwner.canTradeWithEurope() && kOwner.getNumEuropeUnits() > 10 && kOwner.AI_estimateUnemploymentCount() <= 2)
+	{
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S is pulled off to fetch the %d units waiting in Europe",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), kOwner.getNumEuropeUnits());
+		AI_setUnitAIState(UNITAI_STATE_NATIVE_TRADE_EUROPE);
+		s_szWtpShipReason = "native trade: pulled off for Europe";
+		if (!AI_sailToEurope())
+		{
+			getGroup()->pushMission(MISSION_SKIP);
+		}
+		return;
+	}
+
+	CvCity* const pTarget = AI_nativeTradeBuyVillage();
+	if (pTarget == NULL)
+	{
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S finds no village with goods worth buying (gold %d)",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), kOwner.getGold());
+		s_szWtpShipReason = "native trade: no village worth visiting";
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
+	}
+	if (atPlot(pTarget->plot()))
+	{
+		// the best village is the one we are in (nothing else to visit): wait for its stock to grow
+		s_szWtpShipReason = "native trade: waits in the village";
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
+	}
+	getGroup()->pushMission(MISSION_MOVE_TO, pTarget->getX_INLINE(), pTarget->getY_INLINE(), 0, false, false, MISSIONAI_TRANSPORT_SEA, pTarget->plot());
+	s_szWtpShipReason = "native trade: buys goods";
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S sails to %S (%S) to buy, gold %d, cargo %d/%d",
+		getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pTarget->getName().GetCString(),
+		GET_PLAYER(pTarget->getOwnerINLINE()).getCivilizationDescription(0), kOwner.getGold(), getCargo(), cargoSpace());
+}
+
+// WTP: native trade ship in Europe: sells its goods, then takes the immigrants if more than 5 stand at the dock, else buys
+// Trade Goods (up to 300) or, now and then (20%), 50 muskets for the natives. No gold reserve applies to these purchases.
+bool CvUnitAI::AI_nativeTradeEurope()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+	if (kOwner.getParent() == NO_PLAYER)
+	{
+		return false;
+	}
+
+	const int iGoldBefore = kOwner.getGold();
+	AI_sellYieldUnits(TRADE_LOCATION_EUROPE);
+	AI_unloadUnits(TRADE_LOCATION_EUROPE);
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S in Europe sold its goods for %d gold (gold now %d), %d units wait at the dock",
+		getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), kOwner.getGold() - iGoldBefore, kOwner.getGold(), kOwner.getNumEuropeUnits());
+
+	if (kOwner.getNumCities() > 0)
+	{
+		if (kOwner.getNumEuropeUnits() > 5)
+		{
+			kOwner.sortEuropeUnits();
+			std::deque<CvUnit*> aUnits;
+			for (int i = 0; i < kOwner.getNumEuropeUnits(); ++i)
+			{
+				aUnits.push_back(kOwner.getEuropeUnit(i));
+			}
+			int iLoaded = 0;
+			while (!aUnits.empty() && !isFull())
+			{
+				CvUnit* pUnit = aUnits.front();
+				aUnits.pop_front();
+				if (pUnit->canLoadUnit(this, plot(), false))
+				{
+					kOwner.loadUnitFromEurope(pUnit, this);
+					++iLoaded;
+				}
+			}
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S takes %d immigrants from the dock (%d wait there)",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), iLoaded, kOwner.getNumEuropeUnits());
+			AI_setUnitAIState(UNITAI_STATE_NATIVE_TRADE_BUY);
+		}
+		else
+		{
+			CvPlayer& kEurope = GET_PLAYER(kOwner.getParent());
+			bool bBought = false;
+			bool bMuskets = GC.getGameINLINE().getSorenRandNum(100, "AI native trade muskets") < 20;
+			for (int iTry = 0; iTry < 2 && !bBought; ++iTry)
+			{
+				const YieldTypes eYield = bMuskets ? YIELD_MUSKETS : YIELD_TRADE_GOODS;
+				const int iPrice = kEurope.getYieldSellPrice(eYield);
+				int iAmount = std::min(bMuskets ? 50 : 300, getLoadYieldAmount(eYield));
+				if (iPrice > 0)
+				{
+					iAmount = std::min(iAmount, kOwner.getGold() / iPrice);
+				}
+				if (kOwner.isYieldEuropeTradable(eYield) && iAmount > 0 && kOwner.buyYieldUnitFromEurope(eYield, iAmount, this) != NULL)
+				{
+					bBought = true;
+					if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S buys %d %S in Europe for %d gold (%d each), gold now %d",
+						getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), iAmount, GC.getYieldInfo(eYield).getDescription(),
+						iAmount * iPrice, iPrice, kOwner.getGold());
+				}
+				else if (bMuskets)
+				{
+					// muskets are not affordable: Trade Goods instead
+					bMuskets = false;
+				}
+				else
+				{
+					break;
+				}
+			}
+			if (!bBought && gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S cannot buy goods in Europe (gold %d), returns empty",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), kOwner.getGold());
+			AI_setUnitAIState(bBought ? UNITAI_STATE_NATIVE_TRADE_SELL : UNITAI_STATE_NATIVE_TRADE_BUY);
+		}
+	}
+
+	// leave for the colonies like AI_europe does
+	CvPlot* const pStartingPlot = kOwner.getStartingPlot();
+	if (kOwner.getNumCities() > 0)
+	{
+		CvPlot* pNewPlot = AI_bestDestinationPlot();
+		if (pNewPlot == NULL)
+		{
+			pNewPlot = pStartingPlot;
+		}
+		if (pNewPlot == NULL)
+		{
+			getGroup()->pushMission(MISSION_SKIP);
+			return true;
+		}
+		if (plot() != pNewPlot)
+		{
+			setXY(pNewPlot->getX_INLINE(), pNewPlot->getY_INLINE());
+		}
+	}
+	else if (plot() == NULL && pStartingPlot != NULL)
+	{
+		setXY(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE());
+	}
+	crossOcean(UNIT_TRAVEL_STATE_FROM_EUROPE);
+	finishMoves();
+	return true;
+}
+
 // WTP: native trade ship: may it trade with this village at all (peace, not angry, no fort, known, reachable by this ship)?
 bool CvUnitAI::AI_canTradeWithVillage(const CvCity& kCity) const
 {
@@ -17028,7 +17350,7 @@ CvCity* CvUnitAI::AI_nativeTradeSellVillage(const CvCity* pFavourite, bool bMusk
 				bBuys = kOwner.AI_nativeCityBuys(aeCarried[i], *pCity) && (!bMuskets || aeCarried[i] == YIELD_MUSKETS);
 			}
 			const int iLastVisit = kOwner.AI_getNativeVillageVisitTurn(*pCity);
-			if (!bBuys || (iLastVisit >= 0 && iTurn - iLastVisit < 3 && !atPlot(pCity->plot())))
+			if (!bBuys || (iLastVisit >= 0 && iTurn - iLastVisit < 3))
 			{
 				continue;
 			}
