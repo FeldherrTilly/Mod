@@ -19754,7 +19754,7 @@ static UnitClassTypes earlyExpertClassForBonus(BonusTypes eBonus)
 	return (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_PROSPECTOR");
 }
 
-// WTP: value of a precious resource: gold, pearls (BONUS_PEARLS_2, 3 gems), silver, gems. BONUS_PEARLS is only the food
+// WTP: value of a precious resource: gold 50, silver 30, gems and pearls (BONUS_PEARLS_2, they give gems) 25. BONUS_PEARLS is only the food
 // resource "Shellfish" and counts for nothing: a colony settled for it brought nothing.
 static int earlyBonusValue(BonusTypes eBonus)
 {
@@ -19763,10 +19763,9 @@ static int earlyBonusValue(BonusTypes eBonus)
 		return 0;
 	}
 	const CvString szBonus = GC.getBonusInfo(eBonus).getType();
-	if (szBonus == "BONUS_GOLD") return 40;
-	if (szBonus == "BONUS_PEARLS_2") return 38;
-	if (szBonus == "BONUS_SILVER") return 35;
-	if (szBonus == "BONUS_GEMS") return 25;
+	if (szBonus == "BONUS_GOLD") return 50;
+	if (szBonus == "BONUS_SILVER") return 30;
+	if (szBonus == "BONUS_GEMS" || szBonus == "BONUS_PEARLS_2") return 25;
 	return 0;
 }
 
