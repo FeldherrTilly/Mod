@@ -16020,7 +16020,9 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 			iValue /= 5 + iPathTurns;
 			if (pLoopPlot == pCurrentTarget)
 			{
-				iValue = iValue * 5 / 4;
+				// WTP: on a ship the site is kept unless another one is 50% better: the path turns change with every
+				// move of the ship and an English settler switched between three sites every turn for 9 turns
+				iValue = (pTransportUnit != NULL) ? iValue * 3 / 2 : iValue * 5 / 4;
 			}
 			if (iValue > iBestValue)
 			{
