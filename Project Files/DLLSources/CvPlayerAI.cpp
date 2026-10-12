@@ -270,6 +270,8 @@ void CvPlayerAI::AI_doTurnPre()
 
 	AI_doSurplusPioneers();
 
+	AI_doNativeMercDefense();
+
 	AI_logStatusSummary();
 }
 
@@ -18604,6 +18606,30 @@ UnitTypes CvPlayerAI::AI_treasureShipToBuy(int* piTreasures) const
 		}
 	}
 	return eShip;
+}
+
+// WTP: native mercenaries come with the offensive unit AI; in peace they defend the colonies (and count as defenders)
+void CvPlayerAI::AI_doNativeMercDefense()
+{
+	if (isHuman() || isNative() || isEurope() || GET_TEAM(getTeam()).getAnyWarPlanCount() > 0)
+	{
+		return;
+	}
+	const UnitTypes eMerc = GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(UNITCLASS_NATIVE_MERC);
+	if (eMerc == NO_UNIT)
+	{
+		return;
+	}
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->getUnitType() == eMerc && pLoopUnit->AI_getUnitAIType() == UNITAI_OFFENSIVE)
+		{
+			pLoopUnit->AI_setUnitAIType(UNITAI_DEFENSIVE);
+			if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) native mercenary %S defends the colonies in peace", getID(), getCivilizationDescription(0),
+				pLoopUnit->getName().GetCString());
+		}
+	}
 }
 
 // WTP: with more than 3 pioneers above the need, one regular pioneer (never a hardy pioneer) goes to the nearest
