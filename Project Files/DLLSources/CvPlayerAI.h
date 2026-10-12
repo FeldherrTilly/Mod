@@ -680,6 +680,7 @@ protected:
 	void AI_earlyEnd();
 	UnitTypes AI_cheapestSeaUnitToBuy(int iMinCargo) const;
 	CvPlot* AI_earlyResourceSite(BonusTypes* peBonus, int* piValue) const;
+	void AI_logEarlyResourceSites(const CvUnit& kSettler) const;
 	// WTP: units waiting in a village to learn (unit id, first turn of waiting), not saved
 	std::map<int, int> m_mapWfLearnWait;
 	// WTP: native villages the native trade ship visited (plot key, turn), not saved

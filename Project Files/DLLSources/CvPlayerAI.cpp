@@ -19456,7 +19456,30 @@ bool CvPlayerAI::AI_mayHurryBuildingEarly(BuildingTypes eBuilding) const
 void CvPlayerAI::AI_startEarlyStrategy()
 {
 	static const char* const aszNames[NUM_EARLY_STRATEGIES] = { "none", "Explorer", "Native Trader", "Ship Trader", "Early Improvement", "Opportunistic Resources" };
-	m_iEarlyStrategy = 1 + GC.getGameINLINE().getSorenRandNum(NUM_EARLY_STRATEGIES - 1, "AI early strategy");
+	// until further notice every strategy is used once among the AIs (randomly among the unused ones), all further AIs get
+	// Opportunistic Resources
+	bool abUsed[NUM_EARLY_STRATEGIES];
+	for (int i = 0; i < NUM_EARLY_STRATEGIES; ++i)
+	{
+		abUsed[i] = false;
+	}
+	for (PlayerTypes ePlayer = FIRST_PLAYER; ePlayer < NUM_PLAYER_TYPES; ++ePlayer)
+	{
+		const CvPlayerAI& kOther = GET_PLAYER(ePlayer);
+		if (ePlayer != getID() && kOther.isAlive() && !kOther.isHuman() && !kOther.isNative() && !kOther.isEurope() && kOther.m_iEarlyStrategy > 0 && kOther.m_iEarlyStrategy < NUM_EARLY_STRATEGIES)
+		{
+			abUsed[kOther.m_iEarlyStrategy] = true;
+		}
+	}
+	std::vector<int> aiUnused;
+	for (int i = 1; i < NUM_EARLY_STRATEGIES; ++i)
+	{
+		if (!abUsed[i])
+		{
+			aiUnused.push_back(i);
+		}
+	}
+	m_iEarlyStrategy = aiUnused.empty() ? (int)EARLY_RESOURCES : aiUnused[GC.getGameINLINE().getSorenRandNum((int)aiUnused.size(), "AI early strategy")];
 	m_iEarlyPhase = 1;
 	m_iEarlyProgress = 0;
 	if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_PLAN, getID(), "WTP early: Player %d (%S) turn %d: phase 0 is over (%d scouts bought), early strategy %s, gold %d",
@@ -19860,6 +19883,56 @@ CvPlot* CvPlayerAI::AI_earlyResourceSite(BonusTypes* peBonus, int* piValue) cons
 	return pBest;
 }
 
+// WTP: when a settler is sent for Opportunistic Resources: the 7 best sites (the first is the one the settler is meant for, the
+// settler itself picks by site value and travel turns) with their data
+void CvPlayerAI::AI_logEarlyResourceSites(const CvUnit& kSettler) const
+{
+	if (gPlayerLogLevel < 1)
+	{
+		return;
+	}
+	std::vector<std::pair<int, int> > aSites; // (site value, plot index)
+	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); ++iI)
+	{
+		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
+		const int iValue = AI_earlyResourceSiteValue(*pLoopPlot);
+		if (iValue > 0 && canFound(pLoopPlot->coord(), false))
+		{
+			aSites.push_back(std::make_pair(iValue, iI));
+		}
+	}
+	std::sort(aSites.begin(), aSites.end(), std::greater<std::pair<int, int> >());
+	logWTP(WTP_LOG_PLAN, getID(), "WTP early: Player %d (%S) turn %d sends settler %d (%S) for Opportunistic Resources, %d sites known",
+		getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), kSettler.getID(), kSettler.getName().GetCString(), (int)aSites.size());
+	for (uint i = 0; i < aSites.size() && i < 7; ++i)
+	{
+		const CvPlot* const pPlot = GC.getMap().plotByIndexINLINE(aSites[i].second);
+		BonusTypes eBonus = NO_BONUS;
+		int iBestBonus = 0;
+		for (int iDX = -1; iDX <= 1; ++iDX)
+		{
+			for (int iDY = -1; iDY <= 1; ++iDY)
+			{
+				const CvPlot* const pAround = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+				if (pAround != NULL && (iDX != 0 || iDY != 0) && earlyBonusValue(pAround->getBonusType()) > iBestBonus)
+				{
+					iBestBonus = earlyBonusValue(pAround->getBonusType());
+					eBonus = pAround->getBonusType();
+				}
+			}
+		}
+		int iDistance = 1000;
+		int iLoop;
+		for (const CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+		{
+			iDistance = std::min(iDistance, plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pCity->getX_INLINE(), pCity->getY_INLINE()));
+		}
+		logWTP(WTP_LOG_PLAN, getID(), "WTP early:   site #%d at %d,%d: value %d, resource %S (%d), terrain food %d%s, %d plots from our nearest colony, area %d",
+			(int)i + 1, pPlot->getX_INLINE(), pPlot->getY_INLINE(), aSites[i].first, (eBonus != NO_BONUS) ? GC.getBonusInfo(eBonus).getDescription() : L"-", iBestBonus,
+			pPlot->calculateNatureYield(YIELD_FOOD, getTeam(), false), pPlot->isRiverSide() ? " (river)" : "", iDistance, pPlot->area()->getID());
+	}
+}
+
 bool CvPlayerAI::AI_isEarlyResourceSettler(int iUnitID) const
 {
 	return m_iEarlyStrategy == EARLY_RESOURCES && iUnitID >= 0 && (m_aiEarlySettlerIDs[0] == iUnitID || m_aiEarlySettlerIDs[1] == iUnitID);
@@ -19890,11 +19963,6 @@ bool CvPlayerAI::AI_doEarlyResources()
 	BonusTypes eBonus = NO_BONUS;
 	int iSiteValue = 0;
 	const CvPlot* const pSite = AI_earlyResourceSite(&eBonus, &iSiteValue);
-	if (pSite != NULL && gPlayerLogLevel >= 1)
-	{
-		logWTP(WTP_LOG_PLAN, getID(), "WTP early: Player %d (%S) turn %d resource site %d,%d next to %S (site value %d)", getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(),
-			pSite->getX_INLINE(), pSite->getY_INLINE(), GC.getBonusInfo(eBonus).getDescription(), iSiteValue);
-	}
 	if (pSite == NULL)
 	{
 		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_PLAN, getID(), "WTP early: Player %d (%S) turn %d knows no site next to gold, silver or gems for a colony", getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn());
@@ -19922,6 +19990,7 @@ bool CvPlayerAI::AI_doEarlyResources()
 		{
 			m_aiEarlySettlerIDs[iPair] = pSettler->getID();
 			++m_iEarlyProgress;
+			AI_logEarlyResourceSites(*pSettler);
 		}
 	}
 	else if (getGold() >= getEuropeUnitBuyPrice(eExpert))
