@@ -78,12 +78,6 @@ enum SavegameVariableTypes
 	PlayerSaveAI_MoveQueuePasses,
 	PlayerSaveAI_LastWave,
 	PlayerSaveAI_WaveIndex,
-	PlayerSaveAI_EarlyPhase,
-	PlayerSaveAI_EarlyStrategy,
-	PlayerSaveAI_EarlyProgress,
-	PlayerSaveAI_EarlyScoutsBought,
-	PlayerSaveAI_EarlySettlerId0,
-	PlayerSaveAI_EarlySettlerId1,
 
 	PlayerSaveAI_AICitySites,
 	PlayerSaveAI_unitPriorityHeap,
@@ -103,6 +97,13 @@ enum SavegameVariableTypes
 	PlayerSaveAI_NativeEconomicContactLastTurn,
 	// WTP, Schmiddie, Native Economic Diplomacy - END
 
+	// WTP: early game strategy
+	PlayerSaveAI_EarlyPhase,
+	PlayerSaveAI_EarlyStrategy,
+	PlayerSaveAI_EarlyProgress,
+	PlayerSaveAI_EarlyScoutsBought,
+	PlayerSaveAI_EarlySettlerId0,
+	PlayerSaveAI_EarlySettlerId1,
 	NUM_SAVE_ENUM_VALUES,
 };
 

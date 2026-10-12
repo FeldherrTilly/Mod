@@ -19430,7 +19430,8 @@ bool CvPlayerAI::AI_isSavingGold() const
 // and the usual rules apply again. The gold reserve of the civilian purchases does not apply to these purchases.
 bool CvPlayerAI::AI_isEarlyPhaseActive() const
 {
-	return !isHuman() && !isNative() && !isEurope() && getParent() != NO_PLAYER && m_iEarlyPhase < 2;
+	// the turn limit keeps a game without Europe trade (or a stalled strategy) from being locked for good
+	return !isHuman() && !isNative() && !isEurope() && getParent() != NO_PLAYER && m_iEarlyPhase < 2 && GC.getGameINLINE().getGameTurn() <= 150;
 }
 
 // WTP: the Town Hall may be hurried in the early game (the Village Hall under it with Early Improvement), nothing before the first scout
@@ -19966,6 +19967,11 @@ void CvPlayerAI::AI_doEarlyPhase()
 	}
 	if (m_iEarlyPhase != 1)
 	{
+		return;
+	}
+	if (iTurn > 100)
+	{
+		AI_earlyEnd(); // a stalled strategy (no immigrants to hurry, no money) does not lock the AI for ever
 		return;
 	}
 	switch (m_iEarlyStrategy)
