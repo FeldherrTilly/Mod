@@ -172,6 +172,8 @@ public:
 	void AI_setNativeVillageVisited(const CvCity& kCity);
 	int AI_nativeVillageDistanceToColonies(const CvCity& kCity) const;
 	PlayerTypes AI_leastLikedColonialPlayer() const;
+	int AI_minTreasureTransportSize() const;
+	void AI_updateNativeTradeShip();
 
 	int AI_calculateDamages(TeamTypes eTeam);
 
