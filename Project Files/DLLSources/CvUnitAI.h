@@ -380,6 +380,9 @@ protected:
 	// WTP: native trade ship, deals with the native village on this plot
 	int AI_nativeTradeSell();
 	int AI_nativeTradeBuy();
+	bool AI_canTradeWithVillage(const CvCity& kCity) const;
+	CvCity* AI_nativeTradeBuyVillage();
+	CvCity* AI_nativeTradeSellVillage(const CvCity* pFavourite, bool bMuskets);
 	
 	// TAC - AI Assault Sea - koma13, jdog5000(BBAI) - START
 	bool AI_assaultSeaTransport(bool bNative = false);

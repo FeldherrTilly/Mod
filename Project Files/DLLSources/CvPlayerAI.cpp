@@ -5254,6 +5254,69 @@ bool CvPlayerAI::AI_nativeCityBuys(YieldTypes eYield, const CvCity& kCity) const
 	return eYield == YIELD_HORSES || !kCity.canProduceYield(eYield);
 }
 
+// WTP: native villages are told apart by the coordinates of their plot
+namespace
+{
+	int nativeVillageKey(const CvCity& kCity)
+	{
+		return kCity.getX_INLINE() + kCity.getY_INLINE() * 10000;
+	}
+}
+
+// WTP: turn the native trade ship last visited a village, -1 if never
+int CvPlayerAI::AI_getNativeVillageVisitTurn(const CvCity& kCity) const
+{
+	const std::map<int, int>::const_iterator it = m_mapNativeVillageVisit.find(nativeVillageKey(kCity));
+	return (it == m_mapNativeVillageVisit.end()) ? -1 : it->second;
+}
+
+void CvPlayerAI::AI_setNativeVillageVisited(const CvCity& kCity)
+{
+	m_mapNativeVillageVisit[nativeVillageKey(kCity)] = GC.getGameINLINE().getGameTurn();
+}
+
+// WTP: plots from the village to our nearest colony (a large number without colonies)
+int CvPlayerAI::AI_nativeVillageDistanceToColonies(const CvCity& kCity) const
+{
+	int iBest = 1000;
+	int iLoop;
+	for (const CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	{
+		iBest = std::min(iBest, plotDistance(kCity.getX_INLINE(), kCity.getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE()));
+	}
+	return iBest;
+}
+
+// WTP: the colonial player (not ourselves, humans included) the natives like least, judged by the sum of the attitudes of
+// all native tribes towards it. NO_PLAYER if there is none.
+PlayerTypes CvPlayerAI::AI_leastLikedColonialPlayer() const
+{
+	PlayerTypes eWorst = NO_PLAYER;
+	int iWorstAttitude = MAX_INT;
+	for (PlayerTypes eColonial = FIRST_PLAYER; eColonial < NUM_PLAYER_TYPES; ++eColonial)
+	{
+		const CvPlayer& kColonial = GET_PLAYER(eColonial);
+		if (eColonial == getID() || !kColonial.isAlive() || !kColonial.is(CIV_CATEGORY_COLONIAL) || kColonial.getNumCities() == 0)
+		{
+			continue;
+		}
+		int iAttitude = 0;
+		for (PlayerTypes eNative = FIRST_PLAYER; eNative < NUM_PLAYER_TYPES; ++eNative)
+		{
+			if (GET_PLAYER(eNative).isAlive() && GET_PLAYER(eNative).isNative())
+			{
+				iAttitude += GET_PLAYER(eNative).AI_getAttitudeVal(eColonial, false);
+			}
+		}
+		if (iAttitude < iWorstAttitude)
+		{
+			iWorstAttitude = iAttitude;
+			eWorst = eColonial;
+		}
+	}
+	return eWorst;
+}
+
 // WTP: profit of buying iAmount of a yield from a native tribe and selling it in Europe (after tax).
 // False if the natives do not sell it or Europe does not buy it.
 bool CvPlayerAI::AI_nativeBuyProfit(YieldTypes eYield, int iAmount, PlayerTypes eNative, int& iProfit) const

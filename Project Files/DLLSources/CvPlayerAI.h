@@ -167,6 +167,11 @@ public:
 	bool AI_nativeSellProfit(YieldTypes eYield, int iAmount, const CvCity& kNativeCity, int& iProfit) const;
 	bool AI_bargainWithNatives(PlayerTypes eNative, int& iPrice);
 	bool AI_nativeCityBuys(YieldTypes eYield, const CvCity& kCity) const;
+	// WTP: native trade ship: which villages it visited when (not saved) and where the natives are unfriendly to
+	int AI_getNativeVillageVisitTurn(const CvCity& kCity) const;
+	void AI_setNativeVillageVisited(const CvCity& kCity);
+	int AI_nativeVillageDistanceToColonies(const CvCity& kCity) const;
+	PlayerTypes AI_leastLikedColonialPlayer() const;
 
 	int AI_calculateDamages(TeamTypes eTeam);
 
@@ -639,6 +644,8 @@ protected:
 	int m_iSavingGoldTurn; // WTP: last turn the AI saved gold for a ship or the militia (not saved)
 	// WTP: units waiting in a village to learn (unit id, first turn of waiting), not saved
 	std::map<int, int> m_mapWfLearnWait;
+	// WTP: native villages the native trade ship visited (plot key, turn), not saved
+	std::map<int, int> m_mapNativeVillageVisit;
 	// WTP: expert to buy instead of learning it (learning was blocked for 15 turns), not saved
 	UnitClassTypes m_eWfExpertToBuy;
 	bool AI_doWfExpertPurchase();

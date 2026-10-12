@@ -224,6 +224,7 @@ void CvPlayerAI::AI_resetSavedData()
 	m_iSurplusPioneerCityID = -1;
 	m_iSavingGoldTurn = -1;
 	m_mapWfLearnWait.clear();
+	m_mapNativeVillageVisit.clear();
 	m_eWfExpertToBuy = NO_UNITCLASS;
 	m_aWfOpenOpportunities.clear();
 	m_iMoveQueuePasses = defaultMoveQueuePasses;

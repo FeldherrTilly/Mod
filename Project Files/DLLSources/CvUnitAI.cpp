@@ -16897,6 +16897,188 @@ int CvUnitAI::AI_nativeTradeBuy()
 	return iDeals;
 }
 
+// WTP: native trade ship: may it trade with this village at all (peace, not angry, no fort, known, reachable by this ship)?
+bool CvUnitAI::AI_canTradeWithVillage(const CvCity& kCity) const
+{
+	const CvPlayerAI& kNative = GET_PLAYER(kCity.getOwnerINLINE());
+	return kNative.isAlive() && kNative.isNative() && !atWar(getTeam(), kNative.getTeam()) && kNative.getTimeNoTrade(getOwnerINLINE()) == 0
+		&& kCity.getTradeBlockingFortOwner(getOwnerINLINE()) == NO_PLAYER && kCity.plot()->isRevealed(getTeam(), false)
+		&& CvPlayerAI::AI_shipCanReachCity(getUnitType(), kCity);
+}
+
+// WTP: native trade ship: the village to buy goods from next. Villages near our colonies weigh more, a village visited
+// lately weighs less (full weight again after 20 turns), so that the ship widens its circle and comes back. A village
+// must have something worth buying. Returns NULL if there is none.
+CvCity* CvUnitAI::AI_nativeTradeBuyVillage()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+	const int iCapacity = std::max(1, GC.getGameINLINE().getCargoYieldCapacity());
+
+	CvCity* pBestCity = NULL;
+	int iBestScore = 0;
+	for (PlayerTypes eNative = FIRST_PLAYER; eNative < NUM_PLAYER_TYPES; ++eNative)
+	{
+		CvPlayerAI& kNative = GET_PLAYER(eNative);
+		if (!kNative.isAlive() || !kNative.isNative())
+		{
+			continue;
+		}
+		int iLoop;
+		for (CvCity* pCity = kNative.firstCity(&iLoop); pCity != NULL; pCity = kNative.nextCity(&iLoop))
+		{
+			if (!AI_canTradeWithVillage(*pCity))
+			{
+				continue;
+			}
+			// the profit per cargo slot of the best yield the village offers
+			int iBestProfit = 0;
+			for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
+			{
+				if (eYield == YIELD_HORSES || GC.getYieldInfo(eYield).getNativeSellPrice() <= 0 || !pCity->canProduceYield(eYield))
+				{
+					continue;
+				}
+				const int iAmount = std::min(pCity->getYieldStored(eYield), iCapacity);
+				int iProfit;
+				if (iAmount > 0 && kOwner.AI_nativeBuyProfit(eYield, iAmount, eNative, iProfit) && iProfit > iBestProfit)
+				{
+					iBestProfit = iProfit;
+				}
+			}
+			if (iBestProfit <= 0)
+			{
+				continue;
+			}
+			int iPathTurns;
+			if (!generatePath(pCity->plot(), 0, true, &iPathTurns, 40))
+			{
+				continue;
+			}
+			int iScore = 10000 / (kOwner.AI_nativeVillageDistanceToColonies(*pCity) + 3);
+			const int iLastVisit = kOwner.AI_getNativeVillageVisitTurn(*pCity);
+			if (iLastVisit >= 0)
+			{
+				iScore = iScore * std::min(100, std::max(5, 100 * (iTurn - iLastVisit) / 20)) / 100;
+			}
+			iScore = iScore * (100 + std::min(iBestProfit, 2000) / 10) / 100;
+			if (iScore > iBestScore)
+			{
+				iBestScore = iScore;
+				pBestCity = pCity;
+			}
+		}
+	}
+	return pBestCity;
+}
+
+// WTP: native trade ship: the village to sell the goods aboard to. The tribe needs more than 2000 gold; the nearest one
+// to the reference wins: the village we buy from next (pFavourite, or our colonies), for muskets the colonies of the
+// colonial player the natives like least (a village that wants muskets wins among the near ones). Without such a tribe the
+// nearest village with gold at all is taken, except for muskets (NULL then).
+CvCity* CvUnitAI::AI_nativeTradeSellVillage(const CvCity* pFavourite, bool bMuskets)
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+	const PlayerTypes eTarget = bMuskets ? kOwner.AI_leastLikedColonialPlayer() : NO_PLAYER;
+	if (bMuskets && eTarget == NO_PLAYER)
+	{
+		return NULL;
+	}
+
+	// what we carry
+	std::vector<YieldTypes> aeCarried;
+	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		const CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && pLoopUnit->isGoods() && pLoopUnit->getYield() != NO_YIELD)
+		{
+			aeCarried.push_back(pLoopUnit->getYield());
+		}
+	}
+	if (aeCarried.empty())
+	{
+		return NULL;
+	}
+
+	CvCity* pBestCity = NULL;
+	int iBestDistance = MAX_INT;
+	bool bBestWantsMuskets = false;
+	CvCity* pFallbackCity = NULL;
+	int iFallbackDistance = MAX_INT;
+	for (PlayerTypes eNative = FIRST_PLAYER; eNative < NUM_PLAYER_TYPES; ++eNative)
+	{
+		CvPlayerAI& kNative = GET_PLAYER(eNative);
+		if (!kNative.isAlive() || !kNative.isNative() || kNative.getGold() <= 0)
+		{
+			continue;
+		}
+		int iLoop;
+		for (CvCity* pCity = kNative.firstCity(&iLoop); pCity != NULL; pCity = kNative.nextCity(&iLoop))
+		{
+			if (!AI_canTradeWithVillage(*pCity))
+			{
+				continue;
+			}
+			// the village must want something we carry, and not be one we have just tried
+			bool bBuys = false;
+			for (uint i = 0; i < aeCarried.size() && !bBuys; ++i)
+			{
+				bBuys = kOwner.AI_nativeCityBuys(aeCarried[i], *pCity) && (!bMuskets || aeCarried[i] == YIELD_MUSKETS);
+			}
+			const int iLastVisit = kOwner.AI_getNativeVillageVisitTurn(*pCity);
+			if (!bBuys || (iLastVisit >= 0 && iTurn - iLastVisit < 3 && !atPlot(pCity->plot())))
+			{
+				continue;
+			}
+			int iPathTurns;
+			if (!generatePath(pCity->plot(), 0, true, &iPathTurns, 40))
+			{
+				continue;
+			}
+
+			// distance to the reference
+			int iDistance = MAX_INT;
+			if (bMuskets)
+			{
+				int iTargetLoop;
+				for (const CvCity* pTargetCity = GET_PLAYER(eTarget).firstCity(&iTargetLoop); pTargetCity != NULL; pTargetCity = GET_PLAYER(eTarget).nextCity(&iTargetLoop))
+				{
+					iDistance = std::min(iDistance, plotDistance(pCity->getX_INLINE(), pCity->getY_INLINE(), pTargetCity->getX_INLINE(), pTargetCity->getY_INLINE()));
+				}
+			}
+			else if (pFavourite != NULL)
+			{
+				iDistance = plotDistance(pCity->getX_INLINE(), pCity->getY_INLINE(), pFavourite->getX_INLINE(), pFavourite->getY_INLINE());
+			}
+			else
+			{
+				iDistance = kOwner.AI_nativeVillageDistanceToColonies(*pCity);
+			}
+
+			if (kNative.getGold() >= 2000)
+			{
+				const bool bWantsMuskets = bMuskets && pCity->AI_getDesiredYield() == YIELD_MUSKETS;
+				// near villages (within 2 plots of the nearest) are told apart by wanting muskets
+				if (pBestCity == NULL || iDistance + 2 < iBestDistance || (iDistance <= iBestDistance + 2 && bWantsMuskets && !bBestWantsMuskets)
+					|| (iDistance < iBestDistance && bWantsMuskets == bBestWantsMuskets))
+				{
+					pBestCity = pCity;
+					iBestDistance = iDistance;
+					bBestWantsMuskets = bWantsMuskets;
+				}
+			}
+			else if (!bMuskets && iDistance < iFallbackDistance)
+			{
+				pFallbackCity = pCity;
+				iFallbackDistance = iDistance;
+			}
+		}
+	}
+	return (pBestCity != NULL) ? pBestCity : pFallbackCity;
+}
+
 // TAC - AI Assault Sea - koma13, jdog5000(BBAI) - START
 // Returns true if a mission was pushed...
 bool CvUnitAI::AI_assaultSeaTransport(bool bNative)
