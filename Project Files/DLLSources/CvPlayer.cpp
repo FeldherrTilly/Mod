@@ -6325,7 +6325,7 @@ CvCity* CvPlayer::found(Coordinates foundCoord)
 			}
 		}
 		CvCity* const pPrimary = AI().AI_getPrimaryCity();
-		logBBAI("WTP found: Player %d (%S) turn %d founds at %d,%d: found value %d, area best %d, nearest own colony %d plots, primary colony %S %d plots%s, AI city distance %d",
+		logWTP(WTP_LOG_SETTLER, getID(), "WTP found: Player %d (%S) turn %d founds at %d,%d: found value %d, area best %d, nearest own colony %d plots, primary colony %S %d plots%s, AI city distance %d",
 			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), foundCoord.x(), foundCoord.y(),
 			AI().AI_foundValue(foundCoord.x(), foundCoord.y()), pFoundPlot->area()->getBestFoundValue(getID()), iNearest,
 			(pPrimary != NULL) ? pPrimary->getName().GetCString() : L"-",
@@ -6397,7 +6397,7 @@ CvCity* CvPlayer::found(Coordinates foundCoord)
 			CvUnit* const pScout = initUnit(eScout, eScoutProfession, foundCoord, UNITAI_SCOUT);
 			if (pScout != NULL && gPlayerLogLevel >= 1)
 			{
-				logBBAI(" WTP: Player %d (%S) gets a free scout with its first colony", getID(), getCivilizationDescription(0));
+				logWTP(WTP_LOG_STATUS, getID(), " WTP: Player %d (%S) gets a free scout with its first colony", getID(), getCivilizationDescription(0));
 			}
 		}
 	}
@@ -15668,7 +15668,7 @@ void CvPlayer::applyEvent(EventTypes eEvent, const EventTriggeredData& kTriggere
 					pUnitCity = getPrimaryCity();
 				}
 
-				if (gPlayerLogLevel >= 1 && !isHuman()) logBBAI(" WTP event unit: Player %d (%S) turn %d gets %d x %S from event %S",
+				if (gPlayerLogLevel >= 1 && !isHuman()) logWTP(WTP_LOG_BUY, getID(), " WTP event unit: Player %d (%S) turn %d gets %d x %S from event %S",
 					getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), kEvent.getNumUnits(), GC.getUnitInfo(eUnit).getDescription(), CvWString(kEvent.getType()).GetCString());
 
 				// WTP, ray, let us do this for all Ships, it is safer
@@ -17569,7 +17569,7 @@ CvUnit* CvPlayer::buyYieldUnit(YieldTypes eYield, int iAmount, CvUnit* pTranspor
 			pTransport->groupTransportedYieldUnits(pUnit);
 		}
 		changeGold(-iPrice);
-		if (gPlayerLogLevel >= 1 && !isHuman()) logBBAI(" WTP buy: Player %d (%S) turn %d buys %d %S in %s for %d gold (gold left %d)",
+		if (gPlayerLogLevel >= 1 && !isHuman()) logWTP(WTP_LOG_BUY, getID(), " WTP buy: Player %d (%S) turn %d buys %d %S in %s for %d gold (gold left %d)",
 			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), iAmount, GC.getYieldInfo(eYield).getDescription(),
 			eLocation == TRADE_LOCATION_EUROPE ? "EUROPE" : (eLocation == TRADE_LOCATION_AFRICA ? "AFRICA" : "PORT ROYAL"), iPrice, getGold());
 
@@ -18814,7 +18814,7 @@ CvUnit* CvPlayer::buyEuropeUnit(UnitTypes eUnit, int iPriceModifier)
 		if ((eDefaultAI == UNITAI_COMBAT_SEA || eDefaultAI == UNITAI_PIRATE_SEA || eDefaultAI == UNITAI_ASSAULT_SEA || eDefaultAI == UNITAI_ESCORT_SEA)
 			&& GET_TEAM(getTeam()).getAnyWarPlanCount() == 0 && (getNumCities() < 3 || GC.getGameINLINE().getGameTurn() < 45))
 		{
-			if (gPlayerLogLevel >= 1) logBBAI(" WTP buy: Player %d (%S) turn %d blocked warship %S (price modifier %d)",
+			if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), " WTP buy: Player %d (%S) turn %d blocked warship %S (price modifier %d)",
 				getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), GC.getUnitInfo(eUnit).getDescription(), iPriceModifier);
 			return NULL;
 		}
@@ -18859,7 +18859,7 @@ CvUnit* CvPlayer::buyEuropeUnit(UnitTypes eUnit, int iPriceModifier)
 		changeGold(-iPrice);
 		GET_TEAM(getTeam()).changeUnitsPurchasedHistory(pUnit->getUnitClassType(), 1);
 		gDLL->getEventReporterIFace()->unitBoughtFromEurope(getID(), pUnit->getID());
-		if (gPlayerLogLevel >= 1) logBBAI(" WTP buy: Player %d (%S) turn %d buys %S in EUROPE for %d gold (gold left %d)",
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), " WTP buy: Player %d (%S) turn %d buys %S in EUROPE for %d gold (gold left %d)",
 			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pUnit->getNameAndProfession().GetCString(), iPrice, getGold());
 	}
 
@@ -19002,7 +19002,7 @@ CvUnit* CvPlayer::buyAfricaUnit(UnitTypes eUnit, int iPriceModifier)
 		changeGold(-iPrice);
 		GET_TEAM(getTeam()).changeUnitsPurchasedHistory(pUnit->getUnitClassType(), 1);
 		//gDLL->getEventReporterIFace()->unitBoughtFromEurope(getID(), pUnit->getID());
-		if (gPlayerLogLevel >= 1) logBBAI(" WTP buy: Player %d (%S) turn %d buys %S in AFRICA for %d gold (gold left %d)",
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), " WTP buy: Player %d (%S) turn %d buys %S in AFRICA for %d gold (gold left %d)",
 			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pUnit->getNameAndProfession().GetCString(), iPrice, getGold());
 	}
 
@@ -19116,7 +19116,7 @@ CvUnit* CvPlayer::buyPortRoyalUnit(UnitTypes eUnit, int iPriceModifier)
 		changeGold(-iPrice);
 		GET_TEAM(getTeam()).changeUnitsPurchasedHistory(pUnit->getUnitClassType(), 1);
 		//gDLL->getEventReporterIFace()->unitBoughtFromEurope(getID(), pUnit->getID());
-		if (gPlayerLogLevel >= 1) logBBAI(" WTP buy: Player %d (%S) turn %d buys %S in PORT ROYAL for %d gold (gold left %d)",
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), " WTP buy: Player %d (%S) turn %d buys %S in PORT ROYAL for %d gold (gold left %d)",
 			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pUnit->getNameAndProfession().GetCString(), iPrice, getGold());
 	}
 
@@ -21022,7 +21022,7 @@ void CvPlayer::hurry(HurryTypes eHurry, int iIndex)
 		if (kHurry.getGoldPerCross() > 0)
 		{
 			OOS_LOG("hurry gold", getHurryGold(eHurry, iIndex));
-			if (gPlayerLogLevel >= 1) logBBAI(" WTP buy: Player %d (%S) turn %d hurries immigrant %S (dock %d) for %d gold (gold before %d)",
+			if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), " WTP buy: Player %d (%S) turn %d hurries immigrant %S (dock %d) for %d gold (gold before %d)",
 				getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), GC.getUnitInfo(getDocksNextUnit(iIndex)).getDescription(), iIndex, getHurryGold(eHurry, iIndex), getGold());
 			changeGold(-getHurryGold(eHurry, iIndex));
 

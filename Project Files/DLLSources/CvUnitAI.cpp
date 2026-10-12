@@ -229,6 +229,7 @@ bool CvUnitAI::AI_update()
 
 			case UNITAI_SETTLER:
 				AI_settlerMove();
+				AI_logSettler();
 				break;
 
 			case UNITAI_WORKER:
@@ -331,7 +332,9 @@ bool CvUnitAI::AI_update()
 				break;
 			//End TAC Whaling, ray
 			case UNITAI_TRANSPORT_SEA:
+				s_szWtpShipReason = "other";
 				AI_transportSeaMove();
+				AI_logShipTarget();
 				break;
 
 			case UNITAI_ASSAULT_SEA:
@@ -1781,7 +1784,7 @@ void CvUnitAI::AI_workerMove()
 		{
 			if (canJoinCity(plot()))
 			{
-				if (gUnitLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) turn %d surplus pioneer %S joins %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "WTP decision: Player %d (%S) turn %d surplus pioneer %S joins %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
 					GC.getGameINLINE().getGameTurn(), getNameAndProfession().GetCString(), pSurplusCity->getName().GetCString());
 				kOwner.AI_clearSurplusPioneer();
 				joinCity();
@@ -4867,7 +4870,7 @@ bool CvUnitAI::AI_sailToPreferredPort(bool bMove)
 		const bool bEuropeWaiting = GET_PLAYER(getOwnerINLINE()).getNumEuropeUnits() > 3;
 		if (!bEuropeWaiting && AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && GET_PLAYER(getOwnerINLINE()).AI_wantsAfricaFoodWorkers())
 		{
-			if (gUnitLogLevel >= 1) logBBAI("WTP ship: Player %d (%S) ship %S sails to Africa for farm workers", getOwnerINLINE(),
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) ship %S sails to Africa for farm workers", getOwnerINLINE(),
 				kOwner.getCivilizationDescription(0), getName().GetCString());
 			return AI_sailToAfrica(bMove);
 		}
@@ -5048,7 +5051,7 @@ bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget)
 		{
 			loadUnit(pLoopUnit);
 			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_FOUND, kTarget.plot());
-			if (gUnitLogLevel >= 1) logBBAI("WTP ship: Player %d (%S) turn %d %S boards %S in %S for its job in %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S boards %S in %S for its job in %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
 				GC.getGameINLINE().getGameTurn(), getName().GetCString(), pLoopUnit->getName().GetCString(), pPort->getName().GetCString(), kTarget.getName().GetCString());
 			return true;
 		}
@@ -5110,7 +5113,7 @@ void CvUnitAI::AI_transportSettler()
 		// WTP: nothing legal in sight - explore further instead of waiting until someone else reveals a site
 		if (kOwner.getNumCities() == 0)
 		{
-			if (gUnitLogLevel >= 1) logBBAI("WTP ship: Player %d (%S) turn %d settler ship %S finds no first colony site, explores",
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d settler ship %S finds no first colony site, explores",
 				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString());
 			if (AI_exploreCoast(3) || AI_exploreOcean(2) || AI_exploreDeep())
 				return;
@@ -5172,6 +5175,72 @@ void CvUnitAI::AI_transportSettler()
 	return;
 }
 
+
+// WTP: why a transport chose its target this turn (for the ship log)
+const char* CvUnitAI::s_szWtpShipReason = "other";
+
+// WTP: the settler log names the site of every settler each time it moves and whether it can found there
+void CvUnitAI::AI_logSettler()
+{
+	// a settler that founded is a citizen now (not on the map)
+	if (gUnitLogLevel < 1 || isDelayedDeath() || !isOnMap() || getGroup() == NULL || AI_getUnitAIType() != UNITAI_SETTLER)
+	{
+		return;
+	}
+	CvSelectionGroup* const pGroup = getGroup();
+	const CvPlot* const pTarget = pGroup->AI_getMissionAIType() == MISSIONAI_FOUND ? pGroup->AI_getMissionAIPlot() : NULL;
+	const MissionTypes eMission = pGroup->headMissionQueueNode() != NULL ? pGroup->headMissionQueueNode()->m_data.eMissionType : NO_MISSION;
+	logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler %S at %d,%d%s moves %d, group %d units (all can move %d), mission %d, missionAI %d, site %d,%d%s, can found here %d, site value %d",
+		getNameAndProfession().GetCString(), getX_INLINE(), getY_INLINE(), isCargo() ? " (on a ship)" : "", (int)canMove(), pGroup->getNumUnits(), (int)pGroup->canAllMove(),
+		(int)eMission, (int)pGroup->AI_getMissionAIType(), pTarget != NULL ? pTarget->getX_INLINE() : -1, pTarget != NULL ? pTarget->getY_INLINE() : -1,
+		(pTarget != NULL && atPlot(pTarget)) ? " (at the site)" : "", (int)canFound(plot()), pTarget != NULL ? AI_foundValue(const_cast<CvPlot*>(pTarget)) : -1);
+}
+
+// WTP: the ship log names the target of every transport each time it moves
+void CvUnitAI::AI_logShipTarget()
+{
+	if (gUnitLogLevel < 1 || isDelayedDeath())
+	{
+		return;
+	}
+	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	CvSelectionGroup* const pGroup = getGroup();
+	const MissionAITypes eMissionAI = pGroup->AI_getMissionAIType();
+	const CvPlot* const pTarget = pGroup->AI_getMissionAIPlot();
+	const char* szMission;
+	switch (eMissionAI)
+	{
+	case NO_MISSIONAI: szMission = "none"; break;
+	case MISSIONAI_EXPLORE: szMission = "explore"; break;
+	case MISSIONAI_FOUND: szMission = "found"; break;
+	case MISSIONAI_PICKUP: szMission = "pickup"; break;
+	case MISSIONAI_AWAIT_PICKUP: szMission = "await pickup"; break;
+	case MISSIONAI_SAIL_TO_EUROPE: szMission = "sail to Europe"; break;
+	case MISSIONAI_SAIL_TO_AFRICA: szMission = "sail to Africa"; break;
+	case MISSIONAI_SAIL_TO_PORT_ROYAL: szMission = "sail to Port Royal"; break;
+	case MISSIONAI_TRANSPORT: szMission = "transport"; break;
+	case MISSIONAI_TRANSPORT_SEA: szMission = "transport sea"; break;
+	default: szMission = "other"; break;
+	}
+	CvWString szTarget;
+	if (pTarget != NULL)
+	{
+		szTarget.Format(L"%d,%d", pTarget->getX_INLINE(), pTarget->getY_INLINE());
+		if (pTarget->getPlotCity() != NULL)
+		{
+			szTarget += L" ";
+			szTarget += pTarget->getPlotCity()->getName();
+		}
+	}
+	else
+	{
+		szTarget = L"-";
+	}
+	logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "%S (%S) at %d,%d moves %d state %d cargo %d/%d (passengers %d, treasures %d): %s -> %s %S; Europe waiting %d, room of other ships sailing there %d",
+		getName().GetCString(), getUnitInfo().getDescription(), getX_INLINE(), getY_INLINE(), (int)canMove(), (int)AI_getUnitAIState(), getCargo(), cargoSpace(),
+		getUnitAICargo(UNITAI_SETTLER) + getUnitAICargo(UNITAI_COLONIST) + getUnitAICargo(UNITAI_WORKER) + getUnitAICargo(UNITAI_SCOUT), getUnitAICargo(UNITAI_TREASURE),
+		s_szWtpShipReason, szMission, szTarget.GetCString(), kOwner.getNumEuropeUnits(), GET_PLAYER(getOwnerINLINE()).AI_cargoSpaceToEurope(pGroup));
+}
 
 void CvUnitAI::AI_transportSeaMove()
 {
@@ -5294,7 +5363,7 @@ void CvUnitAI::AI_transportSeaMove()
 			}
 			if (getUnitAICargo(UNITAI_SETTLER) > 0 && gUnitLogLevel >= 1)
 			{
-				logBBAI("WTP ship: Player %d (%S) turn %d ship %S at %d,%d cannot deliver its settler, takes it to a colony", getOwnerINLINE(),
+				logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d ship %S at %d,%d cannot deliver its settler, takes it to a colony", getOwnerINLINE(),
 					kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), getX_INLINE(), getY_INLINE());
 			}
 			if (pCity != NULL)
@@ -5313,7 +5382,7 @@ void CvUnitAI::AI_transportSeaMove()
 				{
 					apPassengers[i]->unload();
 				}
-				if (gUnitLogLevel >= 1) logBBAI("WTP ship: Player %d (%S) ship %S puts %d passengers without destination ashore in %S", getOwnerINLINE(),
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) ship %S puts %d passengers without destination ashore in %S", getOwnerINLINE(),
 					kOwner.getCivilizationDescription(0), getName().GetCString(), (int)apPassengers.size(), pCity->getName().GetCString());
 			}
 			else
@@ -7407,7 +7476,7 @@ bool CvUnitAI::AI_europe()
 	FAssert(plot()->isEurope());
 	FAssert(canCrossOcean(plot(), UNIT_TRAVEL_STATE_FROM_EUROPE));
 
-	if (gUnitLogLevel >= 1) logBBAI("WTP ship: Player %d (%S) turn %d ship %S (unitAI %d) leaves Europe with cargo %d/%d, %d units still wait in Europe",
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d ship %S (unitAI %d) leaves Europe with cargo %d/%d, %d units still wait in Europe",
 		getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), (int)AI_getUnitAIType(),
 		getCargo(), cargoSpace(), kOwner.getNumEuropeUnits());
 	crossOcean(UNIT_TRAVEL_STATE_FROM_EUROPE);
@@ -9243,7 +9312,7 @@ bool CvUnitAI::AI_betterJob()
 	{
 		if (gUnitLogLevel >= 1)
 		{
-			logBBAI("WTP betterJob: Player %S turn %d %S (%S) swaps jobs with %S (%S) in %S, value %d", kOwner.getCivilizationDescription(), GC.getGameINLINE().getGameTurn(),
+			logWTP(WTP_LOG_PLAN, getOwnerINLINE(), "WTP betterJob: Player %S turn %d %S (%S) swaps jobs with %S (%S) in %S, value %d", kOwner.getCivilizationDescription(), GC.getGameINLINE().getGameTurn(),
 				getName().GetCString(), getNameAndProfession().GetCString(), pBestUnit->getName().GetCString(), pBestUnit->getNameAndProfession().GetCString(),
 				pCity->getName().GetCString(), iBestValue);
 		}
@@ -15902,7 +15971,17 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 		{
 			if (atPlot(pBestFoundPlot))
 			{
+				// WTP: log why the colony was not founded (the settler stood on its site for several turns)
+				const bool bCanMove = canMove();
+				const bool bAllMove = getGroup()->canAllMove();
+				const int iGroupUnits = getGroup()->getNumUnits();
 				getGroup()->pushMission(MISSION_FOUND, -1, -1, 0, false, false, MISSIONAI_FOUND, pBestFoundPlot);
+				if (gUnitLogLevel >= 1 && !pBestFoundPlot->isCity())
+				{
+					logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler %S could not found at %d,%d: can found %d, moves %d, group %d units (all can move %d), cargo %d",
+						getNameAndProfession().GetCString(), pBestFoundPlot->getX_INLINE(), pBestFoundPlot->getY_INLINE(), (int)canFound(pBestFoundPlot), (int)bCanMove,
+						iGroupUnits, (int)bAllMove, (int)isCargo());
+				}
 				return true;
 			}
 			else
@@ -18418,7 +18497,7 @@ bool CvUnitAI::AI_retreatFromDanger()
 		{
 			return false;
 		}
-		if (gUnitLogLevel >= 1 && hasAnyUnitInCargo()) logBBAI("WTP ship: Player %d (%S) turn %d ship %S with passengers retreats from danger %d at %d,%d",
+		if (gUnitLogLevel >= 1 && hasAnyUnitInCargo()) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d ship %S with passengers retreats from danger %d at %d,%d",
 			getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), iWaterDanger, getX_INLINE(), getY_INLINE());
 	}
 
@@ -20551,7 +20630,7 @@ bool CvUnitAI::AI_doWfTask()
 	{
 		if (!isCargo() && canClearSpecialty())
 		{
-			if (gUnitLogLevel >= 1) logBBAI("WTP plan: Player %d (%S) %S gives up its specialty", getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString());
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PLAN, getOwnerINLINE(), "WTP plan: Player %d (%S) %S gives up its specialty", getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString());
 			clearSpecialty(); // this unit is replaced, the new one has the task as WF_LEARN
 			return true;
 		}
@@ -20564,7 +20643,7 @@ bool CvUnitAI::AI_doWfTask()
 		CvPlot* const pVillage = GC.getMap().plotINLINE(m_iWfVillageX, m_iWfVillageY);
 		if (pVillage == NULL || !pVillage->isCity() || isCargo())
 		{
-			if (gUnitLogLevel >= 1) logBBAI("WTP plan: Player %d (%S) %S cannot learn: village gone or on a ship", getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString());
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PLAN, getOwnerINLINE(), "WTP plan: Player %d (%S) %S cannot learn: village gone or on a ship", getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString());
 			AI_clearWfTask();
 			return false;
 		}
@@ -20574,7 +20653,7 @@ bool CvUnitAI::AI_doWfTask()
 			const bool bFurious = GET_PLAYER(pVillage->getOwnerINLINE()).AI_getAttitude(getOwnerINLINE()) == ATTITUDE_FURIOUS;
 			if (!bFurious && canLearn())
 			{
-				if (gUnitLogLevel >= 1) logBBAI("WTP plan: Player %d (%S) %S learns in %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString(),
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PLAN, getOwnerINLINE(), "WTP plan: Player %d (%S) %S learns in %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString(),
 					pVillage->getPlotCity()->getName().GetCString());
 				kOwner.AI_clearWfLearnWait(getID());
 				learn();
@@ -20586,7 +20665,7 @@ bool CvUnitAI::AI_doWfTask()
 			if (iWaited >= 15)
 			{
 				const UnitClassTypes eTeach = pVillage->getPlotCity()->getTeachUnitClass();
-				if (gUnitLogLevel >= 1) logBBAI("WTP plan: Player %d (%S) %S gives up learning in %S after %d turns, %S is bought instead", getOwnerINLINE(),
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PLAN, getOwnerINLINE(), "WTP plan: Player %d (%S) %S gives up learning in %S after %d turns, %S is bought instead", getOwnerINLINE(),
 					kOwner.getCivilizationDescription(0), getName().GetCString(), pVillage->getPlotCity()->getName().GetCString(), iWaited,
 					eTeach != NO_UNITCLASS ? GC.getUnitClassInfo(eTeach).getDescription() : L"-");
 				kOwner.AI_setWfExpertToBuy(eTeach);
@@ -20594,7 +20673,7 @@ bool CvUnitAI::AI_doWfTask()
 				AI_clearWfTask();
 				return false;
 			}
-			if (gUnitLogLevel >= 1 && iWaited == 0) logBBAI("WTP plan: Player %d (%S) %S waits in %S to learn (learn unit %d, moves %d)", getOwnerINLINE(),
+			if (gUnitLogLevel >= 1 && iWaited == 0) logWTP(WTP_LOG_PLAN, getOwnerINLINE(), "WTP plan: Player %d (%S) %S waits in %S to learn (learn unit %d, moves %d)", getOwnerINLINE(),
 				kOwner.getCivilizationDescription(0), getName().GetCString(), pVillage->getPlotCity()->getName().GetCString(), (int)getLearnUnitType(pVillage), (int)canMove());
 			getGroup()->pushMission(MISSION_SKIP);
 			return true;
@@ -20604,7 +20683,7 @@ bool CvUnitAI::AI_doWfTask()
 			getGroup()->pushMission(MISSION_MOVE_TO, pVillage->getX_INLINE(), pVillage->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_LEARN, pVillage);
 			return true;
 		}
-		if (gUnitLogLevel >= 1) logBBAI("WTP plan: Player %d (%S) %S cannot learn: no path to %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString(),
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PLAN, getOwnerINLINE(), "WTP plan: Player %d (%S) %S cannot learn: no path to %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString(),
 			pVillage->getPlotCity()->getName().GetCString());
 		AI_clearWfTask();
 		return false;

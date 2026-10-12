@@ -188,6 +188,9 @@ protected:
 	void AI_workerSeaMove();
 	//End TAC Whaling, ray
 	void AI_transportSeaMove();
+	void AI_logShipTarget();
+	void AI_logSettler();
+	static const char* s_szWtpShipReason; // WTP: why a transport chose its target this turn (ship log)
 	void AI_transportCoastMove();
 	void AI_assaultSeaMove();
 	void AI_escortSeaMove();	// TAC - AI Escort Sea - koma13

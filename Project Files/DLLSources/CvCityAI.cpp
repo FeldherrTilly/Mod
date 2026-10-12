@@ -2491,7 +2491,7 @@ void CvCityAI::AI_doHurry(bool bForce)
 		{
 			// TODO: Log that we can't hurry
 			//pushOrder(ORDER_CONSTRUCT, eHurryBuilding, -1, false, false, false);
-			if (gCityLogLevel >= 1) logBBAI(" WTP buy: Player %S City %S hurries %S for %d gold (gold before %d)", GET_PLAYER(getOwnerINLINE()).getCivilizationDescription(),
+			if (gCityLogLevel >= 1) logWTP(WTP_LOG_BUY, getOwnerINLINE(), " WTP buy: Player %S City %S hurries %S for %d gold (gold before %d)", GET_PLAYER(getOwnerINLINE()).getCivilizationDescription(),
 				getName().GetCString(), GC.getBuildingInfo(eHurryBuilding).getDescription(), bhc.first, GET_PLAYER(getOwnerINLINE()).getGold());
 			hurry(eGoldHurry);
 			m_bHasHurried = true;
@@ -2547,7 +2547,7 @@ void CvCityAI::AI_doHurry(bool bForce)
 		}
 		else
 		{
-			if (gCityLogLevel >= 1) logBBAI(" WTP buy: Player %S City %S hurries %S for %d gold (gold before %d)", GET_PLAYER(getOwnerINLINE()).getCivilizationDescription(),
+			if (gCityLogLevel >= 1) logWTP(WTP_LOG_BUY, getOwnerINLINE(), " WTP buy: Player %S City %S hurries %S for %d gold (gold before %d)", GET_PLAYER(getOwnerINLINE()).getCivilizationDescription(),
 				getName().GetCString(), GC.getUnitInfo(eHurryUnit).getDescription(), uhc.first, GET_PLAYER(getOwnerINLINE()).getGold());
 			hurry(eGoldHurry);
 			m_bHasHurried = true;
@@ -4200,7 +4200,7 @@ void CvCityAI::AI_fixFoodShortage()
 		{
 			return;
 		}
-		if (gCityLogLevel >= 1) logBBAI("WTP food: Player %S City %S food %d: %S (%S) moves to a food plot (%d food)", GET_PLAYER(getOwnerINLINE()).getCivilizationDescription(),
+		if (gCityLogLevel >= 1) logWTPCity(*this, "WTP food: Player %S City %S food %d: %S (%S) moves to a food plot (%d food)", GET_PLAYER(getOwnerINLINE()).getCivilizationDescription(),
 			getName().GetCString(), foodDifference(), pWorst->getName().GetCString(), GC.getProfessionInfo(pWorst->getProfession()).getDescription(), iBestFood);
 		clearUnitWorkingPlot(getPlotWorkedByUnit(pWorst));
 		pWorst->setProfession(eBestProfession);
