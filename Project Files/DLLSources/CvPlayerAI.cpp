@@ -19743,18 +19743,14 @@ bool CvPlayerAI::AI_doEarlyImprovement()
 	return true;
 }
 
-// WTP: the expert unit class that works the resource
-static UnitClassTypes earlyExpertClassForBonus(BonusTypes eBonus)
+// WTP: the expert unit class that works the resource: the Prospector digs gold, silver and gemstones
+static UnitClassTypes earlyExpertClassForBonus(BonusTypes /*eBonus*/)
 {
-	const CvString szBonus = GC.getBonusInfo(eBonus).getType();
-	if (szBonus == "BONUS_PEARLS")
-	{
-		return (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_PEARLS_HUNTER");
-	}
-	return (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_MINER");
+	return (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_PROSPECTOR");
 }
 
-// WTP: value of a precious resource: gold, silver, gems, pearls
+// WTP: value of a precious resource: gold, silver, gems. (BONUS_PEARLS is the food resource "Shellfish" and no precious
+// resource: a colony settled for it brought nothing.)
 static int earlyBonusValue(BonusTypes eBonus)
 {
 	if (eBonus == NO_BONUS)
@@ -19765,7 +19761,6 @@ static int earlyBonusValue(BonusTypes eBonus)
 	if (szBonus == "BONUS_GOLD") return 40;
 	if (szBonus == "BONUS_SILVER") return 35;
 	if (szBonus == "BONUS_GEMS") return 25;
-	if (szBonus == "BONUS_PEARLS") return 20;
 	return 0;
 }
 
@@ -19888,9 +19883,16 @@ bool CvPlayerAI::AI_doEarlyResources()
 	}
 
 	BonusTypes eBonus = NO_BONUS;
-	if (AI_earlyResourceSite(&eBonus, NULL) == NULL)
+	int iSiteValue = 0;
+	const CvPlot* const pSite = AI_earlyResourceSite(&eBonus, &iSiteValue);
+	if (pSite != NULL && gPlayerLogLevel >= 1)
 	{
-		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_PLAN, getID(), "WTP early: Player %d (%S) turn %d knows no site with a precious resource for a colony", getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn());
+		logWTP(WTP_LOG_PLAN, getID(), "WTP early: Player %d (%S) turn %d resource site %d,%d next to %S (site value %d)", getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(),
+			pSite->getX_INLINE(), pSite->getY_INLINE(), GC.getBonusInfo(eBonus).getDescription(), iSiteValue);
+	}
+	if (pSite == NULL)
+	{
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_PLAN, getID(), "WTP early: Player %d (%S) turn %d knows no site next to gold, silver or gems for a colony", getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn());
 		if (GC.getGameINLINE().getGameTurn() > 80)
 		{
 			AI_earlyEnd();
