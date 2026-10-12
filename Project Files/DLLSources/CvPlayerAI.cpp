@@ -5239,6 +5239,21 @@ int CvPlayerAI::AI_nativeYieldTradeValue(YieldTypes eYield, int iAmount, bool bN
 	return iAmount * iPrice * (iHighPricePercent + iLowPricePercent) / 200;
 }
 
+// WTP: does this native village buy the yield from us? The denial rules of AI_yieldTrade (implementDeal does not check them)
+bool CvPlayerAI::AI_nativeCityBuys(YieldTypes eYield, const CvCity& kCity) const
+{
+	if (kCity.AI_getDesiredYield() == eYield)
+	{
+		return true;
+	}
+	if (GC.getYieldInfo(eYield).getNativeBuyPrice() <= 0)
+	{
+		return false;
+	}
+	// a yield the village produces itself is of no use to it (horses are always wanted)
+	return eYield == YIELD_HORSES || !kCity.canProduceYield(eYield);
+}
+
 // WTP: profit of buying iAmount of a yield from a native tribe and selling it in Europe (after tax).
 // False if the natives do not sell it or Europe does not buy it.
 bool CvPlayerAI::AI_nativeBuyProfit(YieldTypes eYield, int iAmount, PlayerTypes eNative, int& iProfit) const

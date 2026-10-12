@@ -377,6 +377,9 @@ protected:
 	bool AI_yieldDestination(int iMaxPath = MAX_INT);
 	bool AI_yieldNativeDestination(int iMaxPath = MAX_INT);
 	bool AI_tradeWithCity();
+	// WTP: native trade ship, deals with the native village on this plot
+	int AI_nativeTradeSell();
+	int AI_nativeTradeBuy();
 	
 	// TAC - AI Assault Sea - koma13, jdog5000(BBAI) - START
 	bool AI_assaultSeaTransport(bool bNative = false);
