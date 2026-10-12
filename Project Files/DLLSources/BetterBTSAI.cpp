@@ -19,7 +19,7 @@ void logBBAI(char const* format, ... )
 // WTP: split AI logs
 namespace
 {
-	const char* const WTP_LOG_TOPIC_NAMES[NUM_WTP_LOG_TOPICS] = { "status", "buy", "settler", "ship", "plan", "military" };
+	const char* const WTP_LOG_TOPIC_NAMES[NUM_WTP_LOG_TOPICS] = { "status", "buy", "settler", "ship", "plan", "military", "trade" };
 
 	// file names only take letters and digits, everything else becomes '_'
 	CvString wtpLogFileName(const wchar* szName)

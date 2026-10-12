@@ -39,6 +39,7 @@ enum WtpLogTopic
 	WTP_LOG_SHIP,
 	WTP_LOG_PLAN,
 	WTP_LOG_MILITARY,
+	WTP_LOG_TRADE,
 	NUM_WTP_LOG_TOPICS
 };
 class CvCity;
