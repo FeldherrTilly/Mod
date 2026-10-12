@@ -165,6 +165,7 @@ public:
 	int AI_nativeYieldTradeValue(YieldTypes eYield, int iAmount, bool bNativeBuys, const CvCity* pCity) const;
 	bool AI_nativeBuyProfit(YieldTypes eYield, int iAmount, PlayerTypes eNative, int& iProfit) const;
 	bool AI_nativeSellProfit(YieldTypes eYield, int iAmount, const CvCity& kNativeCity, int& iProfit) const;
+	bool AI_bargainWithNatives(PlayerTypes eNative, int& iPrice);
 
 	int AI_calculateDamages(TeamTypes eTeam);
 

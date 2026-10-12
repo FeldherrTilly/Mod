@@ -5277,6 +5277,42 @@ bool CvPlayerAI::AI_nativeSellProfit(YieldTypes eYield, int iAmount, const CvCit
 	return true;
 }
 
+// WTP: the AI bargains once for a better price when it sells to natives (the bargaining of the diplomacy screen is
+// Python driven, the AI has no access to it). Same rules: the natives may refuse (they do not trade with us for some
+// turns and like us less), otherwise the price rises by 7 to 21% plus the trader bonus, never above what the tribe may pay.
+// Returns true if the price was raised. iPrice is the price in gold the natives pay for the whole deal.
+bool CvPlayerAI::AI_bargainWithNatives(PlayerTypes eNative, int& iPrice)
+{
+	CvPlayerAI& kNative = GET_PLAYER(eNative);
+	if (!kNative.isNative() || iPrice <= 0)
+	{
+		return false;
+	}
+
+	const int iAttitudeLevel = (int)kNative.AI_getAttitude(getID(), false);
+	const int iRandomBase = std::max(1, 1000 + GLOBAL_DEFINE_CHANCE_IMPROVEMENT_ATTITUDE * iAttitudeLevel);
+	if (GC.getGameINLINE().getSorenRandNum(iRandomBase, "AI bargain sell fails") < GLOBAL_DEFINE_BASE_CHANCE_BARGAIN_SELL_FAIL)
+	{
+		const int iMaxTurns = GLOBAL_DEFINE_ROUNDS_NO_TALK_BECAUSE_BAD_BARGAINING * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getTrainPercent() / 100;
+		const int iTurns = std::max(1, (iMaxTurns > 0) ? GC.getGameINLINE().getSorenRandNum(iMaxTurns, "AI bargain anger turns") : 0);
+		kNative.applyBargainOutcome(getID(), iTurns, false);
+		return false;
+	}
+
+	const int iMaxIncrease = GLOBAL_DEFINE_PRICE_INCREASE_BARGAIN_SELL;
+	const int iIncrease = std::max(iMaxIncrease / 3, GC.getGameINLINE().getSorenRandNum(std::max(1, iMaxIncrease), "AI bargain sell price"));
+	const int iModifier = std::min(getNativeTradeModifier() + kNative.getNativeTradeModifier(), GLOBAL_DEFINE_MAX_NATIVE_BARGAIN_MODIFIER);
+	int iNewPrice = iPrice * (1000 + iIncrease) / 1000;
+	iNewPrice = iNewPrice * (100 + iModifier) / 100;
+	iNewPrice = std::min(iNewPrice, kNative.AI_maxGoldTrade(getID()));
+	if (iNewPrice <= iPrice)
+	{
+		return false;
+	}
+	iPrice = iNewPrice;
+	return true;
+}
+
 int CvPlayerAI::AI_calculateDamages(TeamTypes eTeam)
 {
 	int iValue = 0;
