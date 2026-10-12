@@ -190,6 +190,7 @@ protected:
 	void AI_transportSeaMove();
 	void AI_logShipTarget();
 	void AI_logSettler();
+	bool AI_sailForEuropeBacklog();
 	static const char* s_szWtpShipReason; // WTP: why a transport chose its target this turn (ship log)
 	void AI_transportCoastMove();
 	void AI_assaultSeaMove();
@@ -314,7 +315,7 @@ protected:
 	bool AI_safety();
 	bool AI_hide();
 	bool AI_goody(bool bIgnoreCity = false);
-	bool AI_goodyRange(int iRange, bool bIgnoreCity = false);
+	bool AI_goodyRange(int iRange, bool bIgnoreCity = false, int iMaxPathTurns = MAX_INT);
 
 	bool AI_isValidExplore(CvPlot* pPlot) const;
 	int AI_explorePlotValue(CvPlot* pPlot, bool bImportantOnly = false) const;
