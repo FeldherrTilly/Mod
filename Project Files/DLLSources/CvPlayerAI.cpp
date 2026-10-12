@@ -282,7 +282,7 @@ void CvPlayerAI::AI_logStatusSummary()
 	{
 		return;
 	}
-	logBBAI("WTP status: Player %d (%S) turn %d gold %d cities %d pop %d desiredCities %d settlers %d workers %d/%d needed, europeUnits %d, crosses %d/%d, warPlans %d",
+	logWTP(WTP_LOG_STATUS, getID(), "WTP status: Player %d (%S) turn %d gold %d cities %d pop %d desiredCities %d settlers %d workers %d/%d needed, europeUnits %d, crosses %d/%d, warPlans %d",
 		getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getGold(), getNumCities(), getTotalPopulation(),
 		AI_desiredCityCount(), AI_totalUnitAIs(UNITAI_SETTLER), AI_totalUnitAIs(UNITAI_WORKER), AI_neededWorkers(NULL),
 		getNumEuropeUnits(), getCrossesStored(), immigrationThreshold(), GET_TEAM(getTeam()).getAnyWarPlanCount());
@@ -297,14 +297,14 @@ void CvPlayerAI::AI_logStatusSummary()
 			szUnitAIs += CvString::format(" %d:%d", (int)eUnitAI, iCount);
 		}
 	}
-	logBBAI("WTP status:   unitAIs (type:count)%s", szUnitAIs.c_str());
+	logWTP(WTP_LOG_STATUS, getID(), "WTP status:   unitAIs (type:count)%s", szUnitAIs.c_str());
 
 	int iLoop;
 	for (CvArea* pArea = GC.getMap().firstArea(&iLoop); pArea != NULL; pArea = GC.getMap().nextArea(&iLoop))
 	{
 		if (!pArea->isWater() && pArea->getCitiesPerPlayer(getID()) > 0)
 		{
-			logBBAI("WTP status:   area %d tiles %d ownCities %d allCities %d bestFoundValue %d",
+			logWTP(WTP_LOG_SETTLER, getID(), "WTP status:   area %d tiles %d ownCities %d allCities %d bestFoundValue %d",
 				pArea->getID(), pArea->getNumTiles(), pArea->getCitiesPerPlayer(getID()), pArea->getNumCities(), pArea->getBestFoundValue(getID()));
 		}
 	}
@@ -318,7 +318,7 @@ void CvPlayerAI::AI_logStatusSummary()
 		}
 		CvSelectionGroup* const pGroup = pSettler->getGroup();
 		const CvPlot* const pTarget = (pGroup != NULL) ? pGroup->AI_getMissionAIPlot() : NULL;
-		logBBAI("WTP status:   settler %S at %d,%d%s missionAI %d target %d,%d since turn %d",
+		logWTP(WTP_LOG_SETTLER, getID(), "WTP status:   settler %S at %d,%d%s missionAI %d target %d,%d since turn %d",
 			pSettler->getNameAndProfession().GetCString(), pSettler->getX_INLINE(), pSettler->getY_INLINE(), pSettler->isCargo() ? " (on ship)" : "",
 			(pGroup != NULL) ? (int)pGroup->AI_getMissionAIType() : -1,
 			(pTarget != NULL) ? pTarget->getX_INLINE() : -1, (pTarget != NULL) ? pTarget->getY_INLINE() : -1, static_cast<const CvUnitAI*>(pSettler)->AI_getLastAIChangeTurn());
@@ -332,7 +332,7 @@ void CvPlayerAI::AI_logStatusSummary()
 		}
 		CvSelectionGroup* const pGroup = pShip->getGroup();
 		const CvPlot* const pMissionPlot = (pGroup != NULL) ? pGroup->AI_getMissionAIPlot() : NULL;
-		logBBAI("WTP status:   ship %S unitAI %d travelState %d timer %d at %d,%d cargo %d/%d (goods %d settlers %d colonists %d) missionAI %d target %d,%d",
+		logWTP(WTP_LOG_SHIP, getID(), "WTP status:   ship %S unitAI %d travelState %d timer %d at %d,%d cargo %d/%d (goods %d settlers %d colonists %d) missionAI %d target %d,%d",
 			pShip->getName().GetCString(), (int)pShip->AI_getUnitAIType(), (int)pShip->getUnitTravelState(), pShip->getUnitTravelTimer(),
 			pShip->getX_INLINE(), pShip->getY_INLINE(), pShip->getCargo(), pShip->cargoSpace(),
 			pShip->getUnitAICargo(UNITAI_YIELD), pShip->getUnitAICargo(UNITAI_SETTLER), pShip->getUnitAICargo(UNITAI_COLONIST),
@@ -367,8 +367,8 @@ void CvPlayerAI::AI_logStatusSummary()
 		{
 			szJobs += CvWString::format(L"%s%s %d", j > 0 ? L", " : L"", aJobs[j].first != NO_PROFESSION ? GC.getProfessionInfo(aJobs[j].first).getDescription() : L"none", aJobs[j].second);
 		}
-		logBBAI("WTP status:     jobs in %S: %S", pCity->getName().GetCString(), szJobs.GetCString());
-		logBBAI("WTP status:   city %S pop %d food %+d (%d/%d) hammers %d lumber %d builds %S",
+		logWTPCity(*pCity, "WTP status:     jobs in %S: %S", pCity->getName().GetCString(), szJobs.GetCString());
+		logWTPCity(*pCity, "WTP status:   city %S pop %d food %+d (%d/%d) hammers %d lumber %d builds %S",
 			pCity->getName().GetCString(), pCity->getPopulation(), pCity->foodDifference(), pCity->getFood(), pCity->growthThreshold(),
 			pCity->getCurrentProductionDifference(false), pCity->getYieldStored(YIELD_LUMBER), pCity->getProductionName());
 	}
@@ -8056,7 +8056,7 @@ void CvPlayerAI::AI_doReclaimTerritory()
 		{
 			pLoopPlot->setNotCulture(getID(), false);
 			++iReclaimed;
-			if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) turn %d reclaims plot %d,%d", getID(), getCivilizationDescription(0),
+			if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_STATUS, getID(), "WTP decision: Player %d (%S) turn %d reclaims plot %d,%d", getID(), getCivilizationDescription(0),
 				GC.getGameINLINE().getGameTurn(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
 		}
 	}
@@ -9391,7 +9391,7 @@ void CvPlayerAI::AI_doEurope()
 				}
 				else if (gPlayerLogLevel >= 1)
 				{
-					logBBAI("WTP decision: Player %d (%S) saves for its first transport %S (%d gold, have %d)",
+					logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) saves for its first transport %S (%d gold, have %d)",
 						getID(), getCivilizationDescription(0), GC.getUnitInfo(eBestShip).getDescription(), iShipPrice, getGold());
 				}
 
@@ -16483,7 +16483,7 @@ void CvPlayerAI::AI_updateNextBuyUnit(bool bPriceLimit)
 	m_eNextBuyUnit = eBestUnit;
 	m_eNextBuyUnitAI = eBestUnitAI;
 	m_iNextBuyUnitValue = iBestValue;
-	if (gPlayerLogLevel >= 1 && eBestUnit != NO_UNIT) logBBAI("WTP decision: Player %d (%S) next military buy %S unitAI %d value %d price %d gold %d",
+	if (gPlayerLogLevel >= 1 && eBestUnit != NO_UNIT) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) next military buy %S unitAI %d value %d price %d gold %d",
 		getID(), getCivilizationDescription(0), GC.getUnitInfo(eBestUnit).getDescription(), (int)eBestUnitAI, iBestValue, getEuropeUnitBuyPrice(eBestUnit), getGold());
 }
 
@@ -17262,7 +17262,7 @@ bool CvPlayerAI::AI_buyCivilianUnit(UnitTypes eUnit, UnitAITypes eUnitAI, Profes
 {
 	if (eUnit == NO_UNIT || !AI_canAffordCivilianPurchase(getEuropeUnitBuyPrice(eUnit)))
 	{
-		if (gPlayerLogLevel >= 1 && eUnit != NO_UNIT) logBBAI("WTP decision:   cannot afford %S (%d gold, have %d)",
+		if (gPlayerLogLevel >= 1 && eUnit != NO_UNIT) logWTP(WTP_LOG_BUY, getID(), "WTP decision:   cannot afford %S (%d gold, have %d)",
 			GC.getUnitInfo(eUnit).getDescription(), getEuropeUnitBuyPrice(eUnit), getGold());
 		return false;
 	}
@@ -17400,7 +17400,7 @@ void CvPlayerAI::AI_doCitizenRelocation()
 				pLoopUnit->setProfession(eTraderProfession);
 			}
 			pLoopUnit->AI_setUnitAIType(UNITAI_TRADER);
-			if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) turn %d sets %S back to native trader", getID(), getCivilizationDescription(0),
+			if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_PLAN, getID(), "WTP decision: Player %d (%S) turn %d sets %S back to native trader", getID(), getCivilizationDescription(0),
 				GC.getGameINLINE().getGameTurn(), pLoopUnit->getName().GetCString());
 		}
 	}
@@ -17418,7 +17418,7 @@ void CvPlayerAI::AI_doCitizenRelocation()
 				if (pCity->removePopulationUnit(CREATE_ASSERT_DATA, pCitizen, false, eTraderProfession))
 				{
 					pCitizen->AI_setUnitAIType(UNITAI_TRADER);
-					if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) turn %d takes expert native trader %S out of %S",
+					if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_PLAN, getID(), "WTP decision: Player %d (%S) turn %d takes expert native trader %S out of %S",
 						getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pCitizen->getName().GetCString(), pCity->getName().GetCString());
 				}
 				break;
@@ -17457,7 +17457,7 @@ void CvPlayerAI::AI_doCitizenRelocation()
 			if (pCity->removePopulationUnit(CREATE_ASSERT_DATA, apJobless[i], false, eDefaultProfession))
 			{
 				apJobless[i]->AI_setUnitAIType(bSettler ? UNITAI_SETTLER : UNITAI_COLONIST);
-				if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) turn %d jobless %S leaves %S as %s", getID(), getCivilizationDescription(0),
+				if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_SETTLER, getID(), "WTP decision: Player %d (%S) turn %d jobless %S leaves %S as %s", getID(), getCivilizationDescription(0),
 					GC.getGameINLINE().getGameTurn(), apJobless[i]->getName().GetCString(), pCity->getName().GetCString(), bSettler ? "settler" : "colonist");
 			}
 		}
@@ -17512,7 +17512,7 @@ void CvPlayerAI::AI_doCitizenRelocation()
 				pSettler->canHaveProfession(eSettlerProfession, false) ? eSettlerProfession : eDefaultProfession))
 			{
 				pSettler->AI_setUnitAIType(UNITAI_SETTLER);
-				if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) turn %d %S leaves %S (%d colonists) as settler", getID(), getCivilizationDescription(0),
+				if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_SETTLER, getID(), "WTP decision: Player %d (%S) turn %d %S leaves %S (%d colonists) as settler", getID(), getCivilizationDescription(0),
 					GC.getGameINLINE().getGameTurn(), pSettler->getName().GetCString(), pLargest->getName().GetCString(), pLargest->getPopulation() + 1);
 			}
 		}
@@ -17546,7 +17546,7 @@ void CvPlayerAI::AI_doCitizenRelocation()
 		if (pLeaving != NULL && pCity->removePopulationUnit(CREATE_ASSERT_DATA, pLeaving, false, eDefaultProfession))
 		{
 			pLeaving->AI_setUnitAIType(UNITAI_COLONIST);
-			if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) turn %d takes %S out of starving %S (food %d, stored %d)",
+			if (gPlayerLogLevel >= 1) logWTPCity(*pCity, "WTP decision: Player %d (%S) turn %d takes %S out of starving %S (food %d, stored %d)",
 				getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pLeaving->getName().GetCString(),
 				pCity->getName().GetCString(), pCity->foodDifference(), pCity->getFood());
 		}
@@ -17709,7 +17709,7 @@ bool CvPlayerAI::AI_doWfExpertPurchase()
 	if (getGold() < iPrice)
 	{
 		AI_setSavingGold();
-		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) saves for %S in %s (%d gold, have %d): learning it was blocked", getID(),
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) saves for %S in %s (%d gold, have %d): learning it was blocked", getID(),
 			getCivilizationDescription(0), GC.getUnitClassInfo(m_eWfExpertToBuy).getDescription(), bAfrica ? "Africa" : "Europe", iPrice, getGold());
 		return true;
 	}
@@ -17717,7 +17717,7 @@ bool CvPlayerAI::AI_doWfExpertPurchase()
 	if (pUnit != NULL)
 	{
 		pUnit->AI_setUnitAIType(UNITAI_COLONIST);
-		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) buys %S in %s instead of learning it", getID(), getCivilizationDescription(0),
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) buys %S in %s instead of learning it", getID(), getCivilizationDescription(0),
 			pUnit->getName().GetCString(), bAfrica ? "Africa" : "Europe");
 	}
 	m_eWfExpertToBuy = NO_UNITCLASS;
@@ -17847,7 +17847,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		}
 		for (uint i = 0; i < apToClear.size(); ++i)
 		{
-			if (gPlayerLogLevel >= 1) logBBAI("WTP plan: Player %d (%S) turn %d %S gives up its specialty: its raw material is nowhere near the colonies",
+			if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_PLAN, getID(), "WTP plan: Player %d (%S) turn %d %S gives up its specialty: its raw material is nowhere near the colonies",
 				getID(), getCivilizationDescription(0), iTurn, apToClear[i]->getName().GetCString());
 			apToClear[i]->clearSpecialty();
 		}
@@ -18057,7 +18057,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		// a unit already living among the natives finishes learning in any case
 		if (!bKept && kUnit.getUnitTravelState() != UNIT_TRAVEL_STATE_LIVE_AMONG_NATIVES)
 		{
-			if (gPlayerLogLevel >= 1) logBBAI("WTP plan: Player %d (%S) turn %d drops task %d of %S (opportunity gone)", getID(), getCivilizationDescription(0), iTurn,
+			if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_PLAN, getID(), "WTP plan: Player %d (%S) turn %d drops task %d of %S (opportunity gone)", getID(), getCivilizationDescription(0), iTurn,
 				kUnit.AI_getWfTask(), kUnit.getName().GetCString());
 			kUnit.AI_clearWfTask();
 		}
@@ -18133,7 +18133,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			kOpp.pAssigned = pBest;
 			pBest->AI_setWfTask(CvUnitAI::WF_EXPERT_JOB, kOpp.pCity->getID(), kOpp.eProfession,
 				kOpp.pPlot != NULL ? kOpp.pPlot->getX_INLINE() : -1, kOpp.pPlot != NULL ? kOpp.pPlot->getY_INLINE() : -1, -1, -1);
-			if (gPlayerLogLevel >= 1) logBBAI("WTP plan: Player %d (%S) turn %d %S -> expert job %S in %S at %d,%d", getID(), getCivilizationDescription(0), iTurn,
+			if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_PLAN, getID(), "WTP plan: Player %d (%S) turn %d %S -> expert job %S in %S at %d,%d", getID(), getCivilizationDescription(0), iTurn,
 				pBest->getName().GetCString(), GC.getProfessionInfo(kOpp.eProfession).getDescription(), kOpp.pCity->getName().GetCString(),
 				kOpp.pPlot != NULL ? kOpp.pPlot->getX_INLINE() : -1, kOpp.pPlot != NULL ? kOpp.pPlot->getY_INLINE() : -1);
 
@@ -18261,7 +18261,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		pBest->AI_setWfTask(bBestRetrain ? CvUnitAI::WF_RETRAIN : CvUnitAI::WF_LEARN, kOpp.pCity->getID(), kOpp.eProfession,
 			kOpp.pPlot != NULL ? kOpp.pPlot->getX_INLINE() : -1, kOpp.pPlot != NULL ? kOpp.pPlot->getY_INLINE() : -1,
 			pVillage->getX_INLINE(), pVillage->getY_INLINE());
-		if (gPlayerLogLevel >= 1) logBBAI("WTP plan: Player %d (%S) turn %d %S -> %s at village %S (%d,%d) as %S for %S in %S at %d,%d", getID(), getCivilizationDescription(0), iTurn,
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_PLAN, getID(), "WTP plan: Player %d (%S) turn %d %S -> %s at village %S (%d,%d) as %S for %S in %S at %d,%d", getID(), getCivilizationDescription(0), iTurn,
 			pBest->getName().GetCString(), bBestRetrain ? "give up specialty and learn" : "learn", pVillage->getName().GetCString(), pVillage->getX_INLINE(), pVillage->getY_INLINE(),
 			GC.getUnitClassInfo(kOpp.eExpertClass).getDescription(), GC.getProfessionInfo(kOpp.eProfession).getDescription(), kOpp.pCity->getName().GetCString(),
 			kOpp.pPlot != NULL ? kOpp.pPlot->getX_INLINE() : -1, kOpp.pPlot != NULL ? kOpp.pPlot->getY_INLINE() : -1);
@@ -18312,7 +18312,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			const int iTask = static_cast<CvUnitAI*>(apUnits[i])->AI_getWfTask();
 			iLearners += (iTask == CvUnitAI::WF_LEARN || iTask == CvUnitAI::WF_RETRAIN) ? 1 : 0;
 		}
-		logBBAI("WTP plan: Player %d (%S) turn %d opportunities %d (notable %d), planned %d, learning %d, workforce units %d",
+		logWTP(WTP_LOG_PLAN, getID(), "WTP plan: Player %d (%S) turn %d opportunities %d (notable %d), planned %d, learning %d, workforce units %d",
 			getID(), getCivilizationDescription(0), iTurn, (int)aOpps.size(), iNotable, iFilled, iLearners, (int)apUnits.size());
 	}
 }
@@ -18522,7 +18522,7 @@ bool CvPlayerAI::AI_doTreasureShipPurchase()
 	const int iBestPrice = getEuropeUnitBuyPrice(eShip);
 	if (getGold() < iBestPrice)
 	{
-		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) saves for %S (%d gold, have %d): %d treasures wait for pickup",
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) saves for %S (%d gold, have %d): %d treasures wait for pickup",
 			getID(), getCivilizationDescription(0), GC.getUnitInfo(eShip).getDescription(), iBestPrice, getGold(), iTreasures);
 		return true;
 	}
@@ -18530,7 +18530,7 @@ bool CvPlayerAI::AI_doTreasureShipPurchase()
 	if (pUnit != NULL)
 	{
 		pUnit->AI_setUnitAIType(UNITAI_TRANSPORT_SEA);
-		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) buys %S for %d treasures waiting for pickup",
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) buys %S for %d treasures waiting for pickup",
 			getID(), getCivilizationDescription(0), pUnit->getName().GetCString(), iTreasures);
 	}
 	return false;
@@ -18622,7 +18622,7 @@ void CvPlayerAI::AI_doNativeMercDefense()
 		if (pLoopUnit->getUnitType() == eMerc && pLoopUnit->AI_getUnitAIType() == UNITAI_OFFENSIVE)
 		{
 			pLoopUnit->AI_setUnitAIType(UNITAI_DEFENSIVE);
-			if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) native mercenary %S defends the colonies in peace", getID(), getCivilizationDescription(0),
+			if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_MILITARY, getID(), "WTP decision: Player %d (%S) native mercenary %S defends the colonies in peace", getID(), getCivilizationDescription(0),
 				pLoopUnit->getName().GetCString());
 		}
 	}
@@ -18695,7 +18695,7 @@ void CvPlayerAI::AI_doSurplusPioneers()
 	}
 	m_iSurplusPioneerID = pBest->getID();
 	m_iSurplusPioneerCityID = pBestCity->getID();
-	if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) turn %d has %d pioneers, needs %d: %S goes to %S to join it", getID(), getCivilizationDescription(0),
+	if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_SETTLER, getID(), "WTP decision: Player %d (%S) turn %d has %d pioneers, needs %d: %S goes to %S to join it", getID(), getCivilizationDescription(0),
 		GC.getGameINLINE().getGameTurn(), iHave, iNeeded, pBest->getNameAndProfession().GetCString(), pBestCity->getName().GetCString());
 }
 
@@ -18824,7 +18824,7 @@ bool CvPlayerAI::AI_doColonyTransportPurchase()
 	if (getGold() < iPrice)
 	{
 		AI_setSavingGold();
-		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) saves for transport %S (%d gold, have %d): %d transports for %d colonies",
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) saves for transport %S (%d gold, have %d): %d transports for %d colonies",
 			getID(), getCivilizationDescription(0), GC.getUnitInfo(eShip).getDescription(), iPrice, getGold(), iTransports, getNumCities());
 		return true;
 	}
@@ -18832,7 +18832,7 @@ bool CvPlayerAI::AI_doColonyTransportPurchase()
 	if (pUnit != NULL)
 	{
 		pUnit->AI_setUnitAIType(UNITAI_TRANSPORT_SEA);
-		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) buys transport %S: %d transports for %d colonies",
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) buys transport %S: %d transports for %d colonies",
 			getID(), getCivilizationDescription(0), pUnit->getName().GetCString(), iTransports, getNumCities());
 	}
 	return false;
@@ -18901,7 +18901,7 @@ void CvPlayerAI::AI_doEquipPioneersInEurope()
 			return; // not affordable
 		}
 		pBest->AI_setUnitAIType(UNITAI_WORKER);
-		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) equips %S as pioneer in Europe (%d pioneers, %d needed)", getID(), getCivilizationDescription(0),
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) equips %S as pioneer in Europe (%d pioneers, %d needed)", getID(), getCivilizationDescription(0),
 			pBest->getName().GetCString(), AI_totalUnitAIs(UNITAI_WORKER), AI_neededWorkers(NULL));
 	}
 }
@@ -18966,7 +18966,7 @@ bool CvPlayerAI::AI_buyExpertForOpportunity()
 	}
 	const WfOpenOpportunity kOpp = m_aWfOpenOpportunities[iChosen];
 	const CvCity* const pCity = getCity(kOpp.iCityID);
-	if (gPlayerLogLevel >= 1) logBBAI("WTP decision:   expert %S for the opportunity %S in %S%s (value %d)", GC.getUnitClassInfo(kOpp.eExpertClass).getDescription(),
+	if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision:   expert %S for the opportunity %S in %S%s (value %d)", GC.getUnitClassInfo(kOpp.eExpertClass).getDescription(),
 		GC.getProfessionInfo(kOpp.eProfession).getDescription(), pCity->getName().GetCString(), (kOpp.iPlotIndex >= 0) ? L" (plot)" : L"", kOpp.iValue);
 	if (AI_buyCivilianUnit(kCiv.getCivilizationUnits(kOpp.eExpertClass), UNITAI_COLONIST, NO_PROFESSION))
 	{
@@ -19020,7 +19020,7 @@ bool CvPlayerAI::AI_doScoutPurchase()
 			{
 				// WTP: the AI saves for the scout: no civilian units and no hurrying meanwhile
 				AI_setSavingGold();
-				if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) saves for a scout (%d gold, have %d)", getID(), getCivilizationDescription(0),
+				if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) saves for a scout (%d gold, have %d)", getID(), getCivilizationDescription(0),
 					getEuropeUnitBuyPrice(eUnit) + iEquipCost, getGold());
 				return true;
 			}
@@ -19032,7 +19032,7 @@ bool CvPlayerAI::AI_doScoutPurchase()
 					changeProfessionEurope(pScout->getID(), eScoutProfession);
 				}
 				pScout->AI_setUnitAIType(UNITAI_SCOUT);
-				if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) buys scout %S", getID(), getCivilizationDescription(0), pScout->getNameAndProfession().GetCString());
+				if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) buys scout %S", getID(), getCivilizationDescription(0), pScout->getNameAndProfession().GetCString());
 				break;
 			}
 		}
@@ -19075,7 +19075,7 @@ bool CvPlayerAI::AI_doTransportPurchase()
 	if (getGold() < iPrice)
 	{
 		AI_setSavingGold();
-		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) saves for transport %S (%d gold, have %d): %d units wait in Europe, capacity %d in %d transports",
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) saves for transport %S (%d gold, have %d): %d units wait in Europe, capacity %d in %d transports",
 			getID(), getCivilizationDescription(0), GC.getUnitInfo(eShip).getDescription(), iPrice, getGold(), iWaiting, iCapacity, iTransports);
 		return true;
 	}
@@ -19083,7 +19083,7 @@ bool CvPlayerAI::AI_doTransportPurchase()
 	if (pUnit != NULL)
 	{
 		pUnit->AI_setUnitAIType(UNITAI_TRANSPORT_SEA);
-		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) buys transport %S: %d units wait in Europe, capacity was %d in %d transports",
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) buys transport %S: %d units wait in Europe, capacity was %d in %d transports",
 			getID(), getCivilizationDescription(0), pUnit->getName().GetCString(), iWaiting, iCapacity, iTransports);
 	}
 	return false;
@@ -19119,7 +19119,7 @@ bool CvPlayerAI::AI_doMilitiaPurchase()
 	if (getGold() < iCost)
 	{
 		AI_setSavingGold();
-		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) saves for colonial militia (%d gold, have %d): %d defenders for %d colonies",
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) saves for colonial militia (%d gold, have %d): %d defenders for %d colonies",
 			getID(), getCivilizationDescription(0), iCost, getGold(), iDefenders, getNumCities());
 		return true;
 	}
@@ -19131,7 +19131,7 @@ bool CvPlayerAI::AI_doMilitiaPurchase()
 			changeProfessionEurope(pUnit->getID(), eMilitia);
 		}
 		pUnit->AI_setUnitAIType(UNITAI_DEFENSIVE);
-		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) buys colonial militia %S: %d defenders for %d colonies",
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) buys colonial militia %S: %d defenders for %d colonies",
 			getID(), getCivilizationDescription(0), pUnit->getNameAndProfession().GetCString(), iDefenders, getNumCities());
 	}
 	return true;
@@ -19147,7 +19147,7 @@ void CvPlayerAI::AI_doCivilianPurchases()
 	// defence first while at war
 	if (GET_TEAM(getTeam()).getAnyWarPlanCount() > 0 && AI_totalDefendersNeeded(NULL, NULL, true) > 0)
 	{
-		if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) skips civilian purchases, war and %d defenders needed",
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) skips civilian purchases, war and %d defenders needed",
 			getID(), getCivilizationDescription(0), AI_totalDefendersNeeded(NULL, NULL, true));
 		return;
 	}
@@ -19159,7 +19159,7 @@ void CvPlayerAI::AI_doCivilianPurchases()
 	const ProfessionTypes ePioneerProfession = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_PIONEER");
 	int iBought = 0;
 
-	if (gPlayerLogLevel >= 1) logBBAI("WTP decision: Player %d (%S) civilian purchases: gold %d cities %d desired %d settlers %d workers %d wanted %d",
+	if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) civilian purchases: gold %d cities %d desired %d settlers %d workers %d wanted %d",
 		getID(), getCivilizationDescription(0), getGold(), getNumCities(), AI_desiredCityCount(), AI_totalUnitAIs(UNITAI_SETTLER),
 		AI_totalUnitAIs(UNITAI_WORKER), std::min(AI_neededWorkers(NULL), std::max(2, getNumCities())));
 
@@ -19188,7 +19188,7 @@ void CvPlayerAI::AI_doCivilianPurchases()
 					changeProfessionEurope(pImmigrant->getID(), eSettlerProfession);
 				}
 			}
-			if (gPlayerLogLevel >= 1) logBBAI("WTP decision:   hurried immigrant %S becomes a settler", pImmigrant->getNameAndProfession().GetCString());
+			if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision:   hurried immigrant %S becomes a settler", pImmigrant->getNameAndProfession().GetCString());
 			++iBought;
 		}
 		else if (AI_buyCivilianUnit(eColonist, UNITAI_SETTLER, eSettlerProfession))
@@ -19233,13 +19233,13 @@ void CvPlayerAI::AI_doCivilianPurchases()
 		{
 			if (!bWater && AI_wantsAfricaFoodWorkers())
 			{
-				if (gPlayerLogLevel >= 1) logBBAI("WTP decision:   %S needs food (%+d), an African slave will be bought in Africa", pFoodCity->getName().GetCString(), pFoodCity->foodDifference());
+				if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision:   %S needs food (%+d), an African slave will be bought in Africa", pFoodCity->getName().GetCString(), pFoodCity->foodDifference());
 			}
 			else
 			{
 				const UnitClassTypes eFoodClass = (UnitClassTypes)GC.getInfoTypeForString(bWater ? "UNITCLASS_FISHERMAN" : "UNITCLASS_FARMER");
 				const UnitTypes eFoodExpert = (eFoodClass != NO_UNITCLASS) ? kCiv.getCivilizationUnits(eFoodClass) : NO_UNIT;
-				if (gPlayerLogLevel >= 1) logBBAI("WTP decision:   %S needs food (%+d), buying %S", pFoodCity->getName().GetCString(), pFoodCity->foodDifference(),
+				if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision:   %S needs food (%+d), buying %S", pFoodCity->getName().GetCString(), pFoodCity->foodDifference(),
 					eFoodExpert != NO_UNIT ? GC.getUnitInfo(eFoodExpert).getDescription() : L"nothing");
 				if (AI_buyCivilianUnit(eFoodExpert, UNITAI_COLONIST, NO_PROFESSION))
 				{
@@ -19257,7 +19257,7 @@ void CvPlayerAI::AI_doCivilianPurchases()
 	// 3. sometimes hurry an immigrant instead of buying an expert
 	if (GC.getGameINLINE().getSorenRandNum(100, "AI civilian hurry instead of expert") < 25)
 	{
-		if (gPlayerLogLevel >= 1) logBBAI("WTP decision:   random immigrant hurry instead of expert");
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision:   random immigrant hurry instead of expert");
 		AI_hurryCheapImmigrant(false);
 		return;
 	}
@@ -19350,7 +19350,7 @@ void CvPlayerAI::AI_doCivilianPurchases()
 		}
 	}
 
-	if (gPlayerLogLevel >= 1) logBBAI("WTP decision:   best expert %S priority %d, learnable from natives %d",
+	if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision:   best expert %S priority %d, learnable from natives %d",
 		eBestClass != NO_UNITCLASS ? GC.getUnitClassInfo(eBestClass).getDescription() : L"none", iBestPriority, (int)bLearnFromNatives);
 	if (eBestClass != NO_UNITCLASS)
 	{
