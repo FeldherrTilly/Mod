@@ -16880,11 +16880,8 @@ int CvUnitAI::AI_nativeTradeBuy()
 				continue;
 			}
 			int iCost = kNative.AI_nativeYieldTradeValue(eYield, iAmount, false, NULL);
-			if (iCost > iGoldAvailable)
-			{
-				iAmount = iAmount * iGoldAvailable / std::max(1, iCost);
-				iCost = (iAmount > 0) ? kNative.AI_nativeYieldTradeValue(eYield, iAmount, false, NULL) : 0;
-			}
+			// only the whole amount the village offers: a part of it needs setDiploYieldAmount, which calls into the UI
+			// (gDLL->updateDiplomacyAttitude) and crashed the game in an AI deal
 			int iProfit;
 			if (iAmount <= 0 || iCost <= 0 || iCost > iGoldAvailable || !kOwner.AI_nativeBuyProfit(eYield, iAmount, eNative, iProfit) || iProfit <= 0)
 			{
@@ -16909,11 +16906,6 @@ int CvUnitAI::AI_nativeTradeBuy()
 			break;
 		}
 
-		// take less than the village offers if the money or the room is short
-		if (iBestAmount < kNative.getTradeYieldAmount(eBestYield, this))
-		{
-			kNative.setDiploYieldAmount(eBestYield, iBestAmount);
-		}
 		CLinkList<TradeData> ourList;
 		CLinkList<TradeData> theirList;
 		TradeData item;
@@ -16923,7 +16915,6 @@ int CvUnitAI::AI_nativeTradeBuy()
 		theirList.insertAtEnd(item);
 
 		GC.getGameINLINE().implementDeal(getOwnerINLINE(), eNative, &ourList, &theirList, true);
-		kNative.setDiploYieldAmount(eBestYield, -1);
 
 		const int iSpent = iGoldAvailable - kOwner.getGold();
 		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trade: Player %d (%S) turn %d %S buys %d %S from %S (%S) for %d gold (planned %d), expected profit %d (%d per cargo slot), cargo now %d/%d",
