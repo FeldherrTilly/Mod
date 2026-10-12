@@ -4971,7 +4971,7 @@ void CvUnitAI::AI_transportCoastMove()
 // WTP: the colony a unit waiting for a ship wants to go to (an expert on its way to its job), NULL if unknown
 CvCity* CvUnitAI::AI_transportDestinationCity() const
 {
-	if (m_iWfTask == WF_EXPERT_JOB)
+	if (m_iWfTask == WF_EXPERT_JOB || m_iWfTask == WF_JOIN_CITY)
 	{
 		return GET_PLAYER(getOwnerINLINE()).getCity(m_iWfCityID);
 	}
@@ -20665,6 +20665,11 @@ void CvUnitAI::AI_copyWfTask(const CvUnitAI& kOther)
 		return;
 	}
 	AI_setWfTask(kOther.m_iWfTask, kOther.m_iWfCityID, kOther.m_eWfProfession, kOther.m_iWfPlotX, kOther.m_iWfPlotY, kOther.m_iWfVillageX, kOther.m_iWfVillageY);
+	// WTP: the learned food expert goes back to its starving colony and works the food job there
+	if (m_iWfTask == WF_FOOD_LEARN && AI_getIdealProfession() != NO_PROFESSION)
+	{
+		m_iWfTask = (AI_getIdealProfession() == m_eWfProfession) ? WF_EXPERT_JOB : WF_JOIN_CITY;
+	}
 	if (m_iWfTask == WF_RETRAIN && AI_getIdealProfession() == NO_PROFESSION)
 	{
 		m_iWfTask = WF_LEARN;
@@ -20710,7 +20715,7 @@ bool CvUnitAI::AI_doWfTask()
 		return false;
 	}
 
-	if (m_iWfTask == WF_LEARN)
+	if (m_iWfTask == WF_LEARN || m_iWfTask == WF_FOOD_LEARN)
 	{
 		CvPlot* const pVillage = GC.getMap().plotINLINE(m_iWfVillageX, m_iWfVillageY);
 		if (pVillage == NULL || !pVillage->isCity() || isCargo())
@@ -20734,6 +20739,15 @@ bool CvUnitAI::AI_doWfTask()
 			// WTP: learning is blocked (another colonist learns here, or the natives are furious): wait in the village and try
 			// again; after 15 turns the expert is bought in Europe or Africa instead and this unit is free again
 			const int iWaited = kOwner.AI_wfLearnWaitTurns(getID(), true);
+			if (iWaited >= 15 && m_iWfTask == WF_FOOD_LEARN)
+			{
+				// WTP: a food expert is not bought instead; the colonist is free again
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PLAN, getOwnerINLINE(), "WTP plan: Player %d (%S) %S gives up learning a food expert in %S after %d turns", getOwnerINLINE(),
+					kOwner.getCivilizationDescription(0), getName().GetCString(), pVillage->getPlotCity()->getName().GetCString(), iWaited);
+				kOwner.AI_clearWfLearnWait(getID());
+				AI_clearWfTask();
+				return false;
+			}
 			if (iWaited >= 15)
 			{
 				const UnitClassTypes eTeach = pVillage->getPlotCity()->getTeachUnitClass();
@@ -20761,18 +20775,39 @@ bool CvUnitAI::AI_doWfTask()
 		return false;
 	}
 
-	if (m_iWfTask == WF_EXPERT_JOB)
+	if (m_iWfTask == WF_EXPERT_JOB || m_iWfTask == WF_JOIN_CITY)
 	{
-		CvCity* const pCity = kOwner.getCity(m_iWfCityID);
+		CvCity* pCity = kOwner.getCity(m_iWfCityID);
 		if (pCity == NULL)
 		{
 			AI_clearWfTask();
 			return false;
 		}
+		// WTP: a colonist moving for food checks its target on the way and on arrival: if the colony has no food to
+		// spare any more (it would lose food after he joined), he looks for another one or is free again
+		if (m_iWfTask == WF_JOIN_CITY && kOwner.AI_foodSurplusForNewcomer(*pCity, getID()) < 0)
+		{
+			CvCity* const pNew = kOwner.AI_bestFoodSurplusCity(*pCity, pCity, getID());
+			if (gUnitLogLevel >= 1) logWTPCity(*pCity, "WTP food: %S does not join %S (food %+d), %s %S", getName().GetCString(), pCity->getName().GetCString(),
+				pCity->foodDifference(), pNew != NULL ? "goes to" : "finds no other colony with food to spare", pNew != NULL ? pNew->getName().GetCString() : L"");
+			if (pNew == NULL)
+			{
+				AI_clearWfTask();
+				return false;
+			}
+			m_iWfCityID = pNew->getID();
+			pCity = pNew;
+		}
 		if (atPlot(pCity->plot()))
 		{
 			if (canJoinCity(plot()))
 			{
+				// WTP: a unit that only moved for food is an ordinary citizen there
+				if (m_iWfTask == WF_JOIN_CITY)
+				{
+					if (gUnitLogLevel >= 1) logWTPCity(*pCity, "WTP food: %S joins %S (food %+d)", getName().GetCString(), pCity->getName().GetCString(), pCity->foodDifference());
+					AI_clearWfTask();
+				}
 				joinCity();
 				return true;
 			}

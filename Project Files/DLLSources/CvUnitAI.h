@@ -107,6 +107,8 @@ public:
 		WF_EXPERT_JOB = 1, // work profession eProfession in city (on plot X/Y, or in a building if X < 0)
 		WF_RETRAIN = 2,    // give up the specialty, then learn in the village and do the job
 		WF_LEARN = 3,      // learn in the village at VillageX/Y, then do the job
+		WF_JOIN_CITY = 4,  // move to the city and join it (it has food to spare; the plan keeps this task)
+		WF_FOOD_LEARN = 5, // learn a food expert in the village at VillageX/Y, then work the food job in the city (kept)
 	};
 	int AI_getWfTask() const { return m_iWfTask; }
 	int AI_getWfCityID() const { return m_iWfCityID; }

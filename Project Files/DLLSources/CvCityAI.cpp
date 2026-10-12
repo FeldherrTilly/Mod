@@ -4120,7 +4120,7 @@ CvUnit* CvCityAI::AI_assignToBestJob(CvUnit* pUnit, bool bIndoorOnly)
 
 // WTP: give a citizen the best job that is free (no other citizen is displaced)
 // WTP: while the colony loses food, non-experts working a plot without a resource for another good move to the best free
-// food plot, the least productive first. Pioneers then build farms first for 5 turns (AI_isFoodShortage).
+// food plot (at least 3 food), the least productive first. Pioneers then build farms first for 5 turns (AI_isFoodShortage).
 void CvCityAI::AI_fixFoodShortage()
 {
 	if (isNative() || isHuman())
@@ -4196,7 +4196,9 @@ void CvCityAI::AI_fixFoodShortage()
 				}
 			}
 		}
-		if (eBestProfession == NO_PROFESSION || iBestFood <= 0)
+		// WTP: a food plot only helps from 3 food on (the colonist eats 2 itself); otherwise the player moves a colonist
+		// to a colony with food to spare or has it learn a food expert (CvPlayerAI::AI_doFoodRelocation)
+		if (eBestProfession == NO_PROFESSION || iBestFood < 3)
 		{
 			return;
 		}
