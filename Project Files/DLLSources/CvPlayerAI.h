@@ -485,6 +485,7 @@ public:
 	static int AI_firstColonyMinDistance(); // WTP: first colonies of the Europeans are at least this many plots apart
 	static int AI_cityWaterAccess(const CvCity& kCity);
 	void AI_doSurplusPioneers();
+	void AI_doNativeMercDefense();
 	CvCity* AI_surplusPioneerCity(int iUnitID) const;
 	void AI_clearSurplusPioneer();
 	UnitTypes AI_treasureShipToBuy(int* piTreasures = NULL) const;
