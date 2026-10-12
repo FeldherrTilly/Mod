@@ -2453,6 +2453,10 @@ void CvCityAI::AI_doHurry(bool bForce)
 		if (!canConstruct(eLoopBuilding))
 			continue;
 
+		// WTP: in the early game only the Town Hall (and the Village Hall) may be hurried
+		if (!GET_PLAYER(getOwnerINLINE()).AI_mayHurryBuildingEarly(eLoopBuilding))
+			continue;
+
 		// Only consider buildings that are "hammer complete"
 		if (getBuildingProduction(eLoopBuilding) >= getYieldProductionNeeded(eLoopBuilding, YIELD_HAMMERS) &&
 			!checkRequiredYields(ORDER_CONSTRUCT, eLoopBuilding, YIELD_HAMMERS))
@@ -2498,6 +2502,12 @@ void CvCityAI::AI_doHurry(bool bForce)
 			// Return here so we don't attempt to rush more than a single build per turn
 			return;
 		}
+	}
+
+	// WTP: no units are hurried in the early game
+	if (GET_PLAYER(getOwnerINLINE()).AI_isEarlyPhaseActive())
+	{
+		return;
 	}
 
 	const UnitTypes eCurrentUnit = getProductionUnit();

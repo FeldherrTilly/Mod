@@ -396,7 +396,7 @@ void CvPlayerAI::AI_doTurnPost()
 // WTP, Schmiddie, AI Fleet Modernization START
 void CvPlayerAI::AI_doFleetModernization()
 {
-	if (isHuman())
+	if (isHuman() || AI_isEarlyPhaseActive())
 	{
 		return;
 	}
@@ -5343,22 +5343,28 @@ void CvPlayerAI::AI_updateNativeTradeShip()
 		return;
 	}
 
+	// one ship (the second one of the early strategy Ship Trader gets its role when it is bought)
+	int iTradeShips = 0;
 	int iLoop;
 	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 	{
 		const UnitAIStates eState = pLoopUnit->AI_getUnitAIState();
 		if (pLoopUnit->getDomainType() == DOMAIN_SEA && (eState == UNITAI_STATE_NATIVE_TRADE_BUY || eState == UNITAI_STATE_NATIVE_TRADE_EUROPE || eState == UNITAI_STATE_NATIVE_TRADE_SELL))
 		{
-			return;
+			++iTradeShips;
 		}
+	}
+	if (iTradeShips >= 1)
+	{
+		return;
 	}
 
 	const int iTreasureSize = AI_minTreasureTransportSize();
 	CvUnit* pBest = NULL;
 	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 	{
-		if (pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && pLoopUnit->cargoSpace() < iTreasureSize
-			&& !pLoopUnit->hasAnyUnitInCargo() && (pBest == NULL || pLoopUnit->cargoSpace() > pBest->cargoSpace()))
+		if (pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && pLoopUnit->AI_getUnitAIState() != UNITAI_STATE_EXPLORER_SHIP
+			&& pLoopUnit->cargoSpace() < iTreasureSize && !pLoopUnit->hasAnyUnitInCargo() && (pBest == NULL || pLoopUnit->cargoSpace() > pBest->cargoSpace()))
 		{
 			pBest = pLoopUnit;
 		}
@@ -9579,6 +9585,13 @@ void CvPlayerAI::AI_doEurope()
 
 	if (!canTradeWithEurope())
 	{
+		return;
+	}
+
+	if (AI_isEarlyPhaseActive())
+	{
+		// WTP: phase 0 and the early strategies: only their own purchases
+		AI_doEarlyPhase();
 		return;
 	}
 
@@ -17489,7 +17502,7 @@ int CvPlayerAI::AI_countPromotions(PromotionTypes ePromotion, CvPlot* pPlot, int
 // 1000 gold in the treasury (still keeping 300)
 bool CvPlayerAI::AI_canAffordCivilianPurchase(int iCost) const
 {
-	if (iCost <= 0)
+	if (iCost <= 0 || AI_isEarlyPhaseActive())
 	{
 		return false;
 	}
@@ -19410,8 +19423,564 @@ bool CvPlayerAI::AI_isSavingGold() const
 	return m_iSavingGoldTurn >= GC.getGameINLINE().getGameTurn() - 1 || AI_treasureShipToBuy() != NO_UNIT;
 }
 
+// WTP: early game. Phase 0 lasts from the start until the first scout is bought: only the native trade ship spends
+// money (and the scout is bought). Then every AI gets one of five early strategies (random for now) that buy their
+// things one after the other; of the buildings only the Town Hall (Early Improvement: the Village Hall too) may be hurried,
+// no immigrants and no African slaves are bought. When the purchases of the strategy are made the early game is over
+// and the usual rules apply again. The gold reserve of the civilian purchases does not apply to these purchases.
+bool CvPlayerAI::AI_isEarlyPhaseActive() const
+{
+	return !isHuman() && !isNative() && !isEurope() && getParent() != NO_PLAYER && m_iEarlyPhase < 2;
+}
+
+// WTP: the Town Hall may be hurried in the early game (the Village Hall under it with Early Improvement), nothing before the first scout
+bool CvPlayerAI::AI_mayHurryBuildingEarly(BuildingTypes eBuilding) const
+{
+	if (!AI_isEarlyPhaseActive())
+	{
+		return true;
+	}
+	if (m_iEarlyPhase == 0)
+	{
+		return false;
+	}
+	const BuildingClassTypes eClass = (BuildingClassTypes)GC.getBuildingInfo(eBuilding).getBuildingClassType();
+	if (eClass == (BuildingClassTypes)GC.getInfoTypeForString("BUILDINGCLASS_TOWNHALL"))
+	{
+		return true;
+	}
+	return m_iEarlyStrategy == EARLY_IMPROVEMENT && eClass == (BuildingClassTypes)GC.getInfoTypeForString("BUILDINGCLASS_VILLAGEHALL");
+}
+
+void CvPlayerAI::AI_startEarlyStrategy()
+{
+	static const char* const aszNames[NUM_EARLY_STRATEGIES] = { "none", "Explorer", "Native Trader", "Ship Trader", "Early Improvement", "Opportunistic Resources" };
+	m_iEarlyStrategy = 1 + GC.getGameINLINE().getSorenRandNum(NUM_EARLY_STRATEGIES - 1, "AI early strategy");
+	m_iEarlyPhase = 1;
+	m_iEarlyProgress = 0;
+	if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_PLAN, getID(), "WTP early: Player %d (%S) turn %d: phase 0 is over (%d scouts bought), early strategy %s, gold %d",
+		getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), m_iEarlyScoutsBought, aszNames[m_iEarlyStrategy], getGold());
+}
+
+void CvPlayerAI::AI_earlyEnd()
+{
+	m_iEarlyPhase = 2;
+	if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_PLAN, getID(), "WTP early: Player %d (%S) turn %d: the purchases of the early strategy %d are made, the early game is over, gold %d",
+		getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), m_iEarlyStrategy, getGold());
+}
+
+// WTP: cost of the equipment a profession needs on top of the colonist (bought in Europe)
+int CvPlayerAI::AI_earlyEquipCost(ProfessionTypes eProfession) const
+{
+	int iCost = 0;
+	for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
+	{
+		iCost += GET_PLAYER(getParent()).getYieldSellPrice(eYield) * GC.getProfessionInfo(eProfession).getYieldEquipmentAmount(eYield);
+	}
+	return iCost;
+}
+
+// WTP: hurry the cheapest immigrant on the docks (any kind). False if none can be hurried or the gold does not suffice (the AI saves then).
+bool CvPlayerAI::AI_earlyHurryDockUnit()
+{
+	int iBestIndex = -1;
+	int iBestCost = MAX_INT;
+	for (unsigned int iIndex = 0; iIndex < getNumUnitsOnDock(); ++iIndex)
+	{
+		if (getDocksNextUnit(iIndex) != NO_UNIT && canHurry(HURRY_IMMIGRANT, iIndex) && getHurryGold(HURRY_IMMIGRANT, iIndex) < iBestCost)
+		{
+			iBestCost = getHurryGold(HURRY_IMMIGRANT, iIndex);
+			iBestIndex = iIndex;
+		}
+	}
+	if (iBestIndex < 0)
+	{
+		return false;
+	}
+	if (iBestCost > getGold())
+	{
+		AI_setSavingGold();
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP early: Player %d (%S) saves to hurry an immigrant (%d gold, have %d)", getID(), getCivilizationDescription(0), iBestCost, getGold());
+		return false;
+	}
+	const UnitTypes eHurried = getDocksNextUnit(iBestIndex);
+	hurry(HURRY_IMMIGRANT, iBestIndex);
+	if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP early: Player %d (%S) turn %d hurries an immigrant (%S) for %d gold, gold now %d",
+		getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), GC.getUnitInfo(eHurried).getDescription(), iBestCost, getGold());
+	return true;
+}
+
+// WTP: a free colonist or indentured servant in Europe: the cheaper of hurrying such an immigrant on the docks and buying a free
+// colonist. iExtraCost (equipment, ...) must be affordable as well, else the AI saves and nothing is bought (NULL).
+CvUnit* CvPlayerAI::AI_earlyGetColonist(int iExtraCost)
+{
+	const UnitTypes eColonist = GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits((UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_COLONIST"));
+	const int iColonistPrice = (eColonist != NO_UNIT && getEuropeUnitBuyPrice(eColonist) > 0) ? getEuropeUnitBuyPrice(eColonist) : MAX_INT;
+	const UnitClassTypes eServantClass = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_INDENTURED_SERVANT");
+
+	int iBestIndex = -1;
+	int iBestCost = MAX_INT;
+	for (unsigned int iIndex = 0; iIndex < getNumUnitsOnDock(); ++iIndex)
+	{
+		const UnitTypes eDock = getDocksNextUnit(iIndex);
+		if (eDock == NO_UNIT || !canHurry(HURRY_IMMIGRANT, iIndex))
+		{
+			continue;
+		}
+		const UnitClassTypes eClass = (UnitClassTypes)GC.getUnitInfo(eDock).getUnitClassType();
+		if ((eClass == UNITCLASS_COLONIST || eClass == eServantClass) && getHurryGold(HURRY_IMMIGRANT, iIndex) < iBestCost)
+		{
+			iBestCost = getHurryGold(HURRY_IMMIGRANT, iIndex);
+			iBestIndex = iIndex;
+		}
+	}
+
+	const bool bHurry = iBestIndex >= 0 && iBestCost <= iColonistPrice;
+	const int iCost = bHurry ? iBestCost : iColonistPrice;
+	if (iCost == MAX_INT)
+	{
+		return NULL;
+	}
+	if (getGold() < iCost + iExtraCost)
+	{
+		AI_setSavingGold();
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP early: Player %d (%S) saves for a colonist (%d gold plus %d for the equipment, have %d)", getID(), getCivilizationDescription(0), iCost, iExtraCost, getGold());
+		return NULL;
+	}
+	if (!bHurry)
+	{
+		CvUnit* const pBought = buyEuropeUnit(eColonist, 100);
+		if (pBought != NULL && gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP early: Player %d (%S) turn %d buys a free colonist for %d gold", getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), iCost);
+		return pBought;
+	}
+	// the hurried immigrant is the one on the docks that was not there before
+	std::vector<int> aiBefore;
+	for (int i = 0; i < getNumEuropeUnits(); ++i)
+	{
+		aiBefore.push_back(getEuropeUnit(i)->getID());
+	}
+	hurry(HURRY_IMMIGRANT, iBestIndex);
+	for (int i = 0; i < getNumEuropeUnits(); ++i)
+	{
+		CvUnit* const pUnit = getEuropeUnit(i);
+		if (std::find(aiBefore.begin(), aiBefore.end(), pUnit->getID()) == aiBefore.end())
+		{
+			if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP early: Player %d (%S) turn %d hurries %S for %d gold", getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pUnit->getName().GetCString(), iCost);
+			return pUnit;
+		}
+	}
+	return NULL;
+}
+
+// WTP: equip the unit in Europe with a profession and give it its unit AI
+bool CvPlayerAI::AI_earlyEquip(CvUnit* pUnit, ProfessionTypes eProfession, UnitAITypes eUnitAI)
+{
+	if (pUnit == NULL || eProfession == NO_PROFESSION)
+	{
+		return false;
+	}
+	if (pUnit->getProfession() != eProfession)
+	{
+		changeProfessionEurope(pUnit->getID(), eProfession);
+	}
+	if (pUnit->getProfession() != eProfession)
+	{
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP early: Player %d (%S) could not equip %S as %S (gold %d)", getID(), getCivilizationDescription(0), pUnit->getName().GetCString(),
+			GC.getProfessionInfo(eProfession).getDescription(), getGold());
+		return false;
+	}
+	pUnit->AI_setUnitAIType(eUnitAI);
+	if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP early: Player %d (%S) equips %S as %S, gold now %d", getID(), getCivilizationDescription(0), pUnit->getName().GetCString(),
+		GC.getProfessionInfo(eProfession).getDescription(), getGold());
+	return true;
+}
+
+// WTP: the cheapest ship we can buy that is a transport (not a warship), reaches our colonies, carries at least iMinCargo
+// and is too small to carry treasures (those are kept for the galleons)
+UnitTypes CvPlayerAI::AI_cheapestSeaUnitToBuy(int iMinCargo) const
+{
+	const CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
+	const int iTreasureSize = AI_minTreasureTransportSize();
+	UnitTypes eBest = NO_UNIT;
+	int iBestPrice = MAX_INT;
+	for (UnitClassTypes eClass = FIRST_UNITCLASS; eClass < NUM_UNITCLASS_TYPES; ++eClass)
+	{
+		const UnitTypes eUnit = kCiv.getCivilizationUnits(eClass);
+		if (eUnit == NO_UNIT)
+		{
+			continue;
+		}
+		const CvUnitInfo& kUnit = GC.getUnitInfo(eUnit);
+		const int iPrice = getEuropeUnitBuyPrice(eUnit);
+		if (kUnit.getDomainType() == DOMAIN_SEA && kUnit.getDefaultUnitAIType() == UNITAI_TRANSPORT_SEA && iPrice > 0 && iPrice < iBestPrice
+			&& kUnit.getCargoSpace() >= iMinCargo && kUnit.getCargoSpace() < iTreasureSize && AI_shipReachableColonies(eUnit) > 0)
+		{
+			iBestPrice = iPrice;
+			eBest = eUnit;
+		}
+	}
+	return eBest;
+}
+
+// WTP: Explorer: a second scout, then the cheapest ship, which only explores
+bool CvPlayerAI::AI_doEarlyExplorer()
+{
+	if (m_iEarlyProgress == 0)
+	{
+		const int iBefore = m_iEarlyScoutsBought;
+		if (AI_doScoutPurchase(true))
+		{
+			return true; // saving for the scout
+		}
+		if (m_iEarlyScoutsBought > iBefore || GC.getGameINLINE().getGameTurn() > 80)
+		{
+			m_iEarlyProgress = 1;
+		}
+		return true;
+	}
+	const UnitTypes eShip = AI_bestShipToBuy(UNITAI_TRANSPORT_SEA, true);
+	if (eShip == NO_UNIT)
+	{
+		AI_earlyEnd();
+		return true;
+	}
+	const int iPrice = getEuropeUnitBuyPrice(eShip);
+	if (getGold() < iPrice)
+	{
+		AI_setSavingGold();
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP early: Player %d (%S) saves for the exploring ship %S (%d gold, have %d)", getID(), getCivilizationDescription(0), GC.getUnitInfo(eShip).getDescription(), iPrice, getGold());
+		return true;
+	}
+	CvUnit* const pShip = buyEuropeUnit(eShip, 100);
+	if (pShip != NULL)
+	{
+		pShip->AI_setUnitAIType(UNITAI_TRANSPORT_SEA);
+		pShip->AI_setUnitAIState(UNITAI_STATE_EXPLORER_SHIP);
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP early: Player %d (%S) turn %d buys %S for %d gold, it only explores", getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pShip->getName().GetCString(), iPrice);
+		AI_earlyEnd();
+	}
+	return true;
+}
+
+// WTP: Native Trader: six native traders in total (free colonists or indentured servants, hurried or bought, equipped in Europe)
+bool CvPlayerAI::AI_doEarlyNativeTrader()
+{
+	const ProfessionTypes eTrader = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_NATIVE_TRADER");
+	if (m_iEarlyProgress >= 6 || eTrader == NO_PROFESSION)
+	{
+		AI_earlyEnd();
+		return true;
+	}
+	CvUnit* const pUnit = AI_earlyGetColonist(AI_earlyEquipCost(eTrader));
+	if (pUnit != NULL && AI_earlyEquip(pUnit, eTrader, UNITAI_TRADER))
+	{
+		++m_iEarlyProgress;
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_PLAN, getID(), "WTP early: Player %d (%S) has equipped %d of 6 native traders", getID(), getCivilizationDescription(0), m_iEarlyProgress);
+		if (m_iEarlyProgress >= 6)
+		{
+			AI_earlyEnd();
+		}
+	}
+	return true;
+}
+
+// WTP: Ship Trader: a ship with at least 3 cargo spaces that trades with the villages like the first native trade ship
+bool CvPlayerAI::AI_doEarlyShipTrader()
+{
+	const UnitTypes eShip = AI_cheapestSeaUnitToBuy(3);
+	if (eShip == NO_UNIT)
+	{
+		AI_earlyEnd();
+		return true;
+	}
+	const int iPrice = getEuropeUnitBuyPrice(eShip);
+	if (getGold() < iPrice)
+	{
+		AI_setSavingGold();
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP early: Player %d (%S) saves for the trade ship %S (%d gold, have %d)", getID(), getCivilizationDescription(0), GC.getUnitInfo(eShip).getDescription(), iPrice, getGold());
+		return true;
+	}
+	CvUnit* const pShip = buyEuropeUnit(eShip, 100);
+	if (pShip != NULL)
+	{
+		pShip->AI_setUnitAIType(UNITAI_TRANSPORT_SEA);
+		pShip->AI_setUnitAIState(UNITAI_STATE_NATIVE_TRADE_BUY);
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP early: Player %d (%S) turn %d buys %S (cargo %d) for %d gold as its second native trade ship", getID(), getCivilizationDescription(0),
+			GC.getGameINLINE().getGameTurn(), pShip->getName().GetCString(), pShip->cargoSpace(), iPrice);
+		AI_earlyEnd();
+	}
+	return true;
+}
+
+// WTP: Early Improvement: 3 immigrants hurried, 2 pioneers (colonists equipped in Europe); Village Hall and Town Hall may be hurried
+bool CvPlayerAI::AI_doEarlyImprovement()
+{
+	if (m_iEarlyProgress < 3)
+	{
+		if (AI_earlyHurryDockUnit())
+		{
+			++m_iEarlyProgress;
+		}
+		return true;
+	}
+	if (m_iEarlyProgress < 5)
+	{
+		const ProfessionTypes ePioneer = AI_idealProfessionForUnitAIType(UNITAI_WORKER);
+		if (ePioneer == NO_PROFESSION)
+		{
+			AI_earlyEnd();
+			return true;
+		}
+		CvUnit* const pUnit = AI_earlyGetColonist(AI_earlyEquipCost(ePioneer));
+		if (pUnit != NULL && AI_earlyEquip(pUnit, ePioneer, UNITAI_WORKER))
+		{
+			++m_iEarlyProgress;
+		}
+		return true;
+	}
+	AI_earlyEnd();
+	return true;
+}
+
+// WTP: the expert unit class that works the resource
+static UnitClassTypes earlyExpertClassForBonus(BonusTypes eBonus)
+{
+	const CvString szBonus = GC.getBonusInfo(eBonus).getType();
+	if (szBonus == "BONUS_PEARLS")
+	{
+		return (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_PEARLS_HUNTER");
+	}
+	return (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_MINER");
+}
+
+// WTP: value of a precious resource: gold, silver, gems, pearls
+static int earlyBonusValue(BonusTypes eBonus)
+{
+	if (eBonus == NO_BONUS)
+	{
+		return 0;
+	}
+	const CvString szBonus = GC.getBonusInfo(eBonus).getType();
+	if (szBonus == "BONUS_GOLD") return 40;
+	if (szBonus == "BONUS_SILVER") return 35;
+	if (szBonus == "BONUS_GEMS") return 25;
+	if (szBonus == "BONUS_PEARLS") return 20;
+	return 0;
+}
+
+// WTP: how good a site for Opportunistic Resources is: the most precious resource on the plots around it (not on the plot
+// itself), a little more for a site near our colonies. 0 if the plot is no site: it must be coastal land that ships reach,
+// free of owners, and give food for two colonists (2 food, 1 with a river beside it).
+int CvPlayerAI::AI_earlyResourceSiteValue(const CvPlot& kPlot) const
+{
+	if (kPlot.isWater() || kPlot.isOwned() || !kPlot.isCoastalLand() || !kPlot.isRevealed(getTeam(), false))
+	{
+		return 0;
+	}
+	const int iFood = kPlot.calculateNatureYield(YIELD_FOOD, getTeam(), false);
+	if (iFood < 2 && !(iFood >= 1 && kPlot.isRiverSide()))
+	{
+		return 0;
+	}
+	bool bReachable = false;
+	int iBest = 0;
+	for (int iDX = -1; iDX <= 1; ++iDX)
+	{
+		for (int iDY = -1; iDY <= 1; ++iDY)
+		{
+			if (iDX == 0 && iDY == 0)
+			{
+				continue;
+			}
+			const CvPlot* const pAround = plotXY(kPlot.getX_INLINE(), kPlot.getY_INLINE(), iDX, iDY);
+			if (pAround == NULL)
+			{
+				continue;
+			}
+			if (pAround->isWater() && pAround->isEuropeAccessable() && abs(iDX) + abs(iDY) <= 2)
+			{
+				bReachable = true;
+			}
+			if (pAround->isRevealed(getTeam(), false))
+			{
+				iBest = std::max(iBest, earlyBonusValue(pAround->getBonusType()));
+			}
+		}
+	}
+	if (!bReachable || iBest == 0)
+	{
+		return 0;
+	}
+	int iDistance = 50;
+	int iLoop;
+	for (const CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+	{
+		iDistance = std::min(iDistance, plotDistance(kPlot.getX_INLINE(), kPlot.getY_INLINE(), pCity->getX_INLINE(), pCity->getY_INLINE()));
+	}
+	return iBest * 100 + (50 - iDistance);
+}
+
+// WTP: the best site for Opportunistic Resources on the whole map (NULL if none is known); also its resource and value
+CvPlot* CvPlayerAI::AI_earlyResourceSite(BonusTypes* peBonus, int* piValue) const
+{
+	CvPlot* pBest = NULL;
+	int iBestValue = 0;
+	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); ++iI)
+	{
+		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
+		const int iValue = AI_earlyResourceSiteValue(*pLoopPlot);
+		if (iValue > iBestValue && canFound(pLoopPlot->coord(), false))
+		{
+			iBestValue = iValue;
+			pBest = pLoopPlot;
+		}
+	}
+	if (pBest != NULL && peBonus != NULL)
+	{
+		*peBonus = NO_BONUS;
+		int iBestBonus = 0;
+		for (int iDX = -1; iDX <= 1; ++iDX)
+		{
+			for (int iDY = -1; iDY <= 1; ++iDY)
+			{
+				const CvPlot* const pAround = plotXY(pBest->getX_INLINE(), pBest->getY_INLINE(), iDX, iDY);
+				if (pAround != NULL && (iDX != 0 || iDY != 0) && earlyBonusValue(pAround->getBonusType()) > iBestBonus)
+				{
+					iBestBonus = earlyBonusValue(pAround->getBonusType());
+					*peBonus = pAround->getBonusType();
+				}
+			}
+		}
+	}
+	if (piValue != NULL)
+	{
+		*piValue = iBestValue;
+	}
+	return pBest;
+}
+
+bool CvPlayerAI::AI_isEarlyResourceSettler(int iUnitID) const
+{
+	return m_iEarlyStrategy == EARLY_RESOURCES && iUnitID >= 0 && (m_aiEarlySettlerIDs[0] == iUnitID || m_aiEarlySettlerIDs[1] == iUnitID);
+}
+
+// WTP: Opportunistic Resources: 3 immigrants hurried, then wait until turn 17; then a settler and the expert for the best precious
+// resource near a coastal site go over (twice, the second pair as soon as the money is there). The settler founds at that site.
+bool CvPlayerAI::AI_doEarlyResources()
+{
+	if (m_iEarlyProgress < 3)
+	{
+		if (AI_earlyHurryDockUnit())
+		{
+			++m_iEarlyProgress;
+		}
+		return true;
+	}
+	if (GC.getGameINLINE().getGameTurn() < 17)
+	{
+		return true;
+	}
+	if (m_iEarlyProgress >= 7)
+	{
+		AI_earlyEnd();
+		return true;
+	}
+
+	BonusTypes eBonus = NO_BONUS;
+	if (AI_earlyResourceSite(&eBonus, NULL) == NULL)
+	{
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_PLAN, getID(), "WTP early: Player %d (%S) turn %d knows no site with a precious resource for a colony", getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn());
+		if (GC.getGameINLINE().getGameTurn() > 80)
+		{
+			AI_earlyEnd();
+		}
+		return true;
+	}
+	const ProfessionTypes eSettler = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_SETTLER");
+	const UnitClassTypes eExpertClass = earlyExpertClassForBonus(eBonus);
+	const UnitTypes eExpert = (eExpertClass != NO_UNITCLASS) ? GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(eExpertClass) : NO_UNIT;
+	if (eSettler == NO_PROFESSION || eExpert == NO_UNIT || getEuropeUnitBuyPrice(eExpert) <= 0)
+	{
+		AI_earlyEnd();
+		return true;
+	}
+
+	const int iPair = (m_iEarlyProgress - 3) / 2; // 0 or 1
+	if ((m_iEarlyProgress - 3) % 2 == 0)
+	{
+		// the settler, with the money for the expert kept
+		CvUnit* const pSettler = AI_earlyGetColonist(AI_earlyEquipCost(eSettler) + getEuropeUnitBuyPrice(eExpert));
+		if (pSettler != NULL && AI_earlyEquip(pSettler, eSettler, UNITAI_SETTLER))
+		{
+			m_aiEarlySettlerIDs[iPair] = pSettler->getID();
+			++m_iEarlyProgress;
+		}
+	}
+	else if (getGold() >= getEuropeUnitBuyPrice(eExpert))
+	{
+		CvUnit* const pExpert = buyEuropeUnit(eExpert, 100);
+		if (pExpert != NULL)
+		{
+			pExpert->AI_setUnitAIType(UNITAI_COLONIST);
+			++m_iEarlyProgress;
+			if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP early: Player %d (%S) turn %d buys %S for the colony at the %S (pair %d), gold now %d", getID(), getCivilizationDescription(0),
+				GC.getGameINLINE().getGameTurn(), pExpert->getName().GetCString(), GC.getBonusInfo(eBonus).getDescription(), iPair + 1, getGold());
+		}
+	}
+	else
+	{
+		AI_setSavingGold();
+	}
+	if (m_iEarlyProgress >= 7)
+	{
+		AI_earlyEnd();
+	}
+	return true;
+}
+
+// WTP: called every time the AI is in Europe (with ships and once a turn): the purchases of the early game
+void CvPlayerAI::AI_doEarlyPhase()
+{
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+	if (m_iEarlyPhase == 0)
+	{
+		if (iTurn > 150)
+		{
+			m_iEarlyPhase = 2; // an old game that never started the early game
+			return;
+		}
+		if (getNumCities() == 0)
+		{
+			return;
+		}
+		const int iBefore = m_iEarlyScoutsBought;
+		if (AI_doScoutPurchase(true))
+		{
+			return; // saving for the first scout
+		}
+		if (m_iEarlyScoutsBought > iBefore || iTurn > 80)
+		{
+			AI_startEarlyStrategy();
+		}
+		return;
+	}
+	if (m_iEarlyPhase != 1)
+	{
+		return;
+	}
+	switch (m_iEarlyStrategy)
+	{
+	case EARLY_EXPLORER: AI_doEarlyExplorer(); break;
+	case EARLY_NATIVE_TRADER: AI_doEarlyNativeTrader(); break;
+	case EARLY_SHIP_TRADER: AI_doEarlyShipTrader(); break;
+	case EARLY_IMPROVEMENT: AI_doEarlyImprovement(); break;
+	case EARLY_RESOURCES: AI_doEarlyResources(); break;
+	default: AI_earlyEnd(); break;
+	}
+}
+
 // WTP: two scouts before anything else (the first one comes free with the first colony)
-bool CvPlayerAI::AI_doScoutPurchase()
+bool CvPlayerAI::AI_doScoutPurchase(bool bExtra)
 {
 	if (isHuman() || isNative() || isEurope() || getParent() == NO_PLAYER || !canTradeWithEurope())
 	{
@@ -19421,7 +19990,7 @@ bool CvPlayerAI::AI_doScoutPurchase()
 	// 0. two scouts before anybody else (the first one comes free with the first colony): exploring brings gold
 	// and shows the villages nearby (teachers, trade).
 	// The gold reserve does not apply, the scout only has to be paid in full including its horses.
-	if (AI_totalUnitAIs(UNITAI_SCOUT) < 2 && GC.getGameINLINE().getGameTurn() <= 80)
+	if ((bExtra || AI_totalUnitAIs(UNITAI_SCOUT) < 2) && GC.getGameINLINE().getGameTurn() <= 80)
 	{
 		const ProfessionTypes eScoutProfession = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_SCOUT");
 		// a free colonist with scout equipment (a seasoned scout costs too much for the AI early on)
@@ -19454,6 +20023,7 @@ bool CvPlayerAI::AI_doScoutPurchase()
 					changeProfessionEurope(pScout->getID(), eScoutProfession);
 				}
 				pScout->AI_setUnitAIType(UNITAI_SCOUT);
+				++m_iEarlyScoutsBought;
 				if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) buys scout %S", getID(), getCivilizationDescription(0), pScout->getNameAndProfession().GetCString());
 				break;
 			}
