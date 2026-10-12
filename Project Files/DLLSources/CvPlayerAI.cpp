@@ -17518,39 +17518,8 @@ void CvPlayerAI::AI_doCitizenRelocation()
 		}
 	}
 
-	// starving colonies: one worker who does not produce food leaves and joins a colony where he is fed
-	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
-	{
-		if (pCity->getPopulation() < 3 || pCity->foodDifference() >= -2 || pCity->getFood() > -pCity->foodDifference() * 3)
-		{
-			continue;
-		}
-		CvUnit* pLeaving = NULL;
-		for (int i = 0; i < pCity->getPopulation(); ++i)
-		{
-			CvUnit* const pCitizen = pCity->getPopulationUnitByIndex(i);
-			if (pCitizen == NULL || pCitizen->isColonistLocked() || pCitizen->getProfession() == NO_PROFESSION)
-			{
-				continue;
-			}
-			if (GC.getProfessionInfo(pCitizen->getProfession()).getYieldsProduced(0) == YIELD_FOOD)
-			{
-				continue;
-			}
-			// prefer non-experts, they lose least
-			if (pLeaving == NULL || (pLeaving->AI_getIdealProfession() != NO_PROFESSION && pCitizen->AI_getIdealProfession() == NO_PROFESSION))
-			{
-				pLeaving = pCitizen;
-			}
-		}
-		if (pLeaving != NULL && pCity->removePopulationUnit(CREATE_ASSERT_DATA, pLeaving, false, eDefaultProfession))
-		{
-			pLeaving->AI_setUnitAIType(UNITAI_COLONIST);
-			if (gPlayerLogLevel >= 1) logWTPCity(*pCity, "WTP decision: Player %d (%S) turn %d takes %S out of starving %S (food %d, stored %d)",
-				getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pLeaving->getName().GetCString(),
-				pCity->getName().GetCString(), pCity->foodDifference(), pCity->getFood());
-		}
-	}
+	// WTP: colonies that still lose food: a colonist moves to a colony with food to spare or learns a food expert
+	AI_doFoodRelocation();
 
 	// idle citizens are handled by the workforce plan (AI_doWorkforcePlan)
 
@@ -17611,10 +17580,12 @@ namespace
 	}
 }
 
-// the native village (same landmass as the colony, at most 7 plots from it) that teaches eExpertClass and that no
-// other unit of ours is heading for or learning in; NULL if there is none
-CvCity* CvPlayerAI::AI_wfTeachingVillage(UnitClassTypes eExpertClass, const CvCity& kNearCity) const
+// the nearest native village (same landmass as the colony, at most iMaxDistance plots from it) that teaches eExpertClass
+// and that no other unit of ours is heading for or learning in; NULL if there is none
+CvCity* CvPlayerAI::AI_wfTeachingVillage(UnitClassTypes eExpertClass, const CvCity& kNearCity, int iMaxDistance) const
 {
+	CvCity* pBestVillage = NULL;
+	int iBestDistance = MAX_INT;
 	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
 	{
 		CvPlayer& kNative = GET_PLAYER((PlayerTypes)iPlayer);
@@ -17625,8 +17596,9 @@ CvCity* CvPlayerAI::AI_wfTeachingVillage(UnitClassTypes eExpertClass, const CvCi
 		int iLoop;
 		for (CvCity* pVillage = kNative.firstCity(&iLoop); pVillage != NULL; pVillage = kNative.nextCity(&iLoop))
 		{
+			const int iDistance = plotDistance(pVillage->getX_INLINE(), pVillage->getY_INLINE(), kNearCity.getX_INLINE(), kNearCity.getY_INLINE());
 			if (pVillage->getTeachUnitClass() != eExpertClass || !pVillage->isScoutVisited(getTeam()) || pVillage->area() != kNearCity.area()
-				|| plotDistance(pVillage->getX_INLINE(), pVillage->getY_INLINE(), kNearCity.getX_INLINE(), kNearCity.getY_INLINE()) > 7)
+				|| iDistance > iMaxDistance || iDistance >= iBestDistance)
 			{
 				continue;
 			}
@@ -17635,7 +17607,7 @@ CvCity* CvPlayerAI::AI_wfTeachingVillage(UnitClassTypes eExpertClass, const CvCi
 			for (CvUnit* pLoopUnit = firstUnit(&iUnitLoop); pLoopUnit != NULL && !bTaken; pLoopUnit = nextUnit(&iUnitLoop))
 			{
 				const CvUnitAI& kLoopAI = static_cast<const CvUnitAI&>(*pLoopUnit);
-				if ((kLoopAI.AI_getWfTask() == CvUnitAI::WF_LEARN || kLoopAI.AI_getWfTask() == CvUnitAI::WF_RETRAIN)
+				if ((kLoopAI.AI_getWfTask() == CvUnitAI::WF_LEARN || kLoopAI.AI_getWfTask() == CvUnitAI::WF_RETRAIN || kLoopAI.AI_getWfTask() == CvUnitAI::WF_FOOD_LEARN)
 					&& kLoopAI.AI_getWfVillageX() == pVillage->getX_INLINE() && kLoopAI.AI_getWfVillageY() == pVillage->getY_INLINE())
 				{
 					bTaken = true;
@@ -17648,11 +17620,212 @@ CvCity* CvPlayerAI::AI_wfTeachingVillage(UnitClassTypes eExpertClass, const CvCi
 			}
 			if (!bTaken)
 			{
-				return pVillage;
+				pBestVillage = pVillage;
+				iBestDistance = iDistance;
 			}
 		}
 	}
-	return NULL;
+	return pBestVillage;
+}
+
+// WTP: a colony that still loses food after its citizens took the food plots (CvCityAI::AI_fixFoodShortage takes only
+// plots with at least 3 food) sends one colonist per turn away:
+// 1. to the own colony with the largest food surplus (at least +2 left after the newcomer eats), else
+// 2. to a native village within 20 plots that teaches an expert farmer, fisherman or hunter for a free food plot of the
+//    colony; the expert comes back and works that plot
+// Settlers that leave a colony keep their own logic; a colony keeps at least one citizen.
+void CvPlayerAI::AI_doFoodRelocation()
+{
+	if (isHuman() || isNative() || isEurope() || getNumCities() < 1)
+	{
+		return;
+	}
+	const ProfessionTypes eDefaultProfession = GC.getCivilizationInfo(getCivilizationType()).getDefaultProfession();
+	const UnitClassTypes aeFoodExperts[3] = {
+		(UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_FARMER"),
+		(UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_FISHERMAN"),
+		(UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_HUNTER") };
+	const ProfessionTypes aeFoodProfessions[3] = {
+		(ProfessionTypes)GC.getInfoTypeForString("PROFESSION_FARMER"),
+		(ProfessionTypes)GC.getInfoTypeForString("PROFESSION_FISHERMAN"),
+		(ProfessionTypes)GC.getInfoTypeForString("PROFESSION_HUNTER") };
+
+	int iLoop;
+	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+	{
+		if (pCity->getPopulation() < 2 || pCity->foodDifference() >= 0)
+		{
+			continue;
+		}
+		// the least valuable citizen who does not produce food; non-experts first, never protected experts
+		CvUnit* pLeaving = NULL;
+		int iLeavingScore = MAX_INT;
+		for (int i = 0; i < pCity->getPopulation(); ++i)
+		{
+			CvUnit* const pCitizen = pCity->getPopulationUnitByIndex(i);
+			if (pCitizen == NULL || pCitizen->isColonistLocked() || pCitizen->getProfession() == NO_PROFESSION
+				|| GC.getProfessionInfo(pCitizen->getProfession()).getYieldsProduced(0) == YIELD_FOOD
+				|| AI_isProtectedSpecialty(pCitizen->getUnitClassType())
+				|| static_cast<const CvUnitAI*>(pCitizen)->AI_getWfTask() == CvUnitAI::WF_EXPERT_JOB)
+			{
+				continue;
+			}
+			const CvPlot* const pWorked = pCity->getPlotWorkedByUnit(pCitizen);
+			int iScore = pCity->AI().AI_citizenProfessionValue(pCitizen->getProfession(), *pCitizen, pWorked, NULL);
+			if (pCitizen->AI_getIdealProfession() != NO_PROFESSION)
+			{
+				iScore += 1000000;
+			}
+			if (iScore < iLeavingScore)
+			{
+				iLeavingScore = iScore;
+				pLeaving = pCitizen;
+			}
+		}
+		if (pLeaving == NULL)
+		{
+			continue;
+		}
+
+		// 1. the colony with the most food to spare that the colonist can reach
+		CvCity* const pTarget = AI_bestFoodSurplusCity(*pCity, pCity);
+		const int iFoodBefore = pCity->foodDifference(); // logged as it was before the colonist left
+		if (pTarget != NULL)
+		{
+			if (pCity->removePopulationUnit(CREATE_ASSERT_DATA, pLeaving, false, eDefaultProfession))
+			{
+				CvUnitAI& kLeaving = static_cast<CvUnitAI&>(*pLeaving);
+				kLeaving.AI_setUnitAIType(UNITAI_COLONIST);
+				kLeaving.AI_setWfTask(CvUnitAI::WF_JOIN_CITY, pTarget->getID(), NO_PROFESSION, -1, -1, -1, -1);
+				if (gPlayerLogLevel >= 1)
+				{
+					logWTPCity(*pCity, "WTP food: %S leaves %S (food %+d, no food plot with 3 food left) for %S (food %+d)", pLeaving->getName().GetCString(),
+						pCity->getName().GetCString(), iFoodBefore, pTarget->getName().GetCString(), pTarget->foodDifference());
+					logWTPCity(*pTarget, "WTP food: %S comes from starving %S to %S (food %+d)", pLeaving->getName().GetCString(),
+						pCity->getName().GetCString(), pTarget->getName().GetCString(), pTarget->foodDifference());
+				}
+			}
+			continue;
+		}
+
+		// 2. no colony has food to spare: a non-expert learns a food expert in a village within 20 plots, for the best
+		// free food plot of this colony
+		if (pLeaving->AI_getIdealProfession() != NO_PROFESSION || pLeaving->getUnitInfo().getLearnTime() < 0)
+		{
+			if (gPlayerLogLevel >= 1) logWTPCity(*pCity, "WTP food: %S (food %+d) finds no colony with food to spare and no colonist that can learn", pCity->getName().GetCString(), pCity->foodDifference());
+			continue;
+		}
+		CvCity* pBestVillage = NULL;
+		int iBestValue = 0;
+		int iBestExpert = -1;
+		CityPlotTypes eBestPlot = NO_CITY_PLOT;
+		for (int iExpert = 0; iExpert < 3; ++iExpert)
+		{
+			if (aeFoodExperts[iExpert] == NO_UNITCLASS || aeFoodProfessions[iExpert] == NO_PROFESSION || aeFoodExperts[iExpert] == m_eWfExpertToBuy)
+			{
+				continue;
+			}
+			const CvProfessionInfo& kProfession = GC.getProfessionInfo(aeFoodProfessions[iExpert]);
+			// the best free plot of the colony for this profession
+			int iBestFood = 0;
+			CityPlotTypes eFoodPlot = NO_CITY_PLOT;
+			FOREACH(CityPlot)
+			{
+				if (eLoopCityPlot == CITY_HOME_PLOT || pCity->isPlotProducingYields(eLoopCityPlot))
+				{
+					continue;
+				}
+				const CvPlot* const pLoopPlot = pCity->getCityIndexPlot(eLoopCityPlot);
+				if (pLoopPlot == NULL || !pCity->canWork(pLoopPlot) || pLoopPlot->isWater() != kProfession.isWater())
+				{
+					continue;
+				}
+				const int iFood = pLoopPlot->calculatePotentialYield(YIELD_FOOD, pLeaving, false);
+				if (iFood > iBestFood)
+				{
+					iBestFood = iFood;
+					eFoodPlot = eLoopCityPlot;
+				}
+			}
+			if (eFoodPlot == NO_CITY_PLOT || iBestFood < 2)
+			{
+				continue;
+			}
+			CvCity* const pVillage = AI_wfTeachingVillage(aeFoodExperts[iExpert], *pCity, 20);
+			if (pVillage == NULL)
+			{
+				continue;
+			}
+			// the more food the plot gives, the nearer the village, the better
+			const int iValue = iBestFood * 100 - plotDistance(pVillage->getX_INLINE(), pVillage->getY_INLINE(), pCity->getX_INLINE(), pCity->getY_INLINE());
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				pBestVillage = pVillage;
+				iBestExpert = iExpert;
+				eBestPlot = eFoodPlot;
+			}
+		}
+		if (pBestVillage == NULL)
+		{
+			if (gPlayerLogLevel >= 1) logWTPCity(*pCity, "WTP food: %S (food %+d) finds no colony with food to spare and no village within 20 plots that teaches a food expert",
+				pCity->getName().GetCString(), pCity->foodDifference());
+			continue;
+		}
+		const CvPlot* const pFoodPlot = pCity->getCityIndexPlot(eBestPlot);
+		if (pCity->removePopulationUnit(CREATE_ASSERT_DATA, pLeaving, false, eDefaultProfession))
+		{
+			CvUnitAI& kLeaving = static_cast<CvUnitAI&>(*pLeaving);
+			kLeaving.AI_setUnitAIType(UNITAI_COLONIST);
+			kLeaving.AI_setWfTask(CvUnitAI::WF_FOOD_LEARN, pCity->getID(), aeFoodProfessions[iBestExpert], pFoodPlot->getX_INLINE(), pFoodPlot->getY_INLINE(),
+				pBestVillage->getX_INLINE(), pBestVillage->getY_INLINE());
+			if (gPlayerLogLevel >= 1) logWTPCity(*pCity, "WTP food: %S leaves %S (food %+d) to learn %S in %S (%d,%d), then works %d,%d",
+				pLeaving->getName().GetCString(), pCity->getName().GetCString(), iFoodBefore, GC.getUnitClassInfo(aeFoodExperts[iBestExpert]).getDescription(),
+				pBestVillage->getName().GetCString(), pBestVillage->getX_INLINE(), pBestVillage->getY_INLINE(), pFoodPlot->getX_INLINE(), pFoodPlot->getY_INLINE());
+		}
+	}
+}
+
+// WTP: the food surplus a colony keeps after one more colonist joins it (he eats 2), counting the colonists already on
+// their way to join it (except iSkipUnitID)
+int CvPlayerAI::AI_foodSurplusForNewcomer(const CvCity& kCity, int iSkipUnitID) const
+{
+	int iIncoming = 0;
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		const CvUnitAI& kLoopAI = static_cast<const CvUnitAI&>(*pLoopUnit);
+		if (pLoopUnit->getID() != iSkipUnitID && kLoopAI.AI_getWfTask() == CvUnitAI::WF_JOIN_CITY && kLoopAI.AI_getWfCityID() == kCity.getID())
+		{
+			++iIncoming;
+		}
+	}
+	return kCity.foodDifference() - 2 * iIncoming - GLOBAL_DEFINE_FOOD_CONSUMPTION_PER_POPULATION;
+}
+
+// WTP: the colony (reachable from kFrom over land or by sea) with the most food to spare: at least +2 must stay after
+// the newcomer and those already on their way joined; NULL if there is none
+CvCity* CvPlayerAI::AI_bestFoodSurplusCity(const CvCity& kFrom, const CvCity* pExclude, int iSkipUnitID) const
+{
+	CvCity* pBest = NULL;
+	int iBestSurplus = 1;
+	int iLoop;
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	{
+		if (pLoopCity == pExclude)
+		{
+			continue;
+		}
+		const bool bReachable = pLoopCity->area() == kFrom.area()
+			|| (pLoopCity->isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN()) && kFrom.isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN()));
+		const int iSurplus = AI_foodSurplusForNewcomer(*pLoopCity, iSkipUnitID);
+		if (bReachable && iSurplus >= 2 && iSurplus > iBestSurplus)
+		{
+			iBestSurplus = iSurplus;
+			pBest = pLoopCity;
+		}
+	}
+	return pBest;
 }
 
 // WTP: experts that never give up their specialty (renowned medics, expert farmers, expert fishermen)
@@ -18041,7 +18214,8 @@ void CvPlayerAI::AI_doWorkforcePlan()
 	for (uint i = 0; i < apUnits.size(); ++i)
 	{
 		CvUnitAI& kUnit = static_cast<CvUnitAI&>(*apUnits[i]);
-		if (kUnit.AI_getWfTask() == CvUnitAI::WF_NONE)
+		// WTP: moving to a colony with food to spare and learning a food expert are not plan opportunities
+		if (kUnit.AI_getWfTask() == CvUnitAI::WF_NONE || kUnit.AI_getWfTask() == CvUnitAI::WF_JOIN_CITY || kUnit.AI_getWfTask() == CvUnitAI::WF_FOOD_LEARN)
 		{
 			continue;
 		}

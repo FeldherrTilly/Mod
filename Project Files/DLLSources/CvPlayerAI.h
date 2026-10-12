@@ -492,7 +492,10 @@ public:
 	void AI_doCitizenRelocation(); // WTP
 	void AI_doWorkforcePlan(); // WTP
 	static int AI_nativeDeliveryPrice(YieldTypes eYield); // WTP
-	CvCity* AI_wfTeachingVillage(UnitClassTypes eExpertClass, const CvCity& kNearCity) const; // WTP
+	CvCity* AI_wfTeachingVillage(UnitClassTypes eExpertClass, const CvCity& kNearCity, int iMaxDistance = 7) const; // WTP
+	void AI_doFoodRelocation(); // WTP
+	int AI_foodSurplusForNewcomer(const CvCity& kCity, int iSkipUnitID = -1) const; // WTP
+	CvCity* AI_bestFoodSurplusCity(const CvCity& kFrom, const CvCity* pExclude, int iSkipUnitID = -1) const; // WTP
 	void AI_doReclaimTerritory(); // WTP
 	bool AI_isInForeignColonyRadius(const CvPlot& kPlot) const; // WTP
 	// WTP: food workers for colonies short of food when no new colonies are wanted
