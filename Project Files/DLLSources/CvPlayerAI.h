@@ -186,6 +186,7 @@ public:
 		NUM_EARLY_STRATEGIES
 	};
 	bool AI_isEarlyPhaseActive() const;
+	bool AI_isEarlyImprovement() const { return m_iEarlyPhase == 1 && m_iEarlyStrategy == EARLY_IMPROVEMENT; }
 	bool AI_mayHurryBuildingEarly(BuildingTypes eBuilding) const;
 	void AI_doEarlyPhase();
 	bool AI_isEarlyResourceSettler(int iUnitID) const;
