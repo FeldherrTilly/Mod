@@ -5197,6 +5197,86 @@ DenialTypes CvPlayerAI::AI_yieldTrade(YieldTypes eYield, const IDInfo& kTranspor
 	return NO_DENIAL;
 }
 
+// WTP: gold for iAmount of a yield in a trade with this native tribe, computed without a ship on the spot.
+// bNativeBuys: the natives pay for it (we sell), otherwise they ask for it (we buy). Same formula as AI_yieldTradeVal:
+// the price falls with the stock of the whole tribe, down to 25%. Returns -1 if the natives do not trade the yield that way.
+int CvPlayerAI::AI_nativeYieldTradeValue(YieldTypes eYield, int iAmount, bool bNativeBuys, const CvCity* pCity) const
+{
+	FAssert(isNative());
+	if (!isNative() || iAmount <= 0)
+	{
+		return -1;
+	}
+
+	const CvYieldInfo& kYield = GC.getYieldInfo(eYield);
+	int iPrice = bNativeBuys ? kYield.getNativeBuyPrice() : kYield.getNativeSellPrice();
+	if (iPrice <= 0)
+	{
+		return -1;
+	}
+	if (bNativeBuys && pCity != NULL && (eYield == pCity->AI_getDesiredYield() || eYield == YIELD_MUSKETS || eYield == YIELD_HORSES))
+	{
+		iPrice = iPrice * 125 / 100;
+	}
+
+	const int iTotalStored = countTotalYieldStored(eYield);
+	int iMaxStored = getNumCities() * ((eYield == YIELD_FOOD) ? getGrowthThreshold(1) : GC.getGameINLINE().getCargoYieldCapacity());
+	if (kYield.getNativeConsumptionPercent() > 0)
+	{
+		iMaxStored = iMaxStored * kYield.getNativeConsumptionPercent() / 80;
+	}
+	else
+	{
+		iMaxStored *= 2;
+	}
+	iMaxStored = std::max(1, iMaxStored);
+
+	// the stock grows by the amount if the natives buy, and shrinks by it if they sell
+	const int iStockAfter = bNativeBuys ? std::min(iMaxStored, iTotalStored + iAmount) : std::max(0, iTotalStored - iAmount);
+	const int iHighPricePercent = std::max(25, 100 - (100 * iTotalStored) / iMaxStored);
+	const int iLowPricePercent = std::max(25, 100 - (100 * iStockAfter) / iMaxStored);
+
+	return iAmount * iPrice * (iHighPricePercent + iLowPricePercent) / 200;
+}
+
+// WTP: profit of buying iAmount of a yield from a native tribe and selling it in Europe (after tax).
+// False if the natives do not sell it or Europe does not buy it.
+bool CvPlayerAI::AI_nativeBuyProfit(YieldTypes eYield, int iAmount, PlayerTypes eNative, int& iProfit) const
+{
+	iProfit = 0;
+	if (eNative == NO_PLAYER || !GET_PLAYER(eNative).isNative() || getParent() == NO_PLAYER || !isYieldEuropeTradable(eYield))
+	{
+		return false;
+	}
+	const int iCost = GET_PLAYER(eNative).AI_nativeYieldTradeValue(eYield, iAmount, false, NULL);
+	if (iCost < 0)
+	{
+		return false;
+	}
+	iProfit = getSellToEuropeProfit(eYield, iAmount) - iCost;
+	return true;
+}
+
+// WTP: profit of buying iAmount of a yield in Europe and selling it to a native village. The payment is limited by
+// the gold the tribe is willing to spend on us. False if the natives do not buy it or Europe does not sell it.
+bool CvPlayerAI::AI_nativeSellProfit(YieldTypes eYield, int iAmount, const CvCity& kNativeCity, int& iProfit) const
+{
+	iProfit = 0;
+	const PlayerTypes eNative = kNativeCity.getOwnerINLINE();
+	if (!GET_PLAYER(eNative).isNative() || getParent() == NO_PLAYER || !GET_PLAYER(getParent()).isEurope() || !isYieldEuropeTradable(eYield))
+	{
+		return false;
+	}
+	int iRevenue = GET_PLAYER(eNative).AI_nativeYieldTradeValue(eYield, iAmount, true, &kNativeCity);
+	if (iRevenue < 0)
+	{
+		return false;
+	}
+	iRevenue = std::min(iRevenue, GET_PLAYER(eNative).AI_maxGoldTrade(getID()));
+	iProfit = iRevenue - GET_PLAYER(getParent()).getYieldSellPrice(eYield) * iAmount;
+	return true;
+}
+
 int CvPlayerAI::AI_calculateDamages(TeamTypes eTeam)
 {
 	int iValue = 0;

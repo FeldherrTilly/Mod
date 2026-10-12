@@ -161,6 +161,10 @@ public:
 
 	int AI_yieldTradeVal(YieldTypes eYield, const IDInfo& kTransport, PlayerTypes ePlayer);
 	DenialTypes AI_yieldTrade(YieldTypes eYield, const IDInfo& kTransport, PlayerTypes ePlayer) const;
+	// WTP: native trade prices without a ship on the spot (the native player is "this" of AI_nativeYieldTradeValue)
+	int AI_nativeYieldTradeValue(YieldTypes eYield, int iAmount, bool bNativeBuys, const CvCity* pCity) const;
+	bool AI_nativeBuyProfit(YieldTypes eYield, int iAmount, PlayerTypes eNative, int& iProfit) const;
+	bool AI_nativeSellProfit(YieldTypes eYield, int iAmount, const CvCity& kNativeCity, int& iProfit) const;
 
 	int AI_calculateDamages(TeamTypes eTeam);
 
