@@ -19743,14 +19743,19 @@ bool CvPlayerAI::AI_doEarlyImprovement()
 	return true;
 }
 
-// WTP: the expert unit class that works the resource: the Prospector digs gold, silver and gemstones
-static UnitClassTypes earlyExpertClassForBonus(BonusTypes /*eBonus*/)
+// WTP: the expert unit class that works the resource: the Prospector digs gold, silver and gemstones, the Pearl Hunter
+// fishes the pearls (which give gems)
+static UnitClassTypes earlyExpertClassForBonus(BonusTypes eBonus)
 {
+	if (GC.getBonusInfo(eBonus).getType() == CvString("BONUS_PEARLS_2"))
+	{
+		return (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_PEARLS_HUNTER");
+	}
 	return (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_PROSPECTOR");
 }
 
-// WTP: value of a precious resource: gold, silver, gems. (BONUS_PEARLS is the food resource "Shellfish" and no precious
-// resource: a colony settled for it brought nothing.)
+// WTP: value of a precious resource: gold, pearls (BONUS_PEARLS_2, 3 gems), silver, gems. BONUS_PEARLS is only the food
+// resource "Shellfish" and counts for nothing: a colony settled for it brought nothing.
 static int earlyBonusValue(BonusTypes eBonus)
 {
 	if (eBonus == NO_BONUS)
@@ -19759,6 +19764,7 @@ static int earlyBonusValue(BonusTypes eBonus)
 	}
 	const CvString szBonus = GC.getBonusInfo(eBonus).getType();
 	if (szBonus == "BONUS_GOLD") return 40;
+	if (szBonus == "BONUS_PEARLS_2") return 38;
 	if (szBonus == "BONUS_SILVER") return 35;
 	if (szBonus == "BONUS_GEMS") return 25;
 	return 0;
