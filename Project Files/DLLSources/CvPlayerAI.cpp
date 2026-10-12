@@ -9354,29 +9354,25 @@ void CvPlayerAI::AI_doEurope()
 			return;
 		}
 
-		// WTP: then at least one transport per colony (inland colonies too), before the minimum fleet warship
+		// WTP: then at least one transport per colony (inland colonies too)
 		if (AI_doColonyTransportPurchase())
 		{
 			return;
 		}
 
 		// WTP, Schmiddie, AI Minimum Fleet - START
+		// WTP: no minimum warship any more, only a transport if there is none
 		UnitAITypes eRequiredShipAI = NO_UNITAI;
 
-		// WTP: a warship only from 3 colonies and turn 45 on, before that the gold is needed for the colonies
-		if (AI_totalUnitAIs(UNITAI_COMBAT_SEA) < 1 && getNumCities() >= 3 && GC.getGameINLINE().getGameTurn() >= 45)
-		{
-			eRequiredShipAI = UNITAI_COMBAT_SEA;
-		}
-		else if (AI_totalUnitAIs(UNITAI_TRANSPORT_SEA) < 1)
+		if (AI_totalUnitAIs(UNITAI_TRANSPORT_SEA) < 1)
 		{
 			eRequiredShipAI = UNITAI_TRANSPORT_SEA;
 		}
 
 		if (eRequiredShipAI != NO_UNITAI)
 		{
-			// WTP: the cheapest warship is enough, transports by value per price; both must reach our colonies
-			const UnitTypes eBestShip = AI_bestShipToBuy(eRequiredShipAI, eRequiredShipAI == UNITAI_COMBAT_SEA);
+			// WTP: transports by value per price; they must reach our colonies
+			const UnitTypes eBestShip = AI_bestShipToBuy(eRequiredShipAI, false);
 
 			if (eBestShip != NO_UNIT)
 			{
@@ -9395,7 +9391,7 @@ void CvPlayerAI::AI_doEurope()
 				}
 				else if (gPlayerLogLevel >= 1)
 				{
-					logBBAI("WTP decision: Player %d (%S) saves for minimum fleet ship %S (%d gold, have %d)",
+					logBBAI("WTP decision: Player %d (%S) saves for its first transport %S (%d gold, have %d)",
 						getID(), getCivilizationDescription(0), GC.getUnitInfo(eBestShip).getDescription(), iShipPrice, getGold());
 				}
 
