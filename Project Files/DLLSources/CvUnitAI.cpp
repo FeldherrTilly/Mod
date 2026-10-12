@@ -5242,6 +5242,44 @@ void CvUnitAI::AI_logShipTarget()
 		s_szWtpShipReason, szMission, szTarget.GetCString(), kOwner.getNumEuropeUnits(), GET_PLAYER(getOwnerINLINE()).AI_cargoSpaceToEurope(pGroup));
 }
 
+// WTP: 5 or more units wait in Europe beyond the room of the ships already sailing there: a transport without
+// passengers sails to Europe at once (goods aboard are sold there), even if units on the map still wait for a ship.
+// The Danish transports chased goodies and native trade for 25 turns while 21 units waited in Europe.
+bool CvUnitAI::AI_sailForEuropeBacklog()
+{
+	if (hasAnyUnitInCargo() || getDomainType() != DOMAIN_SEA)
+	{
+		return false;
+	}
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	if (kOwner.getNumCities() == 0 || !kOwner.canTradeWithEurope())
+	{
+		return false;
+	}
+	const int iBacklog = kOwner.getNumEuropeUnits() - kOwner.AI_cargoSpaceToEurope(getGroup());
+	if (iBacklog < 5)
+	{
+		return false;
+	}
+	// a ship that can carry the waiting treasures collects them first
+	int iLoop;
+	for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
+	{
+		if (pLoopUnit->AI_getUnitAIType() == UNITAI_TREASURE && pLoopUnit->isOnMap()
+			&& pLoopUnit->getUnitInfo().getRequiredTransportSize() <= cargoSpace())
+		{
+			return false;
+		}
+	}
+	if (AI_sailToEurope())
+	{
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) ship %S sails to Europe for %d waiting units (%d without a ship)",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString(), kOwner.getNumEuropeUnits(), iBacklog);
+		return true;
+	}
+	return false;
+}
+
 void CvUnitAI::AI_transportSeaMove()
 {
 	PROFILE_FUNC();
@@ -5249,6 +5287,7 @@ void CvUnitAI::AI_transportSeaMove()
 	// TAC - AI Improved Naval AI - koma13 - START
 	if (AI_retreatFromDanger())
 	{
+		s_szWtpShipReason = "flees danger";
 		return;
 	}
 	// TAC - AI Improved Naval AI - koma13 - END
@@ -5270,15 +5309,20 @@ void CvUnitAI::AI_transportSeaMove()
 	}
 
 	if (AI_getUnitAIState() == UNITAI_STATE_TRANSPORT_SETTLER)
+	{
+		s_szWtpShipReason = "first settler";
 		AI_transportSettler();
+	}
 	else
 	{
 		CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 		const bool bEmpty = !getGroup()->hasCargo();
 
-		// WTP: no detours to goodies with passengers aboard (settlers were taken along from ruin to ruin for many turns)
-		if (!hasAnyUnitInCargo() && AI_goodyRange(baseMoves(), /*bIgnoreCity*/true))
+		// WTP: 5 or more units wait in Europe (beyond the room of the ships already sailing there): a ship without
+		// passengers sails there at once, even if units on the map still wait for a ship
+		if (AI_sailForEuropeBacklog())
 		{
+			s_szWtpShipReason = "Europe backlog";
 			return;
 		}
 
@@ -5287,16 +5331,19 @@ void CvUnitAI::AI_transportSeaMove()
 		{
 			if (!isFull() && AI_respondToPickup(MAX_INT, UNITAI_TREASURE))
 			{
+				s_szWtpShipReason = "more treasures";
 				AI_setUnitAIState(UNITAI_STATE_PICKUP);
 				return;
 			}
 			if (AI_sailToEurope())
 			{
+				s_szWtpShipReason = "treasures to Europe";
 				return;
 			}
 		}
 		else if (!hasAnyUnitInCargo() && kOwner.AI_totalUnitAIs(UNITAI_TREASURE) > 0 && AI_respondToPickup(MAX_INT, UNITAI_TREASURE))
 		{
+			s_szWtpShipReason = "treasure pickup";
 			AI_setUnitAIState(UNITAI_STATE_PICKUP);
 			return;
 		}
@@ -5306,6 +5353,7 @@ void CvUnitAI::AI_transportSeaMove()
 		if (!bEmpty && !isFull() && getUnitAICargo(UNITAI_TREASURE) == 0
 			&& (AI_respondToPickup(2, UNITAI_SETTLER) || AI_respondToPickup(2, UNITAI_COLONIST)))
 		{
+			s_szWtpShipReason = "pickup nearby with room";
 			AI_setUnitAIState(UNITAI_STATE_PICKUP);
 			return;
 		}
@@ -5314,6 +5362,7 @@ void CvUnitAI::AI_transportSeaMove()
 		{
 			if (AI_respondToPickup(20, UNITAI_TREASURE))
 			{
+				s_szWtpShipReason = "treasure pickup";
 				AI_setUnitAIState(UNITAI_STATE_SAIL);
 				return;
 			}
@@ -5324,6 +5373,7 @@ void CvUnitAI::AI_transportSeaMove()
 		{
 			if (AI_tradeWithCity())
 			{
+				s_szWtpShipReason = "trades with the city";
 				return;
 			}
 
@@ -5355,10 +5405,12 @@ void CvUnitAI::AI_transportSeaMove()
 			// settlers first: they are carried to their site
 			if (AI_deliverUnits(UNITAI_SETTLER))
 			{
+				s_szWtpShipReason = "delivers a settler";
 				return;
 			}
 			if (AI_deliverUnits())
 			{
+				s_szWtpShipReason = "delivers passengers";
 				return;
 			}
 			if (getUnitAICargo(UNITAI_SETTLER) > 0 && gUnitLogLevel >= 1)
@@ -5401,6 +5453,7 @@ void CvUnitAI::AI_transportSeaMove()
 				}
 				if (pNearest != NULL)
 				{
+					s_szWtpShipReason = "passengers without destination to a colony";
 					getGroup()->pushMission(MISSION_MOVE_TO, pNearest->getX_INLINE(), pNearest->getY_INLINE(), MOVE_BUST_FOG);
 					return;
 				}
@@ -5409,6 +5462,7 @@ void CvUnitAI::AI_transportSeaMove()
 
 		if (AI_getUnitAIState() == UNITAI_STATE_SAIL)
 		{
+			s_szWtpShipReason = "sail state";
 			if (AI_deliverUnits(UNITAI_SETTLER))
 			{
 				return;
@@ -5438,6 +5492,7 @@ void CvUnitAI::AI_transportSeaMove()
 			{
 				if (AI_sailToPreferredPort(false))
 				{
+					s_szWtpShipReason = "sail state: to port (Europe units or cargo)";
 					return;
 				}
 			}
@@ -5469,6 +5524,7 @@ void CvUnitAI::AI_transportSeaMove()
 			{
 				if (AI_sailToPreferredPort(true))
 				{
+					s_szWtpShipReason = "sail state: full, to port";
 					return;
 				}
 			}
@@ -5478,6 +5534,7 @@ void CvUnitAI::AI_transportSeaMove()
 				// Custom_House_Mod Start
 				if (AI_travelToPort(15, 6))
 				{
+					s_szWtpShipReason = "sail state: collects goods in a colony";
 					return;
 				}
 				// Custom_House_Mod End
@@ -5493,6 +5550,7 @@ void CvUnitAI::AI_transportSeaMove()
 			{
 				if (AI_sailToPreferredPort(true))
 				{
+					s_szWtpShipReason = "sail state: to port with cargo";
 					return;
 				}
 			}
@@ -5501,10 +5559,14 @@ void CvUnitAI::AI_transportSeaMove()
 		}
 
 		if (AI_deliverUnits())
+		{
+			s_szWtpShipReason = "delivers passengers";
 			return;
+		}
 
 		if (AI_getUnitAIState() == UNITAI_STATE_PICKUP)
 		{
+			s_szWtpShipReason = "pickup state";
 			if (AI_respondToPickup(2))
 			{
 				return;
@@ -5525,18 +5587,19 @@ void CvUnitAI::AI_transportSeaMove()
 		{
 			if (AI_respondToPickup(MAX_INT, UNITAI_SETTLER))
 			{
+				s_szWtpShipReason = "empty: settler pickup";
 				AI_setUnitAIState(UNITAI_STATE_PICKUP);
 				return;
 			}
 
 			if (AI_respondToPickup(5))
 			{
+				s_szWtpShipReason = "empty: pickup within 5 turns";
 				AI_setUnitAIState(UNITAI_STATE_PICKUP);
 				return;
 			}
 		}
 
-		int iNativeSaleGoods = 0;
 		int iSettlerCount = 0;
 		if (!bEmpty)
 		{
@@ -5561,10 +5624,6 @@ void CvUnitAI::AI_transportSeaMove()
 					{
 						FAssert(pLoopUnit->getYieldStored() > 0);
 						iGoodsCount++;
-						if (pLoopUnit->AI_getUnitAIState() == UNITAI_STATE_SELL_TO_NATIVES)
-						{
-							iNativeSaleGoods++;
-						}
 					}
 					if (pLoopUnit->AI_getUnitAIType() == UNITAI_SETTLER)
 					{
@@ -5578,6 +5637,7 @@ void CvUnitAI::AI_transportSeaMove()
 		{
 			if (AI_respondToPickup(MAX_INT, UNITAI_TREASURE))
 			{
+				s_szWtpShipReason = "treasure pickup";
 				AI_setUnitAIState(UNITAI_STATE_SAIL);
 				return;
 			}
@@ -5588,6 +5648,7 @@ void CvUnitAI::AI_transportSeaMove()
 		{
 			if (AI_respondToPickup())
 			{
+				s_szWtpShipReason = "empty: random pickup";
 				AI_setUnitAIState(UNITAI_STATE_PICKUP);
 				return;
 			}
@@ -5595,13 +5656,29 @@ void CvUnitAI::AI_transportSeaMove()
 
 		// Don't attempt trade route jobs unless we have no cargo		
 		if (bEmpty && getGroup()->AI_tradeRoutes())
-			return;
-		
-		// TAC - AI Improved Naval AI - koma13 - START
-		//if (iSettlerCount > 0 || iNativeSaleGoods > 0 || ((kOwner.getNumEuropeUnits() == 0) && (kOwner.AI_countYieldWaiting() < 3)))
-		if (iSettlerCount > 0 || iNativeSaleGoods > 0 || (!bPickupUnitsFromEurope && (kOwner.AI_countYieldWaiting() < 3)))
-			// TAC - AI Improved Naval AI - koma13 - END
 		{
+			s_szWtpShipReason = "empty: trade route";
+			return;
+		}
+		
+		// WTP: exploring and goodies come last: only an empty ship explores, when hardly any goods wait in the colonies,
+		// fewer than 3 units wait in Europe and nobody on the map waits for a ship (ships do not trade with natives; goods
+		// aboard go to Europe). Goodies were chased before everything else and kept the Danish ships from Europe.
+		const bool bIdle = bEmpty && kOwner.getNumEuropeUnits() < 3 && kOwner.AI_countYieldWaiting() < 3;
+		if (bIdle && AI_respondToPickup())
+		{
+			s_szWtpShipReason = "idle: pickup";
+			AI_setUnitAIState(UNITAI_STATE_PICKUP);
+			return;
+		}
+		if (bIdle && AI_goodyRange(baseMoves() * 2, /*bIgnoreCity*/true, 2))
+		{
+			s_szWtpShipReason = "idle: goody";
+			return;
+		}
+		if (iSettlerCount > 0 || bIdle)
+		{
+			s_szWtpShipReason = iSettlerCount > 0 ? "explores with a settler" : "idle: explores";
 			if (AI_exploreCoast(2))
 			{
 				return;
@@ -5620,12 +5697,16 @@ void CvUnitAI::AI_transportSeaMove()
 
 		// Don't attempt trade route jobs unless we have no cargo		
 		if (bEmpty && AI_isObsoleteTradeShip() && getGroup()->AI_tradeRoutes())
+		{
+			s_szWtpShipReason = "obsolete ship: trade route";
 			return;
+		}
 
 		if (pCity != NULL)
 		{
 			if (AI_collectGoods())
 			{
+				s_szWtpShipReason = "collects goods";
 				AI_setUnitAIState(UNITAI_STATE_SAIL);
 				return;
 			}
@@ -5635,29 +5716,20 @@ void CvUnitAI::AI_transportSeaMove()
 		{
 			if (AI_travelToPort(40))
 			{
+				s_szWtpShipReason = "travels to a colony for goods";
 				AI_setUnitAIState(UNITAI_STATE_SAIL);
-				return;
-			}
-		}
-
-		if (iNativeSaleGoods > 0)
-		{
-			if (AI_exploreCoast(2))
-			{
-				return;
-			}
-			if (AI_exploreDeep())
-			{
 				return;
 			}
 		}
 
 		// TAC - AI Improved Naval AI - koma13 - START
 		//if ((GET_PLAYER(getOwnerINLINE()).getNumEuropeUnits() > 0) || isFull())
-		if (bPickupUnitsFromEurope || isFull())
+		// WTP: goods aboard go to Europe (collecting more on the way in the sail state)
+		if (bPickupUnitsFromEurope || isFull() || hasCargo())
 			// TAC - AI Improved Naval AI - koma13 - END
 		{
 			FAssert(AI_getUnitAIState() != UNITAI_STATE_SAIL);
+			s_szWtpShipReason = "switches to sail state";
 			AI_setUnitAIState(UNITAI_STATE_SAIL);
 			return;
 		}
@@ -12500,7 +12572,7 @@ bool CvUnitAI::AI_goody(bool bIgnoreCity)
 
 }
 
-bool CvUnitAI::AI_goodyRange(int iRange, bool bIgnoreCity)
+bool CvUnitAI::AI_goodyRange(int iRange, bool bIgnoreCity, int iMaxPathTurns)
 {
 	PROFILE_FUNC();
 
@@ -12541,7 +12613,7 @@ bool CvUnitAI::AI_goodyRange(int iRange, bool bIgnoreCity)
 						if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_EXPLORE, getGroup(), 1) == 0)
 						{
 							int iPathTurns = 0;
-							if (!atPlot(pLoopPlot) && generatePath(pLoopPlot, MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns))
+							if (!atPlot(pLoopPlot) && generatePath(pLoopPlot, MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns) && iPathTurns <= iMaxPathTurns)
 							{
 								iValue += GC.getGameINLINE().getSorenRandNum(250 * abs(xDistance(getX_INLINE(), pLoopPlot->getX_INLINE())) + abs(yDistance(getY_INLINE(), pLoopPlot->getY_INLINE())), "AI explore");
 
