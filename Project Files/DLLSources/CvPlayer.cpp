@@ -6325,13 +6325,13 @@ CvCity* CvPlayer::found(Coordinates foundCoord)
 			}
 		}
 		CvCity* const pPrimary = AI().AI_getPrimaryCity();
-		logWTP(WTP_LOG_SETTLER, getID(), "WTP found: Player %d (%S) turn %d founds at %d,%d: found value %d, area best %d, nearest own colony %d plots, primary colony %S %d plots%s, AI city distance %d",
+		logWTP(WTP_LOG_SETTLER, getID(), "WTP found: Player %d (%S) turn %d founds at %d,%d: found value %d, area best %d, nearest own colony %d plots, primary colony %S %d plots%s, AI city distance %d, resource site value (gold, silver, gems around) %d",
 			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), foundCoord.x(), foundCoord.y(),
 			AI().AI_foundValue(foundCoord.x(), foundCoord.y()), pFoundPlot->area()->getBestFoundValue(getID()), iNearest,
 			(pPrimary != NULL) ? pPrimary->getName().GetCString() : L"-",
 			(pPrimary != NULL) ? plotDistance(foundCoord.x(), foundCoord.y(), pPrimary->getX_INLINE(), pPrimary->getY_INLINE()) : -1,
 			(pPrimary != NULL && pPrimary->area() != pFoundPlot->area()) ? " (other landmass)" : "",
-			AI().AI_cityDistance(const_cast<CvPlot*>(pFoundPlot)));
+			AI().AI_cityDistance(const_cast<CvPlot*>(pFoundPlot)), AI().AI_earlyResourceSiteValue(*pFoundPlot));
 	}
 
 	CvCity* pCity = initCity(foundCoord, true);
