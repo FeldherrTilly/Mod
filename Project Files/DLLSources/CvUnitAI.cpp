@@ -16724,6 +16724,179 @@ bool CvUnitAI::AI_tradeWithCity()
 	return bSaleMade;
 }
 
+// WTP: native trade ship: sells the goods aboard to the native village on this plot, bargaining once per sale.
+// Returns 1 if something was sold, 0 if not, -1 if the natives refuse to trade with us for some turns (angry).
+int CvUnitAI::AI_nativeTradeSell()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	CvCity* const pCity = plot()->getPlotCity();
+	if (pCity == NULL || !GET_PLAYER(pCity->getOwnerINLINE()).isNative() || !canTradeYield(plot()) || pCity->getTradeBlockingFortOwner(getOwnerINLINE()) != NO_PLAYER)
+	{
+		return 0;
+	}
+	const PlayerTypes eNative = pCity->getOwnerINLINE();
+	CvPlayerAI& kNative = GET_PLAYER(eNative);
+
+	int iResult = 0;
+	for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
+	{
+		const int iAmount = kOwner.getTradeYieldAmount(eYield, this);
+		if (iAmount <= 0)
+		{
+			continue;
+		}
+		if (kNative.getTimeNoTrade(getOwnerINLINE()) > 0)
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trade: Player %d (%S) turn %d %S: %S refuse to trade (angry for %d more turns)",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), kNative.getCivilizationDescription(0), kNative.getTimeNoTrade(getOwnerINLINE()));
+			return -1;
+		}
+		if (!kOwner.AI_nativeCityBuys(eYield, *pCity))
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trade: Player %d (%S) turn %d %S: %S does not buy %S",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pCity->getName().GetCString(), GC.getYieldInfo(eYield).getDescription());
+			continue;
+		}
+		int iGold = std::min(kNative.AI_nativeYieldTradeValue(eYield, iAmount, true, pCity), pCity->AI_maxGoldTrade(getOwnerINLINE()));
+		if (iGold <= 0)
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trade: Player %d (%S) turn %d %S: %S has no gold to pay for %d %S",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pCity->getName().GetCString(), iAmount, GC.getYieldInfo(eYield).getDescription());
+			continue;
+		}
+
+		// bargain once for this sale; if the natives take offence they sell nothing more to us for a while
+		const int iBasePrice = iGold;
+		const bool bBargained = kOwner.AI_bargainWithNatives(eNative, iGold);
+		if (kNative.getTimeNoTrade(getOwnerINLINE()) > 0)
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trade: Player %d (%S) turn %d %S: bargaining with %S failed, they are angry for %d turns and trade nothing",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), kNative.getCivilizationDescription(0), kNative.getTimeNoTrade(getOwnerINLINE()));
+			return -1;
+		}
+
+		CLinkList<TradeData> ourList;
+		CLinkList<TradeData> theirList;
+		TradeData item;
+		setTradeItem(&item, TRADE_YIELD, eYield, &getIDInfo());
+		ourList.insertAtEnd(item);
+		setTradeItem(&item, TRADE_GOLD, iGold, &getIDInfo());
+		theirList.insertAtEnd(item);
+
+		const int iGoldBefore = kOwner.getGold();
+		GC.getGameINLINE().implementDeal(getOwnerINLINE(), eNative, &ourList, &theirList, true);
+		const int iGained = kOwner.getGold() - iGoldBefore;
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trade: Player %d (%S) turn %d %S sells %d %S to %S (%S): asked %d gold%s, got %d gold",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), iAmount, GC.getYieldInfo(eYield).getDescription(),
+			pCity->getName().GetCString(), kNative.getCivilizationDescription(0), iGold, bBargained ? " (bargained up from base price)" : "", iGained);
+		if (iGained > 0)
+		{
+			iResult = 1;
+		}
+	}
+	return iResult;
+}
+
+// WTP: native trade ship: buys goods from the native village on this plot for the free cargo space. Takes the yield with the best
+// absolute profit per cargo slot first (the profit ratio only decides ties). Returns the number of deals made.
+int CvUnitAI::AI_nativeTradeBuy()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	CvCity* const pCity = plot()->getPlotCity();
+	if (pCity == NULL || !GET_PLAYER(pCity->getOwnerINLINE()).isNative() || !canTradeYield(plot()) || pCity->getTradeBlockingFortOwner(getOwnerINLINE()) != NO_PLAYER)
+	{
+		return 0;
+	}
+	const PlayerTypes eNative = pCity->getOwnerINLINE();
+	CvPlayerAI& kNative = GET_PLAYER(eNative);
+	const int iCapacity = std::max(1, GC.getGameINLINE().getCargoYieldCapacity());
+
+	int iDeals = 0;
+	for (int iRound = 0; iRound < 8 && !isFull(); ++iRound)
+	{
+		if (kNative.getTimeNoTrade(getOwnerINLINE()) > 0)
+		{
+			break;
+		}
+
+		YieldTypes eBestYield = NO_YIELD;
+		int iBestAmount = 0;
+		int iBestCost = 0;
+		int iBestProfit = 0;
+		int iBestScore = 0;
+		int iBestRatio = 0;
+		const int iGoldAvailable = kOwner.getGold();
+		for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
+		{
+			// the natives sell only what they produce (never horses); the AI buys only what it can sell in Europe
+			if (eYield == YIELD_HORSES || GC.getYieldInfo(eYield).getNativeSellPrice() <= 0 || !pCity->canProduceYield(eYield) || !kOwner.isYieldEuropeTradable(eYield))
+			{
+				continue;
+			}
+			int iAmount = kNative.getTradeYieldAmount(eYield, this);
+			if (iAmount <= 0)
+			{
+				continue;
+			}
+			int iCost = kNative.AI_nativeYieldTradeValue(eYield, iAmount, false, NULL);
+			if (iCost > iGoldAvailable)
+			{
+				iAmount = iAmount * iGoldAvailable / std::max(1, iCost);
+				iCost = (iAmount > 0) ? kNative.AI_nativeYieldTradeValue(eYield, iAmount, false, NULL) : 0;
+			}
+			int iProfit;
+			if (iAmount <= 0 || iCost <= 0 || iCost > iGoldAvailable || !kOwner.AI_nativeBuyProfit(eYield, iAmount, eNative, iProfit) || iProfit <= 0)
+			{
+				continue;
+			}
+			const int iScore = iProfit / ((iAmount + iCapacity - 1) / iCapacity);
+			const int iRatio = iProfit * 100 / iCost;
+			if (iScore > iBestScore || (iScore == iBestScore && iRatio > iBestRatio))
+			{
+				eBestYield = eYield;
+				iBestAmount = iAmount;
+				iBestCost = iCost;
+				iBestProfit = iProfit;
+				iBestScore = iScore;
+				iBestRatio = iRatio;
+			}
+		}
+		if (eBestYield == NO_YIELD)
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trade: Player %d (%S) turn %d %S: nothing worth buying in %S (%S), gold %d, free cargo %d",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pCity->getName().GetCString(), kNative.getCivilizationDescription(0), iGoldAvailable, cargoSpace() - getCargo());
+			break;
+		}
+
+		// take less than the village offers if the money or the room is short
+		if (iBestAmount < kNative.getTradeYieldAmount(eBestYield, this))
+		{
+			kNative.setDiploYieldAmount(eBestYield, iBestAmount);
+		}
+		CLinkList<TradeData> ourList;
+		CLinkList<TradeData> theirList;
+		TradeData item;
+		setTradeItem(&item, TRADE_GOLD, iBestCost, &getIDInfo());
+		ourList.insertAtEnd(item);
+		setTradeItem(&item, TRADE_YIELD, eBestYield, &getIDInfo());
+		theirList.insertAtEnd(item);
+
+		GC.getGameINLINE().implementDeal(getOwnerINLINE(), eNative, &ourList, &theirList, true);
+		kNative.setDiploYieldAmount(eBestYield, -1);
+
+		const int iSpent = iGoldAvailable - kOwner.getGold();
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trade: Player %d (%S) turn %d %S buys %d %S from %S (%S) for %d gold (planned %d), expected profit %d (%d per cargo slot), cargo now %d/%d",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), iBestAmount, GC.getYieldInfo(eBestYield).getDescription(),
+			pCity->getName().GetCString(), kNative.getCivilizationDescription(0), iSpent, iBestCost, iBestProfit, iBestScore, getCargo(), cargoSpace());
+		if (iSpent <= 0)
+		{
+			break;
+		}
+		++iDeals;
+	}
+	return iDeals;
+}
+
 // TAC - AI Assault Sea - koma13, jdog5000(BBAI) - START
 // Returns true if a mission was pushed...
 bool CvUnitAI::AI_assaultSeaTransport(bool bNative)
