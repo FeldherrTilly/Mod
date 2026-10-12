@@ -598,6 +598,22 @@ void CvCityAI::AI_chooseProduction()
 		}
 	}
 
+	// WTP: Early Improvement focuses on the Village Hall, then the Town Hall
+	if (!isNative() && kPlayer.AI_isEarlyImprovement())
+	{
+		const char* const aszFocus[2] = { "BUILDINGCLASS_VILLAGEHALL", "BUILDINGCLASS_TOWNHALL" };
+		for (int iFocus = 0; iFocus < 2; ++iFocus)
+		{
+			const BuildingClassTypes eFocusClass = (BuildingClassTypes)GC.getInfoTypeForString(aszFocus[iFocus]);
+			const BuildingTypes eFocusBuilding = (eFocusClass != NO_BUILDINGCLASS) ? GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eFocusClass) : NO_BUILDING;
+			if (eFocusBuilding != NO_BUILDING && canConstruct(eFocusBuilding))
+			{
+				pushOrder(ORDER_CONSTRUCT, eFocusBuilding, -1, false, false, false);
+				return;
+			}
+		}
+	}
+
 	if (AI_chooseBuilding(0, MAX_INT, 8))
 	{
 		return;
