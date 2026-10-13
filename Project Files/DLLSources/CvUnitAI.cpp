@@ -16953,7 +16953,8 @@ int CvUnitAI::AI_nativeTradeBuy()
 	const int iCapacity = std::max(1, GC.getGameINLINE().getCargoYieldCapacity());
 
 	int iDeals = 0;
-	for (int iRound = 0; iRound < 8 && !isFull(); ++iRound)
+	// partly filled slots are topped up (getLoadYieldAmount counts their free room)
+	for (int iRound = 0; iRound < 8 && !isFullToBrim(); ++iRound)
 	{
 		if (kNative.getTimeNoTrade(getOwnerINLINE()) > 0)
 		{
@@ -17067,12 +17068,18 @@ int CvUnitAI::AI_nativeTradeCargoCount(bool bGoods, bool* pbMuskets) const
 }
 
 // WTP: native trade ship on the map, called when it has no mission (it is at its target or idle). Buying: visits the villages
-// and buys goods; with a full hold, or 2 turns after the last purchase, it sails to Europe. Selling: brings the goods from
+// and buys goods; with a hold full to the brim, 2 turns after all cargo slots were taken or 12 turns after its arrival from
+// Europe it sails to Europe (with goods aboard; the checks run when it reaches a target). Selling: brings the goods from
 // Europe to the villages. Passengers come first: they are put ashore in the nearest colony.
 void CvUnitAI::AI_nativeTradeShipMove()
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	const int iTurn = GC.getGameINLINE().getGameTurn();
+
+	if (m_iNativeTradeArriveTurn < 0)
+	{
+		m_iNativeTradeArriveTurn = iTurn;
+	}
 
 	if (AI_retreatFromDanger())
 	{
@@ -17187,10 +17194,28 @@ void CvUnitAI::AI_nativeTradeShipMove()
 			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pHere->getName().GetCString(), iDeals, getCargo(), cargoSpace());
 	}
 
-	if (iGoods > 0 && (isFull() || iTurn - m_iNativeTradeBuyTurn >= 2))
+	// back to Europe: hold full to the brim, or 2 turns after all cargo slots were taken, or 12 turns after the arrival from Europe
+	if (isFull() && m_iNativeTradeSlotsFullTurn < 0)
+	{
+		m_iNativeTradeSlotsFullTurn = iTurn;
+	}
+	const char* szEurope = NULL;
+	if (isFullToBrim())
+	{
+		szEurope = "hold is full";
+	}
+	else if (m_iNativeTradeSlotsFullTurn >= 0 && iTurn - m_iNativeTradeSlotsFullTurn >= 2)
+	{
+		szEurope = "2 turns since all cargo slots were taken";
+	}
+	else if (iTurn - m_iNativeTradeArriveTurn >= 12)
+	{
+		szEurope = "12 turns since the arrival from Europe";
+	}
+	if (iGoods > 0 && szEurope != NULL)
 	{
 		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S sails to Europe with %d goods units (%s)",
-			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), iGoods, isFull() ? "hold is full" : "2 turns since the last purchase");
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), iGoods, szEurope);
 		AI_setUnitAIState(UNITAI_STATE_NATIVE_TRADE_EUROPE);
 		s_szWtpShipReason = "native trade: brings goods to Europe";
 		if (!AI_sailToEurope())
@@ -17316,6 +17341,9 @@ bool CvUnitAI::AI_nativeTradeEurope()
 		}
 	}
 
+	// a new round trip: its clock starts with the first move on the map
+	m_iNativeTradeArriveTurn = -1;
+	m_iNativeTradeSlotsFullTurn = -1;
 	return AI_crossFromEurope();
 }
 

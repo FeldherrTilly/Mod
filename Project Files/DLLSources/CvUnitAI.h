@@ -146,6 +146,8 @@ protected:
 	int m_iWfVillageX;
 	int m_iWfVillageY;
 	int m_iNativeTradeBuyTurn; // WTP: native trade ship: turn of its last purchase at a village
+	int m_iNativeTradeArriveTurn; // WTP: native trade ship: turn of its first move on the map after Europe (-1: not yet)
+	int m_iNativeTradeSlotsFullTurn; // WTP: native trade ship: turn all its cargo slots were taken (-1: not yet)
 
 	mutable ProfessionTypes m_eIdealProfessionCache;
 
