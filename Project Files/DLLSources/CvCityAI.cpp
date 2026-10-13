@@ -7365,10 +7365,10 @@ void CvCityAI::AI_updateWorkersNeededHere()
 	{
 		m_iWorkersNeeded = branchless::max(1, iValue / 100);
 	}
-	// WTP: a colony with a food shortage wants a pioneer for farms
+	// WTP: a colony with a food shortage wants two more pioneers for farms
 	if (AI_isFoodShortage())
 	{
-		m_iWorkersNeeded += 1;
+		m_iWorkersNeeded += 2;
 	}
 }
 
