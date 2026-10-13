@@ -18112,6 +18112,35 @@ namespace
 		return iGold;
 	}
 
+	// output of a job as the plot is now: AI_professionBasicOutput also counts a plot job as if its feature (forest) were
+	// cleared, the plan needs what the colonist produces today
+	int wfOutput(const CvCity& kCity, ProfessionTypes eProfession, UnitTypes eUnit, const CvPlot* pPlot)
+	{
+		const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+		if (pPlot == NULL || !kProfession.isWorkPlot())
+		{
+			return kCity.AI_professionBasicOutput(eProfession, eUnit, pPlot);
+		}
+		const YieldTypes eYield = (YieldTypes)kProfession.getYieldsProduced(0);
+		if (eYield == NO_YIELD)
+		{
+			return 0;
+		}
+		return pPlot->calculatePotentialYield(eYield, kCity.getOwnerINLINE(), pPlot->getImprovementType(), false, pPlot->getRouteType(), eUnit, false);
+	}
+
+	// gold x100 of a job's output; hammers count at least their base value (their estimate follows the lumber price, which
+	// falls with a large lumber stock: no carpenter in a colony full of lumber)
+	int wfYieldGold(const CvCity& kCity, YieldTypes eYield, int iAmount)
+	{
+		int iGold = 100 * kCity.AI_estimateYieldValue(eYield, iAmount);
+		if (eYield == YIELD_HAMMERS)
+		{
+			iGold = std::max(iGold, 100 * iAmount * GET_PLAYER(kCity.getOwnerINLINE()).AI_yieldValue(YIELD_HAMMERS));
+		}
+		return iGold;
+	}
+
 	bool wfJobMatches(const WfJob& kJob, int iCityID, ProfessionTypes eProfession, int iX, int iY)
 	{
 		if (kJob.pCity->getID() != iCityID || kJob.eProfession != eProfession)
@@ -18224,7 +18253,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			const CvPlot* const pWorked = pCity->getPlotWorkedByUnit(pCitizen);
 			if ((YieldTypes)kCitizenJob.getYieldsProduced(0) == YIELD_FOOD && (pWorked != NULL || !kCitizenJob.isWorkPlot()))
 			{
-				iCitizenFood += pCity->AI_professionBasicOutput(pCitizen->getProfession(), pCitizen->getUnitType(), pWorked);
+				iCitizenFood += wfOutput(*pCity, pCitizen->getProfession(), pCitizen->getUnitType(), pWorked);
 			}
 		}
 		kCity.iBaseFood = pCity->foodDifference() + iConsumption * pCity->getPopulation() - iCitizenFood;
@@ -18300,7 +18329,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				const YieldTypes eYield = (YieldTypes)kProfession.getYieldsProduced(0);
 				const UnitClassTypes eExpert = (UnitClassTypes)kProfession.LbD_getExpert();
 				const UnitTypes eExpertUnit = (eExpert != NO_UNITCLASS) ? kCiv.getCivilizationUnits(eExpert) : NO_UNIT;
-				const int iOutput = pCity->AI_professionBasicOutput(eProfession, eExpertUnit != NO_UNIT ? eExpertUnit : eColonistUnit, pLoopPlot);
+				const int iOutput = wfOutput(*pCity, eProfession, eExpertUnit != NO_UNIT ? eExpertUnit : eColonistUnit, pLoopPlot);
 				if (iOutput <= 0)
 				{
 					continue;
@@ -18464,7 +18493,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				aiGold[t * iNumJobs + j] = -1000000;
 				continue;
 			}
-			const int iOutput = kJob.pCity->AI_professionBasicOutput(kJob.eProfession, aeTypes[t], kJob.pPlot);
+			const int iOutput = wfOutput(*kJob.pCity, kJob.eProfession, aeTypes[t], kJob.pPlot);
 			aiOutput[t * iNumJobs + j] = iOutput;
 			if (iOutput <= 0)
 			{
@@ -18476,8 +18505,8 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				aiFood[t * iNumJobs + j] = iOutput;
 				continue;
 			}
-			// AI_estimateYieldValue is in gold (AI_yieldValue divides by 100), the plan counts gold x100
-			int iGold = 100 * kJob.pCity->AI_estimateYieldValue(kJob.eYield, iOutput);
+			// the plan counts gold x100 (AI_estimateYieldValue is in gold)
+			int iGold = wfYieldGold(*kJob.pCity, kJob.eYield, iOutput);
 			const CvProfessionInfo& kProfession = GC.getProfessionInfo(kJob.eProfession);
 			for (int k = 0; k < kProfession.getNumYieldsConsumed(); ++k)
 			{
@@ -19219,9 +19248,9 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			}
 			else
 			{
-				const int iOutput = kJob.pCity->AI_professionBasicOutput(kJob.eProfession, eExpert, kJob.pPlot);
+				const int iOutput = wfOutput(*kJob.pCity, kJob.eProfession, eExpert, kJob.pPlot);
 				iExpertFood = kJob.bFood ? iOutput : 0;
-				iExpertGold = kJob.bFood ? 0 : 100 * kJob.pCity->AI_estimateYieldValue(kJob.eYield, iOutput);
+				iExpertGold = kJob.bFood ? 0 : wfYieldGold(*kJob.pCity, kJob.eYield, iOutput);
 				const CvProfessionInfo& kProfession = GC.getProfessionInfo(kJob.eProfession);
 				for (int k = 0; k < kProfession.getNumYieldsConsumed() && !kJob.bFood; ++k)
 				{
@@ -19288,7 +19317,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 					{
 						continue;
 					}
-					const int iFood = kJob.pCity->AI_professionBasicOutput(kJob.eProfession, eUnit, kJob.pPlot);
+					const int iFood = wfOutput(*kJob.pCity, kJob.eProfession, eUnit, kJob.pPlot);
 					if (iFood > iBestFood)
 					{
 						iBestFood = iFood;
