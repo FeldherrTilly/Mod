@@ -18853,24 +18853,31 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				// trade (other experts get their job by value like everybody else)
 				const bool bExpertBuilding = !kProfession.isWorkPlot() && wfIsExpertFor(*kWorker.pUnit, kJob.eProfession)
 					&& (kJob.eYield == YIELD_HAMMERS || kJob.eYield == YIELD_BELLS || kJob.eYield == YIELD_CROSSES);
-				const bool bMust = (bCarpenter && kJob.iSlot == 0) || bExpertBuilding;
+				// the first carpenter job is a must for colonists in the colony (someone works as carpenter now, an expert on
+				// its way takes another carpenter job and the first one when it has arrived); not for an expert of another trade
+				// (a prospector, a fisherman): it gets 30 gold more there and takes the job unless it earns clearly more elsewhere
+				const bool bFirstCarpenterHere = bCarpenter && kJob.iSlot == 0 && aiEta[w * iNumCities + kJob.iCity] == 0;
+				const bool bOtherTradeExpert = kWorker.bExpert && !bExpertBuilding;
+				const bool bMust = (bFirstCarpenterHere && !bOtherTradeExpert) || bExpertBuilding;
 				int iValue = iJobGold + wfFoodGold(kCity.iSurplus, iFoodDelta);
+				if (bFirstCarpenterHere && bOtherTradeExpert)
+				{
+					iValue += 3000;
+				}
 				if (iValue <= 0 && !bMust)
 				{
 					continue;
 				}
 				iValue = std::max(1, iValue) * 20 / (20 + aiEta[w * iNumCities + kJob.iCity]);
-				// the job held already: experts in their trade x1.5, others x1.2 (no moving for a slightly better job)
+				// the job held already x1.2 (no moving for a slightly better job); experts are fixed only on a resource of their
+				// trade, while learning or on their way
 				if (kWorker.iCurrentJob == j)
 				{
-					iValue = wfIsExpertFor(*kWorker.pUnit, kJob.eProfession) ? iValue * 3 / 2 : iValue * 6 / 5;
+					iValue = iValue * 6 / 5;
 				}
-				// (only for colonists in the colony: someone works as carpenter now, an expert on its way takes another
-				// carpenter job and the first one when it has arrived)
-				if (bCarpenter && kJob.iSlot == 0 && aiEta[w * iNumCities + kJob.iCity] == 0)
+				if (bFirstCarpenterHere && !bOtherTradeExpert)
 				{
-					// an expert of another trade (a preacher, a fisherman) only if no other colonist is there for it
-					iValue += (kWorker.bExpert && !bExpertBuilding) ? WF_PRIORITY - 1000000 : WF_PRIORITY;
+					iValue += WF_PRIORITY;
 				}
 				if (bExpertBuilding)
 				{
