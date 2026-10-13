@@ -18454,7 +18454,9 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		const bool bLearning = pLoopUnit->getUnitTravelState() == UNIT_TRAVEL_STATE_LIVE_AMONG_NATIVES;
 		const bool bColonist = pLoopUnit->AI_getUnitAIType() == UNITAI_COLONIST
 			&& (pLoopUnit->isOnMap() || pLoopUnit->getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE);
-		if (bCitizen || bLearning || bColonist)
+		// a passenger of the explorer ship is out of reach until the ship puts it ashore
+		const bool bExplorerPassenger = pLoopUnit->AI_getUnitAIState() == UNITAI_STATE_EXPLORER_PASSENGER;
+		if (!bExplorerPassenger && (bCitizen || bLearning || bColonist))
 		{
 			apUnits.push_back(pLoopUnit);
 		}

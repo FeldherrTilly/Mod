@@ -2135,6 +2135,8 @@ enum UnitAIStates
 	UNITAI_STATE_NATIVE_TRADE_SELL,
 	// WTP: the ship of the early strategy Explorer only explores
 	UNITAI_STATE_EXPLORER_SHIP,
+	// WTP: a unit aboard the explorer ship (rescued from a shipwreck): inactive until it is put ashore in our colony
+	UNITAI_STATE_EXPLORER_PASSENGER,
 	NUM_UNITAI_STATES,
 };
 

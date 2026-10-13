@@ -382,6 +382,7 @@ protected:
 	bool AI_isNativeTradeShip() const;
 	int AI_nativeTradeCargoCount(bool bGoods, bool* pbMuskets) const;
 	void AI_nativeTradeShipMove();
+	void AI_explorerShipMove();
 	bool AI_nativeTradeEurope();
 	bool AI_crossFromEurope();
 	int AI_nativeTradeSell();
