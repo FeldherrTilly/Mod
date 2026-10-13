@@ -17400,16 +17400,6 @@ CvCity* CvUnitAI::AI_nativeTradeBuyVillage(bool bDraw)
 			{
 				continue;
 			}
-			// the village must make something at all that Europe buys (what it makes is known, not its stock)
-			bool bSells = false;
-			for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES && !bSells; ++eYield)
-			{
-				bSells = eYield != YIELD_HORSES && GC.getYieldInfo(eYield).getNativeSellPrice() > 0 && pCity->canProduceYield(eYield) && kOwner.isYieldEuropeTradable(eYield);
-			}
-			if (!bSells)
-			{
-				continue;
-			}
 			int iPathTurns;
 			if (!generatePath(pCity->plot(), 0, true, &iPathTurns, 15))
 			{
