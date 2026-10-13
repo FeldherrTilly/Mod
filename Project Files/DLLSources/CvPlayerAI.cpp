@@ -18149,6 +18149,26 @@ namespace
 		return pPlot->calculatePotentialYield(eYield, kCity.getOwnerINLINE(), pPlot->getImprovementType(), false, pPlot->getRouteType(), eUnit, false);
 	}
 
+	// food of a job whose profession produces iOutput of its first yield: all of it for food jobs; jobs with food as second
+	// yield (hunters, fruit pickers, rice farmers, butchers) give food as well: half of the first yield on a plot
+	// (CvPlot::calculatePotentialProfessionYieldAmount), as much as the first yield in a building
+	int wfFoodOutput(ProfessionTypes eProfession, int iOutput)
+	{
+		const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+		if ((YieldTypes)kProfession.getYieldsProduced(0) == YIELD_FOOD)
+		{
+			return iOutput;
+		}
+		for (int i = 1; i < kProfession.getNumYieldsProduced(); ++i)
+		{
+			if ((YieldTypes)kProfession.getYieldsProduced(i) == YIELD_FOOD)
+			{
+				return kProfession.isWorkPlot() ? iOutput / 2 : iOutput;
+			}
+		}
+		return 0;
+	}
+
 	const int WF_LUMBER_GOLD = 500; // gold x100 of lumber the carpenters use (the lumberjack for them earns it)
 
 	// gold x100 of one unit of a yield: the price Europe pays for it (AI_estimateYieldValue adds the AI base value of the
@@ -18298,9 +18318,9 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			// a plot profession without a plot (the plot was lost) produces nothing
 			const CvProfessionInfo& kCitizenJob = GC.getProfessionInfo(pCitizen->getProfession());
 			const CvPlot* const pWorked = pCity->getPlotWorkedByUnit(pCitizen);
-			if ((YieldTypes)kCitizenJob.getYieldsProduced(0) == YIELD_FOOD && (pWorked != NULL || !kCitizenJob.isWorkPlot()))
+			if (pWorked != NULL || !kCitizenJob.isWorkPlot())
 			{
-				iCitizenFood += wfOutput(*pCity, pCitizen->getProfession(), pCitizen->getUnitType(), pWorked);
+				iCitizenFood += wfFoodOutput(pCitizen->getProfession(), wfOutput(*pCity, pCitizen->getProfession(), pCitizen->getUnitType(), pWorked));
 			}
 		}
 		kCity.iBaseFood = pCity->foodDifference() + iConsumption * pCity->getPopulation() - iCitizenFood;
@@ -18402,7 +18422,8 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				}
 				else
 				{
-					const int iValue = pCity->AI_estimateYieldValue(eYield, iOutput);
+					// sale value plus the food of a second yield (hunters, fruit pickers, rice farmers)
+					const int iValue = wfYieldGold(*pCity, eYield, iOutput, 0) + wfFoodOutput(eProfession, iOutput) * WF_FOOD_GOLD;
 					if (iValue > iBestOther)
 					{
 						iBestOther = iValue;
@@ -18561,9 +18582,9 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				aiGold[t * iNumJobs + j] = -1000000;
 				continue;
 			}
+			aiFood[t * iNumJobs + j] = wfFoodOutput(kJob.eProfession, iOutput);
 			if (kJob.bFood)
 			{
-				aiFood[t * iNumJobs + j] = iOutput;
 				continue;
 			}
 			// the plan counts gold x100 (AI_estimateYieldValue is in gold)
@@ -18864,7 +18885,8 @@ void CvPlayerAI::AI_doWorkforcePlan()
 					{
 						kBest = kCand;
 					}
-					if (kJob.bFood && iFoodDelta > 0)
+					// every job that raises the surplus (food jobs, hunters, fruit pickers, ...) is a food partner
+					if (iFoodDelta > 0)
 					{
 						WfCand& kF1 = aFood1[kJob.iCity];
 						WfCand& kF2 = aFood2[kJob.iCity];
@@ -19419,7 +19441,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			else
 			{
 				const int iOutput = wfOutput(*kJob.pCity, kJob.eProfession, eExpert, kJob.pPlot);
-				iExpertFood = kJob.bFood ? iOutput : 0;
+				iExpertFood = wfFoodOutput(kJob.eProfession, iOutput);
 				iExpertGold = kJob.bFood ? 0 : wfYieldGold(*kJob.pCity, kJob.eYield, iOutput, kJob.iSlot);
 				const CvProfessionInfo& kProfession = GC.getProfessionInfo(kJob.eProfession);
 				for (int k = 0; k < kProfession.getNumYieldsConsumed() && !kJob.bFood; ++k)
