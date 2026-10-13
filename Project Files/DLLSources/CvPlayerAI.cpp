@@ -5277,6 +5277,11 @@ void CvPlayerAI::AI_setNativeVillageVisited(const CvCity& kCity)
 	m_mapNativeVillageVisit[nativeVillageKey(kCity)] = GC.getGameINLINE().getGameTurn();
 }
 
+bool CvPlayerAI::AI_hasVisitedNativeVillage() const
+{
+	return !m_mapNativeVillageVisit.empty();
+}
+
 // WTP: plots from the village to our nearest colony (a large number without colonies)
 int CvPlayerAI::AI_nativeVillageDistanceToColonies(const CvCity& kCity) const
 {

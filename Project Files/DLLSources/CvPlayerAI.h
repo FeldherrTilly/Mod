@@ -170,6 +170,7 @@ public:
 	// WTP: native trade ship: which villages it visited when (not saved) and where the natives are unfriendly to
 	int AI_getNativeVillageVisitTurn(const CvCity& kCity) const;
 	void AI_setNativeVillageVisited(const CvCity& kCity);
+	bool AI_hasVisitedNativeVillage() const;
 	int AI_nativeVillageDistanceToColonies(const CvCity& kCity) const;
 	PlayerTypes AI_leastLikedColonialPlayer() const;
 	int AI_minTreasureTransportSize() const;
