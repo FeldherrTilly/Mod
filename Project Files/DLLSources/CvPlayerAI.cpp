@@ -18503,7 +18503,17 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			{
 				if (bTask && pLoopUnit->AI_getUnitAIType() != UNITAI_COLONIST)
 				{
-					static_cast<CvUnitAI*>(pLoopUnit)->AI_clearWfTask(); // became a soldier, pioneer, settler, ...
+					// became a soldier, pioneer, settler, ...
+					if (gPlayerLogLevel >= 1)
+					{
+						const CvCity* const pTaskCity = getCity(kLoopAI.AI_getWfCityID());
+						logWTP(WTP_LOG_PLAN, getID(), "WTP plan: Player %d (%S) turn %d %S loses its task %d (%S in %S): it is no colonist any more (unit AI %d, profession %S)",
+							getID(), getCivilizationDescription(0), iTurn, pLoopUnit->getName().GetCString(), kLoopAI.AI_getWfTask(),
+							kLoopAI.AI_getWfProfession() != NO_PROFESSION ? GC.getProfessionInfo(kLoopAI.AI_getWfProfession()).getDescription() : L"-",
+							pTaskCity != NULL ? pTaskCity->getName().GetCString() : L"-", (int)pLoopUnit->AI_getUnitAIType(),
+							pLoopUnit->getProfession() != NO_PROFESSION ? GC.getProfessionInfo(pLoopUnit->getProfession()).getDescription() : L"-");
+					}
+					static_cast<CvUnitAI*>(pLoopUnit)->AI_clearWfTask();
 				}
 				continue;
 			}
@@ -18516,6 +18526,12 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			if (pUnit != NULL && pUnit->AI_getUnitAIType() == UNITAI_COLONIST && pUnit->getDomainType() == DOMAIN_LAND && !pUnit->isExpertNativeTrader())
 			{
 				apUnits.push_back(pUnit);
+			}
+			else if (pUnit != NULL && static_cast<const CvUnitAI*>(pUnit)->AI_getWfTask() != CvUnitAI::WF_NONE)
+			{
+				if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_PLAN, getID(), "WTP plan: Player %d (%S) turn %d %S on the docks loses its task %d: it is no colonist any more (unit AI %d)",
+					getID(), getCivilizationDescription(0), iTurn, pUnit->getName().GetCString(), static_cast<const CvUnitAI*>(pUnit)->AI_getWfTask(), (int)pUnit->AI_getUnitAIType());
+				static_cast<CvUnitAI*>(pUnit)->AI_clearWfTask();
 			}
 		}
 		for (uint i = 0; i < apUnits.size(); ++i)
@@ -18704,8 +18720,22 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		const bool bResource = eBonus != NO_BONUS && GC.getBonusInfo(eBonus).getYieldChange(kJob.eYield) > 0;
 		if (kWorker.bLearning || (bExpertJob && (!bThere || bResource)))
 		{
+			// an expert on its way to the first carpenter job reserves another carpenter job of the colony if there is one:
+			// the first one is worked by someone in the colony until it has arrived
+			int jReserve = j;
+			if (!bThere && kJob.eYield == YIELD_HAMMERS && kJob.iSlot == 0)
+			{
+				for (int jj = 0; jj < iNumJobs; ++jj)
+				{
+					if (aJobs[jj].iCity == kJob.iCity && aJobs[jj].eProfession == kJob.eProfession && aJobs[jj].iSlot > 0 && aJobs[jj].iHolder < 0)
+					{
+						jReserve = jj;
+						break;
+					}
+				}
+			}
 			kWorker.bReserved = !kWorker.bLearning;
-			WF_ASSIGN(w, j);
+			WF_ASSIGN(w, jReserve);
 		}
 	}
 
@@ -18835,7 +18865,9 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				{
 					iValue = wfIsExpertFor(*kWorker.pUnit, kJob.eProfession) ? iValue * 3 / 2 : iValue * 6 / 5;
 				}
-				if (bCarpenter && kJob.iSlot == 0)
+				// (only for colonists in the colony: someone works as carpenter now, an expert on its way takes another
+				// carpenter job and the first one when it has arrived)
+				if (bCarpenter && kJob.iSlot == 0 && aiEta[w * iNumCities + kJob.iCity] == 0)
 				{
 					// an expert of another trade (a preacher, a fisherman) only if no other colonist is there for it
 					iValue += (kWorker.bExpert && !bExpertBuilding) ? WF_PRIORITY - 1000000 : WF_PRIORITY;
@@ -19583,12 +19615,38 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				}
 				const int w = (kJob.iSeated >= 0) ? kJob.iSeated : kJob.iHolder;
 				const int iT = WF_TYPE(w, j);
-				logWTPCity(*kCity.pCity, "WTP plan:   %S at %d,%d: %s (%S%s%S), %d gold for %d units, %d food",
+				// where the planned colonist is if it is not here (docks, ship, village, other colony, plot) and its travel time
+				CvWString szWhere;
+				if (kJob.iHolder >= 0 && aiEta[kJob.iHolder * iNumCities + c] > 0)
+				{
+					const WfWorker& kHolder = aWorkers[kJob.iHolder];
+					const CvUnit& kUnit = *kHolder.pUnit;
+					if (kUnit.getUnitTravelState() == UNIT_TRAVEL_STATE_LIVE_AMONG_NATIVES)
+					{
+						szWhere = L"learning in a village";
+					}
+					else if (!kUnit.isOnMap())
+					{
+						szWhere = kUnit.isCargo() ? L"on a ship off the map" : L"in Europe";
+					}
+					else if (kHolder.pPopCity != NULL)
+					{
+						szWhere = CvWString::format(L"citizen of %s", kHolder.pPopCity->getName().GetCString());
+					}
+					else
+					{
+						const CvCity* const pHere = kUnit.plot()->getPlotCity();
+						szWhere = CvWString::format(L"%s%s %d,%d", kUnit.isCargo() ? L"on a ship " : L"", pHere != NULL ? pHere->getName().GetCString() : L"at",
+							kUnit.getX_INLINE(), kUnit.getY_INLINE());
+					}
+					szWhere = CvWString::format(L" [%s, %d turns]", szWhere.GetCString(), aiEta[kJob.iHolder * iNumCities + c]);
+				}
+				logWTPCity(*kCity.pCity, "WTP plan:   %S at %d,%d: %s (%S%s%S)%S, %d gold for %d units, %d food",
 					GC.getProfessionInfo(kJob.eProfession).getDescription(), kJob.pPlot != NULL ? kJob.pPlot->getX_INLINE() : -1, kJob.pPlot != NULL ? kJob.pPlot->getY_INLINE() : -1,
 					wfJobStatus(kJob, aWorkers), aWorkers[w].pUnit->getName().GetCString(),
 					(kJob.iHolder >= 0 && kJob.iSeated >= 0 && kJob.iHolder != kJob.iSeated) ? ", planned: " : "",
 					(kJob.iHolder >= 0 && kJob.iSeated >= 0 && kJob.iHolder != kJob.iSeated) ? aWorkers[kJob.iHolder].pUnit->getName().GetCString() : L"",
-					aiGold[iT * iNumJobs + j] / 100, aiOutput[iT * iNumJobs + j], aiFood[iT * iNumJobs + j]);
+					szWhere.GetCString(), aiGold[iT * iNumJobs + j] / 100, aiOutput[iT * iNumJobs + j], aiFood[iT * iNumJobs + j]);
 			}
 		}
 		int iLearners = 0;
@@ -20222,6 +20280,12 @@ bool CvPlayerAI::AI_buyExpertForOpportunity()
 	{
 		const WfOpenOpportunity& kOpp = m_aWfOpenOpportunities[i];
 		const int iRatio = kOpp.iValue * 100 / std::max(1, kOpp.iPrice);
+		// the same expert for the same colony at most every 15 turns (it may still be on its way)
+		const std::map<int, int>::const_iterator itRecent = m_mapWfRecentBuy.find(kOpp.iCityID * 10000 + (int)kOpp.eExpertClass);
+		if (itRecent != m_mapWfRecentBuy.end() && GC.getGameINLINE().getGameTurn() - itRecent->second < 15)
+		{
+			continue;
+		}
 		if (getCity(kOpp.iCityID) != NULL && kCiv.getCivilizationUnits(kOpp.eExpertClass) != NO_UNIT && iRatio > iBestRatio)
 		{
 			iBestRatio = iRatio;
@@ -20255,6 +20319,7 @@ bool CvPlayerAI::AI_buyExpertForOpportunity()
 	if (gPlayerLogLevel >= 1) logWTPCity(*pCity, "WTP plan: %S bought in Europe for %S in %S at %d,%d (gain %d gold per turn, price %d)", pUnit->getName().GetCString(),
 		GC.getProfessionInfo(kOpp.eProfession).getDescription(), pCity->getName().GetCString(), pPlot != NULL ? pPlot->getX_INLINE() : -1, pPlot != NULL ? pPlot->getY_INLINE() : -1,
 		kOpp.iValue / 100, iPrice);
+	m_mapWfRecentBuy[kOpp.iCityID * 10000 + (int)kOpp.eExpertClass] = GC.getGameINLINE().getGameTurn();
 	m_aWfOpenOpportunities.erase(m_aWfOpenOpportunities.begin() + iBest);
 	return true;
 }

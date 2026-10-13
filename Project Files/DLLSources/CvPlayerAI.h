@@ -685,6 +685,7 @@ protected:
 	void AI_logEarlyResourceSites(const CvUnit& kSettler) const;
 	// WTP: units waiting in a village to learn (unit id, first turn of waiting), not saved
 	std::map<int, int> m_mapWfLearnWait;
+	std::map<int, int> m_mapWfRecentBuy; // WTP: (city ID * 10000 + unit class) -> turn the plan bought that expert for it (not saved)
 	// WTP: native villages the native trade ship visited (plot key, turn), not saved
 	std::map<int, int> m_mapNativeVillageVisit;
 	// WTP: expert to buy instead of learning it (learning was blocked for 15 turns), not saved
