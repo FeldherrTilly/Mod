@@ -16838,8 +16838,9 @@ int CvUnitAI::AI_nativeTradeSell()
 	return iResult;
 }
 
-// WTP: native trade ship: buys goods from the native village on this plot for the free cargo space. Takes the yield with the best
-// absolute profit per cargo slot first (the profit ratio only decides ties). Returns the number of deals made.
+// WTP: native trade ship: buys goods from the native village on this plot for the free cargo space. Furs, silver, gold and
+// gems always, any other yield only if the village has more than 50 of it. Takes the yield with the best absolute profit per
+// cargo slot first (the profit ratio only decides ties). Returns the number of deals made.
 int CvUnitAI::AI_nativeTradeBuy()
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
@@ -16876,6 +16877,12 @@ int CvUnitAI::AI_nativeTradeBuy()
 			}
 			int iAmount = kNative.getTradeYieldAmount(eYield, this);
 			if (iAmount <= 0)
+			{
+				continue;
+			}
+			// furs, silver, gold and gems are always worth the trip; any other yield only from a stock of more than 50
+			const bool bAlwaysBuy = eYield == YIELD_FUR || eYield == YIELD_PREMIUM_FUR || eYield == YIELD_SILVER || eYield == YIELD_GOLD || eYield == YIELD_GEMS;
+			if (!bAlwaysBuy && pCity->getYieldStored(eYield) <= 50)
 			{
 				continue;
 			}
