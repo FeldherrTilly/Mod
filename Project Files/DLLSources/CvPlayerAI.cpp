@@ -17796,9 +17796,12 @@ namespace
 		{
 			return true;
 		}
-		// an expert for several trades (the prospector: silver, gold and gems): a large bonus on the yield of the
-		// profession counts as expert; small side bonuses (+1) do not
-		return eYield != NO_YIELD && (kInfo.getYieldChange(eYield) >= 2 || kInfo.getYieldModifier(eYield) >= 50);
+		// an expert for several trades (the prospector: silver, gold and gems; the miner: ore and salt): a large bonus on
+		// the yield of the profession counts as expert; small side bonuses (+1) do not. Only real experts (with an ideal
+		// profession): slaves, converted natives etc. have such bonuses too, but stay ordinary workers (their output is
+		// counted with their own unit type anyway, and an expert may still be bought for their job)
+		return eYield != NO_YIELD && kUnit.AI_getIdealProfession() != NO_PROFESSION
+			&& (kInfo.getYieldChange(eYield) >= 2 || kInfo.getYieldModifier(eYield) >= 50);
 	}
 }
 
