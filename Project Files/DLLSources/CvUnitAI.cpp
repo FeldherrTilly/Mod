@@ -17182,19 +17182,26 @@ bool CvUnitAI::AI_nativeTradeEurope()
 			{
 				const YieldTypes eYield = bMuskets ? YIELD_MUSKETS : YIELD_TRADE_GOODS;
 				const int iPrice = kEurope.getYieldSellPrice(eYield);
-				int iAmount = std::min(bMuskets ? 50 : 300, getLoadYieldAmount(eYield));
-				if (iPrice > 0)
+				// muskets: one load of 50; Trade Goods: up to 300, one cargo slot (load) after the other
+				int iWanted = bMuskets ? 50 : 300;
+				for (int iLoad = 0; iLoad < 3 && iWanted > 0 && kOwner.isYieldEuropeTradable(eYield); ++iLoad)
 				{
-					iAmount = std::min(iAmount, kOwner.getGold() / iPrice);
-				}
-				if (kOwner.isYieldEuropeTradable(eYield) && iAmount > 0 && kOwner.buyYieldUnitFromEurope(eYield, iAmount, this) != NULL)
-				{
+					int iAmount = std::min(iWanted, getLoadYieldAmount(eYield));
+					if (iPrice > 0)
+					{
+						iAmount = std::min(iAmount, kOwner.getGold() / iPrice);
+					}
+					if (iAmount <= 0 || kOwner.buyYieldUnitFromEurope(eYield, iAmount, this) == NULL)
+					{
+						break;
+					}
 					bBought = true;
+					iWanted -= iAmount;
 					if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S buys %d %S in Europe for %d gold (%d each), gold now %d",
 						getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), iAmount, GC.getYieldInfo(eYield).getDescription(),
 						iAmount * iPrice, iPrice, kOwner.getGold());
 				}
-				else if (bMuskets)
+				if (!bBought && bMuskets)
 				{
 					// muskets are not affordable: Trade Goods instead
 					bMuskets = false;
