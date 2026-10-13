@@ -18018,7 +18018,7 @@ bool CvPlayerAI::AI_isUselessExpert(const CvUnitAI& kUnit, std::vector<int>& aiY
 
 // WTP: workforce plan (general job planner of the colonial AI). Every turn the AI plans the jobs of all its colonists at once:
 // 1. jobs: every workable plot of every colony (the best food and the best other professions, alternatives of one plot)
-//    and every building slot, valued in gold (x100) per turn. Food counts 3 gold per unit (1 gold above a surplus of 10),
+//    and every building slot, valued in gold (x100) per turn (inputs count half). Food counts 3 gold per unit (1 gold above a surplus of 10),
 //    a colonist eats 2 food. Side bonuses of experts are ignored: an expert outside its trade works like a free colonist.
 // 2. workforce: the citizens, the colonists waiting on a colony plot or on their way, the colonists on ships and on the docks
 //    in Europe, the units learning in a native village (they are bound to the job they learn for). Experts already working
@@ -18476,14 +18476,16 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				aiFood[t * iNumJobs + j] = iOutput;
 				continue;
 			}
-			int iGold = kJob.pCity->AI_estimateYieldValue(kJob.eYield, iOutput);
+			// AI_estimateYieldValue is in gold (AI_yieldValue divides by 100), the plan counts gold x100
+			int iGold = 100 * kJob.pCity->AI_estimateYieldValue(kJob.eYield, iOutput);
 			const CvProfessionInfo& kProfession = GC.getProfessionInfo(kJob.eProfession);
 			for (int k = 0; k < kProfession.getNumYieldsConsumed(); ++k)
 			{
 				const YieldTypes eInput = (YieldTypes)kProfession.getYieldsConsumed(k);
 				if (eInput != NO_YIELD)
 				{
-					iGold -= kJob.pCity->AI_estimateYieldValue(eInput, iOutput);
+					// the input counts half (as in AI_updateYieldValues): raw material that is not processed sells for little
+					iGold -= 50 * kJob.pCity->AI_estimateYieldValue(eInput, iOutput);
 				}
 			}
 			aiGold[t * iNumJobs + j] = iGold;
@@ -19219,14 +19221,14 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			{
 				const int iOutput = kJob.pCity->AI_professionBasicOutput(kJob.eProfession, eExpert, kJob.pPlot);
 				iExpertFood = kJob.bFood ? iOutput : 0;
-				iExpertGold = kJob.bFood ? 0 : kJob.pCity->AI_estimateYieldValue(kJob.eYield, iOutput);
+				iExpertGold = kJob.bFood ? 0 : 100 * kJob.pCity->AI_estimateYieldValue(kJob.eYield, iOutput);
 				const CvProfessionInfo& kProfession = GC.getProfessionInfo(kJob.eProfession);
 				for (int k = 0; k < kProfession.getNumYieldsConsumed() && !kJob.bFood; ++k)
 				{
 					const YieldTypes eIn = (YieldTypes)kProfession.getYieldsConsumed(k);
 					if (eIn != NO_YIELD)
 					{
-						iExpertGold -= kJob.pCity->AI_estimateYieldValue(eIn, iOutput);
+						iExpertGold -= 50 * kJob.pCity->AI_estimateYieldValue(eIn, iOutput);
 					}
 				}
 			}
