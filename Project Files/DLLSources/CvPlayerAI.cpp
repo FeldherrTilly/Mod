@@ -18215,9 +18215,16 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		for (int i = 0; i < pCity->getPopulation(); ++i)
 		{
 			const CvUnit* const pCitizen = pCity->getPopulationUnitByIndex(i);
-			if (pCitizen != NULL && pCitizen->getProfession() != NO_PROFESSION && (YieldTypes)GC.getProfessionInfo(pCitizen->getProfession()).getYieldsProduced(0) == YIELD_FOOD)
+			if (pCitizen == NULL || pCitizen->getProfession() == NO_PROFESSION)
 			{
-				iCitizenFood += pCity->AI_professionBasicOutput(pCitizen->getProfession(), pCitizen->getUnitType(), pCity->getPlotWorkedByUnit(pCitizen));
+				continue;
+			}
+			// a plot profession without a plot (the plot was lost) produces nothing
+			const CvProfessionInfo& kCitizenJob = GC.getProfessionInfo(pCitizen->getProfession());
+			const CvPlot* const pWorked = pCity->getPlotWorkedByUnit(pCitizen);
+			if ((YieldTypes)kCitizenJob.getYieldsProduced(0) == YIELD_FOOD && (pWorked != NULL || !kCitizenJob.isWorkPlot()))
+			{
+				iCitizenFood += pCity->AI_professionBasicOutput(pCitizen->getProfession(), pCitizen->getUnitType(), pWorked);
 			}
 		}
 		kCity.iBaseFood = pCity->foodDifference() + iConsumption * pCity->getPopulation() - iCitizenFood;
@@ -18518,13 +18525,29 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		{
 			continue;
 		}
-		for (int j = 0; j < iNumJobs; ++j)
+		// an expert or learner that holds the job as its task (its reservation) takes it over from a regular colonist
+		// working it meanwhile; the regular one may go on working it until the expert arrives
+		// (a free slot of a building job first)
+		const bool bClaims = kWorker.bLearning || wfIsExpertFor(kUnit, eProfession);
+		for (int iPass = 0; iPass < 2 && kWorker.iCurrentJob < 0; ++iPass)
 		{
-			if (aJobs[j].iCurrent < 0 && wfJobMatches(aJobs[j], iCityID, eProfession, iX, iY))
+			for (int j = 0; j < iNumJobs; ++j)
 			{
-				aJobs[j].iCurrent = w;
-				kWorker.iCurrentJob = j;
-				break;
+				if (!wfJobMatches(aJobs[j], iCityID, eProfession, iX, iY))
+				{
+					continue;
+				}
+				const int iOld = aJobs[j].iCurrent;
+				if (iOld < 0 || (iPass == 1 && bClaims && !aWorkers[iOld].bLearning && !wfIsExpertFor(*aWorkers[iOld].pUnit, eProfession)))
+				{
+					if (iOld >= 0)
+					{
+						aWorkers[iOld].iCurrentJob = -1;
+					}
+					aJobs[j].iCurrent = w;
+					kWorker.iCurrentJob = j;
+					break;
+				}
 			}
 		}
 	}
@@ -18913,7 +18936,16 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			}
 			else
 			{
-				kWorker.iSeatCity = -1; // cannot join now, tries again next turn
+				// cannot join now, tries again next turn: its seat and its food are free again
+				kWorker.iSeatCity = -1;
+				for (int j = 0; j < iNumJobs; ++j)
+				{
+					if (aJobs[j].iSeated == w)
+					{
+						aJobs[j].iSeated = -1;
+						aCities[c].iNowSurplus -= aiFood[WF_TYPE(w, j) * iNumJobs + j] - iConsumption;
+					}
+				}
 			}
 		}
 		for (uint i = 0; i < apLeaving.size(); ++i)
@@ -18964,14 +18996,15 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			if (kJob.pPlot != NULL)
 			{
 				const CityPlotTypes ePlot = pCity->getCityPlotIndex(kJob.pPlot);
-				if (pCity->getUnitWorkingPlot(ePlot) != NULL)
-				{
-					CvUnit* const pOther = pCity->getUnitWorkingPlot(ePlot);
-					pCity->clearUnitWorkingPlot(ePlot);
-					pOther->setProfession(NO_PROFESSION);
-				}
 				if (pUnit->canHaveProfession(kJob.eProfession, false))
 				{
+					// whoever still works the plot gives it up only now that the new worker can take it
+					CvUnit* const pOther = pCity->getUnitWorkingPlot(ePlot);
+					if (pOther != NULL)
+					{
+						pCity->clearUnitWorkingPlot(ePlot);
+						pOther->setProfession(NO_PROFESSION);
+					}
 					pUnit->setProfession(kJob.eProfession);
 					pCity->setUnitWorkingPlot(ePlot, pUnit->getID());
 				}
@@ -19105,6 +19138,23 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		if (bCountedIdle)
 		{
 			--m_iWfIdleCount;
+		}
+		// the regular colonist planned for the job so far works it meanwhile (if seated) or waits for another job
+		const int iOldHolder = kJob.iHolder;
+		if (iOldHolder >= 0 && iOldHolder != iBest)
+		{
+			WfWorker& kOld = aWorkers[iOldHolder];
+			kOld.iJob = -1;
+			if (kOld.iSeatCity >= 0)
+			{
+				kOld.pUnit->AI_clearWfTask();
+			}
+			else
+			{
+				CvCity* const pWait = (kOld.pAtCity != NULL) ? kOld.pAtCity : pIdleCity;
+				kOld.pUnit->AI_setWfTask(CvUnitAI::WF_WAIT, pWait->getID(), NO_PROFESSION, -1, -1, -1, -1);
+				++m_iWfIdleCount;
+			}
 		}
 		kLearner.bLearning = true;
 		kLearner.iJob = j;
@@ -20863,6 +20913,15 @@ void CvPlayerAI::AI_doCivilianPurchases()
 			if (!bWater && AI_wantsAfricaFoodWorkers())
 			{
 				if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision:   %S needs food (%+d), an African slave will be bought in Africa", pFoodCity->getName().GetCString(), pFoodCity->foodDifference());
+				// WTP: the slave is the food provider of that colony: no farmer is bought for it as well
+				const UnitClassTypes eFarmerClass = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_FARMER");
+				for (int i = (int)m_aWfOpenOpportunities.size() - 1; i >= 0; --i)
+				{
+					if (m_aWfOpenOpportunities[i].iCityID == pFoodCity->getID() && m_aWfOpenOpportunities[i].eExpertClass == eFarmerClass)
+					{
+						m_aWfOpenOpportunities.erase(m_aWfOpenOpportunities.begin() + i);
+					}
+				}
 			}
 			else if (AI_isWorkforcePlanned())
 			{
