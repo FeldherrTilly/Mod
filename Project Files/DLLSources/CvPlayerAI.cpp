@@ -18752,7 +18752,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 
 	// 3. target plan: greedy, the best (worker, job) pair (or pair of a job and a food job, or of a carpenter and a lumberjack)
 	// first. The first carpenter of a colony (with its lumber) comes before all other jobs (a colony without hammers builds
-	// nothing), and experts of building jobs (carpenter, preacher, statesman, processors) always get a job of their trade.
+	// nothing), and expert carpenters, statesmen and preachers always get a job of their trade.
 	const int WF_PRIORITY = 10000000;
 	for (int iRound = 0; iRound < iNumWorkers * 2 + 10; ++iRound)
 	{
@@ -18819,9 +18819,10 @@ void CvPlayerAI::AI_doWorkforcePlan()
 						iJobGold = std::max(iGold, iGold * (iOutput - iForCarpenters) / iOutput + iForCarpenters * WF_LUMBER_GOLD);
 					}
 				}
-				// the first carpenter of a colony is a must; an expert of a building job (carpenter, preacher, statesman,
-				// processor with input) always works in its trade
-				const bool bExpertBuilding = !kProfession.isWorkPlot() && wfIsExpertFor(*kWorker.pUnit, kJob.eProfession);
+				// the first carpenter of a colony is a must; expert carpenters, statesmen and preachers always work in their
+				// trade (other experts get their job by value like everybody else)
+				const bool bExpertBuilding = !kProfession.isWorkPlot() && wfIsExpertFor(*kWorker.pUnit, kJob.eProfession)
+					&& (kJob.eYield == YIELD_HAMMERS || kJob.eYield == YIELD_BELLS || kJob.eYield == YIELD_CROSSES);
 				const bool bMust = (bCarpenter && kJob.iSlot == 0) || bExpertBuilding;
 				int iValue = iJobGold + wfFoodGold(kCity.iSurplus, iFoodDelta);
 				if (iValue <= 0 && !bMust)
@@ -19019,10 +19020,11 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				aiOrder.push_back(j);
 			}
 		}
-		// food jobs (by food) first, then the carpenters and the experts in building jobs, then the lumberjacks working for the
-		// carpenters, then the others by value
+		// food jobs (by food) first, then the carpenters and the expert statesmen and preachers, then the lumberjacks working
+		// for the carpenters, then the others by value
 		#define WF_SEAT_KEY(j, iT) (aiFood[(iT) * iNumJobs + (j)] * 1000000 + std::max(0, aiGold[(iT) * iNumJobs + (j)]) \
-			+ ((aJobs[j].eYield == YIELD_HAMMERS || (aJobs[j].pPlot == NULL && wfIsExpertFor(*aWorkers[aJobs[j].iHolder].pUnit, aJobs[j].eProfession))) ? 900000 \
+			+ ((aJobs[j].eYield == YIELD_HAMMERS || ((aJobs[j].eYield == YIELD_BELLS || aJobs[j].eYield == YIELD_CROSSES) \
+				&& wfIsExpertFor(*aWorkers[aJobs[j].iHolder].pUnit, aJobs[j].eProfession))) ? 900000 \
 				: ((aJobs[j].eYield == YIELD_LUMBER && kCity.aiUse[YIELD_LUMBER] > 0) ? 800000 : 0)))
 		for (uint a = 0; a < aiOrder.size(); ++a)
 		{
