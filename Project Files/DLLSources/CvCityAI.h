@@ -271,6 +271,8 @@ protected:
 public:
 	bool AI_isFoodShortage() const;
 	void AI_setWfFoodRequest();
+	// WTP: the workforce plan puts a citizen on a plot (CvCity::setUnitWorkingPlot is protected)
+	void AI_setUnitWorkingPlot(CityPlotTypes ePlot, int iUnitId) { setUnitWorkingPlot(ePlot, iUnitId); }
 protected:
 	void AI_fixFoodShortage();
 	mutable bool m_abCacheTaughtYields[NUM_YIELD_TYPES];

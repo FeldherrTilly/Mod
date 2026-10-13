@@ -19006,7 +19006,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 						pOther->setProfession(NO_PROFESSION);
 					}
 					pUnit->setProfession(kJob.eProfession);
-					pCity->setUnitWorkingPlot(ePlot, pUnit->getID());
+					pCity->AI().AI_setUnitWorkingPlot(ePlot, pUnit->getID());
 				}
 				else if (gPlayerLogLevel >= 1)
 				{
