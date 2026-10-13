@@ -20850,7 +20850,7 @@ void CvPlayerAI::AI_doCivilianPurchases()
 
 	if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) civilian purchases: gold %d cities %d desired %d settlers %d workers %d wanted %d",
 		getID(), getCivilizationDescription(0), getGold(), getNumCities(), AI_desiredCityCount(), AI_totalUnitAIs(UNITAI_SETTLER),
-		AI_totalUnitAIs(UNITAI_WORKER), std::min(AI_neededWorkers(NULL), std::max(2, getNumCities())));
+		AI_totalUnitAIs(UNITAI_WORKER), std::min(AI_neededWorkers(NULL), std::max(2, 2 * getNumCities())));
 
 	// 1. settlers: a hurried immigrant or a colonist equipped as settler in Europe
 	if (getNumCities() > 0 && AI_desiredCityCount() > getNumCities() + AI_totalUnitAIs(UNITAI_SETTLER))
@@ -20886,9 +20886,9 @@ void CvPlayerAI::AI_doCivilianPurchases()
 		}
 	}
 
-	// 2. pioneers: about one per colony, not one per plot to improve;
+	// 2. pioneers: up to two per colony, not one per plot to improve;
 	// at most 2 hardy pioneers, further pioneers are equipped colonists
-	const int iWantedPioneers = std::min(AI_neededWorkers(NULL), std::max(2, getNumCities()));
+	const int iWantedPioneers = std::min(AI_neededWorkers(NULL), std::max(2, 2 * getNumCities()));
 	if (iBought < 2 && AI_totalUnitAIs(UNITAI_WORKER) < iWantedPioneers)
 	{
 		const UnitTypes eHardyPioneer = (eHardyPioneerClass != NO_UNITCLASS) ? kCiv.getCivilizationUnits(eHardyPioneerClass) : NO_UNIT;
