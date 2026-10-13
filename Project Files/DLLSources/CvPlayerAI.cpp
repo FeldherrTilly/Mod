@@ -18914,7 +18914,9 @@ void CvPlayerAI::AI_doWorkforcePlan()
 					continue;
 				}
 				// a job that raises the surplus is always possible (a colony below the green zone gets there with food jobs)
-				if (kCity.iSurplus + iFoodDelta >= WF_FOOD_MIN || iFoodDelta > 0)
+				// (a must job, the first carpenter or an expert carpenter, statesman or preacher, may go below it: the food
+				// jobs planned afterwards bring the colony back)
+				if (kCity.iSurplus + iFoodDelta >= WF_FOOD_MIN || iFoodDelta > 0 || bMust)
 				{
 					if (iValue > kBest.iValue)
 					{
@@ -19011,7 +19013,8 @@ void CvPlayerAI::AI_doWorkforcePlan()
 					const WfCand& kLumber = *apLumber[l];
 					if (kLumber.iWorker < 0 || kLumber.iWorker == kCarpenter.iWorker
 						|| aiOutput[WF_TYPE(kLumber.iWorker, kLumber.iJob) * iNumJobs + kLumber.iJob] < iMissing
-						|| (aCities[c].iSurplus + kCarpenter.iFoodDelta + kLumber.iFoodDelta < WF_FOOD_MIN && kCarpenter.iFoodDelta + kLumber.iFoodDelta <= 0))
+						|| (aCities[c].iSurplus + kCarpenter.iFoodDelta + kLumber.iFoodDelta < WF_FOOD_MIN && kCarpenter.iFoodDelta + kLumber.iFoodDelta <= 0
+							&& kCarpenter.iValue < WF_PRIORITY / 2)) // a must carpenter takes its lumberjack below the food floor
 					{
 						continue;
 					}
@@ -19088,11 +19091,14 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				kCity.iNowSurplus += iDelta;
 			}
 		}
-		// jobs whose planned holder is on its way: an idle colonist present works them meanwhile
-		for (int iGuard = 0; iGuard < 20; ++iGuard)
+		// jobs whose planned holder is on its way: any colonist present works them meanwhile, an idle one or one waiting for
+		// food, or one who leaves a job worth clearly less for it (not a carpenter, an expert statesman or preacher); the
+		// carpenter jobs first. The planned holder takes the job when it has arrived.
+		for (int iGuard = 0; iGuard < 40; ++iGuard)
 		{
 			int iBestWorker = -1;
 			int iBestJob = -1;
+			int iBestFrom = -1;
 			int iBestValue = 0;
 			for (int j = 0; j < iNumJobs; ++j)
 			{
@@ -19101,26 +19107,70 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				{
 					continue;
 				}
+				// a carpenter job needs lumber now (stock, center plot or the plan)
+				if (kJob.eYield == YIELD_HAMMERS && kCity.aiRaw[YIELD_LUMBER] <= 0)
+				{
+					continue;
+				}
 				for (int w = 0; w < iNumWorkers; ++w)
 				{
 					const WfWorker& kWorker = aWorkers[w];
-					if (kWorker.iJob >= 0 || kWorker.bLearning || kWorker.iSeatCity >= 0 || aiEta[w * iNumCities + c] != 0)
+					if (kWorker.bLearning || aiEta[w * iNumCities + c] != 0 || (kWorker.iJob >= 0 && aJobs[kWorker.iJob].iCity != c))
+					{
+						continue;
+					}
+					// the job it works now (if seated here)
+					int iFrom = -1;
+					if (kWorker.iSeatCity == c)
+					{
+						for (int k = 0; k < iNumJobs && iFrom < 0; ++k)
+						{
+							if (aJobs[k].iSeated == w)
+							{
+								iFrom = k;
+							}
+						}
+						if (iFrom < 0 || aJobs[iFrom].eYield == YIELD_HAMMERS
+							|| ((aJobs[iFrom].eYield == YIELD_BELLS || aJobs[iFrom].eYield == YIELD_CROSSES) && wfIsExpertFor(*kWorker.pUnit, aJobs[iFrom].eProfession)))
+						{
+							continue;
+						}
+					}
+					else if (kWorker.iSeatCity >= 0)
 					{
 						continue;
 					}
 					const int iT = WF_TYPE(w, j);
 					const int iGold = aiGold[iT * iNumJobs + j];
-					const int iDelta = aiFood[iT * iNumJobs + j] - iConsumption;
+					int iDelta = aiFood[iT * iNumJobs + j] - iConsumption;
+					int iOldValue = 0;
+					if (iFrom >= 0)
+					{
+						const int iTFrom = WF_TYPE(w, iFrom);
+						const int iOldDelta = aiFood[iTFrom * iNumJobs + iFrom] - iConsumption;
+						iOldValue = aiGold[iTFrom * iNumJobs + iFrom] + wfFoodGold(kCity.iNowSurplus - iOldDelta, iOldDelta);
+						iDelta -= iOldDelta; // the change of the food
+					}
 					if (iGold <= -1000000 || kCity.iNowSurplus + iDelta < 0)
 					{
 						continue;
 					}
-					const int iValue = iGold + wfFoodGold(kCity.iNowSurplus, iDelta);
+					int iValue = iGold + wfFoodGold(kCity.iNowSurplus, aiFood[iT * iNumJobs + j] - iConsumption);
+					if (iFrom >= 0 && iValue <= iOldValue * 6 / 5)
+					{
+						continue;
+					}
+					iValue -= iOldValue;
+					if (kJob.eYield == YIELD_HAMMERS)
+					{
+						iValue += WF_PRIORITY;
+					}
 					if (iValue > iBestValue)
 					{
 						iBestValue = iValue;
 						iBestWorker = w;
 						iBestJob = j;
+						iBestFrom = iFrom;
 					}
 				}
 			}
@@ -19128,9 +19178,15 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			{
 				break;
 			}
+			int iChange = aiFood[WF_TYPE(iBestWorker, iBestJob) * iNumJobs + iBestJob] - iConsumption;
+			if (iBestFrom >= 0)
+			{
+				iChange -= aiFood[WF_TYPE(iBestWorker, iBestFrom) * iNumJobs + iBestFrom] - iConsumption;
+				aJobs[iBestFrom].iSeated = -1;
+			}
 			aJobs[iBestJob].iSeated = iBestWorker;
 			aWorkers[iBestWorker].iSeatCity = c;
-			kCity.iNowSurplus += aiFood[WF_TYPE(iBestWorker, iBestJob) * iNumJobs + iBestJob] - iConsumption;
+			kCity.iNowSurplus += iChange;
 		}
 		// a colony nobody is seated in keeps its best citizen in its job
 		bool bSeated = false;
@@ -19447,6 +19503,18 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			if (kJob.eExpertClass == NO_UNITCLASS || kJob.eExpertClass == GLOBAL_DEFINE_DEFAULT_POPULATION_UNIT
 				|| (kJob.iHolder >= 0 && (aWorkers[kJob.iHolder].bLearning || wfIsExpertFor(*aWorkers[kJob.iHolder].pUnit, kJob.eProfession)))
 				|| (kJob.iHolder < 0 && !WF_IS_FREE_JOB(j)))
+			{
+				continue;
+			}
+			// no purchase while an expert of this trade works in another trade or waits (the next plan gives it the job)
+			bool bExpertAround = false;
+			for (int w = 0; w < iNumWorkers && !bExpertAround; ++w)
+			{
+				const WfWorker& kWorker = aWorkers[w];
+				bExpertAround = !kWorker.bLearning && wfIsExpertFor(*kWorker.pUnit, kJob.eProfession)
+					&& (kWorker.iJob < 0 || aJobs[kWorker.iJob].eProfession != kJob.eProfession);
+			}
+			if (bExpertAround)
 			{
 				continue;
 			}
