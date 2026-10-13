@@ -21149,7 +21149,16 @@ void CvUnitAI::AI_sellYieldUnits(TradeLocationTypes eLocation)
 	{
 		if (eLocation == TRADE_LOCATION_EUROPE)
 		{
-			kOwner.sellYieldUnitToEurope(apUnits[i], apUnits[i]->getYieldStored(), 0);
+			// WTP: every sale in Europe goes to the trade log, with the kind of ship that brought it
+			const YieldTypes eYield = apUnits[i]->getYield();
+			const bool bTreasure = apUnits[i]->getUnitInfo().isTreasure();
+			const int iAmount = apUnits[i]->getYieldStored();
+			const int iGoldBefore = kOwner.getGold();
+			kOwner.sellYieldUnitToEurope(apUnits[i], iAmount, 0);
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP Europe sale: Player %d (%S) turn %d %S (%s) sells %d %S for %d gold (gold now %d)",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(),
+				AI_isNativeTradeShip() ? "native trade ship" : "transport", iAmount,
+				bTreasure ? L"treasure" : (eYield != NO_YIELD ? GC.getYieldInfo(eYield).getDescription() : L"?"), kOwner.getGold() - iGoldBefore, kOwner.getGold());
 		}
 		else if (eLocation == TRADE_LOCATION_AFRICA)
 		{
