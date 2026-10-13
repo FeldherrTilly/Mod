@@ -207,6 +207,17 @@ bool CvUnitAI::AI_update()
 		else if (canMove() || isCargo())
 		{
 			FAssert(getGroup() != NULL);
+			// WTP: a passenger of the explorer ship does nothing until the ship puts it ashore in our colony
+			if (AI_getUnitAIState() == UNITAI_STATE_EXPLORER_PASSENGER)
+			{
+				const CvUnit* const pTransport = getTransportUnit();
+				if (pTransport != NULL && pTransport->AI_getUnitAIState() == UNITAI_STATE_EXPLORER_SHIP)
+				{
+					getGroup()->pushMission(MISSION_SKIP);
+					return true;
+				}
+				AI_setUnitAIState(UNITAI_STATE_DEFAULT);
+			}
 			switch (AI_getUnitAIType())
 			{
 			case UNITAI_UNKNOWN:
@@ -339,8 +350,7 @@ bool CvUnitAI::AI_update()
 				}
 				else if (AI_getUnitAIState() == UNITAI_STATE_EXPLORER_SHIP)
 				{
-					s_szWtpShipReason = "explorer ship";
-					AI_exploreSeaMove();
+					AI_explorerShipMove();
 				}
 				else
 				{
@@ -6767,6 +6777,95 @@ void CvUnitAI::AI_exploreSeaMove()
 
 	getGroup()->pushMission(MISSION_SKIP);
 	return;
+}
+
+// WTP: the ship of the early strategy Explorer explores until turn 70 or until nothing is left to explore. Then it puts the
+// people it rescued from shipwrecks ashore in our nearest colony and becomes a normal transport. Until then its passengers
+// stay aboard, inactive (UNITAI_STATE_EXPLORER_PASSENGER: AI_update and the workforce planner leave them alone).
+void CvUnitAI::AI_explorerShipMove()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+
+	std::vector<CvUnit*> apPassengers;
+	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && !pLoopUnit->isGoods() && pLoopUnit->AI_getUnitAIType() != UNITAI_TREASURE)
+		{
+			apPassengers.push_back(pLoopUnit);
+			if (pLoopUnit->AI_getUnitAIState() != UNITAI_STATE_EXPLORER_PASSENGER)
+			{
+				pLoopUnit->AI_setUnitAIState(UNITAI_STATE_EXPLORER_PASSENGER);
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP explorer ship: Player %d (%S) turn %d %S has %S aboard, it waits until the ship ends exploring",
+					getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pLoopUnit->getName().GetCString());
+			}
+		}
+	}
+
+	if (iTurn < 70)
+	{
+		s_szWtpShipReason = "explorer ship";
+		if (AI_goodyRange(baseMoves(), /*bIgnoreCity*/true) || AI_exploreCoast(2) || AI_exploreOcean(1) || AI_exploreDeep())
+		{
+			return;
+		}
+	}
+	const char* const szWhy = (iTurn < 70) ? "nothing left to explore" : "turn 70";
+
+	// the role ends in one of our colonies (at once if nobody is aboard)
+	CvCity* const pHere = plot()->getPlotCity();
+	if (apPassengers.empty() || (pHere != NULL && pHere->getOwnerINLINE() == getOwnerINLINE()))
+	{
+		for (uint i = 0; i < apPassengers.size(); ++i)
+		{
+			apPassengers[i]->AI_setUnitAIState(UNITAI_STATE_DEFAULT);
+		}
+		if (!apPassengers.empty())
+		{
+			AI_unloadPassengers(true);
+		}
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP explorer ship: Player %d (%S) turn %d %S ends exploring (%s), puts %d passengers ashore%s%S, becomes a normal transport",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), szWhy, (int)apPassengers.size(),
+			pHere != NULL ? " in " : "", pHere != NULL ? pHere->getName().GetCString() : L"");
+		AI_setUnitAIState(UNITAI_STATE_DEFAULT);
+		s_szWtpShipReason = "explorer ship: role ended";
+		AI_transportSeaMove();
+		return;
+	}
+
+	CvCity* pNearest = NULL;
+	int iNearestTurns = MAX_INT;
+	int iLoop;
+	for (CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kOwner.nextCity(&iLoop))
+	{
+		int iPathTurns;
+		if (CvPlayerAI::AI_shipCanReachCity(getUnitType(), *pLoopCity) && generatePath(pLoopCity->plot(), 0, true, &iPathTurns) && iPathTurns < iNearestTurns)
+		{
+			iNearestTurns = iPathTurns;
+			pNearest = pLoopCity;
+		}
+	}
+	if (pNearest != NULL)
+	{
+		getGroup()->pushMission(MISSION_MOVE_TO, pNearest->getX_INLINE(), pNearest->getY_INLINE(), 0, false, false, MISSIONAI_TRANSPORT_SEA, pNearest->plot());
+		s_szWtpShipReason = "explorer ship: brings its passengers home";
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP explorer ship: Player %d (%S) turn %d %S ends exploring (%s), brings %d passengers to %S (%d turns)",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), szWhy, (int)apPassengers.size(), pNearest->getName().GetCString(), iNearestTurns);
+		return;
+	}
+
+	// no colony to reach: the passengers become active again and the ship a normal transport, which takes care of them
+	for (uint i = 0; i < apPassengers.size(); ++i)
+	{
+		apPassengers[i]->AI_setUnitAIState(UNITAI_STATE_DEFAULT);
+	}
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP explorer ship: Player %d (%S) turn %d %S ends exploring (%s), reaches no colony with its %d passengers, becomes a normal transport",
+		getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), szWhy, (int)apPassengers.size());
+	AI_setUnitAIState(UNITAI_STATE_DEFAULT);
+	s_szWtpShipReason = "explorer ship: role ended";
+	AI_transportSeaMove();
 }
 
 void CvUnitAI::AI_networkAutomated()
