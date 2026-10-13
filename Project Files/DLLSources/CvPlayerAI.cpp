@@ -18574,7 +18574,9 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			} \
 		}
 
-	// learners keep the job they learn for; experts keep their expert job (worked now, or reserved while on their way)
+	// fixed jobs: learners keep the job they learn for; an expert keeps its expert job while it is on its way there (bought
+	// or planned: the travel time counted when it got the job) and for good on a resource of its trade. An expert working
+	// in its colony otherwise keeps its job only by the bonus for the job it holds (it moves for a clearly better one)
 	for (int w = 0; w < iNumWorkers; ++w)
 	{
 		WfWorker& kWorker = aWorkers[w];
@@ -18583,7 +18585,12 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		{
 			continue;
 		}
-		if (kWorker.bLearning || wfIsExpertFor(*kWorker.pUnit, aJobs[j].eProfession))
+		const WfJob& kJob = aJobs[j];
+		const bool bExpertJob = wfIsExpertFor(*kWorker.pUnit, kJob.eProfession);
+		const bool bThere = kWorker.pPopCity == kJob.pCity || kWorker.pAtCity == kJob.pCity;
+		const BonusTypes eBonus = (kJob.pPlot != NULL) ? kJob.pPlot->getBonusType() : NO_BONUS;
+		const bool bResource = eBonus != NO_BONUS && GC.getBonusInfo(eBonus).getYieldChange(kJob.eYield) > 0;
+		if (kWorker.bLearning || (bExpertJob && (!bThere || bResource)))
 		{
 			kWorker.bReserved = !kWorker.bLearning;
 			WF_ASSIGN(w, j);
@@ -18674,9 +18681,10 @@ void CvPlayerAI::AI_doWorkforcePlan()
 					continue;
 				}
 				iValue = iValue * 20 / (20 + aiEta[w * iNumCities + kJob.iCity]);
+				// the job held already: experts in their trade x1.5, others x1.2 (no moving for a slightly better job)
 				if (kWorker.iCurrentJob == j)
 				{
-					iValue = iValue * 6 / 5;
+					iValue = wfIsExpertFor(*kWorker.pUnit, kJob.eProfession) ? iValue * 3 / 2 : iValue * 6 / 5;
 				}
 				WfCand kCand = { w, j, iValue, iFoodDelta };
 				// a job that raises the surplus is always possible (a colony below the green zone gets there with food jobs)
