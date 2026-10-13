@@ -20011,6 +20011,13 @@ void CvPlayerAI::AI_doEquipPioneersInEurope()
 	{
 		return;
 	}
+	// not while the AI saves for a transport, the militia or the treasure galleon (the equipment costs gold)
+	if (AI_totalUnitAIs(UNITAI_WORKER) < AI_neededWorkers(NULL) && AI_isSavingGold())
+	{
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) equips no pioneer in Europe while saving gold (%d pioneers, %d needed)", getID(),
+			getCivilizationDescription(0), AI_totalUnitAIs(UNITAI_WORKER), AI_neededWorkers(NULL));
+		return;
+	}
 	std::vector<int> aiYieldAvailable(NUM_YIELD_TYPES, -1);
 	while (AI_totalUnitAIs(UNITAI_WORKER) < AI_neededWorkers(NULL))
 	{
@@ -20065,9 +20072,7 @@ void CvPlayerAI::AI_doEquipPioneersInEurope()
 	}
 }
 
-// WTP: buy the expert for the most valuable open opportunity of the workforce plan. In at least 30 % of the cases a plot
-// opportunity (raw material) is taken instead of a building job (processor, carpenter, statesman, preacher). Raw
-// material experts a native village within 8 plots teaches are learned there instead (except lumberjacks).
+// WTP: buy the colonist of the workforce plan with the best gain per price (see AI_doWorkforcePlan, step 6b).
 // Returns true if an opportunity was chosen (bought or not affordable), false if there is none.
 bool CvPlayerAI::AI_buyExpertForOpportunity()
 {
