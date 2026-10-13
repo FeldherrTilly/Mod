@@ -387,7 +387,7 @@ protected:
 	int AI_nativeTradeSell();
 	int AI_nativeTradeBuy();
 	bool AI_canTradeWithVillage(const CvCity& kCity) const;
-	CvCity* AI_nativeTradeBuyVillage();
+	CvCity* AI_nativeTradeBuyVillage(bool bDraw = true);
 	CvCity* AI_nativeTradeSellVillage(const CvCity* pFavourite, bool bMuskets);
 	
 	// TAC - AI Assault Sea - koma13, jdog5000(BBAI) - START

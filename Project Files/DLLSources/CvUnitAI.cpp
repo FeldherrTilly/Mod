@@ -17047,7 +17047,7 @@ void CvUnitAI::AI_nativeTradeShipMove()
 		else
 		{
 			// muskets go to the tribe near the colonial player the natives like least, if there is one (else to any village)
-			CvCity* const pFavourite = AI_nativeTradeBuyVillage();
+			CvCity* const pFavourite = AI_nativeTradeBuyVillage(false);
 			CvCity* pTarget = AI_nativeTradeSellVillage(pFavourite, bMuskets);
 			if (pTarget == NULL && bMuskets)
 			{
@@ -17118,16 +17118,9 @@ void CvUnitAI::AI_nativeTradeShipMove()
 	CvCity* const pTarget = AI_nativeTradeBuyVillage();
 	if (pTarget == NULL)
 	{
-		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S finds no village with goods worth buying (gold %d)",
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S finds no village to buy from within 15 turns (gold %d)",
 			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), kOwner.getGold());
 		s_szWtpShipReason = "native trade: no village worth visiting";
-		getGroup()->pushMission(MISSION_SKIP);
-		return;
-	}
-	if (atPlot(pTarget->plot()))
-	{
-		// the best village is the one we are in (nothing else to visit): wait for its stock to grow
-		s_szWtpShipReason = "native trade: waits in the village";
 		getGroup()->pushMission(MISSION_SKIP);
 		return;
 	}
@@ -17267,17 +17260,34 @@ bool CvUnitAI::AI_canTradeWithVillage(const CvCity& kCity) const
 		&& CvPlayerAI::AI_shipCanReachCity(getUnitType(), kCity);
 }
 
-// WTP: native trade ship: the village to buy goods from next. Villages near our colonies weigh more, a village visited
-// lately weighs less (full weight again after 20 turns), so that the ship widens its circle and comes back. A village
-// must have something worth buying. Returns NULL if there is none.
-CvCity* CvUnitAI::AI_nativeTradeBuyVillage()
+// WTP: native trade ship: the village to buy goods from next. The AI does not know what a village has in stock: it draws
+// one of the villages it can reach within 15 turns at random. The weight falls with the air distance from the ship (for
+// the very first target: from our first colony) and with the path turns; a village visited lately weighs less (full
+// weight again after 25 turns), so that the ship widens its circle and comes back. bDraw false: no draw, the village of
+// the highest weight (a reference point for selling). Returns NULL if there is none.
+CvCity* CvUnitAI::AI_nativeTradeBuyVillage(bool bDraw)
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	const int iTurn = GC.getGameINLINE().getGameTurn();
-	const int iCapacity = std::max(1, GC.getGameINLINE().getCargoYieldCapacity());
 
+	// the first target is chosen from the first colony, every other one from where the ship is
+	const CvPlot* pFrom = plot();
+	int iLoop;
+	CvCity* const pFirstColony = kOwner.firstCity(&iLoop);
+	const bool bFirstTarget = !kOwner.AI_hasVisitedNativeVillage() && m_iNativeTradeBuyTurn < 0 && pFirstColony != NULL;
+	if (bFirstTarget)
+	{
+		pFrom = pFirstColony->plot();
+	}
+	if (pFrom == NULL)
+	{
+		return NULL;
+	}
+
+	std::vector<std::pair<CvCity*, int> > aCandidates;
+	int iTotalWeight = 0;
 	CvCity* pBestCity = NULL;
-	int iBestScore = 0;
+	int iBestWeight = 0;
 	for (PlayerTypes eNative = FIRST_PLAYER; eNative < NUM_PLAYER_TYPES; ++eNative)
 	{
 		CvPlayerAI& kNative = GET_PLAYER(eNative);
@@ -17285,52 +17295,66 @@ CvCity* CvUnitAI::AI_nativeTradeBuyVillage()
 		{
 			continue;
 		}
-		int iLoop;
 		for (CvCity* pCity = kNative.firstCity(&iLoop); pCity != NULL; pCity = kNative.nextCity(&iLoop))
 		{
-			if (!AI_canTradeWithVillage(*pCity))
+			if (atPlot(pCity->plot()) || !AI_canTradeWithVillage(*pCity))
 			{
 				continue;
 			}
-			// the profit per cargo slot of the best yield the village offers
-			int iBestProfit = 0;
-			for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
+			// the village must make something at all that Europe buys (what it makes is known, not its stock)
+			bool bSells = false;
+			for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES && !bSells; ++eYield)
 			{
-				if (eYield == YIELD_HORSES || GC.getYieldInfo(eYield).getNativeSellPrice() <= 0 || !pCity->canProduceYield(eYield))
-				{
-					continue;
-				}
-				const int iAmount = std::min(pCity->getYieldStored(eYield), iCapacity);
-				int iProfit;
-				if (iAmount > 0 && kOwner.AI_nativeBuyProfit(eYield, iAmount, eNative, iProfit) && iProfit > iBestProfit)
-				{
-					iBestProfit = iProfit;
-				}
+				bSells = eYield != YIELD_HORSES && GC.getYieldInfo(eYield).getNativeSellPrice() > 0 && pCity->canProduceYield(eYield) && kOwner.isYieldEuropeTradable(eYield);
 			}
-			if (iBestProfit <= 0)
+			if (!bSells)
 			{
 				continue;
 			}
 			int iPathTurns;
-			if (!generatePath(pCity->plot(), 0, true, &iPathTurns, 40))
+			if (!generatePath(pCity->plot(), 0, true, &iPathTurns, 15))
 			{
 				continue;
 			}
-			int iScore = 10000 / (kOwner.AI_nativeVillageDistanceToColonies(*pCity) + 3);
+			const int iAirDistance = plotDistance(pFrom->getX_INLINE(), pFrom->getY_INLINE(), pCity->getX_INLINE(), pCity->getY_INLINE());
+			int iWeight = 100000 / ((iAirDistance + 3) * (iPathTurns + 3));
 			const int iLastVisit = kOwner.AI_getNativeVillageVisitTurn(*pCity);
 			if (iLastVisit >= 0)
 			{
-				iScore = iScore * std::min(100, std::max(5, 100 * (iTurn - iLastVisit) / 20)) / 100;
+				iWeight = iWeight * std::min(100, std::max(5, 100 * (iTurn - iLastVisit) / 25)) / 100;
 			}
-			iScore = iScore * (100 + std::min(iBestProfit, 2000) / 10) / 100;
-			if (iScore > iBestScore)
+			iWeight = std::max(1, iWeight);
+			aCandidates.push_back(std::make_pair(pCity, iWeight));
+			iTotalWeight += iWeight;
+			if (iWeight > iBestWeight)
 			{
-				iBestScore = iScore;
+				iBestWeight = iWeight;
 				pBestCity = pCity;
 			}
 		}
 	}
-	return pBestCity;
+	if (!bDraw || aCandidates.empty())
+	{
+		return pBestCity;
+	}
+
+	int iRoll = GC.getGameINLINE().getSorenRandNum(iTotalWeight, "AI native trade village");
+	CvCity* pChosen = aCandidates.back().first;
+	int iChosenWeight = aCandidates.back().second;
+	for (uint i = 0; i < aCandidates.size(); ++i)
+	{
+		if (iRoll < aCandidates[i].second)
+		{
+			pChosen = aCandidates[i].first;
+			iChosenWeight = aCandidates[i].second;
+			break;
+		}
+		iRoll -= aCandidates[i].second;
+	}
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S draws %S out of %d villages within 15 turns (weight %d of %d%s)",
+		getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pChosen->getName().GetCString(), (int)aCandidates.size(),
+		iChosenWeight, iTotalWeight, bFirstTarget ? ", first target, distances from the first colony" : "");
+	return pChosen;
 }
 
 // WTP: native trade ship: the village to sell the goods aboard to. The tribe needs more than 2000 gold; the nearest one
