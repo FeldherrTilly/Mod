@@ -18837,7 +18837,8 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				}
 				if (bCarpenter && kJob.iSlot == 0)
 				{
-					iValue += WF_PRIORITY;
+					// an expert of another trade (a preacher, a fisherman) only if no other colonist is there for it
+					iValue += (kWorker.bExpert && !bExpertBuilding) ? WF_PRIORITY - 1000000 : WF_PRIORITY;
 				}
 				if (bExpertBuilding)
 				{
