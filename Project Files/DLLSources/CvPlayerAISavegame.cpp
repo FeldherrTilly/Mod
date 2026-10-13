@@ -243,6 +243,9 @@ void CvPlayerAI::AI_resetSavedData()
 	m_mapNativeVillageVisit.clear();
 	m_eWfExpertToBuy = NO_UNITCLASS;
 	m_aWfOpenOpportunities.clear();
+	m_iWfIdleCount = 0;
+	m_iWfFoodCityID = -1;
+	m_bWfFoodWater = false;
 	m_iMoveQueuePasses = defaultMoveQueuePasses;
 	m_iLastWave = defaultLastWave;
 	m_iWaveIndex = defaultWaveIndex;

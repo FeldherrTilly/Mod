@@ -90,6 +90,7 @@ void CvCityAI::AI_reset()
 	m_iCacheAngryNativeTurn = -1;
 	m_iCacheAngryNativeDefenders = 0;
 	m_iFoodShortageTurn = -100;
+	m_iWfFoodRequestTurn = -100;
 }
 
 
@@ -4149,7 +4150,8 @@ CvUnit* CvCityAI::AI_assignToBestJob(CvUnit* pUnit, bool bIndoorOnly)
 // food plot (at least 3 food), the least productive first. Pioneers then build farms first for 5 turns (AI_isFoodShortage).
 void CvCityAI::AI_fixFoodShortage()
 {
-	if (isNative() || isHuman())
+	// WTP: the workforce plan of the colonial AI keeps the food itself
+	if (isNative() || isHuman() || GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned())
 	{
 		return;
 	}
@@ -4223,7 +4225,7 @@ void CvCityAI::AI_fixFoodShortage()
 			}
 		}
 		// WTP: a food plot only helps from 3 food on (the colonist eats 2 itself); otherwise the player moves a colonist
-		// to a colony with food to spare or has it learn a food expert (CvPlayerAI::AI_doFoodRelocation)
+		// to a colony with food to spare (the colonial AI's workforce plan keeps the food itself)
 		if (eBestProfession == NO_PROFESSION || iBestFood < 3)
 		{
 			return;
@@ -4239,7 +4241,14 @@ void CvCityAI::AI_fixFoodShortage()
 
 bool CvCityAI::AI_isFoodShortage() const
 {
-	return GC.getGameINLINE().getGameTurn() - m_iFoodShortageTurn <= 5;
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+	return iTurn - m_iFoodShortageTurn <= 5 || iTurn - m_iWfFoodRequestTurn <= 1;
+}
+
+// WTP: the workforce plan has a valuable job in this colony that lacks food: pioneers improve its food plots first
+void CvCityAI::AI_setWfFoodRequest()
+{
+	m_iWfFoodRequestTurn = GC.getGameINLINE().getGameTurn();
 }
 
 bool CvCityAI::AI_assignFreeJob(CvUnit& kUnit)

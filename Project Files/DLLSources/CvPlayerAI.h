@@ -522,9 +522,10 @@ public:
 	UnitTypes AI_treasureShipToBuy(int* piTreasures = NULL) const;
 	void AI_doCitizenRelocation(); // WTP
 	void AI_doWorkforcePlan(); // WTP
+	bool AI_isWorkforcePlanned() const; // WTP: the workforce plan places all colonists of this player (colonial AI)
+	int AI_getWfIdleCount() const { return m_iWfIdleCount; } // WTP: colonists without a job in the last plan
 	static int AI_nativeDeliveryPrice(YieldTypes eYield); // WTP
 	CvCity* AI_wfTeachingVillage(UnitClassTypes eExpertClass, const CvCity& kNearCity, int iMaxDistance = 7) const; // WTP
-	void AI_doFoodRelocation(); // WTP
 	int AI_foodSurplusForNewcomer(const CvCity& kCity, int iSkipUnitID = -1) const; // WTP
 	CvCity* AI_bestFoodSurplusCity(const CvCity& kFrom, const CvCity* pExclude, int iSkipUnitID = -1) const; // WTP
 	void AI_doReclaimTerritory(); // WTP
@@ -696,7 +697,8 @@ public:
 	UnitClassTypes AI_getWfExpertToBuy() const { return m_eWfExpertToBuy; }
 	static bool AI_isProtectedSpecialty(UnitClassTypes eUnitClass);
 protected:
-	// WTP: open (unfilled) opportunities of the last workforce plan, for buying experts (not saved, made again each turn)
+	// WTP: colonists the last workforce plan wants to buy (not saved, made again each turn): an expert for a job, or a food
+	// provider (eExpertClass) for the food job eProfession/iPlotIndex; iValue is the gain in gold x100 per turn
 	struct WfOpenOpportunity
 	{
 		int iCityID;
@@ -704,8 +706,12 @@ protected:
 		int iPlotIndex; // -1 for building jobs
 		UnitClassTypes eExpertClass;
 		int iValue;
+		int iPrice;
 	};
 	std::vector<WfOpenOpportunity> m_aWfOpenOpportunities;
+	int m_iWfIdleCount; // WTP: colonists without a job in the last plan (not saved)
+	int m_iWfFoodCityID; // WTP: the colony that needs a food provider most (not saved), -1
+	bool m_bWfFoodWater; // WTP: ... a fisherman (else a farmer or an African slave)
 	bool AI_buyExpertForOpportunity();
 
 	void AI_doTradeRoutes();
