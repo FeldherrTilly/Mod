@@ -17800,7 +17800,15 @@ namespace
 		// the yield of the profession counts as expert; small side bonuses (+1) do not. Only real experts (with an ideal
 		// profession): slaves, converted natives etc. have such bonuses too, but stay ordinary workers (their output is
 		// counted with their own unit type anyway, and an expert may still be bought for their job)
-		return eYield != NO_YIELD && kUnit.AI_getIdealProfession() != NO_PROFESSION
+		// The bonus only counts for the same kind of work as the ideal profession (plot or building, land or water): the
+		// prospector gets no extra pearls on water, the farmer no extra food in the bakery.
+		const ProfessionTypes eIdeal = kUnit.AI_getIdealProfession();
+		if (eYield == NO_YIELD || eIdeal == NO_PROFESSION)
+		{
+			return false;
+		}
+		const CvProfessionInfo& kIdeal = GC.getProfessionInfo(eIdeal);
+		return kIdeal.isWorkPlot() == kProfession.isWorkPlot() && kIdeal.isWater() == kProfession.isWater()
 			&& (kInfo.getYieldChange(eYield) >= 2 || kInfo.getYieldModifier(eYield) >= 50);
 	}
 }
