@@ -266,8 +266,11 @@ protected:
 	mutable int m_iCacheAngryNativeDefenders;
 	// WTP: last turn colonists were put on food plots because of a food shortage, not saved
 	int m_iFoodShortageTurn;
+	// WTP: last turn the workforce plan left a job out for lack of food (pioneers improve food plots), not saved
+	int m_iWfFoodRequestTurn;
 public:
 	bool AI_isFoodShortage() const;
+	void AI_setWfFoodRequest();
 protected:
 	void AI_fixFoodShortage();
 	mutable bool m_abCacheTaughtYields[NUM_YIELD_TYPES];

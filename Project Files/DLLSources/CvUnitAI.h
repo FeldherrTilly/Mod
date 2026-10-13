@@ -109,6 +109,7 @@ public:
 		WF_LEARN = 3,      // learn in the village at VillageX/Y, then do the job
 		WF_JOIN_CITY = 4,  // move to the city and join it (it has food to spare; the plan keeps this task)
 		WF_FOOD_LEARN = 5, // learn a food expert in the village at VillageX/Y, then work the food job in the city (kept)
+		WF_WAIT = 6,       // no job: go to the city and wait on its plot (the workforce plan seats it when a job is free)
 	};
 	int AI_getWfTask() const { return m_iWfTask; }
 	int AI_getWfCityID() const { return m_iWfCityID; }

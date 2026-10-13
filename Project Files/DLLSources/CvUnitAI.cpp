@@ -1480,9 +1480,11 @@ void CvUnitAI::AI_colonistMove()
 {
 	// WTP, Slave AI - START
 	const UnitClassTypes eUnitClass = getUnitInfo().getUnitClassType();
+	// WTP: the workforce plan of the colonial AI places every colonist (slaves too): nobody joins a colony on its own
+	const bool bPlanned = GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned();
 
-	if (eUnitClass == GLOBAL_DEFINE_UNITCLASS_AFRICAN_SLAVE ||
-		eUnitClass == GLOBAL_DEFINE_UNITCLASS_NATIVE_SLAVE)
+	if (!bPlanned && (eUnitClass == GLOBAL_DEFINE_UNITCLASS_AFRICAN_SLAVE ||
+		eUnitClass == GLOBAL_DEFINE_UNITCLASS_NATIVE_SLAVE))
 	{
 		CvCity* pCity = plot() != NULL ? plot()->getPlotCity() : NULL;
 
@@ -1549,6 +1551,27 @@ void CvUnitAI::AI_colonistMove()
 	// WTP: the workforce plan comes first
 	if (AI_doWfTask())
 	{
+		return;
+	}
+
+	// WTP: no task yet (new this turn): wait in the nearest own colony until the next plan
+	if (bPlanned)
+	{
+		if (isCargo())
+		{
+			getGroup()->pushMission(MISSION_SKIP);
+			return;
+		}
+		const CvCity* const pHere = plot()->getPlotCity();
+		if ((pHere == NULL || pHere->getOwnerINLINE() != getOwnerINLINE()) && AI_retreatToCity())
+		{
+			return;
+		}
+		if (AI_changeUnitAIType(99) || AI_changeUnitAIType(49))
+		{
+			return;
+		}
+		getGroup()->pushMission(MISSION_SKIP);
 		return;
 	}
 
@@ -5004,7 +5027,7 @@ void CvUnitAI::AI_transportCoastMove()
 // WTP: the colony a unit waiting for a ship wants to go to (an expert on its way to its job), NULL if unknown
 CvCity* CvUnitAI::AI_transportDestinationCity() const
 {
-	if (m_iWfTask == WF_EXPERT_JOB || m_iWfTask == WF_JOIN_CITY)
+	if (m_iWfTask == WF_EXPERT_JOB || m_iWfTask == WF_JOIN_CITY || m_iWfTask == WF_WAIT)
 	{
 		return GET_PLAYER(getOwnerINLINE()).getCity(m_iWfCityID);
 	}
@@ -21643,7 +21666,7 @@ bool CvUnitAI::AI_doWfTask()
 		return false;
 	}
 
-	if (m_iWfTask == WF_EXPERT_JOB || m_iWfTask == WF_JOIN_CITY)
+	if (m_iWfTask == WF_EXPERT_JOB || m_iWfTask == WF_JOIN_CITY || m_iWfTask == WF_WAIT)
 	{
 		CvCity* pCity = kOwner.getCity(m_iWfCityID);
 		if (pCity == NULL)
@@ -21668,6 +21691,19 @@ bool CvUnitAI::AI_doWfTask()
 		}
 		if (atPlot(pCity->plot()))
 		{
+			// WTP: a planned colonist (or one without a job) waits on the colony plot; the workforce plan seats it when the
+			// food allows it (it eats nothing out here)
+			if (m_iWfTask == WF_EXPERT_JOB || m_iWfTask == WF_WAIT)
+			{
+				// a colonist without a job becomes a soldier, pioneer, ... if the AI needs one
+				if (m_iWfTask == WF_WAIT && (AI_changeUnitAIType(99) || AI_changeUnitAIType(49)))
+				{
+					AI_clearWfTask();
+					return true;
+				}
+				getGroup()->pushMission(MISSION_SKIP);
+				return true;
+			}
 			if (canJoinCity(plot()))
 			{
 				// WTP: a unit that only moved for food is an ordinary citizen there
