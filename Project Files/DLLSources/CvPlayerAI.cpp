@@ -17790,8 +17790,15 @@ namespace
 		}
 		const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
 		const CvUnitInfo& kInfo = kUnit.getUnitInfo();
-		return !kProfession.isWorkPlot() && (YieldTypes)kProfession.getYieldsProduced(0) == YIELD_CROSSES && kInfo.NBMOD_GetTeachLevel() == 3
-			&& (kInfo.getYieldChange(YIELD_CROSSES) > 0 || kInfo.getYieldModifier(YIELD_CROSSES) > 0);
+		const YieldTypes eYield = (YieldTypes)kProfession.getYieldsProduced(0);
+		if (!kProfession.isWorkPlot() && eYield == YIELD_CROSSES && kInfo.NBMOD_GetTeachLevel() == 3
+			&& (kInfo.getYieldChange(YIELD_CROSSES) > 0 || kInfo.getYieldModifier(YIELD_CROSSES) > 0))
+		{
+			return true;
+		}
+		// an expert for several trades (the prospector: silver, gold and gems): a large bonus on the yield of the
+		// profession counts as expert; small side bonuses (+1) do not
+		return eYield != NO_YIELD && (kInfo.getYieldChange(eYield) >= 2 || kInfo.getYieldModifier(eYield) >= 50);
 	}
 }
 
@@ -18018,7 +18025,8 @@ bool CvPlayerAI::AI_isUselessExpert(const CvUnitAI& kUnit, std::vector<int>& aiY
 
 // WTP: workforce plan (general job planner of the colonial AI). Every turn the AI plans the jobs of all its colonists at once:
 // 1. jobs: every workable plot of every colony (the best food and the best other professions, alternatives of one plot)
-//    and every building slot, valued in gold (x100) per turn (inputs count half). Food counts 3 gold per unit (1 gold above a surplus of 10),
+//    and every building slot, valued in gold (x100) per turn (inputs count half; hammers 15/10/8 gold for the 1st/2nd/3rd+
+//    carpenter, who pay 5 gold per lumber; bells and crosses 10 gold). Food counts 3 gold per unit (1 gold above a surplus of 10),
 //    a colonist eats 2 food. Side bonuses of experts are ignored: an expert outside its trade works like a free colonist.
 // 2. workforce: the citizens, the colonists waiting on a colony plot or on their way, the colonists on ships and on the docks
 //    in Europe, the units learning in a native village (they are bound to the job they learn for). Experts already working
@@ -18051,6 +18059,7 @@ namespace
 		YieldTypes eYield;
 		bool bFood;
 		bool bNotable;          // resource or improvement plot, or a building job: worth learning or buying an expert for
+		int iSlot;              // building jobs: the how-manieth worker of this profession in the colony (0 = first)
 		int iCurrent;           // worker that works it now (or holds it as task), -1
 		int iHolder;            // worker of the target plan, -1
 		int iSeated;            // worker seated now, -1
@@ -18129,16 +18138,33 @@ namespace
 		return pPlot->calculatePotentialYield(eYield, kCity.getOwnerINLINE(), pPlot->getImprovementType(), false, pPlot->getRouteType(), eUnit, false);
 	}
 
-	// gold x100 of a job's output; hammers count at least their base value (their estimate follows the lumber price, which
-	// falls with a large lumber stock: no carpenter in a colony full of lumber)
-	int wfYieldGold(const CvCity& kCity, YieldTypes eYield, int iAmount)
+	// gold x100 of a job's output (iSlot: the how-manieth worker of the profession in the colony). Hammers are staged: 15 gold
+	// for the first carpenter, 10 for the second, 8 from the third on (the lumber is paid from it, see WF_LUMBER_GOLD);
+	// bells and crosses 10 gold
+	const int WF_LUMBER_GOLD = 500; // gold x100 of lumber the carpenters use (the lumberjack for them earns it)
+	int wfYieldGold(const CvCity& kCity, YieldTypes eYield, int iAmount, int iSlot)
 	{
-		int iGold = 100 * kCity.AI_estimateYieldValue(eYield, iAmount);
-		if (eYield == YIELD_HAMMERS)
+		switch (eYield)
 		{
-			iGold = std::max(iGold, 100 * iAmount * GET_PLAYER(kCity.getOwnerINLINE()).AI_yieldValue(YIELD_HAMMERS));
+		case YIELD_HAMMERS:
+			return iAmount * (iSlot == 0 ? 1500 : (iSlot == 1 ? 1000 : 800));
+		case YIELD_BELLS:
+		case YIELD_CROSSES:
+			return iAmount * 1000;
+		default:
+			return 100 * kCity.AI_estimateYieldValue(eYield, iAmount);
 		}
-		return iGold;
+	}
+
+	// gold x100 of the input a building job uses: the lumber of the carpenters at WF_LUMBER_GOLD, other inputs half their
+	// value (as in AI_updateYieldValues: raw material that is not processed sells for little)
+	int wfInputGold(const CvCity& kCity, YieldTypes eOutput, YieldTypes eInput, int iAmount)
+	{
+		if (eOutput == YIELD_HAMMERS && eInput == YIELD_LUMBER)
+		{
+			return iAmount * WF_LUMBER_GOLD;
+		}
+		return 50 * kCity.AI_estimateYieldValue(eInput, iAmount);
 	}
 
 	bool wfJobMatches(const WfJob& kJob, int iCityID, ProfessionTypes eProfession, int iX, int iY)
@@ -18316,12 +18342,14 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			{
 				continue;
 			}
-			// the best food profession and the best other profession (by expert output) are the alternatives of the plot;
-			// the profession a citizen works there now is one as well
+			// the best food profession, the best other profession (by expert output) and lumber are the alternatives of the
+			// plot; the profession a citizen works there now is one as well
 			ProfessionTypes eBestFood = NO_PROFESSION;
 			ProfessionTypes eBestOther = NO_PROFESSION;
+			ProfessionTypes eBestLumber = NO_PROFESSION;
 			int iBestFood = 0;
 			int iBestOther = 0;
+			int iBestLumber = 0;
 			for (uint i = 0; i < aePlotProfessions.size(); ++i)
 			{
 				const ProfessionTypes eProfession = aePlotProfessions[i];
@@ -18342,6 +18370,15 @@ void CvPlayerAI::AI_doWorkforcePlan()
 						eBestFood = eProfession;
 					}
 				}
+				else if (eYield == YIELD_LUMBER)
+				{
+					// lumber is always an alternative: the carpenters need it (its value depends on them)
+					if (iOutput > iBestLumber)
+					{
+						iBestLumber = iOutput;
+						eBestLumber = eProfession;
+					}
+				}
 				else
 				{
 					const int iValue = pCity->AI_estimateYieldValue(eYield, iOutput);
@@ -18354,8 +18391,9 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			}
 			const CvUnit* const pWorker = pCity->getUnitWorkingPlot(pLoopPlot);
 			const ProfessionTypes eWorked = (pWorker != NULL) ? pWorker->getProfession() : NO_PROFESSION;
-			ProfessionTypes aeAlternatives[3] = { eBestFood, eBestOther, (eWorked != eBestFood && eWorked != eBestOther) ? eWorked : NO_PROFESSION };
-			for (int iAlt = 0; iAlt < 3; ++iAlt)
+			ProfessionTypes aeAlternatives[4] = { eBestFood, eBestOther, eBestLumber,
+				(eWorked != eBestFood && eWorked != eBestOther && eWorked != eBestLumber) ? eWorked : NO_PROFESSION };
+			for (int iAlt = 0; iAlt < 4; ++iAlt)
 			{
 				const ProfessionTypes eProfession = aeAlternatives[iAlt];
 				if (eProfession == NO_PROFESSION || !GC.getProfessionInfo(eProfession).isWorkPlot())
@@ -18371,6 +18409,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				kJob.bFood = kJob.eYield == YIELD_FOOD;
 				const BonusTypes eBonus = pLoopPlot->getBonusType();
 				kJob.bNotable = (eBonus != NO_BONUS && GC.getBonusInfo(eBonus).getYieldChange(kJob.eYield) > 0) || pLoopPlot->getImprovementType() != NO_IMPROVEMENT;
+				kJob.iSlot = 0;
 				aJobs.push_back(kJob);
 			}
 		}
@@ -18388,6 +18427,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			kJob.bNotable = true;
 			for (int iSlot = 0; iSlot < iSlots; ++iSlot)
 			{
+				kJob.iSlot = iSlot;
 				aJobs.push_back(kJob);
 			}
 		}
@@ -18506,15 +18546,14 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				continue;
 			}
 			// the plan counts gold x100 (AI_estimateYieldValue is in gold)
-			int iGold = wfYieldGold(*kJob.pCity, kJob.eYield, iOutput);
+			int iGold = wfYieldGold(*kJob.pCity, kJob.eYield, iOutput, kJob.iSlot);
 			const CvProfessionInfo& kProfession = GC.getProfessionInfo(kJob.eProfession);
 			for (int k = 0; k < kProfession.getNumYieldsConsumed(); ++k)
 			{
 				const YieldTypes eInput = (YieldTypes)kProfession.getYieldsConsumed(k);
 				if (eInput != NO_YIELD)
 				{
-					// the input counts half (as in AI_updateYieldValues): raw material that is not processed sells for little
-					iGold -= 50 * kJob.pCity->AI_estimateYieldValue(eInput, iOutput);
+					iGold -= wfInputGold(*kJob.pCity, kJob.eYield, eInput, iOutput);
 				}
 			}
 			aiGold[t * iNumJobs + j] = iGold;
@@ -18659,6 +18698,16 @@ void CvPlayerAI::AI_doWorkforcePlan()
 	// value of a worker in a job at the planned surplus of its colony; MIN_INT if the job is not possible
 	#define WF_IS_FREE_JOB(j) (aJobs[j].iHolder < 0 && (aJobs[j].iPlotKey < 0 || aiPlotTaken[aJobs[j].iPlotKey] < 0))
 
+	// colonies with a carpenter job (their first carpenter needs lumber before it is planned)
+	std::vector<bool> abHammerJob(iNumCities, false);
+	for (int j = 0; j < iNumJobs; ++j)
+	{
+		if (aJobs[j].eYield == YIELD_HAMMERS)
+		{
+			abHammerJob[aJobs[j].iCity] = true;
+		}
+	}
+
 	// 3. target plan: greedy, the best (worker, job) pair (or pair of a job and a food job) first
 	for (int iRound = 0; iRound < iNumWorkers * 2 + 10; ++iRound)
 	{
@@ -18706,7 +18755,20 @@ void CvPlayerAI::AI_doWorkforcePlan()
 					continue;
 				}
 				const int iFoodDelta = aiFood[iT * iNumJobs + j] - iConsumption;
-				int iValue = iGold + wfFoodGold(kCity.iSurplus, iFoodDelta);
+				int iJobGold = iGold;
+				// lumber the carpenters need (planned ones, or the first one still to come) is worth WF_LUMBER_GOLD
+				if (kJob.eYield == YIELD_LUMBER && kJob.pPlot != NULL)
+				{
+					const int iOutput = aiOutput[iT * iNumJobs + j];
+					const int iUse = kCity.aiUse[YIELD_LUMBER];
+					const int iNeed = iUse + ((iUse == 0 && abHammerJob[kJob.iCity]) ? 3 : 0) - kCity.aiRaw[YIELD_LUMBER];
+					if (iNeed > 0 && iOutput > 0)
+					{
+						const int iForCarpenters = std::min(iNeed, iOutput);
+						iJobGold = std::max(iGold, iGold * (iOutput - iForCarpenters) / iOutput + iForCarpenters * WF_LUMBER_GOLD);
+					}
+				}
+				int iValue = iJobGold + wfFoodGold(kCity.iSurplus, iFoodDelta);
 				if (iValue <= 0)
 				{
 					continue;
@@ -19250,14 +19312,14 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			{
 				const int iOutput = wfOutput(*kJob.pCity, kJob.eProfession, eExpert, kJob.pPlot);
 				iExpertFood = kJob.bFood ? iOutput : 0;
-				iExpertGold = kJob.bFood ? 0 : wfYieldGold(*kJob.pCity, kJob.eYield, iOutput);
+				iExpertGold = kJob.bFood ? 0 : wfYieldGold(*kJob.pCity, kJob.eYield, iOutput, kJob.iSlot);
 				const CvProfessionInfo& kProfession = GC.getProfessionInfo(kJob.eProfession);
 				for (int k = 0; k < kProfession.getNumYieldsConsumed() && !kJob.bFood; ++k)
 				{
 					const YieldTypes eIn = (YieldTypes)kProfession.getYieldsConsumed(k);
 					if (eIn != NO_YIELD)
 					{
-						iExpertGold -= 50 * kJob.pCity->AI_estimateYieldValue(eIn, iOutput);
+						iExpertGold -= wfInputGold(*kJob.pCity, kJob.eYield, eIn, iOutput);
 					}
 				}
 			}
