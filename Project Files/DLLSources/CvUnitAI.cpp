@@ -18513,9 +18513,11 @@ bool CvUnitAI::AI_improveCity(CvCity* pCity)
 	BuildTypes eBestBuild;
 	MissionTypes eMission;
 
+	// WTP: the pioneers of the colonial AI build roads only between colonies (AI_routeCityNear), not on every way
+	const bool bNoWayRoads = GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned();
 	if (plot()->getWorkingCity() != pCity)
 	{
-		if (canBuildRoute())
+		if (canBuildRoute() && !bNoWayRoads)
 		{
 			getGroup()->pushMission(MISSION_ROUTE_TO, pCity->getX_INLINE(), pCity->getY_INLINE(), 0, false, false, MISSIONAI_BUILD, pCity->plot());
 		}
@@ -18578,7 +18580,14 @@ bool CvUnitAI::AI_improveCity(CvCity* pCity)
 			}
 		}
 
-		eBestBuild = AI_betterPlotBuild(pBestPlot, eBestBuild);
+		if (bNoWayRoads && GC.getBuildInfo(eBestBuild).getRoute() == NO_ROUTE)
+		{
+			eMission = MISSION_MOVE_TO;
+		}
+		else
+		{
+			eBestBuild = AI_betterPlotBuild(pBestPlot, eBestBuild);
+		}
 
 		getGroup()->pushMission(eMission, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_BUILD, pBestPlot);
 		getGroup()->pushMission(MISSION_BUILD, eBestBuild, -1, 0, (getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pBestPlot);
@@ -18808,7 +18817,8 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity* pCity)
 			setHomeCity(pOtherCity);
 		}
 
-		if (pThisCity != NULL && pOtherCity != NULL)
+		// WTP: not for the colonial AI: only AI_routeCityNear connects its colonies
+		if (pThisCity != NULL && pOtherCity != NULL && !GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned())
 		{
 			if (!(gDLL->getFAStarIFace()->GeneratePath(&GC.getRouteFinder(), pThisCity->getX_INLINE(), pThisCity->getY_INLINE(), pOtherCity->getX_INLINE(), pOtherCity->getY_INLINE(), false, getOwnerINLINE(), true)))
 			{
@@ -18818,7 +18828,10 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity* pCity)
 			}
 		}
 
-		eBestBuild = AI_betterPlotBuild(pBestPlot, eBestBuild);
+		if (!GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned())
+		{
+			eBestBuild = AI_betterPlotBuild(pBestPlot, eBestBuild);
+		}
 
 		getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_BUILD, pBestPlot);
 		getGroup()->pushMission(MISSION_BUILD, eBestBuild, -1, 0, (getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pBestPlot);
@@ -19137,12 +19150,27 @@ bool CvUnitAI::AI_routeCityNear(int iMaxDistance)
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	int iLoop;
+	// WTP: the colonial AI connects its colonies with at most 2 pioneers at a time (the others improve the colonies' plots)
+	if (kOwner.AI_isWorkforcePlanned())
+	{
+		int iRoadBuilders = 0;
+		for (CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kOwner.nextCity(&iLoop))
+		{
+			iRoadBuilders += kOwner.AI_plotTargetMissionAIs(pLoopCity->plot(), MISSIONAI_BUILD, getGroup());
+		}
+		if (iRoadBuilders >= 2)
+		{
+			return false;
+		}
+	}
 	for (CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kOwner.nextCity(&iLoop))
 	{
 		CvCity* const pRouteToCity = pLoopCity->AI_getRouteToCity();
+		// (one pioneer per connection: nobody builds it from the other end either)
 		if (pRouteToCity == NULL || pLoopCity->area() != area()
 			|| plotDistance(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), pRouteToCity->getX_INLINE(), pRouteToCity->getY_INLINE()) > iMaxDistance
 			|| kOwner.AI_plotTargetMissionAIs(pRouteToCity->plot(), MISSIONAI_BUILD, getGroup()) > 0
+			|| (pRouteToCity->AI_getRouteToCity() == pLoopCity && kOwner.AI_plotTargetMissionAIs(pLoopCity->plot(), MISSIONAI_BUILD, getGroup()) > 0)
 			|| pLoopCity->plot()->isVisibleEnemyUnit(this) || pRouteToCity->plot()->isVisibleEnemyUnit(this))
 		{
 			continue;

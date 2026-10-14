@@ -2665,6 +2665,13 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 		}
 		// R&R, ray, one Route Type after the other - START
 
+		// WTP: the colonial AI builds the first road level only, it is enough (its pioneers upgraded roads early and were
+		// missing for the improvements)
+		if (ePlayer != NO_PLAYER && GC.getRouteInfo(eRoute).getValue() > 1 && GET_PLAYER(ePlayer).AI_isWorkforcePlanned())
+		{
+			return false;
+		}
+
 		//WTP, ray, Large Rivers - START
 		// no routes on Large Rivers
 		if (getTerrainType() == TERRAIN_LARGE_RIVERS)
