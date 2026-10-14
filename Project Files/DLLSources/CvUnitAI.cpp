@@ -1912,6 +1912,12 @@ void CvUnitAI::AI_workerMove()
 		return;
 	}
 
+	// WTP: the colonial AI improves its colonies in stages (bonus resources, lumber, food) before the usual improvements
+	if (GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned() && AI_wfImproveStages())
+	{
+		return;
+	}
+
 	if (pCity != NULL)
 	{
 		if (pCity->AI_getWorkersNeeded() > 0)
@@ -19181,6 +19187,138 @@ bool CvUnitAI::AI_routeCityNear(int iMaxDistance)
 			getGroup()->pushMission(MISSION_ROUTE_TO, pRouteToCity->getX_INLINE(), pRouteToCity->getY_INLINE(), MOVE_SAFE_TERRITORY, (getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pRouteToCity->plot());
 			return true;
 		}
+	}
+	return false;
+}
+
+// WTP: the colonial AI's pioneers improve the plots of a colony in stages: 1. bonus resources with their improvement,
+// 2. one lodge or sawmill, 3. food improvements (farms) while the colony lacks food, 4. two more lodges or sawmills; after
+// that as usual (AI_improveCity). The pioneer's own colony first, then the lowest stage of the other colonies; within a
+// stage the best yield value by distance. Returns true if a mission was pushed
+bool CvUnitAI::AI_wfImproveStages()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	static const ImprovementTypes eLodge = (ImprovementTypes)GC.getInfoTypeForString("IMPROVEMENT_LODGE");
+	static const ImprovementTypes eLumberjackCamp = (ImprovementTypes)GC.getInfoTypeForString("IMPROVEMENT_LUMBERJACK_CAMP");
+	static const ImprovementTypes eSawmill = (ImprovementTypes)GC.getInfoTypeForString("IMPROVEMENT_LUMBERMILL");
+	const PlayerTypes eParent = kOwner.getParent();
+	const CvCity* const pHome = getHomeCity();
+
+	// candidates: (key, index); the key orders the home colony first, then the stage, then the value per distance
+	std::vector<std::pair<int, int> > aCandidates;
+	std::vector<CvPlot*> apPlots;
+	std::vector<BuildTypes> aeBuilds;
+	std::vector<CvCity*> apCities;
+	std::vector<int> aiStages;
+	int iLoop;
+	for (CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kOwner.nextCity(&iLoop))
+	{
+		if (pLoopCity->area() != area())
+		{
+			continue;
+		}
+		// lodges and sawmills the colony has
+		int iLumberImprovements = 0;
+		FOREACH(CityPlot)
+		{
+			const CvPlot* const pLoopPlot = plotCity(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), eLoopCityPlot);
+			if (pLoopPlot != NULL && pLoopPlot->getWorkingCity() == pLoopCity)
+			{
+				const ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
+				if (eImprovement != NO_IMPROVEMENT && (eImprovement == eLodge || eImprovement == eLumberjackCamp || eImprovement == eSawmill))
+				{
+					++iLumberImprovements;
+				}
+			}
+		}
+		const bool bFoodShortage = pLoopCity->AI_isFoodShortage();
+		FOREACH(CityPlot)
+		{
+			if (eLoopCityPlot == CITY_HOME_PLOT)
+			{
+				continue;
+			}
+			CvPlot* const pLoopPlot = plotCity(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), eLoopCityPlot);
+			if (pLoopPlot == NULL || pLoopPlot->isWater() || pLoopPlot->area() != area() || pLoopPlot->getWorkingCity() != pLoopCity
+				|| pLoopPlot->isVisibleEnemyUnit(this) || kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_BUILD, getGroup()) > 0)
+			{
+				continue;
+			}
+			const BonusTypes eBonus = pLoopPlot->getBonusType();
+			for (int iBuild = 0; iBuild < GC.getNumBuildInfos(); ++iBuild)
+			{
+				const BuildTypes eBuild = (BuildTypes)iBuild;
+				const CvBuildInfo& kBuild = GC.getBuildInfo(eBuild);
+				const ImprovementTypes eImprovement = (ImprovementTypes)kBuild.getImprovement();
+				if (eImprovement == NO_IMPROVEMENT || kBuild.getRoute() != NO_ROUTE || !canBuild(pLoopPlot, eBuild))
+				{
+					continue;
+				}
+				// the forest a colony keeps for its lumber is not cleared
+				if (pLoopPlot->getFeatureType() != NO_FEATURE && kBuild.isFeatureRemove(pLoopPlot->getFeatureType()) && !pLoopCity->AI_canClearLumberFeature(pLoopPlot))
+				{
+					continue;
+				}
+				int iStage = 0;
+				int iValue = 0;
+				for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_YIELD_TYPES && iStage == 0; ++eYield)
+				{
+					const int iGain = pLoopPlot->getYieldWithBuild(eBuild, eYield, true) - pLoopPlot->getYield(eYield);
+					if (iGain <= 0)
+					{
+						continue;
+					}
+					const int iPrice = (eYield == YIELD_FOOD) ? 3 : std::max(1, (eParent != NO_PLAYER) ? GET_PLAYER(eParent).getYieldBuyPrice(eYield) : 1);
+					if (eBonus != NO_BONUS && GC.getBonusInfo(eBonus).getYieldChange(eYield) > 0)
+					{
+						iStage = 1; // the improvement of the bonus resource
+					}
+					else if ((eImprovement == eLodge || eImprovement == eSawmill) && eYield == YIELD_LUMBER && iLumberImprovements < 3)
+					{
+						iStage = (iLumberImprovements < 1) ? 2 : 4;
+					}
+					else if (bFoodShortage && eYield == YIELD_FOOD)
+					{
+						iStage = 3;
+					}
+					iValue = iGain * iPrice;
+				}
+				if (iStage == 0)
+				{
+					continue;
+				}
+				const int iDistance = stepDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+				const int iKey = (pLoopCity == pHome ? 0 : 100000000) + iStage * 1000000 - std::min(999999, iValue * 1000 / (iDistance + 2));
+				aCandidates.push_back(std::make_pair(iKey, (int)apPlots.size()));
+				apPlots.push_back(pLoopPlot);
+				aeBuilds.push_back(eBuild);
+				apCities.push_back(pLoopCity);
+				aiStages.push_back(iStage);
+			}
+		}
+	}
+	std::sort(aCandidates.begin(), aCandidates.end());
+	for (uint i = 0; i < aCandidates.size() && i < 8; ++i)
+	{
+		const int k = aCandidates[i].second;
+		CvPlot* const pPlot = apPlots[k];
+		CvCity* const pCity = apCities[k];
+		if (!atPlot(pPlot) && !generatePath(pPlot, MOVE_NO_ENEMY_TERRITORY, true))
+		{
+			continue;
+		}
+		if (getHomeCity() != pCity)
+		{
+			setHomeCity(pCity);
+		}
+		if (gUnitLogLevel >= 1) logWTPCity(*pCity, "WTP pioneer: %S builds %S at %d,%d for %S (stage %d)", getName().GetCString(),
+			GC.getBuildInfo(aeBuilds[k]).getDescription(), pPlot->getX_INLINE(), pPlot->getY_INLINE(), pCity->getName().GetCString(), aiStages[k]);
+		if (!atPlot(pPlot))
+		{
+			getGroup()->pushMission(MISSION_MOVE_TO, pPlot->getX_INLINE(), pPlot->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_BUILD, pPlot);
+		}
+		getGroup()->pushMission(MISSION_BUILD, aeBuilds[k], -1, 0, (getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pPlot);
+		return true;
 	}
 	return false;
 }

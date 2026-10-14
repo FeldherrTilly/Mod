@@ -264,7 +264,8 @@ protected:
 	bool AI_spreadTradePosts(); // WTP, ray, Native Trade Posts - START
 
 	bool AI_learn(int iRange = 8);
-	bool AI_routeCityNear(int iMaxDistance); // WTP
+	bool AI_routeCityNear(int iMaxDistance);
+	bool AI_wfImproveStages(); // WTP
 
 	bool AI_requestPickup(int iMaxPath = MAX_INT);
 	bool AI_respondToPickup(int iMaxPath = MAX_INT, UnitAITypes eUnitAI = NO_UNITAI, bool bAlongTheWay = false);
