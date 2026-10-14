@@ -241,6 +241,7 @@ void CvPlayerAI::AI_resetSavedData()
 	m_iSavingGoldTurn = -1;
 	m_mapWfLearnWait.clear();
 	m_mapWfRecentBuy.clear();
+	m_mapWfUnreachable.clear();
 	m_mapNativeVillageVisit.clear();
 	m_eWfExpertToBuy = NO_UNITCLASS;
 	m_aWfOpenOpportunities.clear();

@@ -21734,6 +21734,15 @@ bool CvUnitAI::AI_doWfTask()
 			getGroup()->pushMission(MISSION_MOVE_TO, pCity->getX_INLINE(), pCity->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_FOUND, pCity->plot());
 			return true;
 		}
+		// WTP: no way over land (mountains, water): a ship even for a short distance
+		if (plotDistance(getX_INLINE(), getY_INLINE(), pCity->getX_INLINE(), pCity->getY_INLINE()) <= 10 && AI_wfTravelByShip(*pCity))
+		{
+			return true;
+		}
+		// the colony cannot be reached: the plan does not send this colonist there for a while
+		if (gUnitLogLevel >= 1) logWTPCity(*pCity, "WTP plan: %S at %d,%d cannot reach %S (no path over land, no ship), task %d dropped",
+			getName().GetCString(), getX_INLINE(), getY_INLINE(), pCity->getName().GetCString(), m_iWfTask);
+		kOwner.AI_setWfUnreachable(getID(), pCity->getID());
 		AI_clearWfTask();
 		return false;
 	}
