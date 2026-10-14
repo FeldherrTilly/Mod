@@ -18293,6 +18293,7 @@ namespace
 		int iBlockedJob;
 		std::vector<int> aiRaw; // planned raw production per yield (center plot included)
 		std::vector<int> aiUse; // planned consumption per yield
+		std::vector<int> aiStock; // part of aiRaw that comes from the stock (a tenth of it), not from production
 	};
 
 	struct WfCand
@@ -18498,6 +18499,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		kCity.pCity = pCity;
 		kCity.aiRaw.assign(NUM_YIELD_TYPES, 0);
 		kCity.aiUse.assign(NUM_YIELD_TYPES, 0);
+		kCity.aiStock.assign(NUM_YIELD_TYPES, 0);
 		// the food of the colony without its citizens: the center plot and the food modifiers
 		int iCitizenFood = 0;
 		for (int i = 0; i < pCity->getPopulation(); ++i)
@@ -18528,7 +18530,8 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		}
 		for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
 		{
-			kCity.aiRaw[eYield] += pCity->getYieldStored(eYield) / 10;
+			kCity.aiStock[eYield] = pCity->getYieldStored(eYield) / 10;
+			kCity.aiRaw[eYield] += kCity.aiStock[eYield];
 		}
 		aCities.push_back(kCity);
 	}
@@ -19835,6 +19838,41 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				}
 			}
 			const WfCity& kCity = aCities[kJob.iCity];
+			// an expert for a building job only if the colony produces its raw material (its plots, planned): the stock runs
+			// out (a Master Sailmaker was bought for flax from the stock and gave up its trade 8 turns later). Its output
+			// counts only as far as the produced raw material goes
+			const CvProfessionInfo& kJobProfession = GC.getProfessionInfo(kJob.eProfession);
+			if (!kJobProfession.isWorkPlot() && kJobProfession.getNumYieldsConsumed() > 0)
+			{
+				const int iOutput = (iExpertType >= 0) ? aiOutput[iExpertType * iNumJobs + j] : wfOutput(*kJob.pCity, kJob.eProfession, eExpert, kJob.pPlot);
+				// the regular colonist in the job leaves its raw material to the expert
+				const int iHolderUse = (kJob.iHolder >= 0) ? aiOutput[WF_TYPE(kJob.iHolder, j) * iNumJobs + j] : 0;
+				int iProduced = iOutput;
+				for (int k = 0; k < kJobProfession.getNumYieldsConsumed(); ++k)
+				{
+					const YieldTypes eIn = (YieldTypes)kJobProfession.getYieldsConsumed(k);
+					if (eIn != NO_YIELD)
+					{
+						iProduced = std::min(iProduced, kCity.aiRaw[eIn] - kCity.aiStock[eIn] - kCity.aiUse[eIn] + iHolderUse);
+					}
+				}
+				if (iProduced < std::max(1, iOutput / 2))
+				{
+					continue;
+				}
+				if (iProduced < iOutput)
+				{
+					iExpertGold = wfYieldGold(*kJob.pCity, kJob.eYield, iProduced, kJob.iSlot);
+					for (int k = 0; k < kJobProfession.getNumYieldsConsumed(); ++k)
+					{
+						const YieldTypes eIn = (YieldTypes)kJobProfession.getYieldsConsumed(k);
+						if (eIn != NO_YIELD)
+						{
+							iExpertGold -= wfInputGold(*kJob.pCity, kJob.eYield, eIn, iProduced);
+						}
+					}
+				}
+			}
 			int iGain;
 			if (kJob.iHolder >= 0)
 			{
@@ -20619,9 +20657,30 @@ void CvPlayerAI::AI_doEquipPioneersInEurope()
 
 // WTP: buy the colonist of the workforce plan with the best gain per price (see AI_doWorkforcePlan, step 6b).
 // Returns true if an opportunity was chosen (bought or not affordable), false if there is none.
+// WTP: more units wait in Europe than our transports take over in two trips: no colonists are bought or hurried (the
+// Swedes had 15 units in Europe and 2-slot caravels only)
+bool CvPlayerAI::AI_isEuropeBacklog() const
+{
+	int iRoom = 0;
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA)
+		{
+			iRoom += pLoopUnit->cargoSpace();
+		}
+	}
+	return getNumEuropeUnits() > 2 * iRoom;
+}
+
 bool CvPlayerAI::AI_buyExpertForOpportunity()
 {
 	const CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
+	if (AI_isEuropeBacklog())
+	{
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision:   no colonist bought: %d units wait in Europe for a ship", getNumEuropeUnits());
+		return false;
+	}
 	// WTP: the colonist of the last workforce plan with the best gain per price (an expert for a job, or a food provider).
 	// It gets the job as its task at once: that is the job's reservation, nobody buys it again while it is on its way.
 	int iBest = -1;
@@ -21606,7 +21665,7 @@ void CvPlayerAI::AI_doCivilianPurchases()
 
 	// 3. sometimes hurry an immigrant instead of buying an expert (not while colonists wait for a job)
 	const bool bIdleColonists = AI_isWorkforcePlanned() && m_iWfIdleCount >= std::max(1, getNumCities() / 2);
-	if (!bIdleColonists && GC.getGameINLINE().getSorenRandNum(100, "AI civilian hurry instead of expert") < 25)
+	if (!bIdleColonists && !AI_isEuropeBacklog() && GC.getGameINLINE().getSorenRandNum(100, "AI civilian hurry instead of expert") < 25)
 	{
 		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision:   random immigrant hurry instead of expert");
 		AI_hurryCheapImmigrant(false);
@@ -21718,6 +21777,12 @@ void CvPlayerAI::AI_doCivilianPurchases()
 void CvPlayerAI::AI_hurryDocks()
 {
 	if (GC.getAI_HURRY_IMMIGRANTS() <= 0)
+	{
+		return;
+	}
+
+	// WTP: not while units wait in Europe for a ship
+	if (AI_isWorkforcePlanned() && AI_isEuropeBacklog())
 	{
 		return;
 	}

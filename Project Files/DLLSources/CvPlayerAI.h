@@ -696,6 +696,7 @@ public:
 	void AI_setWfUnreachable(int iUnitID, int iCityID);
 	bool AI_isWfUnreachable(int iUnitID, int iCityID) const;
 	int AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* piPortCityID = NULL) const;
+	bool AI_isEuropeBacklog() const;
 protected:
 	// WTP: native villages the native trade ship visited (plot key, turn), not saved
 	std::map<int, int> m_mapNativeVillageVisit;
