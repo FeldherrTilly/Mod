@@ -19123,7 +19123,11 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				// (a prospector, a fisherman): it gets 30 gold more there and takes the job unless it earns clearly more elsewhere
 				const bool bFirstCarpenterHere = bCarpenter && kJob.iSlot == 0 && aiEta[w * iNumCities + kJob.iCity] == 0;
 				const bool bOtherTradeExpert = kWorker.bExpert && !bExpertBuilding;
-				const bool bMust = (bFirstCarpenterHere && !bOtherTradeExpert) || bExpertBuilding;
+				// expert farmers always farm (a land plot with 4 food or more as a free colonist works it), expert fishermen
+				// always fish (a water plot with food)
+				const bool bExpertFood = kJob.bFood && kJob.pPlot != NULL && kProfession.isWorkPlot() && wfIsExpertFor(*kWorker.pUnit, kJob.eProfession)
+					&& (kJob.pPlot->isWater() ? aiFood[j] > 0 : aiFood[j] >= 4);
+				const bool bMust = (bFirstCarpenterHere && !bOtherTradeExpert) || bExpertBuilding || bExpertFood;
 				int iValue = iJobGold + wfFoodGold(kCity.iSurplus, iFoodDelta);
 				if (bFirstCarpenterHere && bOtherTradeExpert)
 				{
@@ -19150,7 +19154,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				{
 					iValue += WF_PRIORITY;
 				}
-				if (bExpertBuilding)
+				if (bExpertBuilding || bExpertFood)
 				{
 					iValue += WF_PRIORITY / 2;
 				}
