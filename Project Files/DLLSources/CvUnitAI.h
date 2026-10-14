@@ -267,7 +267,7 @@ protected:
 	bool AI_routeCityNear(int iMaxDistance); // WTP
 
 	bool AI_requestPickup(int iMaxPath = MAX_INT);
-	bool AI_respondToPickup(int iMaxPath = MAX_INT, UnitAITypes eUnitAI = NO_UNITAI);
+	bool AI_respondToPickup(int iMaxPath = MAX_INT, UnitAITypes eUnitAI = NO_UNITAI, bool bAlongTheWay = false);
 
 	bool AI_pickupAdjacantUnits();
 

@@ -5428,7 +5428,7 @@ void CvUnitAI::AI_transportSeaMove()
 		// WTP: a transport with room also picks up settlers and experts waiting nearby (within 2 turns), not only an
 		// empty one; a settler waited in port for many turns while loaded transports passed by
 		if (!bEmpty && !isFull() && getUnitAICargo(UNITAI_TREASURE) == 0
-			&& (AI_respondToPickup(2, UNITAI_SETTLER) || AI_respondToPickup(2, UNITAI_COLONIST)))
+			&& (AI_respondToPickup(2, UNITAI_SETTLER, true) || AI_respondToPickup(2, UNITAI_COLONIST, true)))
 		{
 			s_szWtpShipReason = "pickup nearby with room";
 			AI_setUnitAIState(UNITAI_STATE_PICKUP);
@@ -5644,7 +5644,7 @@ void CvUnitAI::AI_transportSeaMove()
 		if (AI_getUnitAIState() == UNITAI_STATE_PICKUP)
 		{
 			s_szWtpShipReason = "pickup state";
-			if (AI_respondToPickup(2))
+			if (AI_respondToPickup(2, NO_UNITAI, true))
 			{
 				return;
 			}
@@ -10562,12 +10562,43 @@ bool CvUnitAI::AI_requestPickup(int iMaxPath)
 }
 
 //This is very fast when no units need picking up.
-bool CvUnitAI::AI_respondToPickup(int iMaxPath, UnitAITypes eUnitAI)
+bool CvUnitAI::AI_respondToPickup(int iMaxPath, UnitAITypes eUnitAI, bool bAlongTheWay)
 {
 	PROFILE_FUNC();
 	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;
 	CvPlot* pBestMissionPlot = NULL;
+
+	// WTP: a transport with passengers picks up more only along its way: not when its passengers are 2 turns or less from
+	// their colony, and only if the detour delays them by 1 turn at most (a ship turned back 3 plots before the colony)
+	const CvPlot* pDeliverTo = NULL;
+	const int iShipMoves = std::max(1, baseMoves());
+	if (bAlongTheWay)
+	{
+		int iDeliverDistance = MAX_INT;
+		CLLNode<IDInfo>* pCargoNode = plot()->headUnitNode();
+		while (pCargoNode != NULL)
+		{
+			CvUnit* const pCargo = plot()->getUnitNodeLoop(pCargoNode);
+			if (pCargo != NULL && pCargo->getTransportUnit() == this)
+			{
+				const CvCity* const pDestination = static_cast<CvUnitAI*>(pCargo)->AI_transportDestinationCity();
+				if (pDestination != NULL)
+				{
+					const int iDistance = stepDistance(getX_INLINE(), getY_INLINE(), pDestination->getX_INLINE(), pDestination->getY_INLINE());
+					if (iDistance < iDeliverDistance)
+					{
+						iDeliverDistance = iDistance;
+						pDeliverTo = pDestination->plot();
+					}
+				}
+			}
+		}
+		if (pDeliverTo != NULL && iDeliverDistance <= 2 * iShipMoves)
+		{
+			return false;
+		}
+	}
 
 	CvArea* pWaterArea = plot()->waterArea();
 	int iLoop;
@@ -10585,6 +10616,13 @@ bool CvUnitAI::AI_respondToPickup(int iMaxPath, UnitAITypes eUnitAI)
 					FAssert(pHeadUnit != NULL);
 
 					CvPlot* pMissionPlot = pLoopSelectionGroup->AI_getMissionAIPlot();
+					if (pMissionPlot != NULL && pDeliverTo != NULL
+						&& stepDistance(getX_INLINE(), getY_INLINE(), pMissionPlot->getX_INLINE(), pMissionPlot->getY_INLINE())
+						+ stepDistance(pMissionPlot->getX_INLINE(), pMissionPlot->getY_INLINE(), pDeliverTo->getX_INLINE(), pDeliverTo->getY_INLINE())
+						- stepDistance(getX_INLINE(), getY_INLINE(), pDeliverTo->getX_INLINE(), pDeliverTo->getY_INLINE()) > iShipMoves)
+					{
+						continue; // too far off the way of the passengers aboard
+					}
 					if (pMissionPlot != NULL)
 					{
 						if ((stepDistance(pMissionPlot->getX_INLINE(), pMissionPlot->getY_INLINE(), getX_INLINE(), getY_INLINE()) / std::max(1, baseMoves())) <= iMaxPathTurns)
