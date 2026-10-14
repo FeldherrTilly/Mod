@@ -18551,7 +18551,11 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			}
 			kWorker.iCurrentJob = -1;
 			kWorker.iJob = -1;
-			kWorker.bExpert = kUnit.AI_getIdealProfession() != NO_PROFESSION;
+			// an expert has an ideal profession; expert missionaries (teach level 3 with a cross bonus, see wfIsExpertFor)
+			// have none among the citizen professions but are experts for the church jobs
+			const CvUnitInfo& kUnitInfo = kUnit.getUnitInfo();
+			kWorker.bExpert = kUnit.AI_getIdealProfession() != NO_PROFESSION
+				|| (kUnitInfo.NBMOD_GetTeachLevel() == 3 && (kUnitInfo.getYieldChange(YIELD_CROSSES) > 0 || kUnitInfo.getYieldModifier(YIELD_CROSSES) > 0));
 			const int iTask = kUnit.AI_getWfTask();
 			kWorker.bLearning = kUnit.getUnitTravelState() == UNIT_TRAVEL_STATE_LIVE_AMONG_NATIVES
 				|| iTask == CvUnitAI::WF_LEARN || iTask == CvUnitAI::WF_RETRAIN || iTask == CvUnitAI::WF_FOOD_LEARN;
