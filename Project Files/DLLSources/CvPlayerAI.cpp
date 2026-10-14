@@ -18585,12 +18585,28 @@ void CvPlayerAI::AI_doWorkforcePlan()
 	std::vector<int> aiGold(iNumTypes * iNumJobs, 0);
 	std::vector<int> aiFood(iNumTypes * iNumJobs, 0);
 	std::vector<int> aiOutput(iNumTypes * iNumJobs, 0);
+	// colonists that never work in buildings (indentured servants, mulattoes, slaves, converted natives); failed traders only
+	// as carpenters, disillusioned missionaries only in the church (all of them may work plots)
+	const UnitClassTypes aeFieldOnly[5] = { (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_INDENTURED_SERVANT"),
+		(UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_MULATTO"), (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_AFRICAN_SLAVE"),
+		(UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_NATIVE_SLAVE"), (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_CONVERTED_NATIVE") };
+	const UnitClassTypes eFailedTrader = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_FAILED_TRADER");
+	const UnitClassTypes eFailedMissionary = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_FAILED_MISSIONARY");
 	for (int t = 0; t < iNumTypes; ++t)
 	{
+		const UnitClassTypes eTypeClass = (UnitClassTypes)GC.getUnitInfo(aeTypes[t]).getUnitClassType();
+		bool bFieldOnly = false;
+		for (int k = 0; k < 5; ++k)
+		{
+			bFieldOnly = bFieldOnly || (eTypeClass != NO_UNITCLASS && eTypeClass == aeFieldOnly[k]);
+		}
 		for (int j = 0; j < iNumJobs; ++j)
 		{
 			const WfJob& kJob = aJobs[j];
-			if (!isProfessionValid(kJob.eProfession, aeTypes[t]))
+			const bool bBuilding = kJob.pPlot == NULL;
+			if (!isProfessionValid(kJob.eProfession, aeTypes[t])
+				|| (bBuilding && (bFieldOnly || (eTypeClass == eFailedTrader && kJob.eYield != YIELD_HAMMERS)
+					|| (eTypeClass == eFailedMissionary && kJob.eYield != YIELD_CROSSES))))
 			{
 				aiGold[t * iNumJobs + j] = -1000000;
 				continue;
