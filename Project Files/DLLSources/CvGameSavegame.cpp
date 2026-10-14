@@ -3,6 +3,7 @@
 #include "CvDLLInterfaceIFaceBase.h"
 
 #include "CvSavegame.h"
+#include <time.h>
 
 // set the default values
 const int defaultEndTurnMessagesSent = 0;
@@ -42,6 +43,7 @@ const int defaultNumCultureVictoryCities = 0;
 const int defaultCultureVictoryCultureLevel = NO_CULTURELEVEL;
 
 const unsigned int defaultWorldBuilderUseCount = 0;
+const int defaultLogGameStart = 0;
 
 // 
 enum SavegameVariableTypes
@@ -110,6 +112,7 @@ enum SavegameVariableTypes
 	GameSave_CultureVictoryCultureLevel,
 	GameSave_WorldBuilderUseCount,
 	GameSave_AsyncRand,
+	GameSave_LogGameStart,
 
 	NUM_SAVE_ENUM_VALUES,
 };
@@ -181,6 +184,7 @@ const char* getSavedEnumNameGame(SavegameVariableTypes eType)
 	case GameSave_CultureVictoryCultureLevel: return "GameSave_CultureVictoryCultureLevel";
 	case GameSave_WorldBuilderUseCount: return "GameSave_WorldBuilderUseCount";
 	case GameSave_AsyncRand: return "GameSave_AsyncRand";
+	case GameSave_LogGameStart: return "GameSave_LogGameStart";
 	}
 	FAssertMsg(0, "Missing case");
 	return "";
@@ -256,6 +260,7 @@ void CvGame::resetSavedData(HandicapTypes eHandicap, bool bConstructorCall)
 	m_eCultureVictoryCultureLevel = defaultCultureVictoryCultureLevel;
 
 	m_uiWorldBuilderUseCount = defaultWorldBuilderUseCount;
+	m_iLogGameStart = defaultLogGameStart;
 }
 
 void CvGame::read(CvSavegameReader reader)
@@ -340,8 +345,14 @@ void CvGame::read(CvSavegameReader reader)
 		case GameSave_CultureVictoryCultureLevel: reader.Read(m_eCultureVictoryCultureLevel); break;
 		case GameSave_WorldBuilderUseCount: reader.Read(m_uiWorldBuilderUseCount); break;
 		case GameSave_AsyncRand: reader.Read(m_em_AsyncRand); break;
+		case GameSave_LogGameStart: reader.Read(m_iLogGameStart); break;
 		}
-		
+
+	}
+	// WTP: a game saved before the log folders were introduced gets its log folder now
+	if (m_iLogGameStart == 0)
+	{
+		m_iLogGameStart = (int)time(NULL);
 	}
 
 	if (!isNetworkMultiPlayer())
@@ -453,6 +464,7 @@ void CvGame::write(CvSavegameWriter writer)
 	writer.Write(GameSave_CultureVictoryCultureLevel, m_eCultureVictoryCultureLevel, defaultCultureVictoryCultureLevel);
 	writer.Write(GameSave_WorldBuilderUseCount, m_uiWorldBuilderUseCount, defaultWorldBuilderUseCount);
 	writer.Write(GameSave_AsyncRand, m_em_AsyncRand);
+	writer.Write(GameSave_LogGameStart, m_iLogGameStart, defaultLogGameStart);
 
 	writer.Write(GameSave_END);
 }
