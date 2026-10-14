@@ -17932,6 +17932,18 @@ void CvPlayerAI::AI_clearWfLearnWait(int iUnitID)
 	m_mapWfLearnWait.erase(iUnitID);
 }
 
+// WTP: a colonist found no way to a colony (no path over land, no ship): the plan does not send it there for 10 turns
+void CvPlayerAI::AI_setWfUnreachable(int iUnitID, int iCityID)
+{
+	m_mapWfUnreachable[std::make_pair(iUnitID, iCityID)] = GC.getGameINLINE().getGameTurn();
+}
+
+bool CvPlayerAI::AI_isWfUnreachable(int iUnitID, int iCityID) const
+{
+	const std::map<std::pair<int, int>, int>::const_iterator it = m_mapWfUnreachable.find(std::make_pair(iUnitID, iCityID));
+	return it != m_mapWfUnreachable.end() && GC.getGameINLINE().getGameTurn() - it->second < 10;
+}
+
 // WTP: learning the expert was blocked for 15 turns: the expert is bought instead (in Europe or Africa), saving gold for it
 void CvPlayerAI::AI_setWfExpertToBuy(UnitClassTypes eExpertClass)
 {
@@ -18739,7 +18751,8 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		const bool bThere = kWorker.pPopCity == kJob.pCity || kWorker.pAtCity == kJob.pCity;
 		const BonusTypes eBonus = (kJob.pPlot != NULL) ? kJob.pPlot->getBonusType() : NO_BONUS;
 		const bool bResource = eBonus != NO_BONUS && GC.getBonusInfo(eBonus).getYieldChange(kJob.eYield) > 0;
-		if (kWorker.bLearning || (bExpertJob && (!bThere || bResource)))
+		// (not an expert that found no way to the colony lately)
+		if (kWorker.bLearning || (bExpertJob && (!bThere || bResource) && !AI_isWfUnreachable(kWorker.pUnit->getID(), kJob.pCity->getID())))
 		{
 			// an expert on its way to the first carpenter job reserves another carpenter job of the colony if there is one:
 			// the first one is worked by someone in the colony until it has arrived
@@ -18783,6 +18796,11 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			{
 				const int iDistance = plotDistance(pFrom->getX_INLINE(), pFrom->getY_INLINE(), pCity->getX_INLINE(), pCity->getY_INLINE());
 				iEta = (kUnit.isCargo() || pFrom->area() != pCity->area()) ? 6 + iDistance / 4 : 1 + iDistance / 2;
+			}
+			// the colonist found no way there lately (no path over land, no ship): not planned there
+			if (iEta > 0 && AI_isWfUnreachable(kUnit.getID(), pCity->getID()))
+			{
+				iEta = 1000;
 			}
 			aiEta[w * iNumCities + c] = iEta;
 		}
@@ -18837,7 +18855,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				const WfJob& kJob = aJobs[j];
 				const int iT = WF_TYPE(w, j);
 				const int iGold = aiGold[iT * iNumJobs + j];
-				if (iGold <= -1000000)
+				if (iGold <= -1000000 || aiEta[w * iNumCities + kJob.iCity] >= 1000)
 				{
 					continue;
 				}
