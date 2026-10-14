@@ -474,7 +474,7 @@ protected:
 	void AI_automateSailTo(const SailToHelper& sth);
 	void AI_transportSettler();
 	void AI_unloadPassengers(bool bAll);
-	bool AI_wfTravelByShip(const CvCity& kTarget);
+	bool AI_wfTravelByShip(const CvCity& kTarget, CvCity* pPreferredPort);
 	bool AI_isSoldier() const;
 	CvCity* AI_transportDestinationCity() const;
 	bool AI_pickupStranded(UnitAITypes eUnitAI = NO_UNITAI, int iMaxPath = MAX_INT);

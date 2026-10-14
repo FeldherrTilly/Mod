@@ -17944,6 +17944,186 @@ bool CvPlayerAI::AI_isWfUnreachable(int iUnitID, int iCityID) const
 	return it != m_mapWfUnreachable.end() && GC.getGameINLINE().getGameTurn() - it->second < 10;
 }
 
+// WTP: travel times for the workforce plan. For each colony the movement cost of a colonist from every plot to the colony
+// over land (the movement costs of the terrain, peaks without a road and foreign colonies are no way; up to 40 turns), and
+// for each pair of coastal colonies the turns a transport needs between them
+void CvPlayerAI::AI_wfUpdateTravel(const CvUnit& kColonist)
+{
+	MOD_PROFILE("CvPlayerAI::AI_wfUpdateTravel");
+	m_mapWfLandCost.clear();
+	m_mapWfSeaTurns.clear();
+	const CvMap& kMap = GC.getMap();
+	const int iNumPlots = kMap.numPlotsINLINE();
+	m_iWfLandMoves = std::max(1, kColonist.maxMoves());
+	const int iMaxCost = 40 * m_iWfLandMoves;
+	int iLoop;
+	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+	{
+		std::vector<int>& aiCost = m_mapWfLandCost[pCity->getID()];
+		aiCost.assign(iNumPlots, MAX_INT);
+		// Dijkstra backwards from the colony: the cost of a plot is the cost of the way from it to the colony
+		std::priority_queue<std::pair<int, int> > aQueue; // (-cost, plot number)
+		const int iStart = kMap.plotNumINLINE(pCity->getX_INLINE(), pCity->getY_INLINE());
+		aiCost[iStart] = 0;
+		aQueue.push(std::make_pair(0, iStart));
+		while (!aQueue.empty())
+		{
+			const int iCost = -aQueue.top().first;
+			const int iPlot = aQueue.top().second;
+			aQueue.pop();
+			if (iCost > aiCost[iPlot])
+			{
+				continue;
+			}
+			const CvPlot* const pTo = kMap.plotByIndexINLINE(iPlot);
+			for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+			{
+				const CvPlot* const pFrom = plotDirection(pTo->getX_INLINE(), pTo->getY_INLINE(), (DirectionTypes)iI);
+				if (pFrom == NULL || pFrom->isWater() || pFrom->isImpassable() || (pFrom->isPeak() && pFrom->getRouteType() == NO_ROUTE)
+					|| (pFrom->isCity() && pFrom->getOwnerINLINE() != getID()))
+				{
+					continue;
+				}
+				const int iNewCost = iCost + pTo->movementCost(&kColonist, pFrom);
+				const int iFrom = kMap.plotNumINLINE(pFrom->getX_INLINE(), pFrom->getY_INLINE());
+				if (iNewCost < aiCost[iFrom] && iNewCost <= iMaxCost)
+				{
+					aiCost[iFrom] = iNewCost;
+					aQueue.push(std::make_pair(-iNewCost, iFrom));
+				}
+			}
+		}
+	}
+
+	// the transports: the fastest one sets the pace; a colony counts as a port if one of our transports reaches it
+	int iShipMoves = 0;
+	std::vector<UnitTypes> aeTransports;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA)
+		{
+			iShipMoves = std::max(iShipMoves, pLoopUnit->baseMoves());
+			aeTransports.push_back(pLoopUnit->getUnitType());
+		}
+	}
+	if (iShipMoves <= 0)
+	{
+		return;
+	}
+	std::vector<int> aiSteps(iNumPlots, MAX_INT);
+	for (CvCity* pPort = firstCity(&iLoop); pPort != NULL; pPort = nextCity(&iLoop))
+	{
+		bool bPort = false;
+		for (uint i = 0; i < aeTransports.size() && !bPort; ++i)
+		{
+			bPort = AI_shipCanReachCity(aeTransports[i], *pPort);
+		}
+		if (!bPort)
+		{
+			continue;
+		}
+		// breadth first over the water from the port; a colony next to the water reached is reached by ship
+		std::fill(aiSteps.begin(), aiSteps.end(), MAX_INT);
+		std::deque<int> aOpen;
+		const int iStart = kMap.plotNumINLINE(pPort->getX_INLINE(), pPort->getY_INLINE());
+		aiSteps[iStart] = 0;
+		aOpen.push_back(iStart);
+		while (!aOpen.empty())
+		{
+			const int iPlot = aOpen.front();
+			aOpen.pop_front();
+			const CvPlot* const pPlot = kMap.plotByIndexINLINE(iPlot);
+			const int iSteps = aiSteps[iPlot];
+			if (iSteps >= 100)
+			{
+				continue;
+			}
+			for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+			{
+				const CvPlot* const pNext = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), (DirectionTypes)iI);
+				if (pNext == NULL)
+				{
+					continue;
+				}
+				const int iNext = kMap.plotNumINLINE(pNext->getX_INLINE(), pNext->getY_INLINE());
+				if (aiSteps[iNext] != MAX_INT)
+				{
+					continue;
+				}
+				if (pNext->isWater())
+				{
+					aiSteps[iNext] = iSteps + 1;
+					aOpen.push_back(iNext);
+				}
+				else if (pPlot->isWater() && pNext->isCity() && pNext->getOwnerINLINE() == getID())
+				{
+					aiSteps[iNext] = iSteps + 1;
+					CvCity* const pTarget = pNext->getPlotCity();
+					bool bReach = false;
+					for (uint i = 0; i < aeTransports.size() && !bReach; ++i)
+					{
+						bReach = AI_shipCanReachCity(aeTransports[i], *pTarget);
+					}
+					if (bReach)
+					{
+						// baseMoves: plots per turn
+						m_mapWfSeaTurns[std::make_pair(pPort->getID(), pTarget->getID())] = (iSteps + 1 + iShipMoves - 1) / iShipMoves;
+					}
+				}
+			}
+		}
+	}
+}
+
+// WTP: turns a colonist on kFrom needs to the colony kTo: over land, or walking to a port, waiting for a transport there
+// and sailing (the faster way; the ship only if it saves 2 turns). piPortCityID gets the port (-1: over land). MAX_INT if
+// there is no way (or no travel times yet)
+int CvPlayerAI::AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* piPortCityID) const
+{
+	// waiting for a transport and boarding
+	static const int WF_SHIP_WAIT = 3;
+	if (piPortCityID != NULL)
+	{
+		*piPortCityID = -1;
+	}
+	const int iFrom = GC.getMap().plotNumINLINE(kFrom.getX_INLINE(), kFrom.getY_INLINE());
+	int iLand = MAX_INT;
+	const std::map<int, std::vector<int> >::const_iterator itTo = m_mapWfLandCost.find(kTo.getID());
+	if (itTo != m_mapWfLandCost.end() && itTo->second[iFrom] != MAX_INT)
+	{
+		iLand = (itTo->second[iFrom] + m_iWfLandMoves - 1) / m_iWfLandMoves;
+	}
+	int iShip = MAX_INT;
+	int iPort = -1;
+	for (std::map<std::pair<int, int>, int>::const_iterator it = m_mapWfSeaTurns.begin(); it != m_mapWfSeaTurns.end(); ++it)
+	{
+		if (it->first.second != kTo.getID())
+		{
+			continue;
+		}
+		const std::map<int, std::vector<int> >::const_iterator itPort = m_mapWfLandCost.find(it->first.first);
+		if (itPort == m_mapWfLandCost.end() || itPort->second[iFrom] == MAX_INT)
+		{
+			continue;
+		}
+		const int iTurns = (itPort->second[iFrom] + m_iWfLandMoves - 1) / m_iWfLandMoves + WF_SHIP_WAIT + it->second;
+		if (iTurns < iShip)
+		{
+			iShip = iTurns;
+			iPort = it->first.first;
+		}
+	}
+	if (iShip != MAX_INT && (iLand == MAX_INT || iShip + 2 <= iLand))
+	{
+		if (piPortCityID != NULL)
+		{
+			*piPortCityID = iPort;
+		}
+		return iShip;
+	}
+	return iLand;
+}
+
 // WTP: learning the expert was blocked for 15 turns: the expert is bought instead (in Europe or Africa), saving gold for it
 void CvPlayerAI::AI_setWfExpertToBuy(UnitClassTypes eExpertClass)
 {
@@ -18354,6 +18534,22 @@ void CvPlayerAI::AI_doWorkforcePlan()
 	}
 	const int iNumCities = (int)aCities.size();
 
+	// travel times over land and by ship (a citizen stands for all colonists: same moves and movement costs)
+	{
+		const CvUnit* pColonist = NULL;
+		for (int c = 0; c < iNumCities && pColonist == NULL; ++c)
+		{
+			if (aCities[c].pCity->getPopulation() > 0)
+			{
+				pColonist = aCities[c].pCity->getPopulationUnitByIndex(0);
+			}
+		}
+		if (pColonist != NULL)
+		{
+			AI_wfUpdateTravel(*pColonist);
+		}
+	}
+
 	// 1. jobs
 	std::vector<ProfessionTypes> aePlotProfessions;
 	std::vector<ProfessionTypes> aeBuildingProfessions;
@@ -18735,45 +18931,8 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			} \
 		}
 
-	// fixed jobs: learners keep the job they learn for; an expert keeps its expert job while it is on its way there (bought
-	// or planned: the travel time counted when it got the job) and for good on a resource of its trade. An expert working
-	// in its colony otherwise keeps its job only by the bonus for the job it holds (it moves for a clearly better one)
-	for (int w = 0; w < iNumWorkers; ++w)
-	{
-		WfWorker& kWorker = aWorkers[w];
-		const int j = kWorker.iCurrentJob;
-		if (j < 0 || aJobs[j].iHolder >= 0 || (aJobs[j].iPlotKey >= 0 && aiPlotTaken[aJobs[j].iPlotKey] >= 0))
-		{
-			continue;
-		}
-		const WfJob& kJob = aJobs[j];
-		const bool bExpertJob = wfIsExpertFor(*kWorker.pUnit, kJob.eProfession);
-		const bool bThere = kWorker.pPopCity == kJob.pCity || kWorker.pAtCity == kJob.pCity;
-		const BonusTypes eBonus = (kJob.pPlot != NULL) ? kJob.pPlot->getBonusType() : NO_BONUS;
-		const bool bResource = eBonus != NO_BONUS && GC.getBonusInfo(eBonus).getYieldChange(kJob.eYield) > 0;
-		// (not an expert that found no way to the colony lately)
-		if (kWorker.bLearning || (bExpertJob && (!bThere || bResource) && !AI_isWfUnreachable(kWorker.pUnit->getID(), kJob.pCity->getID())))
-		{
-			// an expert on its way to the first carpenter job reserves another carpenter job of the colony if there is one:
-			// the first one is worked by someone in the colony until it has arrived
-			int jReserve = j;
-			if (!bThere && kJob.eYield == YIELD_HAMMERS && kJob.iSlot == 0)
-			{
-				for (int jj = 0; jj < iNumJobs; ++jj)
-				{
-					if (aJobs[jj].iCity == kJob.iCity && aJobs[jj].eProfession == kJob.eProfession && aJobs[jj].iSlot > 0 && aJobs[jj].iHolder < 0)
-					{
-						jReserve = jj;
-						break;
-					}
-				}
-			}
-			kWorker.bReserved = !kWorker.bLearning;
-			WF_ASSIGN(w, jReserve);
-		}
-	}
-
-	// travel time in turns of each worker to each colony (rough: no path finding)
+	// travel time in turns of each worker to each colony: over land or by ship (the travel times of the plan); 1000 if there
+	// is no way
 	std::vector<int> aiEta(iNumWorkers * std::max(1, iNumCities), 0);
 	for (int w = 0; w < iNumWorkers; ++w)
 	{
@@ -18792,10 +18951,16 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			{
 				iEta = 12; // in Europe, on the ocean or living among the natives
 			}
-			else
+			else if (kUnit.isCargo() || m_mapWfLandCost.empty())
 			{
+				// on a ship (it sails where its passengers go) or no travel times yet
 				const int iDistance = plotDistance(pFrom->getX_INLINE(), pFrom->getY_INLINE(), pCity->getX_INLINE(), pCity->getY_INLINE());
 				iEta = (kUnit.isCargo() || pFrom->area() != pCity->area()) ? 6 + iDistance / 4 : 1 + iDistance / 2;
+			}
+			else
+			{
+				const int iTurns = AI_wfTravelTurns(*pFrom, *pCity);
+				iEta = (iTurns == MAX_INT) ? 1000 : std::max(1, iTurns);
 			}
 			// the colonist found no way there lately (no path over land, no ship): not planned there
 			if (iEta > 0 && AI_isWfUnreachable(kUnit.getID(), pCity->getID()))
@@ -18803,6 +18968,64 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				iEta = 1000;
 			}
 			aiEta[w * iNumCities + c] = iEta;
+		}
+	}
+	// the colony each worker lives in, waits in or is on its way to for a job (-1: none, e.g. idle or in Europe)
+	std::vector<int> aiHomeCity(iNumWorkers, -1);
+	for (int w = 0; w < iNumWorkers; ++w)
+	{
+		const WfWorker& kWorker = aWorkers[w];
+		const CvUnitAI& kUnit = *kWorker.pUnit;
+		const CvCity* pHome = (kWorker.pPopCity != NULL) ? kWorker.pPopCity : kWorker.pAtCity;
+		if (pHome == NULL && kUnit.AI_getWfTask() == CvUnitAI::WF_EXPERT_JOB)
+		{
+			pHome = getCity(kUnit.AI_getWfCityID());
+		}
+		for (int c = 0; c < iNumCities && pHome != NULL; ++c)
+		{
+			if (aCities[c].pCity == pHome)
+			{
+				aiHomeCity[w] = c;
+				break;
+			}
+		}
+	}
+
+	// fixed jobs: learners keep the job they learn for; an expert keeps its expert job while it is on its way there (bought
+	// or planned: the travel time counted when it got the job) and for good on a resource of its trade. An expert working
+	// in its colony otherwise keeps its job only by the bonus for the job it holds (it moves for a clearly better one)
+	for (int w = 0; w < iNumWorkers; ++w)
+	{
+		WfWorker& kWorker = aWorkers[w];
+		const int j = kWorker.iCurrentJob;
+		if (j < 0 || aJobs[j].iHolder >= 0 || (aJobs[j].iPlotKey >= 0 && aiPlotTaken[aJobs[j].iPlotKey] >= 0))
+		{
+			continue;
+		}
+		const WfJob& kJob = aJobs[j];
+		const bool bExpertJob = wfIsExpertFor(*kWorker.pUnit, kJob.eProfession);
+		const bool bThere = kWorker.pPopCity == kJob.pCity || kWorker.pAtCity == kJob.pCity;
+		const BonusTypes eBonus = (kJob.pPlot != NULL) ? kJob.pPlot->getBonusType() : NO_BONUS;
+		const bool bResource = eBonus != NO_BONUS && GC.getBonusInfo(eBonus).getYieldChange(kJob.eYield) > 0;
+		// (not an expert that has no way to the colony)
+		if (kWorker.bLearning || (bExpertJob && (!bThere || bResource) && aiEta[w * iNumCities + kJob.iCity] < 1000))
+		{
+			// an expert on its way to the first carpenter job reserves another carpenter job of the colony if there is one:
+			// the first one is worked by someone in the colony until it has arrived
+			int jReserve = j;
+			if (!bThere && kJob.eYield == YIELD_HAMMERS && kJob.iSlot == 0)
+			{
+				for (int jj = 0; jj < iNumJobs; ++jj)
+				{
+					if (aJobs[jj].iCity == kJob.iCity && aJobs[jj].eProfession == kJob.eProfession && aJobs[jj].iSlot > 0 && aJobs[jj].iHolder < 0)
+					{
+						jReserve = jj;
+						break;
+					}
+				}
+			}
+			kWorker.bReserved = !kWorker.bLearning;
+			WF_ASSIGN(w, jReserve);
 		}
 	}
 
@@ -18908,6 +19131,12 @@ void CvPlayerAI::AI_doWorkforcePlan()
 					continue;
 				}
 				iValue = std::max(1, iValue) * 20 / (20 + aiEta[w * iNumCities + kJob.iCity]);
+				// a colonist in a colony or on its way to one goes to another colony only for a job worth half as much again
+				// (no going back and forth between two colonies for jobs of about the same value)
+				if (aiHomeCity[w] >= 0 && aiHomeCity[w] != kJob.iCity)
+				{
+					iValue = iValue * 2 / 3;
+				}
 				// the job held already x1.2 (no moving for a slightly better job); experts are fixed only on a resource of their
 				// trade, while learning or on their way
 				if (kWorker.iCurrentJob == j)
@@ -19752,6 +19981,13 @@ void CvPlayerAI::AI_doWorkforcePlan()
 						const CvCity* const pHere = kUnit.plot()->getPlotCity();
 						szWhere = CvWString::format(L"%s%s %d,%d", kUnit.isCargo() ? L"on a ship " : L"", pHere != NULL ? pHere->getName().GetCString() : L"at",
 							kUnit.getX_INLINE(), kUnit.getY_INLINE());
+						// the way it takes: by ship from a port (over land otherwise)
+						int iPortID = -1;
+						const CvPlot* const pFrom = (kHolder.pPopCity != NULL) ? kHolder.pPopCity->plot() : kUnit.plot();
+						if (!kUnit.isCargo() && AI_wfTravelTurns(*pFrom, *kCity.pCity, &iPortID) != MAX_INT && iPortID >= 0 && getCity(iPortID) != NULL)
+						{
+							szWhere += CvWString::format(L", by ship from %s", getCity(iPortID)->getName().GetCString());
+						}
 					}
 					szWhere = CvWString::format(L" [%s, %d turns]", szWhere.GetCString(), aiEta[kJob.iHolder * iNumCities + c]);
 				}
