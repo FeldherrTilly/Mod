@@ -3,6 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvGameCoreUtils.h"
 #include "CvGameCoreUtils.h"
+#include <time.h>
 #include "CvGame.h"
 #include "CvGameAI.h"
 #include "CvMap.h"
@@ -68,6 +69,8 @@ void CvGame::init(HandicapTypes eHandicap)
 	//--------------------------------
 	// Init saved data
 	reset(eHandicap);
+	// WTP: a new game: its AI logs go to a folder of their own (named by this time, see logWTP)
+	m_iLogGameStart = (int)time(NULL);
 
 	//--------------------------------
 	// Init containers
