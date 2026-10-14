@@ -687,9 +687,15 @@ protected:
 	std::map<int, int> m_mapWfLearnWait;
 	std::map<int, int> m_mapWfRecentBuy; // WTP: (city ID * 10000 + unit class) -> turn the plan bought that expert for it (not saved)
 	std::map<std::pair<int, int>, int> m_mapWfUnreachable; // WTP: (unit ID, city ID) -> turn the unit found no way there (not saved)
+	// WTP: travel times of the workforce plan, made at the start of each plan (not saved)
+	std::map<int, std::vector<int> > m_mapWfLandCost; // city ID -> movement cost of a colonist from each plot to the colony (MAX_INT: no way)
+	std::map<std::pair<int, int>, int> m_mapWfSeaTurns; // (port city ID, city ID) -> turns of a transport from the port to the colony
+	int m_iWfLandMoves; // movement points of a colonist per turn
+	void AI_wfUpdateTravel(const CvUnit& kColonist);
 public:
 	void AI_setWfUnreachable(int iUnitID, int iCityID);
 	bool AI_isWfUnreachable(int iUnitID, int iCityID) const;
+	int AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* piPortCityID = NULL) const;
 protected:
 	// WTP: native villages the native trade ship visited (plot key, turn), not saved
 	std::map<int, int> m_mapNativeVillageVisit;

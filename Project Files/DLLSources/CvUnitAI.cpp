@@ -5034,10 +5034,12 @@ CvCity* CvUnitAI::AI_transportDestinationCity() const
 	return NULL;
 }
 
-// WTP: an expert on its way to a far colony walks to the nearest own coastal colony, boards a transport there (or
-// waits for one) and is carried to its destination; returns false if no port is useful
-bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget)
+// WTP: a colonist on its way to a colony by ship walks to the port (pPreferredPort, or the nearest own coastal colony), boards a
+// transport there (or waits for one) and is carried to its destination; returns false if no port is useful or if it
+// waited 6 turns for a ship in vain and can walk
+bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget, CvCity* pPreferredPort)
 {
+	static const int WF_MAX_SHIP_WAIT = 6;
 	const int iMinOcean = GC.getMIN_WATER_SIZE_FOR_OCEAN();
 	if (!kTarget.isCoastal(iMinOcean))
 	{
@@ -5056,10 +5058,23 @@ bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget)
 		return false;
 	}
 	const int iDistance = plotDistance(getX_INLINE(), getY_INLINE(), kTarget.getX_INLINE(), kTarget.getY_INLINE());
+	if (kOwner.AI_wfLearnWaitTurns(getID(), false) >= WF_MAX_SHIP_WAIT && generatePath(kTarget.plot(), MOVE_NO_ENEMY_TERRITORY, true))
+	{
+		return false;
+	}
 
 	CvCity* pPort = plot()->getPlotCity();
-	if (pPort == NULL || pPort->getOwnerINLINE() != getOwnerINLINE() || !pPort->isCoastal(iMinOcean))
+	if (pPort == NULL || pPort->getOwnerINLINE() != getOwnerINLINE() || !pPort->isCoastal(iMinOcean) || (pPreferredPort != NULL && pPort != pPreferredPort))
 	{
+		if (pPreferredPort != NULL)
+		{
+			if (!generatePath(pPreferredPort->plot(), MOVE_NO_ENEMY_TERRITORY, true))
+			{
+				return false;
+			}
+			getGroup()->pushMission(MISSION_MOVE_TO, pPreferredPort->getX_INLINE(), pPreferredPort->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_AWAIT_PICKUP, pPreferredPort->plot());
+			return true;
+		}
 		// nearest own coastal colony (nearest ones by distance, then by path), clearly closer to us than the target
 		std::vector<std::pair<int, int> > aPorts;
 		int iLoop;
@@ -5105,13 +5120,19 @@ bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget)
 			&& pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && CvPlayerAI::AI_shipCanReachCity(pLoopUnit->getUnitType(), kTarget)
 			&& canLoadUnit(pLoopUnit, plot(), true))
 		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S boards %S in %S for its job in %S (waited %d turns)", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+				GC.getGameINLINE().getGameTurn(), getName().GetCString(), pLoopUnit->getName().GetCString(), pPort->getName().GetCString(), kTarget.getName().GetCString(),
+				kOwner.AI_wfLearnWaitTurns(getID(), false));
+			kOwner.AI_clearWfLearnWait(getID());
 			loadUnit(pLoopUnit);
 			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_FOUND, kTarget.plot());
-			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S boards %S in %S for its job in %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
-				GC.getGameINLINE().getGameTurn(), getName().GetCString(), pLoopUnit->getName().GetCString(), pPort->getName().GetCString(), kTarget.getName().GetCString());
 			return true;
 		}
 	}
+	// waiting for a ship (counted: after 6 turns it walks if it can)
+	const int iWaited = kOwner.AI_wfLearnWaitTurns(getID(), true);
+	if (gUnitLogLevel >= 1 && iWaited == 0) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S waits in %S for a ship to %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+		GC.getGameINLINE().getGameTurn(), getName().GetCString(), pPort->getName().GetCString(), kTarget.getName().GetCString());
 	getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_AWAIT_PICKUP, plot());
 	return true;
 }
@@ -21533,6 +21554,27 @@ CvSelectionGroupAI* CvUnitAI::AI_getGroup()
 // WTP: workforce plan tasks
 void CvUnitAI::AI_setWfTask(int iTask, int iCityID, ProfessionTypes eProfession, int iPlotX, int iPlotY, int iVillageX, int iVillageY)
 {
+	// WTP: a new destination: a move still under way would go on to the old one (the AI continues missions before it asks
+	// the unit again), and a colonist in a group would follow the head of the group; it sets out alone
+	const bool bLearnTask = iTask == WF_LEARN || iTask == WF_FOOD_LEARN;
+	const bool bWasLearnTask = m_iWfTask == WF_LEARN || m_iWfTask == WF_FOOD_LEARN;
+	const bool bNewDestination = iTask != WF_NONE && (m_iWfTask == WF_NONE || bLearnTask != bWasLearnTask
+		|| (bLearnTask ? (iVillageX != m_iWfVillageX || iVillageY != m_iWfVillageY) : iCityID != m_iWfCityID));
+	if (bNewDestination)
+	{
+		GET_PLAYER(getOwnerINLINE()).AI_clearWfLearnWait(getID()); // (also the waiting for a ship)
+	}
+	if (bNewDestination && isOnMap() && !isCargo() && getGroup() != NULL)
+	{
+		if (getGroup()->getNumUnits() > 1)
+		{
+			joinGroup(NULL);
+		}
+		else
+		{
+			getGroup()->clearMissionQueue();
+		}
+	}
 	m_iWfTask = iTask;
 	m_iWfCityID = iCityID;
 	m_eWfProfession = eProfession;
@@ -21691,6 +21733,7 @@ bool CvUnitAI::AI_doWfTask()
 		}
 		if (atPlot(pCity->plot()))
 		{
+			kOwner.AI_clearWfLearnWait(getID()); // (the waiting for a ship on the way)
 			// WTP: a planned colonist (or one without a job) waits on the colony plot; the workforce plan seats it when the
 			// food allows it (it eats nothing out here)
 			if (m_iWfTask == WF_EXPERT_JOB || m_iWfTask == WF_WAIT)
@@ -21724,8 +21767,12 @@ bool CvUnitAI::AI_doWfTask()
 			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_FOUND, pCity->plot());
 			return true;
 		}
-		// WTP: more than 10 plots over land is too far; the expert walks to the nearest coastal colony and takes a ship
-		if (plotDistance(getX_INLINE(), getY_INLINE(), pCity->getX_INLINE(), pCity->getY_INLINE()) > 10 && AI_wfTravelByShip(*pCity))
+		// WTP: the faster way of the plan's travel times: over land, or walking to a port and taking a ship there (a colonist
+		// that waited too long for a ship walks if it can)
+		int iPortID = -1;
+		kOwner.AI_wfTravelTurns(*plot(), *pCity, &iPortID);
+		CvCity* const pPort = (iPortID >= 0) ? kOwner.getCity(iPortID) : NULL;
+		if (pPort != NULL && AI_wfTravelByShip(*pCity, pPort))
 		{
 			return true;
 		}
@@ -21734,8 +21781,8 @@ bool CvUnitAI::AI_doWfTask()
 			getGroup()->pushMission(MISSION_MOVE_TO, pCity->getX_INLINE(), pCity->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_FOUND, pCity->plot());
 			return true;
 		}
-		// WTP: no way over land (mountains, water): a ship even for a short distance
-		if (plotDistance(getX_INLINE(), getY_INLINE(), pCity->getX_INLINE(), pCity->getY_INLINE()) <= 10 && AI_wfTravelByShip(*pCity))
+		// no way over land (mountains, water): the nearest port
+		if (AI_wfTravelByShip(*pCity, NULL))
 		{
 			return true;
 		}

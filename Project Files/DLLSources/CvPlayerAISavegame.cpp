@@ -242,6 +242,9 @@ void CvPlayerAI::AI_resetSavedData()
 	m_mapWfLearnWait.clear();
 	m_mapWfRecentBuy.clear();
 	m_mapWfUnreachable.clear();
+	m_mapWfLandCost.clear();
+	m_mapWfSeaTurns.clear();
+	m_iWfLandMoves = 1;
 	m_mapNativeVillageVisit.clear();
 	m_eWfExpertToBuy = NO_UNITCLASS;
 	m_aWfOpenOpportunities.clear();
