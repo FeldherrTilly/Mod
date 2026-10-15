@@ -18957,7 +18957,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			}
 			else if (pFrom == NULL)
 			{
-				iEta = 12; // in Europe, on the ocean or living among the natives
+				iEta = 9; // in Europe, on the ocean or living among the natives (user estimate)
 			}
 			else if (kUnit.isCargo() || m_mapWfLandCost.empty())
 			{
