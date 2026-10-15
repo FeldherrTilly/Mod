@@ -19231,7 +19231,7 @@ bool CvUnitAI::AI_wfImproveStages()
 				}
 			}
 		}
-		const bool bFoodShortage = pLoopCity->AI_isFoodShortage();
+		const bool bFoodShortage = pLoopCity->AI().AI_isFoodShortage();
 		FOREACH(CityPlot)
 		{
 			if (eLoopCityPlot == CITY_HOME_PLOT)
@@ -19255,7 +19255,7 @@ bool CvUnitAI::AI_wfImproveStages()
 					continue;
 				}
 				// the forest a colony keeps for its lumber is not cleared
-				if (pLoopPlot->getFeatureType() != NO_FEATURE && kBuild.isFeatureRemove(pLoopPlot->getFeatureType()) && !pLoopCity->AI_canClearLumberFeature(pLoopPlot))
+				if (pLoopPlot->getFeatureType() != NO_FEATURE && kBuild.isFeatureRemove(pLoopPlot->getFeatureType()) && !pLoopCity->AI().AI_canClearLumberFeature(pLoopPlot))
 				{
 					continue;
 				}
