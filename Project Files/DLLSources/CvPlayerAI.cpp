@@ -18390,15 +18390,15 @@ namespace
 		}
 	}
 
-	// gold x100 of the input a building job uses: the lumber of the carpenters at WF_LUMBER_GOLD, other inputs half their
-	// value (as in AI_updateYieldValues: raw material that is not processed sells for little)
+	// gold x100 of the input a building job uses: the lumber of the carpenters at WF_LUMBER_GOLD, other inputs at the price
+	// Europe pays for them (the raw material could be sold instead; at half price experts were overrated)
 	int wfInputGold(const CvCity& kCity, YieldTypes eOutput, YieldTypes eInput, int iAmount)
 	{
 		if (eOutput == YIELD_HAMMERS && eInput == YIELD_LUMBER)
 		{
 			return iAmount * WF_LUMBER_GOLD;
 		}
-		return iAmount * wfSellPrice(kCity, eInput) / 2;
+		return iAmount * wfSellPrice(kCity, eInput);
 	}
 
 	bool wfJobMatches(const WfJob& kJob, int iCityID, ProfessionTypes eProfession, int iX, int iY)
@@ -19774,7 +19774,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 	}
 
 	// 6b. colonists to buy: an expert for a job (instead of a regular colonist, or for a free job with food to spare), or a
-	// food provider for a colony whose best jobs lack food. Value per price; bought only within a payback of 40 turns
+	// food provider for a colony whose best jobs lack food. Value per price; bought only within a payback of 30 turns
 	{
 		const UnitClassTypes eFarmerClass = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_FARMER");
 		const UnitClassTypes eFishermanClass = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_FISHERMAN");
@@ -19892,7 +19892,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			{
 				continue; // short of food: a food provider first
 			}
-			if (iGain <= 0 || iGain * 40 < iPrice * 100)
+			if (iGain <= 0 || iGain * 30 < iPrice * 100)
 			{
 				continue;
 			}
@@ -19947,7 +19947,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				const int iFoodGain = wfFoodGold(kCity.iSurplus, iBestFood - iConsumption);
 				const bool bUnblocks = m_iWfIdleCount > 0 && kCity.iSurplus + iBestFood - iConsumption * 2 >= WF_FOOD_MIN;
 				const int iGain = iFoodGain + (bUnblocks ? kCity.iBlockedValue : 0);
-				if (iGain <= 0 || iGain * 40 < iPrice * 100)
+				if (iGain <= 0 || iGain * 30 < iPrice * 100)
 				{
 					continue;
 				}
