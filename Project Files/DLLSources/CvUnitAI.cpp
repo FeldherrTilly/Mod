@@ -1002,6 +1002,9 @@ bool CvUnitAI::AI_bestCityBuild(CvCity* pCity, CvPlot** ppBestPlot, BuildTypes* 
 												int iMaxWorkers = iPathTurns > 1 ? 1 : AI_calculatePlotWorkersNeeded(pLoopPlot, eBuild);
 												if (pUnit && pUnit->plot()->isCity() && iPathTurns == 1)
 													iMaxWorkers += 10;
+												// WTP: the colonial AI puts one pioneer on an improvement at a time
+												if (GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned())
+													iMaxWorkers = 1;
 											// K-Mod end
 
 												if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_BUILD, getGroup()) < iMaxWorkers)
@@ -1059,6 +1062,9 @@ bool CvUnitAI::AI_bestCityBuild(CvCity* pCity, CvPlot** ppBestPlot, BuildTypes* 
 					int iMaxWorkers = iPathTurns > 1 ? 1 : AI_calculatePlotWorkersNeeded(pBestPlot, eBestBuild);
 					if (pUnit && pUnit->plot()->isCity() && iPathTurns == 1)
 						iMaxWorkers += 10;
+					// WTP: the colonial AI puts one pioneer on an improvement at a time
+					if (GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned())
+						iMaxWorkers = 1;
 				// K-Mod end
 					const int iWorkerCount = GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pBestPlot, MISSIONAI_BUILD, getGroup());
 					if (iWorkerCount < iMaxWorkers)
@@ -18539,7 +18545,8 @@ bool CvUnitAI::AI_improveCity(CvCity* pCity)
 		BuildTypes eBuild = pCity->AI_getBestBuild(pCity->getCityPlotIndex(plot()));
 		if (eBuild != NO_BUILD)
 		{
-			if (canBuild(plot(), eBuild, true))
+			// (the colonial AI: not if another pioneer works on this plot already)
+			if (canBuild(plot(), eBuild, true) && (!bNoWayRoads || GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(plot(), MISSIONAI_BUILD, getGroup()) == 0))
 			{
 				getGroup()->pushMission(MISSION_BUILD, eBuild, -1, 0, false, false, MISSIONAI_BUILD, plot());
 				return true;
@@ -19193,8 +19200,9 @@ bool CvUnitAI::AI_routeCityNear(int iMaxDistance)
 
 // WTP: the colonial AI's pioneers improve the plots of a colony in stages: 1. bonus resources with their improvement,
 // 2. one lodge or sawmill, 3. food improvements (farms) while the colony lacks food, 4. two more lodges or sawmills; after
-// that as usual (AI_improveCity). The pioneer's own colony first, then the lowest stage of the other colonies; within a
-// stage the best yield value by distance. Returns true if a mission was pushed
+// that as usual (AI_improveCity). The lowest stage of all colonies first; within a stage the best yield value by distance
+// (plots of the pioneer's own colony count half the distance). One pioneer per improvement. Returns true if a mission was
+// pushed
 bool CvUnitAI::AI_wfImproveStages()
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
@@ -19204,7 +19212,7 @@ bool CvUnitAI::AI_wfImproveStages()
 	const PlayerTypes eParent = kOwner.getParent();
 	const CvCity* const pHome = getHomeCity();
 
-	// candidates: (key, index); the key orders the home colony first, then the stage, then the value per distance
+	// candidates: (key, index); the key orders by stage, then by value per distance
 	std::vector<std::pair<int, int> > aCandidates;
 	std::vector<CvPlot*> apPlots;
 	std::vector<BuildTypes> aeBuilds;
@@ -19287,8 +19295,12 @@ bool CvUnitAI::AI_wfImproveStages()
 				{
 					continue;
 				}
-				const int iDistance = stepDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
-				const int iKey = (pLoopCity == pHome ? 0 : 100000000) + iStage * 1000000 - std::min(999999, iValue * 1000 / (iDistance + 2));
+				int iDistance = stepDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+				if (pLoopCity == pHome)
+				{
+					iDistance /= 2;
+				}
+				const int iKey = iStage * 1000000 - std::min(999999, iValue * 1000 / (iDistance + 2));
 				aCandidates.push_back(std::make_pair(iKey, (int)apPlots.size()));
 				apPlots.push_back(pLoopPlot);
 				aeBuilds.push_back(eBuild);
