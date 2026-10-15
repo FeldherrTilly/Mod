@@ -19037,13 +19037,22 @@ void CvPlayerAI::AI_doWorkforcePlan()
 
 	// colonies with a carpenter job (their first carpenter needs lumber before it is planned)
 	std::vector<bool> abHammerJob(iNumCities, false);
+	// colonies with a lumber plot: their carpenters get lumber from a lumberjack, the stock does not count for them (a tenth
+	// of the stock counted as lasting production: the lumberjack worked rice while the carpenters ran out of lumber)
+	std::vector<bool> abLumberPlot(iNumCities, false);
 	for (int j = 0; j < iNumJobs; ++j)
 	{
 		if (aJobs[j].eYield == YIELD_HAMMERS)
 		{
 			abHammerJob[aJobs[j].iCity] = true;
 		}
+		if (aJobs[j].eYield == YIELD_LUMBER && aJobs[j].pPlot != NULL)
+		{
+			abLumberPlot[aJobs[j].iCity] = true;
+		}
 	}
+	// lumber the carpenters of a colony may count on (planned lumberjacks and center plot; the stock only without a lumber plot)
+	#define WF_CARPENTER_LUMBER(c) (aCities[c].aiRaw[YIELD_LUMBER] - (abLumberPlot[c] ? aCities[c].aiStock[YIELD_LUMBER] : 0))
 
 	// 3. target plan: greedy, the best (worker, job) pair (or pair of a job and a food job, or of a carpenter and a lumberjack)
 	// first. The first carpenter of a colony (with its lumber) comes before all other jobs (a colony without hammers builds
@@ -19095,7 +19104,8 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				for (int k = 0; k < kProfession.getNumYieldsConsumed() && bInput; ++k)
 				{
 					const YieldTypes eIn = (YieldTypes)kProfession.getYieldsConsumed(k);
-					bInput = eIn == NO_YIELD || kCity.aiRaw[eIn] - kCity.aiUse[eIn] >= std::max(1, iOutput / 2);
+					const int iRaw = (bCarpenter && eIn == YIELD_LUMBER) ? WF_CARPENTER_LUMBER(kJob.iCity) : kCity.aiRaw[eIn];
+					bInput = eIn == NO_YIELD || iRaw - kCity.aiUse[eIn] >= std::max(1, iOutput / 2);
 				}
 				if (!bInput && !bCarpenter)
 				{
@@ -19107,7 +19117,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				if (kJob.eYield == YIELD_LUMBER && kJob.pPlot != NULL)
 				{
 					const int iUse = kCity.aiUse[YIELD_LUMBER];
-					const int iNeed = iUse + ((iUse == 0 && abHammerJob[kJob.iCity]) ? 3 : 0) - kCity.aiRaw[YIELD_LUMBER];
+					const int iNeed = iUse + ((iUse == 0 && abHammerJob[kJob.iCity]) ? 3 : 0) - WF_CARPENTER_LUMBER(kJob.iCity);
 					if (iNeed > 0 && iOutput > 0)
 					{
 						const int iForCarpenters = std::min(iNeed, iOutput);
@@ -19288,7 +19298,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 					continue;
 				}
 				const int iCarpenterOutput = aiOutput[WF_TYPE(kCarpenter.iWorker, kCarpenter.iJob) * iNumJobs + kCarpenter.iJob];
-				const int iMissing = std::max(1, iCarpenterOutput / 2) - (aCities[c].aiRaw[YIELD_LUMBER] - aCities[c].aiUse[YIELD_LUMBER]);
+				const int iMissing = std::max(1, iCarpenterOutput / 2) - (WF_CARPENTER_LUMBER(c) - aCities[c].aiUse[YIELD_LUMBER]);
 				const WfCand* apLumber[2] = { &aLumber1[c], &aLumber2[c] };
 				for (int l = 0; l < 2; ++l)
 				{
@@ -19412,7 +19422,9 @@ void CvPlayerAI::AI_doWorkforcePlan()
 								iFrom = k;
 							}
 						}
+						// (nor a lumberjack while the colony's carpenters use lumber)
 						if (iFrom < 0 || aJobs[iFrom].eYield == YIELD_HAMMERS
+							|| (aJobs[iFrom].eYield == YIELD_LUMBER && aJobs[iFrom].pPlot != NULL && kCity.aiUse[YIELD_LUMBER] > 0)
 							|| ((aJobs[iFrom].eYield == YIELD_BELLS || aJobs[iFrom].eYield == YIELD_CROSSES) && wfIsExpertFor(*kWorker.pUnit, aJobs[iFrom].eProfession)))
 						{
 							continue;
@@ -20055,6 +20067,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 	#undef WF_ASSIGN
 	#undef WF_IS_FREE_JOB
 	#undef WF_SEAT_KEY
+	#undef WF_CARPENTER_LUMBER
 }
 
 // WTP: a colony with a food surplus below 2 and a free food plot, if no new colonies are wanted
