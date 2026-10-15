@@ -18368,6 +18368,11 @@ namespace
 	// XML, +2 per unit, which made cheap raw materials worth 40% more); yields Europe does not buy keep the estimate
 	int wfSellPrice(const CvCity& kCity, YieldTypes eYield)
 	{
+		// lumber at a fixed 3 gold (Europe pays 1, it is worth more as building material; user decision)
+		if (eYield == YIELD_LUMBER)
+		{
+			return 300;
+		}
 		const PlayerTypes eParent = GET_PLAYER(kCity.getOwnerINLINE()).getParent();
 		const int iPrice = (eParent != NO_PLAYER) ? GET_PLAYER(eParent).getYieldBuyPrice(eYield) : 0;
 		return (iPrice > 0) ? 100 * iPrice : 100 * kCity.AI_estimateYieldValue(eYield, 1);
