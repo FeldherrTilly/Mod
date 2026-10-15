@@ -18229,7 +18229,7 @@ bool CvPlayerAI::AI_isUselessExpert(const CvUnitAI& kUnit, std::vector<int>& aiY
 // WTP: workforce plan (general job planner of the colonial AI). Every turn the AI plans the jobs of all its colonists at once:
 // 1. jobs: every workable plot of every colony (the best food and the best other professions, alternatives of one plot)
 //    and every building slot, valued in gold (x100) per turn (inputs count half; hammers 15/10/8 gold for the 1st/2nd/3rd+
-//    carpenter, who pay 5 gold per lumber; bells and crosses 10 gold). Food counts 3 gold per unit (1 gold above a surplus of 10),
+//    carpenter, who pay 5 gold per lumber; bells and crosses 10 gold). Food counts 4 gold per unit (flat),
 //    a colonist eats 2 food. Side bonuses of experts are ignored: an expert outside its trade works like a free colonist.
 // 2. workforce: the citizens, the colonists waiting on a colony plot or on their way, the colonists on ships and on the docks
 //    in Europe, the units learning in a native village (they are bound to the job they learn for). Experts already working
@@ -18246,8 +18246,8 @@ bool CvPlayerAI::AI_isUselessExpert(const CvUnitAI& kUnit, std::vector<int>& aiY
 //    improvements. Free colonists near a village that teaches the expert of a valuable job learn it.
 namespace
 {
-	const int WF_FOOD_GOLD = 300;      // gold x100 per food within the green zone
-	const int WF_FOOD_GOLD_HIGH = 100; // per food above it
+	const int WF_FOOD_GOLD = 400;      // gold x100 per food (4 gold flat, user decision)
+	const int WF_FOOD_GOLD_HIGH = 400; // per food above the green zone (the same since 4 gold flat)
 	const int WF_FOOD_MIN = 3;         // planned food surplus: at least 3 ...
 	const int WF_FOOD_HIGH = 10;       // ... up to 10 is the green zone
 

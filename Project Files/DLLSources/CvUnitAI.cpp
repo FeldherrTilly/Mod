@@ -19276,7 +19276,7 @@ bool CvUnitAI::AI_wfImproveStages()
 					{
 						continue;
 					}
-					const int iPrice = (eYield == YIELD_FOOD) ? 3 : std::max(1, (eParent != NO_PLAYER) ? GET_PLAYER(eParent).getYieldBuyPrice(eYield) : 1);
+					const int iPrice = (eYield == YIELD_FOOD) ? 4 : std::max(1, (eParent != NO_PLAYER) ? GET_PLAYER(eParent).getYieldBuyPrice(eYield) : 1);
 					if (eBonus != NO_BONUS && GC.getBonusInfo(eBonus).getYieldChange(eYield) > 0)
 					{
 						iStage = 1; // the improvement of the bonus resource
