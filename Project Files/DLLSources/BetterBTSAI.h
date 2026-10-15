@@ -40,6 +40,7 @@ enum WtpLogTopic
 	WTP_LOG_PLAN,
 	WTP_LOG_MILITARY,
 	WTP_LOG_TRADE,
+	WTP_LOG_DIAG, // workforce plan diagnosis: every plot's job alternatives, every colonist's options
 	NUM_WTP_LOG_TOPICS
 };
 class CvCity;

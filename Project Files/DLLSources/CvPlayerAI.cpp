@@ -18435,7 +18435,8 @@ namespace
 			const WfWorker& kHolder = aWorkers[kJob.iHolder];
 			if (kHolder.pPopCity == kJob.pCity || kHolder.pAtCity == kJob.pCity)
 			{
-				return "planned, waits for food";
+				// seated in another job: it stands in for a colonist on its way
+				return (kHolder.iSeatCity >= 0) ? "planned, stands in elsewhere" : "planned, waits for food";
 			}
 			return bHolderExpert ? "free, expert on its way" : "planned, colonist on its way";
 		}
@@ -19338,6 +19339,8 @@ void CvPlayerAI::AI_doWorkforcePlan()
 
 	// 4. seats now: the planned colonists present in the colony, food jobs first, as far as the present food carries
 	std::vector<int> aiOrder;
+	// (for the diagnosis log: the stand-ins of this turn: worker, job left (-1), job taken, value of both)
+	std::vector<int> aiStandWorker, aiStandFrom, aiStandTo, aiStandOld, aiStandNew;
 	for (int c = 0; c < iNumCities; ++c)
 	{
 		WfCity& kCity = aCities[c];
@@ -19393,6 +19396,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			int iBestJob = -1;
 			int iBestFrom = -1;
 			int iBestValue = 0;
+			int iBestOld = 0;
 			for (int j = 0; j < iNumJobs; ++j)
 			{
 				const WfJob& kJob = aJobs[j];
@@ -19473,6 +19477,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 						iBestWorker = w;
 						iBestJob = j;
 						iBestFrom = iFrom;
+						iBestOld = iOldValue;
 					}
 				}
 			}
@@ -19489,6 +19494,11 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			aJobs[iBestJob].iSeated = iBestWorker;
 			aWorkers[iBestWorker].iSeatCity = c;
 			kCity.iNowSurplus += iChange;
+			aiStandWorker.push_back(iBestWorker);
+			aiStandFrom.push_back(iBestFrom);
+			aiStandTo.push_back(iBestJob);
+			aiStandOld.push_back(iBestOld);
+			aiStandNew.push_back(iBestValue + iBestOld - (aJobs[iBestJob].eYield == YIELD_HAMMERS ? WF_PRIORITY : 0));
 		}
 		// a colony nobody is seated in keeps its best citizen in its job
 		bool bSeated = false;
@@ -19564,6 +19574,13 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			else
 			{
 				// cannot join now, tries again next turn: its seat and its food are free again
+				if (gPlayerLogLevel >= 1)
+				{
+					const CvUnit& kUnit = *kWorker.pUnit;
+					logWTP(WTP_LOG_DIAG, getID(), "diag %S: %S cannot join (%s)", pCity->getName().GetCString(), kUnit.getName().GetCString(),
+						kWorker.pAtCity != pCity ? "not on the colony plot" : pCity->isDisorder() ? "colony in disorder" : kUnit.movesLeft() <= 0 ? "no moves left"
+						: !kUnit.getUnitInfo().isFound() ? "unit cannot join colonies" : "other reason");
+				}
 				kWorker.iSeatCity = -1;
 				for (int j = 0; j < iNumJobs; ++j)
 				{
@@ -20070,6 +20087,205 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		}
 		logWTP(WTP_LOG_PLAN, getID(), "WTP plan: Player %d (%S) turn %d jobs %d, workforce %d, planned on their way or waiting %d, learning %d, idle %d, colonists to buy %d",
 			getID(), getCivilizationDescription(0), iTurn, iNumJobs, iNumWorkers, iAway, iLearners, m_iWfIdleCount, (int)m_aWfOpenOpportunities.size());
+	}
+
+	// diagnosis log (WTP_Pxx_<civ>_diag.log): what the plan knew and why it decided so. Per colony the yield balance and every
+	// plot with its job alternatives (values as a free colonist and as the expert) and the professions that lost the plot's
+	// one "other" slot; per colonist its plan, its seat and its best alternatives; the stand-ins of this turn. Values in
+	// gold: output at its value plus food at WF_FOOD_GOLD per food above the colonist's own consumption
+	if (gPlayerLogLevel >= 1)
+	{
+		for (int c = 0; c < iNumCities; ++c)
+		{
+			const WfCity& kCity = aCities[c];
+			const CvCity& kCvCity = *kCity.pCity;
+			// raw material produced (planned plots and center plot) / from the stock / used by the planned building jobs
+			CvWString szYields;
+			for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
+			{
+				if (kCity.aiUse[eYield] > 0 || kCity.aiRaw[eYield] > kCity.aiStock[eYield])
+				{
+					szYields += CvWString::format(L" %s %d+%d/%d", GC.getYieldInfo(eYield).getDescription(), kCity.aiRaw[eYield] - kCity.aiStock[eYield],
+						kCity.aiStock[eYield], kCity.aiUse[eYield]);
+				}
+			}
+			logWTP(WTP_LOG_DIAG, getID(), "diag %S: food base %+d, planned %+d, now %+d; yields produced+stock/used:%S", kCvCity.getName().GetCString(),
+				kCity.iBaseFood, kCity.iSurplus, kCity.iNowSurplus, szYields.GetCString());
+			FOREACH(CityPlot)
+			{
+				if (eLoopCityPlot == CITY_HOME_PLOT)
+				{
+					continue;
+				}
+				CvPlot* const pLoopPlot = kCvCity.getCityIndexPlot(eLoopCityPlot);
+				if (pLoopPlot == NULL)
+				{
+					continue;
+				}
+				CvWString szPlot = CvWString::format(L"%d,%d", pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+				if (pLoopPlot->getBonusType() != NO_BONUS)
+				{
+					szPlot += CvWString::format(L" %s", GC.getBonusInfo(pLoopPlot->getBonusType()).getDescription());
+				}
+				if (pLoopPlot->getImprovementType() != NO_IMPROVEMENT)
+				{
+					szPlot += CvWString::format(L" %s", GC.getImprovementInfo(pLoopPlot->getImprovementType()).getDescription());
+				}
+				if (pLoopPlot->getFeatureType() != NO_FEATURE)
+				{
+					szPlot += CvWString::format(L" %s", GC.getFeatureInfo(pLoopPlot->getFeatureType()).getDescription());
+				}
+				const int iKey = GC.getMap().plotNumINLINE(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+				CvWString szJobs;
+				for (int j = 0; j < iNumJobs; ++j)
+				{
+					const WfJob& kJob = aJobs[j];
+					if (kJob.iCity != c || kJob.iPlotKey != iKey)
+					{
+						continue;
+					}
+					const UnitTypes eExpert = (kJob.eExpertClass != NO_UNITCLASS) ? kCiv.getCivilizationUnits(kJob.eExpertClass) : NO_UNIT;
+					const int iExpertOutput = (eExpert != NO_UNIT) ? wfOutput(kCvCity, kJob.eProfession, eExpert, pLoopPlot) : 0;
+					szJobs += CvWString::format(L" | %s %d (%d food) %d gold, expert %d", GC.getProfessionInfo(kJob.eProfession).getDescription(),
+						aiOutput[j], aiFood[j], (aiGold[j] + (aiFood[j] - iConsumption) * WF_FOOD_GOLD) / 100, iExpertOutput);
+					if (kJob.iHolder >= 0)
+					{
+						szJobs += CvWString::format(L", planned %s", aWorkers[kJob.iHolder].pUnit->getName().GetCString());
+					}
+					if (kJob.iSeated >= 0)
+					{
+						szJobs += CvWString::format(L", worked by %s", aWorkers[kJob.iSeated].pUnit->getName().GetCString());
+					}
+				}
+				if (szJobs.empty())
+				{
+					const CvCity* const pOther = pLoopPlot->getWorkingCity();
+					szJobs = (pOther != NULL && pOther != &kCvCity) ? CvWString::format(L" | no job: belongs to %s", pOther->getName().GetCString())
+						: !kCvCity.canWork(pLoopPlot) ? CvWString(L" | no job: cannot be worked") : CvWString(L" | no job: nothing to produce");
+				}
+				else
+				{
+					// professions without a job here: a plot offers the best food, the best other (by expert value) and the best
+					// lumber profession only
+					CvWString szLost;
+					for (uint i = 0; i < aePlotProfessions.size(); ++i)
+					{
+						const ProfessionTypes eProfession = aePlotProfessions[i];
+						bool bOffered = false;
+						for (int j = 0; j < iNumJobs && !bOffered; ++j)
+						{
+							bOffered = aJobs[j].iCity == c && aJobs[j].iPlotKey == iKey && aJobs[j].eProfession == eProfession;
+						}
+						const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+						const YieldTypes eYield = (YieldTypes)kProfession.getYieldsProduced(0);
+						if (bOffered || eYield == YIELD_FOOD || eYield == YIELD_LUMBER)
+						{
+							continue;
+						}
+						const UnitClassTypes eExpertClass = (UnitClassTypes)kProfession.LbD_getExpert();
+						const UnitTypes eExpert = (eExpertClass != NO_UNITCLASS) ? kCiv.getCivilizationUnits(eExpertClass) : NO_UNIT;
+						const int iOutput = wfOutput(kCvCity, eProfession, eExpert != NO_UNIT ? eExpert : eColonistUnit, pLoopPlot);
+						if (iOutput > 0)
+						{
+							szLost += CvWString::format(L" %s %d (%d gold)", kProfession.getDescription(), iOutput,
+								(wfYieldGold(kCvCity, eYield, iOutput, 0) + wfFoodOutput(eProfession, iOutput) * WF_FOOD_GOLD) / 100);
+						}
+					}
+					if (!szLost.empty())
+					{
+						szJobs += L" | not offered (expert output):" + szLost;
+					}
+				}
+				logWTP(WTP_LOG_DIAG, getID(), "diag %S plot %S%S", kCvCity.getName().GetCString(), szPlot.GetCString(), szJobs.GetCString());
+			}
+		}
+		// colonists: plan, seat and the two best other jobs (value per travel time as the plan counts it, without pairs and
+		// priorities)
+		for (int w = 0; w < iNumWorkers; ++w)
+		{
+			const WfWorker& kWorker = aWorkers[w];
+			const CvUnit& kUnit = *kWorker.pUnit;
+			CvWString szWhere = (kWorker.pPopCity != NULL) ? CvWString::format(L"citizen of %s", kWorker.pPopCity->getName().GetCString())
+				: (kWorker.pAtCity != NULL) ? CvWString::format(L"waits in %s", kWorker.pAtCity->getName().GetCString())
+				: (kUnit.getUnitTravelState() == UNIT_TRAVEL_STATE_LIVE_AMONG_NATIVES) ? CvWString(L"in a village")
+				: !kUnit.isOnMap() ? CvWString(kUnit.isCargo() ? L"on a ship off the map" : L"in Europe")
+				: CvWString::format(L"%sat %d,%d", kUnit.isCargo() ? L"on a ship " : L"", kUnit.getX_INLINE(), kUnit.getY_INLINE());
+			CvWString szPlan = L"no job";
+			if (kWorker.iJob >= 0)
+			{
+				const WfJob& kJob = aJobs[kWorker.iJob];
+				const int iT = WF_TYPE(w, kWorker.iJob);
+				szPlan = CvWString::format(L"%s in %s %d,%d (%d gold, %d turns)%s%s", GC.getProfessionInfo(kJob.eProfession).getDescription(),
+					kJob.pCity->getName().GetCString(), kJob.pPlot != NULL ? kJob.pPlot->getX_INLINE() : -1, kJob.pPlot != NULL ? kJob.pPlot->getY_INLINE() : -1,
+					(aiGold[iT * iNumJobs + kWorker.iJob] + (aiFood[iT * iNumJobs + kWorker.iJob] - iConsumption) * WF_FOOD_GOLD) / 100,
+					aiEta[w * iNumCities + kJob.iCity], kWorker.bReserved ? L", reserved" : L"", kWorker.bLearning ? L", learning" : L"");
+			}
+			CvWString szSeat;
+			if (kWorker.iSeatCity >= 0)
+			{
+				for (int j = 0; j < iNumJobs; ++j)
+				{
+					if (aJobs[j].iSeated == w && j != kWorker.iJob)
+					{
+						szSeat = CvWString::format(L"; works %s %d,%d meanwhile", GC.getProfessionInfo(aJobs[j].eProfession).getDescription(),
+							aJobs[j].pPlot != NULL ? aJobs[j].pPlot->getX_INLINE() : -1, aJobs[j].pPlot != NULL ? aJobs[j].pPlot->getY_INLINE() : -1);
+					}
+				}
+			}
+			else if (kWorker.iJob >= 0)
+			{
+				szSeat = L"; not seated";
+			}
+			int aiBest[2] = { -1, -1 };
+			int aiBestValue[2] = { MIN_INT, MIN_INT };
+			for (int j = 0; j < iNumJobs; ++j)
+			{
+				const int iT = WF_TYPE(w, j);
+				const int iEta = aiEta[w * iNumCities + aJobs[j].iCity];
+				if (j == kWorker.iJob || iEta >= 1000 || aiGold[iT * iNumJobs + j] <= -1000000 || aiOutput[iT * iNumJobs + j] <= 0)
+				{
+					continue;
+				}
+				const int iValue = (aiGold[iT * iNumJobs + j] + (aiFood[iT * iNumJobs + j] - iConsumption) * WF_FOOD_GOLD) * 20 / (20 + iEta);
+				if (iValue > aiBestValue[0])
+				{
+					aiBest[1] = aiBest[0];
+					aiBestValue[1] = aiBestValue[0];
+					aiBest[0] = j;
+					aiBestValue[0] = iValue;
+				}
+				else if (iValue > aiBestValue[1])
+				{
+					aiBest[1] = j;
+					aiBestValue[1] = iValue;
+				}
+			}
+			CvWString szOther;
+			for (int k = 0; k < 2; ++k)
+			{
+				if (aiBest[k] < 0)
+				{
+					continue;
+				}
+				const WfJob& kJob = aJobs[aiBest[k]];
+				szOther += CvWString::format(L"%s %s in %s %d,%d %d gold%s%s", k > 0 ? L";" : L"", GC.getProfessionInfo(kJob.eProfession).getDescription(),
+					kJob.pCity->getName().GetCString(), kJob.pPlot != NULL ? kJob.pPlot->getX_INLINE() : -1, kJob.pPlot != NULL ? kJob.pPlot->getY_INLINE() : -1,
+					aiBestValue[k] / 100, kJob.iHolder >= 0 ? L" planned for " : L" (free)",
+					kJob.iHolder >= 0 ? aWorkers[kJob.iHolder].pUnit->getName().GetCString() : L"");
+			}
+			logWTP(WTP_LOG_DIAG, getID(), "diag colonist %S (%S): plan %S%S; best others: %S", kUnit.getName().GetCString(), szWhere.GetCString(),
+				szPlan.GetCString(), szSeat.GetCString(), szOther.GetCString());
+		}
+		for (uint i = 0; i < aiStandWorker.size(); ++i)
+		{
+			const WfJob& kTo = aJobs[aiStandTo[i]];
+			logWTP(WTP_LOG_DIAG, getID(), "diag %S stand-in: %S leaves %S (%d gold) for %S %d,%d (%d gold) of %S, who is %d turns away",
+				kTo.pCity->getName().GetCString(), aWorkers[aiStandWorker[i]].pUnit->getName().GetCString(),
+				aiStandFrom[i] >= 0 ? CvWString(GC.getProfessionInfo(aJobs[aiStandFrom[i]].eProfession).getDescription()).GetCString() : L"nothing",
+				aiStandOld[i] / 100, GC.getProfessionInfo(kTo.eProfession).getDescription(), kTo.pPlot != NULL ? kTo.pPlot->getX_INLINE() : -1,
+				kTo.pPlot != NULL ? kTo.pPlot->getY_INLINE() : -1, aiStandNew[i] / 100, aWorkers[kTo.iHolder].pUnit->getName().GetCString(),
+				aiEta[kTo.iHolder * iNumCities + kTo.iCity]);
+		}
 	}
 	#undef WF_TYPE
 	#undef WF_ASSIGN
