@@ -19085,6 +19085,12 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				{
 					continue;
 				}
+				// a regular colonist takes only jobs it reaches within 12 turns (one 35 turns away held a coal mine, and the
+				// colonist standing in for it left the lumber the carpenters needed); experts go to a job of their trade anywhere
+				if (aiEta[w * iNumCities + kJob.iCity] > 12 && !wfIsExpertFor(*kWorker.pUnit, kJob.eProfession))
+				{
+					continue;
+				}
 				WfCity& kCity = aCities[kJob.iCity];
 				const int iOutput = aiOutput[iT * iNumJobs + j];
 				const bool bCarpenter = kJob.eYield == YIELD_HAMMERS;
@@ -19412,9 +19418,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 								iFrom = k;
 							}
 						}
-						// (nor a lumberjack while the colony's carpenters use lumber)
 						if (iFrom < 0 || aJobs[iFrom].eYield == YIELD_HAMMERS
-							|| (aJobs[iFrom].eYield == YIELD_LUMBER && aJobs[iFrom].pPlot != NULL && kCity.aiUse[YIELD_LUMBER] > 0)
 							|| ((aJobs[iFrom].eYield == YIELD_BELLS || aJobs[iFrom].eYield == YIELD_CROSSES) && wfIsExpertFor(*kWorker.pUnit, aJobs[iFrom].eProfession)))
 						{
 							continue;
@@ -19432,7 +19436,16 @@ void CvPlayerAI::AI_doWorkforcePlan()
 					{
 						const int iTFrom = WF_TYPE(w, iFrom);
 						const int iOldDelta = aiFood[iTFrom * iNumJobs + iFrom] - iConsumption;
-						iOldValue = aiGold[iTFrom * iNumJobs + iFrom] + wfFoodGold(kCity.iNowSurplus - iOldDelta, iOldDelta);
+						int iOldGold = aiGold[iTFrom * iNumJobs + iFrom];
+						// a lumberjack's lumber the carpenters need is worth WF_LUMBER_GOLD, as in the plan (at 1 gold the lumberjacks
+						// of Trankebar and Fort Christina stood in for coal miners and hunters while the carpenters lacked lumber)
+						const int iOldOutput = aiOutput[iTFrom * iNumJobs + iFrom];
+						if (aJobs[iFrom].eYield == YIELD_LUMBER && aJobs[iFrom].pPlot != NULL && iOldOutput > 0)
+						{
+							const int iForCarpenters = std::max(0, std::min(iOldOutput, kCity.aiUse[YIELD_LUMBER] - (kCity.aiRaw[YIELD_LUMBER] - iOldOutput)));
+							iOldGold = std::max(iOldGold, iOldGold * (iOldOutput - iForCarpenters) / iOldOutput + iForCarpenters * WF_LUMBER_GOLD);
+						}
+						iOldValue = iOldGold + wfFoodGold(kCity.iNowSurplus - iOldDelta, iOldDelta);
 						iDelta -= iOldDelta; // the change of the food
 					}
 					if (iGold <= -1000000 || kCity.iNowSurplus + iDelta < 0)
