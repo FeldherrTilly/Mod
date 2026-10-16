@@ -18751,6 +18751,15 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				static_cast<CvUnitAI*>(pUnit)->AI_clearWfTask();
 			}
 		}
+		// the docks in Africa (slaves the plan bought wait there for a ship)
+		for (int i = 0; i < getNumAfricaUnits(); ++i)
+		{
+			CvUnit* const pUnit = getAfricaUnit(i);
+			if (pUnit != NULL && pUnit->AI_getUnitAIType() == UNITAI_COLONIST && pUnit->getDomainType() == DOMAIN_LAND)
+			{
+				apUnits.push_back(pUnit);
+			}
+		}
 		for (uint i = 0; i < apUnits.size(); ++i)
 		{
 			CvUnitAI& kUnit = static_cast<CvUnitAI&>(*apUnits[i]);
@@ -19977,6 +19986,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			kOpen.eExpertClass = kJob.eExpertClass;
 			kOpen.iValue = iGain;
 			kOpen.iPrice = iPrice;
+			kOpen.bAfrica = false;
 			m_aWfOpenOpportunities.push_back(kOpen);
 		}
 		// food providers: an expert farmer or fisherman for the best free food plot of a colony whose jobs lack food
@@ -19987,11 +19997,14 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			{
 				continue;
 			}
-			for (int iKind = 0; iKind < 2; ++iKind)
+			// (kind 2: an African slave, bought in Africa, for the farm jobs)
+			for (int iKind = 0; iKind < 3; ++iKind)
 			{
-				const UnitClassTypes eClass = (iKind == 0) ? eFarmerClass : eFishermanClass;
-				const UnitTypes eUnit = (eClass != NO_UNITCLASS) ? kCiv.getCivilizationUnits(eClass) : NO_UNIT;
-				const int iPrice = (eUnit != NO_UNIT && canTradeWithEurope()) ? getEuropeUnitBuyPrice(eUnit) : -1;
+				const UnitClassTypes eJobClass = (iKind == 1) ? eFishermanClass : eFarmerClass;
+				const UnitTypes eUnit = (iKind == 2) ? AI_africaFoodWorker() : (eJobClass != NO_UNITCLASS) ? kCiv.getCivilizationUnits(eJobClass) : NO_UNIT;
+				const UnitClassTypes eClass = (iKind == 2) ? ((eUnit != NO_UNIT) ? (UnitClassTypes)GC.getUnitInfo(eUnit).getUnitClassType() : NO_UNITCLASS) : eJobClass;
+				const int iPrice = (iKind == 2) ? ((eUnit != NO_UNIT) ? getAfricaUnitBuyPrice(eUnit) : -1)
+					: (eUnit != NO_UNIT && canTradeWithEurope()) ? getEuropeUnitBuyPrice(eUnit) : -1;
 				if (iPrice <= 0)
 				{
 					continue;
@@ -20001,7 +20014,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				for (int j = 0; j < iNumJobs; ++j)
 				{
 					const WfJob& kJob = aJobs[j];
-					if (kJob.iCity != c || !kJob.bFood || kJob.eExpertClass != eClass || !WF_IS_FREE_JOB(j)
+					if (kJob.iCity != c || !kJob.bFood || kJob.eExpertClass != eJobClass || !WF_IS_FREE_JOB(j)
 						|| (kJob.iPlotKey >= 0 && kJob.iPlotKey == aJobs[kCity.iBlockedJob].iPlotKey))
 					{
 						continue;
@@ -20032,6 +20045,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				kOpen.eExpertClass = eClass;
 				kOpen.iValue = iGain;
 				kOpen.iPrice = iPrice;
+				kOpen.bAfrica = iKind == 2;
 				m_aWfOpenOpportunities.push_back(kOpen);
 				if (iGain > iBestFoodGain)
 				{
@@ -20953,11 +20967,8 @@ bool CvPlayerAI::AI_isEuropeBacklog() const
 bool CvPlayerAI::AI_buyExpertForOpportunity()
 {
 	const CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
-	if (AI_isEuropeBacklog())
-	{
-		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision:   no colonist bought: %d units wait in Europe for a ship", getNumEuropeUnits());
-		return false;
-	}
+	// (no colonist from Europe while units wait there for a ship; Africa is fetched by a ship of its own)
+	const bool bEuropeBacklog = AI_isEuropeBacklog();
 	// WTP: the colonist of the last workforce plan with the best gain per price (an expert for a job, or a food provider).
 	// It gets the job as its task at once: that is the job's reservation, nobody buys it again while it is on its way.
 	int iBest = -1;
@@ -20968,7 +20979,7 @@ bool CvPlayerAI::AI_buyExpertForOpportunity()
 		const int iRatio = kOpp.iValue * 100 / std::max(1, kOpp.iPrice);
 		// the same expert for the same colony at most every 15 turns (it may still be on its way)
 		const std::map<int, int>::const_iterator itRecent = m_mapWfRecentBuy.find(kOpp.iCityID * 10000 + (int)kOpp.eExpertClass);
-		if (itRecent != m_mapWfRecentBuy.end() && GC.getGameINLINE().getGameTurn() - itRecent->second < 15)
+		if ((itRecent != m_mapWfRecentBuy.end() && GC.getGameINLINE().getGameTurn() - itRecent->second < 15) || (bEuropeBacklog && !kOpp.bAfrica))
 		{
 			continue;
 		}
@@ -20980,12 +20991,13 @@ bool CvPlayerAI::AI_buyExpertForOpportunity()
 	}
 	if (iBest < 0)
 	{
+		if (bEuropeBacklog && gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision:   no colonist bought: %d units wait in Europe for a ship", getNumEuropeUnits());
 		return false;
 	}
 	const WfOpenOpportunity kOpp = m_aWfOpenOpportunities[iBest];
 	CvCity* const pCity = getCity(kOpp.iCityID);
 	const UnitTypes eUnit = kCiv.getCivilizationUnits(kOpp.eExpertClass);
-	const int iPrice = getEuropeUnitBuyPrice(eUnit);
+	const int iPrice = kOpp.bAfrica ? getAfricaUnitBuyPrice(eUnit) : getEuropeUnitBuyPrice(eUnit);
 	if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision:   %S for %S in %S%s: gain %d gold per turn, price %d (gold %d)", GC.getUnitClassInfo(kOpp.eExpertClass).getDescription(),
 		GC.getProfessionInfo(kOpp.eProfession).getDescription(), pCity->getName().GetCString(), (kOpp.iPlotIndex >= 0) ? " (plot)" : "", kOpp.iValue / 100, iPrice, getGold());
 	if (!AI_canAffordCivilianPurchase(iPrice))
@@ -20993,7 +21005,7 @@ bool CvPlayerAI::AI_buyExpertForOpportunity()
 		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision:   cannot afford it now");
 		return true;
 	}
-	CvUnit* const pUnit = buyEuropeUnit(eUnit, 100);
+	CvUnit* const pUnit = kOpp.bAfrica ? buyAfricaUnit(eUnit, 100) : buyEuropeUnit(eUnit, 100);
 	if (pUnit == NULL)
 	{
 		return true;
@@ -21002,7 +21014,7 @@ bool CvPlayerAI::AI_buyExpertForOpportunity()
 	const CvPlot* const pPlot = (kOpp.iPlotIndex >= 0) ? GC.getMap().plotByIndexINLINE(kOpp.iPlotIndex) : NULL;
 	static_cast<CvUnitAI*>(pUnit)->AI_setWfTask(CvUnitAI::WF_EXPERT_JOB, pCity->getID(), kOpp.eProfession,
 		pPlot != NULL ? pPlot->getX_INLINE() : -1, pPlot != NULL ? pPlot->getY_INLINE() : -1, -1, -1);
-	if (gPlayerLogLevel >= 1) logWTPCity(*pCity, "WTP plan: %S bought in Europe for %S in %S at %d,%d (gain %d gold per turn, price %d)", pUnit->getName().GetCString(),
+	if (gPlayerLogLevel >= 1) logWTPCity(*pCity, "WTP plan: %S bought in %s for %S in %S at %d,%d (gain %d gold per turn, price %d)", pUnit->getName().GetCString(), kOpp.bAfrica ? "Africa" : "Europe",
 		GC.getProfessionInfo(kOpp.eProfession).getDescription(), pCity->getName().GetCString(), pPlot != NULL ? pPlot->getX_INLINE() : -1, pPlot != NULL ? pPlot->getY_INLINE() : -1,
 		kOpp.iValue / 100, iPrice);
 	m_mapWfRecentBuy[kOpp.iCityID * 10000 + (int)kOpp.eExpertClass] = GC.getGameINLINE().getGameTurn();
@@ -21904,7 +21916,11 @@ void CvPlayerAI::AI_doCivilianPurchases()
 		CvCity* const pFoodCity = AI_bestFoodWorkerCity(bWater);
 		if (pFoodCity != NULL)
 		{
-			if (!bWater && AI_wantsAfricaFoodWorkers())
+			if (AI_isWorkforcePlanned())
+			{
+				// WTP: the workforce plan buys farmers, fishermen and African slaves for its food jobs (AI_buyExpertForOpportunity)
+			}
+			else if (!bWater && AI_wantsAfricaFoodWorkers())
 			{
 				// (a transport sails to Africa only while at most 3 units wait in Europe, see CvUnitAI::AI_sailToPreferredPort)
 				if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision:   %S needs food (%+d), an African slave will be bought in Africa%s", pFoodCity->getName().GetCString(),

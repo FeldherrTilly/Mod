@@ -5356,6 +5356,25 @@ bool CvUnitAI::AI_sailForEuropeBacklog()
 		return false;
 	}
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	// WTP: units bought in Africa (the slaves of the workforce plan) are fetched by one transport: an empty one sails there
+	// if no other transport is on its way to Africa or there, whatever waits in Europe
+	if (kOwner.getNumCities() > 0 && kOwner.getNumAfricaUnits() > 0 && AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && kOwner.canTradeWithAfrica())
+	{
+		bool bFetched = false;
+		int iLoop;
+		for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL && !bFetched; pLoopUnit = kOwner.nextUnit(&iLoop))
+		{
+			bFetched = pLoopUnit != this && pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA
+				&& (pLoopUnit->getUnitTravelState() == UNIT_TRAVEL_STATE_TO_AFRICA || pLoopUnit->getUnitTravelState() == UNIT_TRAVEL_STATE_IN_AFRICA
+					|| (pLoopUnit->getGroup() != NULL && pLoopUnit->getGroup()->AI_getMissionAIType() == MISSIONAI_SAIL_TO_AFRICA));
+		}
+		if (!bFetched && AI_sailToAfrica())
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) ship %S sails to Africa for %d waiting units",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString(), kOwner.getNumAfricaUnits());
+			return true;
+		}
+	}
 	if (kOwner.getNumCities() == 0 || !kOwner.canTradeWithEurope())
 	{
 		return false;
@@ -7467,8 +7486,8 @@ bool CvUnitAI::AI_africa()
 	}
 #endif
 
-	// WTP: buy farm workers for colonies short of food (at most 2 per visit)
-	for (int iBuy = 0; iBuy < 2 && cargoSpace() - getCargo() - kOwner.getNumAfricaUnits() > 0 && kOwner.AI_wantsAfricaFoodWorkers(); ++iBuy)
+	// WTP: buy farm workers for colonies short of food (at most 2 per visit); the workforce plan buys its slaves itself
+	for (int iBuy = 0; iBuy < 2 && !kOwner.AI_isWorkforcePlanned() && cargoSpace() - getCargo() - kOwner.getNumAfricaUnits() > 0 && kOwner.AI_wantsAfricaFoodWorkers(); ++iBuy)
 	{
 		CvUnit* const pSlave = kOwner.buyAfricaUnit(kOwner.AI_africaFoodWorker(), 100);
 		if (pSlave == NULL)
