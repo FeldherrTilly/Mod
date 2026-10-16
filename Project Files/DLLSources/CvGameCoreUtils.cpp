@@ -1424,7 +1424,9 @@ int pathValid_join(FAStarNode* parent, FAStarNode* node, CvSelectionGroup* pSele
 		!pSelectionGroup->canMoveAllTerrain()*/) // WTP: Not supported
 		return FALSE;
 
-	if (kToPlot.getTurnDamage() > 0 && !pSelectionGroup->getHeadUnit()->isAllowDangerousPath())
+	if (kToPlot.getTurnDamage() > 0 && !pSelectionGroup->getHeadUnit()->isAllowDangerousPath()
+		// WTP: the harbour entrance of an own colony may be its only water access
+		&& !(pSelectionGroup->AI_isControlled() && pSelectionGroup->getDomainType() == DOMAIN_SEA && kToPlot.isHarbourEntranceOf(pSelectionGroup->getOwnerINLINE())))
 	{
 		return FALSE;
 	}

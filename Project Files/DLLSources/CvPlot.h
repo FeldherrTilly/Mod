@@ -557,6 +557,8 @@ public:
 	void writeDesyncLog(FILE *f);
 
 	int getTurnDamage() const;
+	// WTP: a water plot next to a colony of ePlayer (its harbour entrance)
+	bool isHarbourEntranceOf(PlayerTypes ePlayer) const;
 
 	EXE_Plot EXE();
 

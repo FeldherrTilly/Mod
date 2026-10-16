@@ -3812,7 +3812,9 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 
 	// Prevent the AI from moving through storms and sustaining damage
 	// Strictly speaking this should preferably be handled by either the path cost or a separate PF flag
-	if (getGroup()->AI_isControlled() && (eFeature != NO_FEATURE) &&  GC.getFeatureInfo(eFeature).getTurnDamage() > 0)
+	// WTP: except the harbour entrance of an own colony (it may be the colony's only water access)
+	if (getGroup()->AI_isControlled() && (eFeature != NO_FEATURE) &&  GC.getFeatureInfo(eFeature).getTurnDamage() > 0
+		&& !(getDomainType() == DOMAIN_SEA && kPlot.isHarbourEntranceOf(getOwnerINLINE())))
 	{
 		return false;
 	}
