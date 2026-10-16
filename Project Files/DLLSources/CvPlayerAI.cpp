@@ -18013,7 +18013,7 @@ void CvPlayerAI::AI_wfUpdateTravel(const CvUnit& kColonist)
 	std::vector<UnitTypes> aeTransports;
 	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 	{
-		if (pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA)
+		if (pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA || pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_COAST)
 		{
 			iShipMoves = std::max(iShipMoves, pLoopUnit->baseMoves());
 			aeTransports.push_back(pLoopUnit->getUnitType());
