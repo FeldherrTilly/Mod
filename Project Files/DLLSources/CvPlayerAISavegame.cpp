@@ -243,6 +243,7 @@ void CvPlayerAI::AI_resetSavedData()
 	m_mapWfRecentBuy.clear();
 	m_mapWfUnreachable.clear();
 	m_mapWfLandCost.clear();
+	m_mapFullStorageSince.clear();
 	m_mapWfSeaTurns.clear();
 	m_iWfLandMoves = 1;
 	m_mapNativeVillageVisit.clear();
