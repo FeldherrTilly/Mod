@@ -1127,6 +1127,7 @@ bool CvSelectionGroupAI::AI_tradeRoutes()
 	}
 
 	bool bNoRoute = true;
+	std::map<int, std::pair<bool, int> > aSourcePaths; // WTP: source city ID -> (path from it to this group, turns)
 
 	//We need to iterate over every source city, and see if there's anything which needs moving to the respective destination city.
 	//We apply some bias to the city we are presently at, but not too much - sometimes empty runs need to be made...
@@ -1150,8 +1151,44 @@ bool CvSelectionGroupAI::AI_tradeRoutes()
 			if(pDestinationCity != NULL && pDestinationCity->getMaxImportAmount(eYield) > 0)
 			{
 				int turnsToReachToSource = 0, turnsToReachFromSourceToDest = 0;
-				const bool bSourceOk = generatePath(pSourceCity->plot(), plot(), (bIgnoreDanger ? MOVE_IGNORE_DANGER : MOVE_NO_ENEMY_TERRITORY), true, &turnsToReachToSource);
-				const bool bDestOk = generatePath(pSourceCity->plot(), pDestinationCity->plot(), (bIgnoreDanger ? MOVE_IGNORE_DANGER : MOVE_NO_ENEMY_TERRITORY), true, &turnsToReachFromSourceToDest);
+				// WTP: the paths are kept: source to this group once per source city of this call, source to destination
+				// once per turn and unit type (several yields of a source city, and every transport every turn, searched
+				// the same long coastal paths again: the coastal transports took several percent of the AI's time)
+				const int iFlags = (bIgnoreDanger ? MOVE_IGNORE_DANGER : MOVE_NO_ENEMY_TERRITORY);
+				bool bSourceOk;
+				std::map<int, std::pair<bool, int> >::const_iterator itSource = aSourcePaths.find(pSourceCity->getID());
+				if (itSource != aSourcePaths.end())
+				{
+					bSourceOk = itSource->second.first;
+					turnsToReachToSource = itSource->second.second;
+				}
+				else
+				{
+					bSourceOk = generatePath(pSourceCity->plot(), plot(), iFlags, true, &turnsToReachToSource);
+					aSourcePaths[pSourceCity->getID()] = std::make_pair(bSourceOk, turnsToReachToSource);
+				}
+				static int iCacheTurn = -1;
+				static std::map<std::pair<std::pair<int, int>, std::pair<int, int> >, std::pair<bool, int> > aRoutePaths;
+				if (iCacheTurn != GC.getGameINLINE().getGameTurn())
+				{
+					iCacheTurn = GC.getGameINLINE().getGameTurn();
+					aRoutePaths.clear();
+				}
+				const std::pair<std::pair<int, int>, std::pair<int, int> > kRouteKey(
+					std::make_pair(((int)getHeadUnit()->getUnitType() * 2 + (bIgnoreDanger ? 1 : 0)) * MAX_PLAYERS + pDestinationCity->getOwnerINLINE(), (int)pSourceCity->getOwnerINLINE()),
+					std::make_pair(pSourceCity->getID(), pDestinationCity->getID()));
+				bool bDestOk;
+				std::map<std::pair<std::pair<int, int>, std::pair<int, int> >, std::pair<bool, int> >::const_iterator itRoute = aRoutePaths.find(kRouteKey);
+				if (itRoute != aRoutePaths.end())
+				{
+					bDestOk = itRoute->second.first;
+					turnsToReachFromSourceToDest = itRoute->second.second;
+				}
+				else
+				{
+					bDestOk = generatePath(pSourceCity->plot(), pDestinationCity->plot(), iFlags, true, &turnsToReachFromSourceToDest);
+					aRoutePaths[kRouteKey] = std::make_pair(bDestOk, turnsToReachFromSourceToDest);
+				}
 
 				if (!(bSourceOk && bDestOk))
 					// We require both of these paths to be valid. If not, we skip this route
