@@ -11051,6 +11051,21 @@ int CvPlot::getTurnDamage() const
 	return 0;
 }
 
+// WTP: a water plot next to a colony of ePlayer. The AI avoids plots with turn damage (storms), but a damaging feature
+// (e.g. a stone reef) can be the only water access of a colony; ships of the owner may pass such a harbour entrance
+bool CvPlot::isHarbourEntranceOf(PlayerTypes ePlayer) const
+{
+	if (!isWater())
+		return false;
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		const CvPlot* const pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), ((DirectionTypes)iI));
+		if (pAdjacentPlot != NULL && pAdjacentPlot->isCity() && pAdjacentPlot->getOwnerINLINE() == ePlayer)
+			return true;
+	}
+	return false;
+}
+
 EXE_Plot CvPlot::EXE()
 {
 	return EXE_Plot(*this);
