@@ -19925,14 +19925,34 @@ bool CvUnitAI::AI_treasureRetreat(int iMaxPathTurns)
 		return false;
 	}
 
+	// WTP: a treasure already waiting in an own colony with a deep water harbour stays there for the galleon (it searched a
+	// path to every colony every turn)
+	{
+		const CvCity* const pHere = plot()->getPlotCity();
+		if (pHere != NULL && pHere->getOwnerINLINE() == getOwnerINLINE() && plot()->hasDeepWaterCoast() && pHere->isEuropeAccessable()
+			&& plot()->getNearestEurope() == eMainEurope)
+		{
+			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_AWAIT_PICKUP, plot());
+			return true;
+		}
+	}
+
 	// WTP: treasures go to the nearest own colony with a deep water harbour, where a galleon can pick them up; other
-	// colonies only if there is no such harbour within reach
+	// colonies only if there is no such harbour within reach. Paths only to the 3 nearest colonies (by distance) of a pass
 	for (int iPass = 0; iPass < 4; iPass++)
 	{
 		const bool bDeepWaterOnly = iPass < 2;
+		std::vector<std::pair<int, int> > aCities; // (distance, city ID)
 		int iLoop;
 		for (CvCity* pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
 		{
+			aCities.push_back(std::make_pair(plotDistance(getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE()), pLoopCity->getID()));
+		}
+		std::sort(aCities.begin(), aCities.end());
+		int iSearched = 0;
+		for (uint iCity = 0; iCity < aCities.size() && iSearched < 3; ++iCity)
+		{
+			CvCity* const pLoopCity = GET_PLAYER(getOwnerINLINE()).getCity(aCities[iCity].second);
 			CvPlot* pLoopPlot = pLoopCity->plot();
 			if (bDeepWaterOnly && !(pLoopPlot->hasDeepWaterCoast() && pLoopCity->isEuropeAccessable()))
 			{
@@ -19945,6 +19965,7 @@ bool CvUnitAI::AI_treasureRetreat(int iMaxPathTurns)
 					if (pLoopPlot->getNearestEurope() == eMainEurope)
 					{
 						int iPathTurns = 0;
+						++iSearched;
 						if (atPlot(pLoopPlot) || generatePath(pLoopPlot, ((iPass % 2 > 0) ? MOVE_IGNORE_DANGER : 0), true, &iPathTurns, iMaxPathTurns))
 						{
 							int iValue = 3 + pLoopPlot->getDistanceToOcean();
