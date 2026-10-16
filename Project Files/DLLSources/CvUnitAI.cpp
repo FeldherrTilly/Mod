@@ -5368,7 +5368,17 @@ bool CvUnitAI::AI_sailForEuropeBacklog()
 				&& (pLoopUnit->getUnitTravelState() == UNIT_TRAVEL_STATE_TO_AFRICA || pLoopUnit->getUnitTravelState() == UNIT_TRAVEL_STATE_IN_AFRICA
 					|| (pLoopUnit->getGroup() != NULL && pLoopUnit->getGroup()->AI_getMissionAIType() == MISSIONAI_SAIL_TO_AFRICA));
 		}
-		if (!bFetched && AI_sailToAfrica())
+		// (not a transport with goods aboard that Africa pays much less for than Europe)
+		bool bCargoFits = true;
+		for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_YIELD_TYPES && bCargoFits; ++eYield)
+		{
+			bCargoFits = getLoadedYieldAmount(eYield) == 0 || AI_isAfricaWorthy(eYield);
+		}
+		if (!bFetched && bCargoFits)
+		{
+			AI_collectGoodsForAfrica();
+		}
+		if (!bFetched && bCargoFits && AI_sailToAfrica())
 		{
 			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) ship %S sails to Africa for %d waiting units",
 				getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString(), kOwner.getNumAfricaUnits());
@@ -8222,6 +8232,59 @@ bool CvUnitAI::AI_collectGoods()
 		bLoaded = true;
 	}
 
+	return bLoaded;
+}
+
+// WTP: a good worth taking to Africa: Africa pays at least 70% of what Europe pays for it (user decision)
+bool CvUnitAI::AI_isAfricaWorthy(YieldTypes eYield) const
+{
+	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	if (kOwner.getParent() == NO_PLAYER || !kOwner.isYieldAfricaTradable(eYield))
+	{
+		return false;
+	}
+	const CvPlayer& kEurope = GET_PLAYER(kOwner.getParent());
+	const int iAfrica = kEurope.getYieldAfricaBuyPrice(eYield);
+	return iAfrica > 0 && iAfrica * 10 >= kEurope.getYieldBuyPrice(eYield) * 7;
+}
+
+// WTP: a transport sailing to Africa (to fetch the units bought there) takes the goods of this colony that sell there for
+// at least 70% of the Europe price, the most valuable first
+bool CvUnitAI::AI_collectGoodsForAfrica()
+{
+	CvCity* const pCity = plot()->getPlotCity();
+	if (pCity == NULL || pCity->getOwnerINLINE() != getOwnerINLINE())
+	{
+		return false;
+	}
+	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const CvPlayer& kEurope = GET_PLAYER(kOwner.getParent());
+	const int iCargoHold = GC.getGameINLINE().getCargoYieldCapacity();
+	bool bLoaded = false;
+	while (!isFull())
+	{
+		YieldTypes eBestYield = NO_YIELD;
+		int iBestValue = 0;
+		for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_YIELD_TYPES; ++eYield)
+		{
+			if (!kOwner.AI_isYieldForSale(eYield) || !AI_isAfricaWorthy(eYield) || pCity->getExportAvailable(eYield) == 0)
+			{
+				continue;
+			}
+			const int iStored = getMaxLoadYieldAmount(eYield);
+			if (iStored > iCargoHold / 10 && iStored * kEurope.getYieldAfricaBuyPrice(eYield) > iBestValue)
+			{
+				iBestValue = iStored * kEurope.getYieldAfricaBuyPrice(eYield);
+				eBestYield = eYield;
+			}
+		}
+		if (eBestYield == NO_YIELD)
+		{
+			break;
+		}
+		loadYield(eBestYield, false);
+		bLoaded = true;
+	}
 	return bLoaded;
 }
 
