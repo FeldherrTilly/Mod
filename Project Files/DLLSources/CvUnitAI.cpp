@@ -7870,7 +7870,10 @@ bool CvUnitAI::AI_sailTo(const SailToHelper& sth, bool bMove, bool bIgnoreDanger
 	int iBestDelayedTotal = INT_MAX;
 	int iBestDelayedRemainingMoves = INT_MAX;
 
-	// Loop over candidate Europe plots.
+	// WTP: the candidate Europe plots, the nearest (by distance in turns plus the travel time off the map) first; paths are
+	// searched to the nearest 8 only (a path to every Europe plot of the map took several percent of the AI's time)
+	std::vector<std::pair<int, int> > aCandidates;
+	const int iShipMoves = std::max(1, baseMoves());
 	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
 	{
 		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
@@ -7882,6 +7885,15 @@ bool CvUnitAI::AI_sailTo(const SailToHelper& sth, bool bMove, bool bIgnoreDanger
 			continue;
 		if (!canCrossOcean(pLoopPlot, sth.unitTravelState))
 			continue;
+		const int iEstimate = 10 * (plotDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) / iShipMoves
+			+ GET_PLAYER(getOwnerINLINE()).calculateEuropeTravelTime(pLoopPlot->getEurope()));
+		aCandidates.push_back(std::make_pair(iEstimate, iI));
+	}
+	std::sort(aCandidates.begin(), aCandidates.end());
+	// Loop over candidate Europe plots.
+	for (uint iCandidate = 0; iCandidate < aCandidates.size() && iCandidate < 8; ++iCandidate)
+	{
+		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(aCandidates[iCandidate].second);
 
 		// Compute off-map travel time using our new helper.
 		int iTravelTime = GET_PLAYER(getOwnerINLINE()).calculateEuropeTravelTime(pLoopPlot->getEurope());
@@ -8019,6 +8031,9 @@ CvPlot* CvUnitAI::findNearbyOceanPlot(const CvPlot& kPlot) const
 	CvPlot* pBestPlot = NULL;
 	int iBestValue = 0;
 
+	// WTP: the plots one can cross the ocean from, nearest first; a path is searched to the nearest few only (a path to every
+	// such plot of the map from every colony took a tenth of the AI's time)
+	std::vector<std::pair<int, int> > aCandidates;
 	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
@@ -8049,19 +8064,25 @@ CvPlot* CvUnitAI::findNearbyOceanPlot(const CvPlot& kPlot) const
 			{
 				if (canCrossOcean(pLoopPlot, UNIT_TRAVEL_STATE_FROM_EUROPE))
 				{
-					int iPathTurns;
-					if (getGroup()->generatePath(&kPlot, pLoopPlot, 0, true, &iPathTurns))
-					{
-						int iValue = 10000;
-						iValue /= 100 + getPathCost();
-
-						if ((kPlot.getY_INLINE() == pLoopPlot->getY_INLINE()) ? (iValue >= iBestValue) : (iValue > iBestValue))
-						{
-							iBestValue = iValue;
-							pBestPlot = pLoopPlot;
-						}
-					}
+					aCandidates.push_back(std::make_pair(plotDistance(kPlot.getX_INLINE(), kPlot.getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()), iI));
 				}
+			}
+		}
+	}
+	std::sort(aCandidates.begin(), aCandidates.end());
+	for (uint i = 0; i < aCandidates.size() && i < 8; ++i)
+	{
+		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(aCandidates[i].second);
+		int iPathTurns;
+		if (getGroup()->generatePath(&kPlot, pLoopPlot, 0, true, &iPathTurns))
+		{
+			int iValue = 10000;
+			iValue /= 100 + getPathCost();
+
+			if ((kPlot.getY_INLINE() == pLoopPlot->getY_INLINE()) ? (iValue >= iBestValue) : (iValue > iBestValue))
+			{
+				iBestValue = iValue;
+				pBestPlot = pLoopPlot;
 			}
 		}
 	}
@@ -10150,10 +10171,16 @@ bool CvUnitAI::AI_moveTowardsDanger(int iMaxPath)
 
 		if ((pLoopPlot != NULL) && AI_plotValid(pLoopPlot) && !atPlot(pLoopPlot))
 		{
+			// WTP: a plot without danger is no target: the danger is checked before the path (a path to every water plot of
+			// the map took several percent of the AI's time); same result as before
+			iDanger = kOwner.AI_getWaterDanger(pLoopPlot, iRange, true, false, true);
+			if (iDanger <= 0 && pLoopPlot->getDangerMap(getOwnerINLINE()) <= 0)
+			{
+				continue;
+			}
 			int iPathTurns;
 			if (generatePath(pLoopPlot, MOVE_THROUGH_ENEMY, true, &iPathTurns, iMaxPath))
 			{
-				iDanger = kOwner.AI_getWaterDanger(pLoopPlot, iRange, true, false, true);
 				iIncoming = kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_PIRACY, getGroup());
 
 				if ((iDanger > iIncoming) || ((iPathTurns < pLoopPlot->getDangerMap(getOwnerINLINE())) && (iIncoming == 0)))
