@@ -18461,7 +18461,14 @@ void CvPlayerAI::AI_doPeaceWarships()
 		return;
 	}
 	const CvTeamAI& kTeam = GET_TEAM(getTeam());
-	const bool bWar = kTeam.getAtWarCount() > 0 || kTeam.getAnyWarPlanCount() > 0;
+	// (wars with natives do not count: they have no ships; the Danes kept five warships idle in such a war)
+	bool bWar = kTeam.getAnyWarPlanCount() > 0;
+	for (PlayerTypes ePlayer = FIRST_PLAYER; ePlayer < NUM_PLAYER_TYPES && !bWar; ++ePlayer)
+	{
+		const CvPlayer& kOther = GET_PLAYER(ePlayer);
+		bWar = kOther.isAlive() && kOther.getTeam() != getTeam() && !kOther.isNative() && !GC.getGameINLINE().isBarbarianPlayer(ePlayer)
+			&& kTeam.isAtWar(kOther.getTeam());
+	}
 	CvUnit* pStrongest = NULL;
 	int iLoop;
 	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
