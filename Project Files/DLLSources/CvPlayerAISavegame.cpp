@@ -104,6 +104,8 @@ enum SavegameVariableTypes
 	PlayerSaveAI_EarlyScoutsBought,
 	PlayerSaveAI_EarlySettlerId0,
 	PlayerSaveAI_EarlySettlerId1,
+	PlayerSaveAI_WarMilitarySpent,
+	PlayerSaveAI_WarCivilianSpent,
 	NUM_SAVE_ENUM_VALUES,
 };
 
@@ -160,6 +162,8 @@ const char* getSavedEnumNamePlayerAi(SavegameVariableTypes eType)
 	case PlayerSaveAI_EarlyScoutsBought: return "PlayerSaveAI_EarlyScoutsBought";
 	case PlayerSaveAI_EarlySettlerId0: return "PlayerSaveAI_EarlySettlerId0";
 	case PlayerSaveAI_EarlySettlerId1: return "PlayerSaveAI_EarlySettlerId1";
+	case PlayerSaveAI_WarMilitarySpent: return "PlayerSaveAI_WarMilitarySpent";
+	case PlayerSaveAI_WarCivilianSpent: return "PlayerSaveAI_WarCivilianSpent";
 
 		case PlayerSaveAI_AICitySites: return "PlayerSaveAI_AICitySites";
 		case PlayerSaveAI_unitPriorityHeap: return "PlayerSaveAI_unitPriorityHeap";
@@ -261,6 +265,8 @@ void CvPlayerAI::AI_resetSavedData()
 	m_iEarlyScoutsBought = defaultEarlyZero;
 	m_aiEarlySettlerIDs[0] = defaultEarlyId;
 	m_aiEarlySettlerIDs[1] = defaultEarlyId;
+	m_iWarMilitarySpent = defaultEarlyZero;
+	m_iWarCivilianSpent = defaultEarlyZero;
 
 	m_aiAICitySites.clear();
 	m_unitPriorityHeap.clear();
@@ -351,6 +357,8 @@ void CvPlayerAI::read(CvSavegameReader reader)
 		case PlayerSaveAI_EarlyScoutsBought: reader.Read(m_iEarlyScoutsBought); break;
 		case PlayerSaveAI_EarlySettlerId0: reader.Read(m_aiEarlySettlerIDs[0]); break;
 		case PlayerSaveAI_EarlySettlerId1: reader.Read(m_aiEarlySettlerIDs[1]); break;
+		case PlayerSaveAI_WarMilitarySpent: reader.Read(m_iWarMilitarySpent); break;
+		case PlayerSaveAI_WarCivilianSpent: reader.Read(m_iWarCivilianSpent); break;
 
 		case PlayerSaveAI_AICitySites: reader.Read(m_aiAICitySites); break;
 		case PlayerSaveAI_unitPriorityHeap: reader.Read(m_unitPriorityHeap); break;
@@ -435,6 +443,8 @@ void CvPlayerAI::write(CvSavegameWriter writer)
 	writer.Write(PlayerSaveAI_EarlyScoutsBought, m_iEarlyScoutsBought, defaultEarlyZero);
 	writer.Write(PlayerSaveAI_EarlySettlerId0, m_aiEarlySettlerIDs[0], defaultEarlyId);
 	writer.Write(PlayerSaveAI_EarlySettlerId1, m_aiEarlySettlerIDs[1], defaultEarlyId);
+	writer.Write(PlayerSaveAI_WarMilitarySpent, m_iWarMilitarySpent, defaultEarlyZero);
+	writer.Write(PlayerSaveAI_WarCivilianSpent, m_iWarCivilianSpent, defaultEarlyZero);
 
 	writer.Write(PlayerSaveAI_AICitySites, m_aiAICitySites);
 	writer.Write(PlayerSaveAI_unitPriorityHeap, m_unitPriorityHeap);
