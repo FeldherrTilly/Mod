@@ -1667,21 +1667,22 @@ void CvUnitAI::AI_settlerMove()
 	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	const bool bFirstCityPhase = (kOwner.getNumCities() == 0);
 
+	// WTP: natives found their villages near home only (within 10 plots): the search over the whole map, made twice and again
+	// for every move of the turn when no site was found, took almost a tenth of the game's time. Without a site the settler
+	// waits for the turn and becomes a brave after 10 turns (was 20)
 	if (isNative())
 	{
 		if (AI_foundRange(10))
 		{
 			return;
 		}
-		if (AI_found())
-		{
-			return;
-		}
-		if (GC.getGame().getGameTurn() - AI_getLastAIChangeTurn() > 20)
+		if (GC.getGame().getGameTurn() - AI_getLastAIChangeTurn() > 10)
 		{
 			AI_setUnitAIType(UNITAI_DEFENSIVE);
 			return;
 		}
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
 	}
 
 	// WTP: a settler that cannot found (e.g. a missionary given the settler AI) becomes a colonist again or changes
