@@ -12378,6 +12378,12 @@ int CvPlayerAI::AI_unitAIValueMultipler(UnitAITypes eUnitAI)
 		iCurrentCount += AI_numWarshipsAsTransports();
 	}
 	int iCount = AI_totalUnitAIs(eUnitAI) + AI_getNumRetiredAIUnits(eUnitAI);
+	// WTP: (also in the count the purchase value uses: the Swedes bought two more war caravels right after three of theirs
+	// had become transports)
+	if (eUnitAI == UNITAI_COMBAT_SEA)
+	{
+		iCount += AI_numWarshipsAsTransports();
+	}
 	// WTP, ray, Native Trade Posts - START
 	// adjustment for UNITAI_TRADER
 	int iPopulation = AI_getPopulation() + AI_getNumRetiredAIUnits(UNITAI_MISSIONARY) + AI_getNumRetiredAIUnits(UNITAI_TRADER);
