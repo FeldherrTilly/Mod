@@ -27,7 +27,7 @@
 			<iAINativeCombatModifier>50</iAINativeCombatModifier>
 			<iAIKingCombatModifier>50</iAIKingCombatModifier>
 			<iAIRebelModifier>50</iAIRebelModifier>
-			<iAIGrowthPercent>160</iAIGrowthPercent>
+			<iAIGrowthPercent>130</iAIGrowthPercent>
 			<iAITrainPercent>160</iAITrainPercent>
 			<iAIConstructPercent>160</iAIConstructPercent>
 			<iAIUnitUpgradePercent>50</iAIUnitUpgradePercent>
@@ -199,7 +199,7 @@
 			<iAINativeCombatModifier>50</iAINativeCombatModifier>
 			<iAIKingCombatModifier>50</iAIKingCombatModifier>
 			<iAIRebelModifier>50</iAIRebelModifier>
-			<iAIGrowthPercent>110</iAIGrowthPercent>
+			<iAIGrowthPercent>105</iAIGrowthPercent>
 			<iAITrainPercent>110</iAITrainPercent>
 			<iAIConstructPercent>110</iAIConstructPercent>
 			<iAIUnitUpgradePercent>50</iAIUnitUpgradePercent>
@@ -543,7 +543,7 @@
 			<iAINativeCombatModifier>50</iAINativeCombatModifier>
 			<iAIKingCombatModifier>50</iAIKingCombatModifier>
 			<iAIRebelModifier>50</iAIRebelModifier>
-			<iAIGrowthPercent>90</iAIGrowthPercent>
+			<iAIGrowthPercent>95</iAIGrowthPercent>
 			<iAITrainPercent>90</iAITrainPercent>
 			<iAIConstructPercent>90</iAIConstructPercent>
 			<iAIUnitUpgradePercent>50</iAIUnitUpgradePercent>
@@ -715,7 +715,7 @@
 			<iAINativeCombatModifier>50</iAINativeCombatModifier>
 			<iAIKingCombatModifier>50</iAIKingCombatModifier>
 			<iAIRebelModifier>50</iAIRebelModifier>
-			<iAIGrowthPercent>75</iAIGrowthPercent>
+			<iAIGrowthPercent>88</iAIGrowthPercent>
 			<iAITrainPercent>75</iAITrainPercent>
 			<iAIConstructPercent>75</iAIConstructPercent>
 			<iAIUnitUpgradePercent>50</iAIUnitUpgradePercent>
@@ -887,7 +887,7 @@
 			<iAINativeCombatModifier>50</iAINativeCombatModifier>
 			<iAIKingCombatModifier>50</iAIKingCombatModifier>
 			<iAIRebelModifier>50</iAIRebelModifier>
-			<iAIGrowthPercent>60</iAIGrowthPercent>
+			<iAIGrowthPercent>80</iAIGrowthPercent>
 			<iAITrainPercent>60</iAITrainPercent>
 			<iAIConstructPercent>60</iAIConstructPercent>
 			<iAIUnitUpgradePercent>50</iAIUnitUpgradePercent>
@@ -1059,7 +1059,7 @@
 			<iAINativeCombatModifier>50</iAINativeCombatModifier>
 			<iAIKingCombatModifier>50</iAIKingCombatModifier>
 			<iAIRebelModifier>50</iAIRebelModifier>
-			<iAIGrowthPercent>50</iAIGrowthPercent>
+			<iAIGrowthPercent>75</iAIGrowthPercent>
 			<iAITrainPercent>50</iAITrainPercent>
 			<iAIConstructPercent>50</iAIConstructPercent>
 			<iAIUnitUpgradePercent>50</iAIUnitUpgradePercent>
