@@ -522,6 +522,8 @@ public:
 	UnitTypes AI_treasureShipToBuy(int* piTreasures = NULL) const;
 	void AI_doCitizenRelocation(); // WTP
 	void AI_doWorkforcePlan(); // WTP
+	void AI_doPeaceWarships(); // WTP
+	int AI_numWarshipsAsTransports() const; // WTP
 	bool AI_isWorkforcePlanned() const; // WTP: the workforce plan places all colonists of this player (colonial AI)
 	int AI_getWfIdleCount() const { return m_iWfIdleCount; } // WTP: colonists without a job in the last plan
 	static int AI_nativeDeliveryPrice(YieldTypes eYield); // WTP
