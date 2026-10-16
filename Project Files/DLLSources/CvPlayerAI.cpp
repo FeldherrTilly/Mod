@@ -264,6 +264,8 @@ void CvPlayerAI::AI_doTurnPre()
 
 	AI_doCitizenRelocation();
 
+	AI_doPeaceWarships();
+
 	AI_doWorkforcePlan();
 
 	AI_doReclaimTerritory();
@@ -6380,7 +6382,7 @@ int CvPlayerAI::AI_unitValuePercent(UnitTypes eUnit, UnitAITypes* peUnitAI, CvAr
 			//Regular warships
 			if (!kUnitInfo.isHiddenNationality() && !kUnitInfo.isOnlyDefensive() && kUnitInfo.getMoves() > 0)
 			{
-				int iWarshipCount = AI_totalUnitAIs(UNITAI_COMBAT_SEA) + AI_totalUnitAIs(UNITAI_ESCORT_SEA);
+				int iWarshipCount = AI_totalUnitAIs(UNITAI_COMBAT_SEA) + AI_totalUnitAIs(UNITAI_ESCORT_SEA) + AI_numWarshipsAsTransports();
 				int iNeededWarships = std::max(6, 2 + iCoastalCityCount);
 
 				if (iWarshipCount < iNeededWarships)
@@ -12370,6 +12372,11 @@ ProfessionTypes CvPlayerAI::AI_idealProfessionForUnitAIType(UnitAITypes eUnitAI,
 int CvPlayerAI::AI_unitAIValueMultipler(UnitAITypes eUnitAI)
 {
 	int iCurrentCount = AI_totalUnitAIs(eUnitAI);
+	// WTP: warships carrying goods and colonists in peace are warships still
+	if (eUnitAI == UNITAI_COMBAT_SEA)
+	{
+		iCurrentCount += AI_numWarshipsAsTransports();
+	}
 	int iCount = AI_totalUnitAIs(eUnitAI) + AI_getNumRetiredAIUnits(eUnitAI);
 	// WTP, ray, Native Trade Posts - START
 	// adjustment for UNITAI_TRADER
@@ -18442,6 +18449,64 @@ namespace
 		}
 		return "free";
 	}
+}
+
+// WTP: in peace the colonial AI uses its warships with cargo room as transports, all but the strongest one, which keeps
+// guarding the coast (sea goodies, pirates, sea animals). At war (or with war plans) they become warships again as soon as
+// they are empty
+void CvPlayerAI::AI_doPeaceWarships()
+{
+	if (!AI_isWorkforcePlanned())
+	{
+		return;
+	}
+	const CvTeamAI& kTeam = GET_TEAM(getTeam());
+	const bool bWar = kTeam.getAtWarCount() > 0 || kTeam.getAnyWarPlanCount() > 0;
+	CvUnit* pStrongest = NULL;
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->getUnitInfo().getDefaultUnitAIType() == UNITAI_COMBAT_SEA && pLoopUnit->cargoSpace() > 0
+			&& (pStrongest == NULL || pLoopUnit->baseCombatStr() > pStrongest->baseCombatStr()))
+		{
+			pStrongest = pLoopUnit;
+		}
+	}
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->getUnitInfo().getDefaultUnitAIType() != UNITAI_COMBAT_SEA || pLoopUnit->cargoSpace() <= 0)
+		{
+			continue;
+		}
+		const bool bTransport = pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA;
+		const bool bWantTransport = !bWar && pLoopUnit != pStrongest;
+		if (bWantTransport && pLoopUnit->AI_getUnitAIType() == UNITAI_COMBAT_SEA)
+		{
+			pLoopUnit->AI_setUnitAIType(UNITAI_TRANSPORT_SEA);
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getID(), "WTP ship: Player %d (%S) warship %S carries goods and colonists in peace", getID(), getCivilizationDescription(0),
+				pLoopUnit->getName().GetCString());
+		}
+		else if (!bWantTransport && bTransport && !pLoopUnit->hasCargo())
+		{
+			pLoopUnit->AI_setUnitAIType(UNITAI_COMBAT_SEA);
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getID(), "WTP ship: Player %d (%S) %S is a warship again (%s)", getID(), getCivilizationDescription(0),
+				pLoopUnit->getName().GetCString(), bWar ? "war" : "the strongest one guards the coast");
+		}
+	}
+}
+
+int CvPlayerAI::AI_numWarshipsAsTransports() const
+{
+	int iCount = 0;
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->getUnitInfo().getDefaultUnitAIType() == UNITAI_COMBAT_SEA && pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA)
+		{
+			++iCount;
+		}
+	}
+	return iCount;
 }
 
 bool CvPlayerAI::AI_isWorkforcePlanned() const
