@@ -5023,6 +5023,38 @@ void CvUnitAI::AI_transportCoastMove()
 		}
 	}
 	*/
+	// WTP: the colonial AI's coastal transports ferry its colonists between the colonies before they serve the trade routes:
+	// passengers aboard are delivered; an empty one takes the colonists waiting in its port for a ship, or fetches those
+	// waiting within 3 turns (colonists from Europe piled up in La Isabela waiting for a ship to the other colonies while
+	// the coastal transports were idle)
+	if (GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned())
+	{
+		CvCity* const pHere = plot()->getPlotCity();
+		const bool bOwnPort = pHere != NULL && pHere->getOwnerINLINE() == getOwnerINLINE();
+		if (hasAnyUnitInCargo())
+		{
+			if (bOwnPort)
+			{
+				AI_unloadPassengers(false);
+			}
+			if (AI_deliverUnits())
+			{
+				return;
+			}
+		}
+		if (getCargo() == 0)
+		{
+			if (bOwnPort && AI_loadUnits(NO_UNITAI, MISSIONAI_AWAIT_PICKUP) && AI_deliverUnits())
+			{
+				return;
+			}
+			if (AI_respondToPickup(3))
+			{
+				return;
+			}
+		}
+	}
+
 	if (getGroup()->AI_tradeRoutes())
 	{
 		return;
@@ -5064,7 +5096,8 @@ bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget, CvCity* pPreferredPort)
 	int iShipLoop;
 	for (CvUnit* pLoopUnit = kOwner.firstUnit(&iShipLoop); pLoopUnit != NULL && !bReachable; pLoopUnit = kOwner.nextUnit(&iShipLoop))
 	{
-		bReachable = pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && CvPlayerAI::AI_shipCanReachCity(pLoopUnit->getUnitType(), kTarget);
+		// (coastal transports too: they ferry colonists between the colonies)
+		bReachable = (pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA || pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_COAST) && CvPlayerAI::AI_shipCanReachCity(pLoopUnit->getUnitType(), kTarget);
 	}
 	if (!bReachable)
 	{
@@ -5130,7 +5163,7 @@ bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget, CvCity* pPreferredPort)
 	{
 		CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
 		if (pLoopUnit != NULL && pLoopUnit != this && pLoopUnit->getOwnerINLINE() == getOwnerINLINE() && pLoopUnit->getDomainType() == DOMAIN_SEA
-			&& pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && CvPlayerAI::AI_shipCanReachCity(pLoopUnit->getUnitType(), kTarget)
+			&& (pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA || pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_COAST) && CvPlayerAI::AI_shipCanReachCity(pLoopUnit->getUnitType(), kTarget)
 			&& canLoadUnit(pLoopUnit, plot(), true))
 		{
 			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S boards %S in %S for its job in %S (waited %d turns)", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
@@ -8459,6 +8492,12 @@ CvPlot* CvUnitAI::AI_bestDestinationPlot(bool bIgnoreDanger) const
 						else
 						{
 							iTempValue += 100000;
+							// WTP: the colony the passenger is planned for comes first (colonists from Europe were put ashore in one
+							// colony and had to wait there for another ship to their own)
+							if (static_cast<const CvUnitAI*>(pLoopUnit)->AI_transportDestinationCity() == pCity)
+							{
+								iTempValue += 1000000;
+							}
 							int iNumAIUnits = pCityPlot->plotCount(PUF_isUnitAIType, pLoopUnit->AI_getUnitAIType(), -1, getOwnerINLINE());
 
 							for (int i = 0; i < pCity->getPopulation(); ++i)
