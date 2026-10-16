@@ -19953,9 +19953,10 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			int iGain;
 			if (kJob.iHolder >= 0)
 			{
-				// replaces the regular colonist (who is free for another job then)
+				// replaces the regular colonist, who is free for another job then: +12 gold for that (somebody can always work as
+				// lumberjack or fisherman; user decision)
 				const int iT = WF_TYPE(kJob.iHolder, j);
-				iGain = iExpertGold - aiGold[iT * iNumJobs + j] + wfFoodGold(kCity.iSurplus, iExpertFood - aiFood[iT * iNumJobs + j]);
+				iGain = iExpertGold - aiGold[iT * iNumJobs + j] + wfFoodGold(kCity.iSurplus, iExpertFood - aiFood[iT * iNumJobs + j]) + 1200;
 			}
 			else if (kCity.iSurplus + iExpertFood - iConsumption >= WF_FOOD_MIN)
 			{
