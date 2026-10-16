@@ -21869,7 +21869,9 @@ void CvPlayerAI::AI_doCivilianPurchases()
 		{
 			if (!bWater && AI_wantsAfricaFoodWorkers())
 			{
-				if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision:   %S needs food (%+d), an African slave will be bought in Africa", pFoodCity->getName().GetCString(), pFoodCity->foodDifference());
+				// (a transport sails to Africa only while at most 3 units wait in Europe, see CvUnitAI::AI_sailToPreferredPort)
+				if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision:   %S needs food (%+d), an African slave will be bought in Africa%s", pFoodCity->getName().GetCString(),
+					pFoodCity->foodDifference(), getNumEuropeUnits() > 3 ? CvString::format(" - but no transport sails there while %d units wait in Europe", getNumEuropeUnits()).c_str() : "");
 				// WTP: the slave is the food provider of that colony: no farmer is bought for it as well
 				const UnitClassTypes eFarmerClass = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_FARMER");
 				for (int i = (int)m_aWfOpenOpportunities.size() - 1; i >= 0; --i)
