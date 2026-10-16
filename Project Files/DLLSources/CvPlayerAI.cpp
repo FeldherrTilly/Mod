@@ -9679,10 +9679,24 @@ void CvPlayerAI::AI_doEurope()
 		// WTP: after the ships the missing pioneers come first
 		AI_doEquipPioneersInEurope();
 
-		// WTP: two defenders per colony (in peace too) before civilian units are bought
-		if (!AI_doMilitiaPurchase())
+		// WTP: two defenders per colony (in peace too) before civilian units are bought; in war an even mix of military
+		// units instead, with up to 30% of the gold spent in the war going to civilian purchases
+		const bool bWar = GET_TEAM(getTeam()).getAnyWarPlanCount() > 0;
+		if (!bWar)
 		{
+			m_iWarMilitarySpent = 0;
+			m_iWarCivilianSpent = 0;
+			if (!AI_doMilitiaPurchase())
+			{
+				AI_doCivilianPurchases();
+			}
+		}
+		else
+		{
+			const int iGoldBefore = getGold();
 			AI_doCivilianPurchases();
+			m_iWarCivilianSpent += std::max(0, iGoldBefore - getGold());
+			AI_doWarMilitaryPurchase();
 		}
 
 		//Always refresh at start of new turn (maybe do this smarter but it's okay for now)
@@ -16674,6 +16688,9 @@ void CvPlayerAI::AI_updateNextBuyUnit(bool bPriceLimit)
 			continue;
 		if (!bWar && (eLoopUnitAI == UNITAI_OFFENSIVE || eLoopUnitAI == UNITAI_COUNTER))
 			continue;
+		// WTP: in war the land units are bought as an even mix (AI_doWarMilitaryPurchase)
+		if (bWar && (eLoopUnitAI == UNITAI_DEFENSIVE || eLoopUnitAI == UNITAI_OFFENSIVE || eLoopUnitAI == UNITAI_COUNTER))
+			continue;
 		if (eLoopUnitAI == UNITAI_DEFENSIVE && !bDefendersMissing)
 			continue;
 
@@ -21957,6 +21974,129 @@ bool CvPlayerAI::AI_doMilitiaPurchase()
 	return true;
 }
 
+// WTP: war purchases: an even mix of light artillery, veteran colonial militia, line infantry, dragoons, heavy artillery and
+// free colonists equipped as colonial militia and as line infantry; the type with the fewest units is bought next (the cheaper
+// one on a tie). Civilian purchases get up to 30% of the gold spent in the war: while they save gold below that share, only
+// colonies without any defender get a military unit. Returns true if a unit was bought.
+bool CvPlayerAI::AI_doWarMilitaryPurchase()
+{
+	if (isHuman() || isNative() || isEurope() || getParent() == NO_PLAYER || !canTradeWithEurope() || getNumCities() == 0)
+	{
+		return false;
+	}
+	if (GET_TEAM(getTeam()).getAnyWarPlanCount() == 0)
+	{
+		return false;
+	}
+	int iUndefended = 0;
+	const int iNeeded = AI_totalDefendersNeeded(&iUndefended, NULL, true);
+	if (iNeeded <= 0)
+	{
+		return false;
+	}
+	const bool bCivilianShort = 100 * m_iWarCivilianSpent < 30 * (m_iWarCivilianSpent + m_iWarMilitarySpent);
+	if (bCivilianShort && m_iSavingGoldTurn == GC.getGameINLINE().getGameTurn() && iUndefended == 0)
+	{
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) war: no military purchase, civilian purchases save gold (war spending military %d, civilian %d)",
+			getID(), getCivilizationDescription(0), m_iWarMilitarySpent, m_iWarCivilianSpent);
+		return false;
+	}
+
+	const CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
+	const UnitTypes eColonist = kCiv.getCivilizationUnits(GLOBAL_DEFINE_DEFAULT_POPULATION_UNIT);
+	enum { NUM_WAR_TYPES = 7 };
+	static const char* const aszUnitClass[NUM_WAR_TYPES] = { "UNITCLASS_LIGHT_ARTILLERY", "UNITCLASS_VETERAN", "UNITCLASS_EUROPEAN_LINE_INFANTRY",
+		"UNITCLASS_VETERAN_DRAGOON", "UNITCLASS_HEAVY_ARTILLERY", NULL, NULL };
+	static const char* const aszProfession[NUM_WAR_TYPES] = { "PROFESSION_LIGHT_ARTILLERY", "PROFESSION_COLONIAL_MILITIA", "PROFESSION_LINE_INFANTRY",
+		"PROFESSION_DRAGOON", "PROFESSION_HEAVY_ARTILLERY", "PROFESSION_COLONIAL_MILITIA", "PROFESSION_LINE_INFANTRY" };
+	UnitTypes aeUnit[NUM_WAR_TYPES];
+	ProfessionTypes aeProfession[NUM_WAR_TYPES];
+	int aiCount[NUM_WAR_TYPES];
+	for (int i = 0; i < NUM_WAR_TYPES; ++i)
+	{
+		aeUnit[i] = (aszUnitClass[i] != NULL) ? (UnitTypes)kCiv.getCivilizationUnits((UnitClassTypes)GC.getInfoTypeForString(aszUnitClass[i])) : eColonist;
+		aeProfession[i] = (ProfessionTypes)GC.getInfoTypeForString(aszProfession[i]);
+		aiCount[i] = 0;
+	}
+
+	// count our units (on the map, aboard ships and in Europe): artillery and dragoons by profession, colonial militia and
+	// line infantry as veteran units or as other colonists in that profession
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		const ProfessionTypes eProfession = pLoopUnit->getProfession();
+		if (eProfession == NO_PROFESSION)
+			continue;
+		for (int i = 0; i < 5; ++i)
+		{
+			if (eProfession != aeProfession[i])
+				continue;
+			if (i == 1 || i == 2)
+			{
+				++aiCount[(pLoopUnit->getUnitType() == aeUnit[i]) ? i : i + 4];
+			}
+			else
+			{
+				++aiCount[i];
+			}
+			break;
+		}
+	}
+
+	int iBest = -1;
+	int iBestPrice = 0;
+	for (int i = 0; i < NUM_WAR_TYPES; ++i)
+	{
+		if (aeUnit[i] == NO_UNIT || aeProfession[i] == NO_PROFESSION || !isProfessionValid(aeProfession[i], aeUnit[i]))
+			continue;
+		int iPrice = getEuropeUnitBuyPrice(aeUnit[i]);
+		if (iPrice <= 0)
+			continue;
+		if (i >= 5)
+		{
+			// the equipment is bought in Europe (see CvPlayer::changeProfessionEurope)
+			for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
+			{
+				iPrice += GET_PLAYER(getParent()).getYieldSellPrice(eYield) * GC.getProfessionInfo(aeProfession[i]).getYieldEquipmentAmount(eYield);
+			}
+		}
+		if (iBest < 0 || aiCount[i] < aiCount[iBest] || (aiCount[i] == aiCount[iBest] && iPrice < iBestPrice))
+		{
+			iBest = i;
+			iBestPrice = iPrice;
+		}
+	}
+	if (iBest < 0)
+	{
+		return false;
+	}
+	if (getGold() < iBestPrice)
+	{
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) war: saves for %S as %S (%d gold, have %d), mix %d/%d/%d/%d/%d/%d/%d",
+			getID(), getCivilizationDescription(0), GC.getUnitInfo(aeUnit[iBest]).getDescription(), GC.getProfessionInfo(aeProfession[iBest]).getDescription(),
+			iBestPrice, getGold(), aiCount[0], aiCount[1], aiCount[2], aiCount[3], aiCount[4], aiCount[5], aiCount[6]);
+		return false;
+	}
+
+	const int iGoldBefore = getGold();
+	CvUnit* const pUnit = buyEuropeUnit(aeUnit[iBest], 100);
+	if (pUnit == NULL)
+	{
+		return false;
+	}
+	if (pUnit->getProfession() != aeProfession[iBest] && pUnit->canHaveProfession(aeProfession[iBest], false))
+	{
+		changeProfessionEurope(pUnit->getID(), aeProfession[iBest]);
+	}
+	// artillery and militia defend, line infantry and dragoons attack
+	pUnit->AI_setUnitAIType((iBest == 0 || iBest == 1 || iBest == 5) ? UNITAI_DEFENSIVE : UNITAI_OFFENSIVE);
+	m_iWarMilitarySpent += std::max(0, iGoldBefore - getGold());
+	if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) war: buys %S for %d gold, mix before (light art./vet. militia/line inf./dragoon/heavy art./colonist militia/colonist line inf.) %d/%d/%d/%d/%d/%d/%d, war spending military %d, civilian %d",
+		getID(), getCivilizationDescription(0), pUnit->getNameAndProfession().GetCString(), iGoldBefore - getGold(),
+		aiCount[0], aiCount[1], aiCount[2], aiCount[3], aiCount[4], aiCount[5], aiCount[6], m_iWarMilitarySpent, m_iWarCivilianSpent);
+	return true;
+}
+
 void CvPlayerAI::AI_doCivilianPurchases()
 {
 	MOD_PROFILE("CvPlayerAI::AI_doCivilianPurchases");
@@ -21964,11 +22104,12 @@ void CvPlayerAI::AI_doCivilianPurchases()
 	{
 		return;
 	}
-	// defence first while at war
-	if (GET_TEAM(getTeam()).getAnyWarPlanCount() > 0 && AI_totalDefendersNeeded(NULL, NULL, true) > 0)
+	// defence first while at war; civilian purchases get up to 30% of the gold spent in the war
+	if (GET_TEAM(getTeam()).getAnyWarPlanCount() > 0 && AI_totalDefendersNeeded(NULL, NULL, true) > 0
+		&& 100 * m_iWarCivilianSpent >= 30 * (m_iWarCivilianSpent + m_iWarMilitarySpent))
 	{
-		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) skips civilian purchases, war and %d defenders needed",
-			getID(), getCivilizationDescription(0), AI_totalDefendersNeeded(NULL, NULL, true));
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) skips civilian purchases, war and %d defenders needed (war spending military %d, civilian %d)",
+			getID(), getCivilizationDescription(0), AI_totalDefendersNeeded(NULL, NULL, true), m_iWarMilitarySpent, m_iWarCivilianSpent);
 		return;
 	}
 

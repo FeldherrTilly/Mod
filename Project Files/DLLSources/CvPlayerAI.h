@@ -542,6 +542,7 @@ public:
 	bool AI_buyCivilianUnit(UnitTypes eUnit, UnitAITypes eUnitAI, ProfessionTypes eProfession);
 	CvUnit* AI_hurryCheapImmigrant(bool bUnconditional, bool bNonExpertOnly = false);
 	bool AI_doMilitiaPurchase(); // WTP
+	bool AI_doWarMilitaryPurchase(); // WTP: war purchases as an even mix of the land military types
 	int AI_civilianExpertPriority(ProfessionTypes eProfession, UnitClassTypes& eExpertClass);
 	// TAC - AI More Immigrants - koma13 - END
 
@@ -672,6 +673,9 @@ protected:
 	int m_iEarlyStrategy; // EarlyStrategies
 	int m_iEarlyProgress; // purchases made by the strategy
 	int m_iEarlyScoutsBought;
+	// WTP: gold spent in Europe during the current war (military / civilian, civilian purchases get up to 30%); saved
+	int m_iWarMilitarySpent;
+	int m_iWarCivilianSpent;
 	int m_aiEarlySettlerIDs[2]; // settlers of Opportunistic Resources
 	void AI_startEarlyStrategy();
 	bool AI_doEarlyExplorer();
