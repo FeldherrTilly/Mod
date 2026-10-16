@@ -5149,8 +5149,22 @@ bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget, CvCity* pPreferredPort)
 	return true;
 }
 
+// WTP: a ship carries a passenger only if it can reach the passenger's colony (no galleon for a colony on shallow coast
+// or a large river only: a Danish galleon took two prospectors for river colonies aboard and could not deliver them);
+// land transports and passengers without a colony as destination are not restricted
+bool CvUnitAI::AI_canCarryTo(const CvUnit& kPassenger) const
+{
+	if (getDomainType() != DOMAIN_SEA)
+	{
+		return true;
+	}
+	const CvCity* const pDestination = static_cast<const CvUnitAI&>(kPassenger).AI_transportDestinationCity();
+	return pDestination == NULL || CvPlayerAI::AI_shipCanReachCity(getUnitType(), *pDestination);
+}
+
 // WTP: put passengers ashore whose destination is this plot or who have none; settlers and treasures stay aboard
-// (bAll: everybody except treasures)
+// (bAll: everybody except treasures). In an own colony also those whose colony this ship cannot reach (another ship
+// takes them)
 void CvUnitAI::AI_unloadPassengers(bool bAll)
 {
 	std::vector<CvUnit*> apPassengers;
@@ -5163,7 +5177,8 @@ void CvUnitAI::AI_unloadPassengers(bool bAll)
 			CvSelectionGroup* const pGroup = pLoopUnit->getGroup();
 			const CvPlot* const pTarget = (pGroup != NULL && pGroup->AI_getMissionAIType() != NO_MISSIONAI) ? pGroup->AI_getMissionAIPlot() : NULL;
 			// a settler decides itself (it gets off in a colony when it finds no site)
-			if (bAll || (pLoopUnit->AI_getUnitAIType() != UNITAI_SETTLER && (pTarget == NULL || pTarget == plot())))
+			if (bAll || (pLoopUnit->AI_getUnitAIType() != UNITAI_SETTLER && (pTarget == NULL || pTarget == plot()))
+				|| (plot()->isCity() && plot()->getOwnerINLINE() == getOwnerINLINE() && !AI_canCarryTo(*pLoopUnit)))
 			{
 				apPassengers.push_back(pLoopUnit);
 			}
@@ -8220,7 +8235,8 @@ bool CvUnitAI::AI_deliverUnits(UnitAITypes eUnitAI)
 	{
 		pLoopUnit = pPlot->getUnitNodeLoop(pUnitNode);
 
-		if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this)
+		// WTP: (not a passenger whose colony this ship cannot reach: it gets off in the next own colony instead)
+		if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && AI_canCarryTo(*pLoopUnit))
 		{
 			if (eUnitAI == NO_UNITAI || eUnitAI == pLoopUnit->AI_getUnitAIType())
 			{
@@ -8397,7 +8413,7 @@ bool CvUnitAI::AI_loadUnits(UnitAITypes eUnitAI, MissionAITypes eMissionAI)
 			{
 				if ((eMissionAI == NO_MISSIONAI) || (pLoopUnit->getGroup()->AI_getMissionAIType() == eMissionAI))
 				{
-					if (pLoopUnit->canLoadUnit(this, plot(), true))
+					if (pLoopUnit->canLoadUnit(this, plot(), true) && AI_canCarryTo(*pLoopUnit))
 					{
 						pLoopUnit->loadUnit(this);
 						pLoopUnit->jumpTo(this->plot());
@@ -10809,7 +10825,8 @@ bool CvUnitAI::AI_pickupAdjacantUnits()
 				{
 					CvUnit* pLoopUnit = pLoopPlot->getUnitNodeLoop(pUnitNode);
 
-					if (pLoopUnit != NULL && pLoopUnit->getGroup()->AI_getMissionAIType() == MISSIONAI_AWAIT_PICKUP && pLoopUnit->canLoadUnit(this, plot(), false))
+					if (pLoopUnit != NULL && pLoopUnit->getGroup()->AI_getMissionAIType() == MISSIONAI_AWAIT_PICKUP && pLoopUnit->canLoadUnit(this, plot(), false)
+						&& AI_canCarryTo(*pLoopUnit))
 					{
 						units.push_back(pLoopUnit);
 					}
