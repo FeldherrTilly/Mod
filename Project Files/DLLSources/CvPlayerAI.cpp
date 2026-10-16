@@ -19019,14 +19019,50 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		// (not an expert that has no way to the colony)
 		if (kWorker.bLearning || (bExpertJob && (!bThere || bResource) && aiEta[w * iNumCities + kJob.iCity] < 1000))
 		{
+			// an expert on its way changes to another job of its trade that is worth 1.5 times as much and not farther away (a
+			// Master Carpenter waited in La Isabela for a ship to a 22 gold carpenter job while La Isabela's carpenter jobs
+			// were worth 92 gold); not from a resource of its trade
+			int jUse = j;
+			if (!kWorker.bLearning && !bThere && !bResource)
+			{
+				const int iT = kWorker.iTypeIdx;
+				const int iEtaNow = aiEta[w * iNumCities + kJob.iCity];
+				const int iValueNow = aiGold[iT * iNumJobs + j] + (aiFood[iT * iNumJobs + j] - iConsumption) * WF_FOOD_GOLD;
+				int iBestAlt = iValueNow * 3 / 2;
+				for (int jj = 0; jj < iNumJobs; ++jj)
+				{
+					const WfJob& kAlt = aJobs[jj];
+					const int iEtaAlt = aiEta[w * iNumCities + kAlt.iCity];
+					if (jj == j || kAlt.iHolder >= 0 || (kAlt.iPlotKey >= 0 && aiPlotTaken[kAlt.iPlotKey] >= 0) || iEtaAlt > iEtaNow
+						|| aiGold[iT * iNumJobs + jj] <= -1000000 || !wfIsExpertFor(*kWorker.pUnit, kAlt.eProfession))
+					{
+						continue;
+					}
+					const int iValueAlt = aiGold[iT * iNumJobs + jj] + (aiFood[iT * iNumJobs + jj] - iConsumption) * WF_FOOD_GOLD;
+					if (iValueAlt >= iBestAlt && iValueAlt > 0)
+					{
+						iBestAlt = iValueAlt;
+						jUse = jj;
+					}
+				}
+				if (jUse != j && gPlayerLogLevel >= 1)
+				{
+					logWTP(WTP_LOG_DIAG, getID(), "diag %S changes its reserved job %s in %S (%d gold, %d turns) for %s in %S (%d gold, %d turns)",
+						kWorker.pUnit->getName().GetCString(), CvString(GC.getProfessionInfo(kJob.eProfession).getType()).GetCString(), kJob.pCity->getName().GetCString(),
+						iValueNow / 100, iEtaNow, CvString(GC.getProfessionInfo(aJobs[jUse].eProfession).getType()).GetCString(), aJobs[jUse].pCity->getName().GetCString(),
+						iBestAlt / 100, aiEta[w * iNumCities + aJobs[jUse].iCity]);
+				}
+			}
+			const WfJob& kUse = aJobs[jUse];
 			// an expert on its way to the first carpenter job reserves another carpenter job of the colony if there is one:
 			// the first one is worked by someone in the colony until it has arrived
-			int jReserve = j;
-			if (!bThere && kJob.eYield == YIELD_HAMMERS && kJob.iSlot == 0)
+			int jReserve = jUse;
+			const bool bThereUse = kWorker.pPopCity == kUse.pCity || kWorker.pAtCity == kUse.pCity;
+			if (!bThereUse && kUse.eYield == YIELD_HAMMERS && kUse.iSlot == 0)
 			{
 				for (int jj = 0; jj < iNumJobs; ++jj)
 				{
-					if (aJobs[jj].iCity == kJob.iCity && aJobs[jj].eProfession == kJob.eProfession && aJobs[jj].iSlot > 0 && aJobs[jj].iHolder < 0)
+					if (aJobs[jj].iCity == kUse.iCity && aJobs[jj].eProfession == kUse.eProfession && aJobs[jj].iSlot > 0 && aJobs[jj].iHolder < 0)
 					{
 						jReserve = jj;
 						break;
