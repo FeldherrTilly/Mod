@@ -720,6 +720,7 @@ protected:
 		UnitClassTypes eExpertClass;
 		int iValue;
 		int iPrice;
+		bool bAfrica; // bought in Africa (an African slave as food provider)
 	};
 	std::vector<WfOpenOpportunity> m_aWfOpenOpportunities;
 	int m_iWfIdleCount; // WTP: colonists without a job in the last plan (not saved)
