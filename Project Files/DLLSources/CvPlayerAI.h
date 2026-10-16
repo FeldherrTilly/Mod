@@ -523,6 +523,8 @@ public:
 	void AI_doCitizenRelocation(); // WTP
 	void AI_doWorkforcePlan(); // WTP
 	void AI_doPeaceWarships(); // WTP
+	void AI_updateFullStorage(); // WTP
+	std::map<int, int> m_mapFullStorageSince; // WTP: city ID -> first turn its storage was more than 90% full (not saved)
 	int AI_numWarshipsAsTransports() const; // WTP
 	bool AI_isWorkforcePlanned() const; // WTP: the workforce plan places all colonists of this player (colonial AI)
 	int AI_getWfIdleCount() const { return m_iWfIdleCount; } // WTP: colonists without a job in the last plan

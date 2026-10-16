@@ -266,6 +266,8 @@ void CvPlayerAI::AI_doTurnPre()
 
 	AI_doPeaceWarships();
 
+	AI_updateFullStorage();
+
 	AI_doWorkforcePlan();
 
 	AI_doReclaimTerritory();
@@ -18508,6 +18510,27 @@ void CvPlayerAI::AI_doPeaceWarships()
 	}
 }
 
+// WTP: since when the storage of each colony is more than 90% full (a reason to buy another transport)
+void CvPlayerAI::AI_updateFullStorage()
+{
+	if (isHuman() || isNative() || isEurope())
+	{
+		return;
+	}
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+	std::map<int, int> mapNew;
+	int iLoop;
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	{
+		if (pLoopCity->getMaxYieldCapacity() > 0 && pLoopCity->getTotalYieldStored() * 10 > pLoopCity->getMaxYieldCapacity() * 9)
+		{
+			const std::map<int, int>::const_iterator it = m_mapFullStorageSince.find(pLoopCity->getID());
+			mapNew[pLoopCity->getID()] = (it != m_mapFullStorageSince.end()) ? it->second : iTurn;
+		}
+	}
+	m_mapFullStorageSince.swap(mapNew);
+}
+
 int CvPlayerAI::AI_numWarshipsAsTransports() const
 {
 	int iCount = 0;
@@ -21829,7 +21852,31 @@ bool CvPlayerAI::AI_doTransportPurchase()
 		}
 	}
 	const int iWaiting = getNumEuropeUnits();
-	if (iWaiting <= iCapacity || iTransports >= std::max(3, getNumCities() + 1))
+	// WTP: goods pile up: at least 2 coastal colonies more than 90% full for more than 3 turns, or a colony with a storage
+	// of more than 2000 more than 90% full (user decision)
+	bool bGoodsPileUp = false;
+	{
+		const int iTurn = GC.getGameINLINE().getGameTurn();
+		int iFullCoastal = 0;
+		for (std::map<int, int>::const_iterator it = m_mapFullStorageSince.begin(); it != m_mapFullStorageSince.end() && !bGoodsPileUp; ++it)
+		{
+			const CvCity* const pCity = getCity(it->first);
+			if (pCity == NULL)
+			{
+				continue;
+			}
+			if (pCity->getMaxYieldCapacity() > 2000)
+			{
+				bGoodsPileUp = true;
+			}
+			if (iTurn - it->second > 3 && pCity->isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN()))
+			{
+				++iFullCoastal;
+			}
+		}
+		bGoodsPileUp = bGoodsPileUp || iFullCoastal >= 2;
+	}
+	if ((iWaiting <= iCapacity && !bGoodsPileUp) || iTransports >= std::max(3, getNumCities() + 1))
 	{
 		return false;
 	}
@@ -21851,8 +21898,8 @@ bool CvPlayerAI::AI_doTransportPurchase()
 	if (pUnit != NULL)
 	{
 		pUnit->AI_setUnitAIType(UNITAI_TRANSPORT_SEA);
-		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) buys transport %S: %d units wait in Europe, capacity was %d in %d transports",
-			getID(), getCivilizationDescription(0), pUnit->getName().GetCString(), iWaiting, iCapacity, iTransports);
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) buys transport %S: %d units wait in Europe, capacity was %d in %d transports%s",
+			getID(), getCivilizationDescription(0), pUnit->getName().GetCString(), iWaiting, iCapacity, iTransports, bGoodsPileUp ? ", goods pile up in the colonies" : "");
 	}
 	return false;
 }
