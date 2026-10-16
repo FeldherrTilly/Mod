@@ -19446,13 +19446,18 @@ void CvPlayerAI::AI_doWorkforcePlan()
 					continue;
 				}
 				const int iCarpenterOutput = aiOutput[WF_TYPE(kCarpenter.iWorker, kCarpenter.iJob) * iNumJobs + kCarpenter.iJob];
-				const int iMissing = std::max(1, iCarpenterOutput / 2) - (aCities[c].aiRaw[YIELD_LUMBER] - aCities[c].aiUse[YIELD_LUMBER]);
+				// WTP: the lumberjack covers the new carpenter's need only, not a deficit the colony has already (one regular
+				// colonist had to bring 7 lumber in La Isabela, so no third carpenter was planned with 10 colonists idle); if
+				// one lumberjack is not enough, the two best together do (the second one follows by its lumber value)
+				const int iMissing = std::max(1, iCarpenterOutput / 2) - std::max(0, aCities[c].aiRaw[YIELD_LUMBER] - aCities[c].aiUse[YIELD_LUMBER]);
 				const WfCand* apLumber[2] = { &aLumber1[c], &aLumber2[c] };
+				const int iBothLumber = (aLumber1[c].iWorker >= 0 && aLumber2[c].iWorker >= 0 && aLumber1[c].iWorker != kCarpenter.iWorker && aLumber2[c].iWorker != kCarpenter.iWorker)
+					? aiOutput[WF_TYPE(aLumber1[c].iWorker, aLumber1[c].iJob) * iNumJobs + aLumber1[c].iJob] + aiOutput[WF_TYPE(aLumber2[c].iWorker, aLumber2[c].iJob) * iNumJobs + aLumber2[c].iJob] : 0;
 				for (int l = 0; l < 2; ++l)
 				{
 					const WfCand& kLumber = *apLumber[l];
 					if (kLumber.iWorker < 0 || kLumber.iWorker == kCarpenter.iWorker
-						|| aiOutput[WF_TYPE(kLumber.iWorker, kLumber.iJob) * iNumJobs + kLumber.iJob] < iMissing
+						|| (aiOutput[WF_TYPE(kLumber.iWorker, kLumber.iJob) * iNumJobs + kLumber.iJob] < iMissing && iBothLumber < iMissing)
 						|| (aCities[c].iSurplus + kCarpenter.iFoodDelta + kLumber.iFoodDelta < WF_FOOD_MIN && kCarpenter.iFoodDelta + kLumber.iFoodDelta <= 0
 							&& kCarpenter.iValue < WF_PRIORITY / 2)) // a must carpenter takes its lumberjack below the food floor
 					{
