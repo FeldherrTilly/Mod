@@ -87,6 +87,7 @@ void CvCityAI::AI_reset()
 	m_iCacheNativeFoodSurplus = 0;
 	m_iNativeAssignTurn = -100;
 	m_iNativeAssignPopulation = -1;
+	m_iNativeAssignIdle = -1;
 	m_iCacheAngryNativeTurn = -1;
 	m_iCacheAngryNativeDefenders = 0;
 	m_iFoodShortageTurn = -100;
@@ -197,26 +198,29 @@ void CvCityAI::AI_assignWorkingPlots()
 
 	// WTP: a full job assignment of a native village is very expensive (it was most of the AI turn time) and
 	// called several times per turn. Natives reassign at most every 3 turns, unless the population changed
-	// or a villager has no job or has lost its plot.
+	// or more villagers have no job (or have lost their plot) than at the last reassignment: villages with
+	// more villagers than plots had someone without a job all the time and reassigned on every call
+	// (about a quarter of the game's time in the profile)
 	if (isNative() && !isHuman())
 	{
 		const int iTurn = GC.getGameINLINE().getGameTurn();
-		bool bAllEmployed = true;
-		for (uint i = 0; i < m_aPopulationUnits.size() && bAllEmployed; ++i)
+		int iIdle = 0;
+		for (uint i = 0; i < m_aPopulationUnits.size(); ++i)
 		{
 			const CvUnit* const pCitizen = m_aPopulationUnits[i];
 			if (pCitizen == NULL || pCitizen->getProfession() == NO_PROFESSION
 				|| (GC.getProfessionInfo(pCitizen->getProfession()).isWorkPlot() && getPlotWorkedByUnit(pCitizen) == NULL))
 			{
-				bAllEmployed = false;
+				++iIdle;
 			}
 		}
-		if (bAllEmployed && getPopulation() == m_iNativeAssignPopulation && iTurn >= m_iNativeAssignTurn && iTurn - m_iNativeAssignTurn < 3)
+		if (iIdle <= m_iNativeAssignIdle && getPopulation() == m_iNativeAssignPopulation && iTurn >= m_iNativeAssignTurn && iTurn - m_iNativeAssignTurn < 3)
 		{
 			return;
 		}
 		m_iNativeAssignTurn = iTurn;
 		m_iNativeAssignPopulation = getPopulation();
+		m_iNativeAssignIdle = iIdle;
 	}
 
 	// 1. needed yields are workforce-invariant. compute them first so the city-center

@@ -261,6 +261,7 @@ protected:
 	// WTP: last full job assignment of a native village, not saved
 	int m_iNativeAssignTurn;
 	int m_iNativeAssignPopulation;
+	int m_iNativeAssignIdle; // WTP: villagers without a job (or plot) when the village last reassigned (not saved)
 	// WTP: extra defenders against angry natives nearby, refreshed every turn, not saved
 	mutable int m_iCacheAngryNativeTurn;
 	mutable int m_iCacheAngryNativeDefenders;
