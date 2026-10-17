@@ -1,4 +1,4 @@
-"""Flipped Europe map generator for WTP (draft stage: land, relief, climate, terrain, features -> ASCII + PNG).
+"""Eporue (Europe backwards): flipped Europe map generator for WTP (draft stage: land, relief, climate, terrain, features -> ASCII + PNG).
 
 Europe is turned by 180 degrees: the Atlantic lies in the east (Europe side of the game), Scandinavia in the south,
 the Mediterranean (with a strip of North Africa) in the north. The real coastline is drawn in lon/lat and projected
@@ -15,7 +15,7 @@ from png import write_png
 
 W, H = 80, 100
 SEED = int(sys.argv[1]) if len(sys.argv) > 1 else 1
-OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(os.path.abspath(__file__)), 'out_europe')
+OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(os.path.abspath(__file__)), 'out_eporue')
 rng = random.Random(SEED)
 NZ = [Noise(SEED * 1000 + i) for i in range(24)]
 
@@ -42,7 +42,7 @@ ALL = [(x, y) for y in range(H) for x in range(W)]
 
 # ---------------------------------------------------------------- projection (rotated by 180 degrees)
 SX, SY, Y0 = 1.1, 2.2, 5.0            # tiles per degree of longitude / latitude, bottom margin
-LON_MAX, LAT_MAX = 44.0, 71.5          # lon 44 E = left edge, lat 71.5 N = near the bottom edge
+LON_MAX, LAT_MAX = 47.0, 71.5          # lon 47 E = left edge, lat 71.5 N = near the bottom edge
 LAT_SHIFT = 4.0                        # free climate: everything counts as 4 degrees further north (a little warmer)
 
 
@@ -67,7 +67,7 @@ MAINLAND = P([
     (11.9, 57.7), (11.2, 59.0), (10.6, 59.7), (9.0, 58.7), (8.0, 58.1), (7.0, 58.0), (5.7, 58.9), (5.2, 60.4), (5.0, 61.5),
     (5.0, 62.0), (6.5, 62.8), (8.0, 63.4), (9.5, 63.7), (10.8, 64.2), (12.5, 65.7), (13.8, 67.0), (14.4, 67.3), (15.5, 68.3),
     (17.0, 69.0), (18.9, 69.7), (21.0, 70.2), (24.0, 71.0), (25.8, 71.1), (28.5, 70.9), (31.0, 70.3), (33.0, 69.5),
-    (36.0, 69.0), (38.0, 67.4), (41.0, 67.2), (46.0, 67.2), (46.0, 30.0), (34.3, 30.0), (34.3, 31.3), (34.9, 32.5),
+    (36.0, 69.0), (38.0, 67.4), (41.0, 67.2), (44.5, 67.0), (45.6, 63.0), (44.8, 58.0), (45.6, 52.0), (44.6, 48.0), (43.2, 46.8), (42.4, 45.2), (43.4, 43.8), (45.6, 43.0), (45.6, 42.0), (44.8, 38.0), (45.4, 35.0), (43.6, 33.6), (42.8, 32.0), (44.6, 31.2), (45.2, 30.0), (34.3, 30.0), (34.3, 31.3), (34.9, 32.5),
     (35.5, 34.0), (35.8, 35.5), (36.2, 36.3), (34.6, 36.7), (32.5, 36.1), (30.7, 36.5), (29.0, 36.5), (28.0, 36.8),
     (27.2, 37.4), (27.2, 38.4), (26.5, 39.0), (26.2, 40.0), (24.5, 40.5), (23.8, 40.0), (23.5, 40.3), (22.9, 40.6),
     (22.7, 39.5), (23.2, 38.5), (24.0, 38.0), (23.0, 37.5), (22.8, 36.5), (22.5, 36.5), (21.7, 36.8), (21.2, 37.7),
@@ -85,7 +85,8 @@ AFRICA = P([
     (0.5, 35.9), (1.0, 36.3), (3.0, 36.8), (5.0, 36.8), (7.0, 37.0), (9.0, 37.2), (10.2, 37.3), (10.9, 36.9), (10.6, 36.0),
     (10.3, 34.5), (10.1, 33.9), (11.1, 33.3), (12.5, 32.8), (13.5, 32.8), (15.0, 32.3), (16.6, 31.2), (18.5, 30.3), (19.8, 30.3),
     (20.1, 32.0), (22.0, 32.9), (22.5, 32.9), (23.5, 32.3), (25.1, 31.6), (27.0, 31.3), (29.0, 30.9), (30.0, 31.2), (31.0, 31.6),
-    (32.2, 31.3), (34.0, 31.2), (34.3, 31.3), (46.0, 31.3), (46.0, 15.0), (-12.0, 15.0),
+    (32.2, 31.3), (34.0, 31.2), (34.3, 31.3), (45.2, 31.3), (45.6, 30.4), (44.0, 29.8), (38.0, 29.4), (30.0, 29.7), (22.0, 29.2), (14.0, 29.8),
+    (6.0, 29.4), (-2.0, 29.9), (-8.0, 29.5), (-12.0, 30.0),
 ])
 ISLANDS = {
     'Great Britain': P([(-5.7, 50.0), (-4.0, 50.3), (-1.5, 50.7), (0.2, 50.8), (0.8, 51.2), (1.0, 52.7), (0.0, 52.9), (-0.2, 53.6),
@@ -257,7 +258,7 @@ RANGES = [   # polyline lon/lat, half width in tiles
     ('Caucasus', [(38.5, 44.2), (41.0, 43.3), (44.5, 42.6)], 2.4),
     ('Pontic', [(31.0, 41.2), (35.0, 41.3), (40.0, 40.8)], 1.5),
     ('Taurus', [(30.0, 37.2), (33.0, 37.1), (36.5, 37.6), (40.0, 38.0)], 2.2),
-    ('Kjolen', [(6.0, 60.5), (8.0, 62.0), (10.5, 63.5), (13.0, 65.5), (15.5, 67.5), (18.0, 68.6), (21.0, 69.6)], 2.6),
+    ('Kjolen', [(9.8, 60.5), (11.6, 62.0), (13.6, 63.5), (15.4, 65.5), (17.8, 67.5), (20.2, 68.7), (22.8, 69.7)], 2.0),
     ('Highlands', [(-5.3, 57.2), (-4.0, 56.8), (-3.0, 56.7)], 1.4),
     ('Pennines', [(-2.3, 54.5), (-2.0, 53.2)], 0.9),
     ('Tell Atlas', [(-2.5, 35.0), (1.0, 36.0), (5.0, 36.4), (8.0, 36.5)], 1.4),
@@ -452,6 +453,11 @@ def near_large(x, y):
 
 
 dcoast = bfs_dist([i for i in range(W * H) if ocean[i]], lambda j: True)
+# the Norwegian coast faces the Atlantic: keep a settleable strip (no peaks within three tiles of the water)
+for x, y in ALL:
+    i = I(x, y)
+    if land[i] and plot_type[i] == 0 and dcoast[i] <= 2 and y < 45 and x >= 26:
+        plot_type[i] = 1
 
 # ---------------------------------------------------------------- climate
 T = [0.0] * (W * H)
@@ -645,13 +651,25 @@ while True:
     bad = [i for i in range(W * H) if needs_clay(i) and cdist[i] > CLAY_R]
     if not bad:
         break
-    i0 = bad[0]                                        # the hill goes to a wet flat tile that covers as much uncovered land as possible
-    near = [I(x, y) for x, y in ALL if land[I(x, y)] and plot_type[I(x, y)] == 2 and terrain[I(x, y)] not in ('DESERT', 'SNOW')
-            and math.hypot(x - i0 % W, y - i0 // W) <= CLAY_R - 1 and not near_large(x, y)]
-    if not near:
-        near = [i0]
-    bad_xy = [(b % W, b // W) for b in bad]
-    j = max(near, key=lambda k: sum(1 for bx, by in bad_xy if math.hypot(bx - k % W, by - k // W) <= CLAY_R) + 6 * M[k] + 3 * clay_rng.random())
+    badset = set(bad)
+
+    def reach(k, depth=CLAY_R):                          # land tiles within `depth` steps (water and lakes block)
+        seen, dq = {k: 0}, deque([k])
+        while dq:
+            c = dq.popleft()
+            if seen[c] >= depth:
+                continue
+            for nx, ny in nbrs(c % W, c // W):
+                q = I(nx, ny)
+                if land[q] and q not in seen:
+                    seen[q] = seen[c] + 1
+                    dq.append(q)
+        return seen
+
+    seed_cell = clay_rng.choice(bad)
+    eligible = [q for q in reach(seed_cell) if plot_type[q] == 2 and terrain[q] not in ('DESERT', 'SNOW') and not near_large(q % W, q // W)] or [seed_cell]
+    cands = clay_rng.sample(eligible, min(60, len(eligible)))
+    j = max(cands, key=lambda k: sum(1 for q in reach(k) if q in badset) + 4 * M[k] + 2 * clay_rng.random())
     terrain[j] = 'WETLAND' if T[j] < 0.55 else 'MARSH'
     plot_type[j] = 1
     CLAY_SCATTER.append(j)
