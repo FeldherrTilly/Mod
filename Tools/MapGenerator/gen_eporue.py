@@ -229,6 +229,8 @@ for x, y in ALL:
             ok = False                                 # irregular southern edge of the Sahara
         if lon > 41.0 + 5.0 * EDGE[2].fbm(x, y, 3, 8) and lat < 31.0:
             ok = False                                 # irregular eastern edge of the Sahara
+    if ok and x < 8 + 8 and y > 101 - 8 and math.hypot(x + 0.5 - 16.0, y + 0.5 - 93.0) > 8.0 + 1.5 * EDGE[2].fbm(x, y, 2, 3):
+        ok = False                                     # round off the upper-left corner (Asia)
     land[I(x, y)] = ok
 ocean = [not v for v in land]
 
