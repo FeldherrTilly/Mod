@@ -18402,7 +18402,8 @@ namespace
 			return kCity.AI_professionBasicOutput(eProfession, eUnit, pPlot);
 		}
 		const YieldTypes eYield = (YieldTypes)kProfession.getYieldsProduced(0);
-		if (eYield == NO_YIELD)
+		// a land profession produces nothing on water and a water profession nothing on land (a farmer on a fish plot)
+		if (eYield == NO_YIELD || kProfession.isWater() != pPlot->isWater())
 		{
 			return 0;
 		}
