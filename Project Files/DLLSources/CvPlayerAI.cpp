@@ -18309,6 +18309,7 @@ namespace
 		bool bFood;
 		bool bNotable;          // resource or improvement plot, or a building job: worth learning or buying an expert for
 		int iSlot;              // building jobs: the how-manieth worker of this profession in the colony (0 = first)
+		int iGroup;             // building jobs: the building (per colony) whose slots all its professions share, -1 for plot jobs
 		int iCurrent;           // worker that works it now (or holds it as task), -1
 		int iHolder;            // worker of the target plan, -1
 		int iSeated;            // worker seated now, -1
@@ -18711,6 +18712,10 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		}
 	}
 	std::vector<WfJob> aJobs;
+	// WTP: the slots of a building are shared by all its professions (coffee, cocoa and peanut roasters; blacksmiths and
+	// bladesmiths, ...): per (colony, building) a group with the number of slots
+	std::vector<int> aiGroupSlots;
+	std::map<std::pair<int, int>, int> mapJobGroup;
 	for (int iCity = 0; iCity < iNumCities; ++iCity)
 	{
 		CvCity* const pCity = aCities[iCity].pCity;
@@ -18801,6 +18806,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				const BonusTypes eBonus = pLoopPlot->getBonusType();
 				kJob.bNotable = (eBonus != NO_BONUS && GC.getBonusInfo(eBonus).getYieldChange(kJob.eYield) > 0) || pLoopPlot->getImprovementType() != NO_IMPROVEMENT;
 				kJob.iSlot = 0;
+				kJob.iGroup = -1;
 				aJobs.push_back(kJob);
 			}
 		}
@@ -18816,6 +18822,14 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			kJob.eYield = (YieldTypes)kProfession.getYieldsProduced(0);
 			kJob.bFood = kJob.eYield == YIELD_FOOD;
 			kJob.bNotable = true;
+			const std::pair<int, int> kGroupKey(iCity, kProfession.getSpecialBuilding());
+			std::map<std::pair<int, int>, int>::const_iterator itGroup = mapJobGroup.find(kGroupKey);
+			if (itGroup == mapJobGroup.end())
+			{
+				mapJobGroup[kGroupKey] = (int)aiGroupSlots.size();
+				aiGroupSlots.push_back(iSlots);
+			}
+			kJob.iGroup = mapJobGroup[kGroupKey];
 			for (int iSlot = 0; iSlot < iSlots; ++iSlot)
 			{
 				kJob.iSlot = iSlot;
@@ -19002,6 +19016,8 @@ void CvPlayerAI::AI_doWorkforcePlan()
 
 	// the jobs worked now and the tasks held
 	std::vector<int> aiPlotTaken(GC.getMap().numPlotsINLINE(), -1); // plot number -> job holding it in the target plan
+	std::vector<int> aiGroupHeld(aiGroupSlots.size(), 0); // building group -> jobs of it held in the target plan
+	#define WF_GROUP_FREE(j) (aJobs[j].iGroup < 0 || aiGroupHeld[aJobs[j].iGroup] < aiGroupSlots[aJobs[j].iGroup])
 	for (int w = 0; w < iNumWorkers; ++w)
 	{
 		WfWorker& kWorker = aWorkers[w];
@@ -19066,7 +19082,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		iAssignWorker = (w); iAssignJob = (j); \
 		aWorkers[iAssignWorker].iJob = iAssignJob; \
 		aJobs[iAssignJob].iHolder = iAssignWorker; \
-		if (aJobs[iAssignJob].iPlotKey >= 0) aiPlotTaken[aJobs[iAssignJob].iPlotKey] = iAssignJob; \
+		if (aJobs[iAssignJob].iPlotKey >= 0) aiPlotTaken[aJobs[iAssignJob].iPlotKey] = iAssignJob; 		if (aJobs[iAssignJob].iGroup >= 0) ++aiGroupHeld[aJobs[iAssignJob].iGroup]; \
 		{ \
 			WfCity& kAssignCity = aCities[aJobs[iAssignJob].iCity]; \
 			const int iT = WF_TYPE(iAssignWorker, iAssignJob); \
@@ -19148,7 +19164,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 	{
 		WfWorker& kWorker = aWorkers[w];
 		const int j = kWorker.iCurrentJob;
-		if (j < 0 || aJobs[j].iHolder >= 0 || (aJobs[j].iPlotKey >= 0 && aiPlotTaken[aJobs[j].iPlotKey] >= 0))
+		if (j < 0 || aJobs[j].iHolder >= 0 || (aJobs[j].iPlotKey >= 0 && aiPlotTaken[aJobs[j].iPlotKey] >= 0) || !WF_GROUP_FREE(j))
 		{
 			continue;
 		}
@@ -19174,7 +19190,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				{
 					const WfJob& kAlt = aJobs[jj];
 					const int iEtaAlt = aiEta[w * iNumCities + kAlt.iCity];
-					if (jj == j || kAlt.iHolder >= 0 || (kAlt.iPlotKey >= 0 && aiPlotTaken[kAlt.iPlotKey] >= 0) || iEtaAlt > iEtaNow
+					if (jj == j || kAlt.iHolder >= 0 || (kAlt.iPlotKey >= 0 && aiPlotTaken[kAlt.iPlotKey] >= 0) || !WF_GROUP_FREE(jj) || iEtaAlt > iEtaNow
 						|| aiGold[iT * iNumJobs + jj] <= -1000000 || !wfIsExpertFor(*kWorker.pUnit, kAlt.eProfession))
 					{
 						continue;
@@ -19216,7 +19232,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 	}
 
 	// value of a worker in a job at the planned surplus of its colony; MIN_INT if the job is not possible
-	#define WF_IS_FREE_JOB(j) (aJobs[j].iHolder < 0 && (aJobs[j].iPlotKey < 0 || aiPlotTaken[aJobs[j].iPlotKey] < 0))
+	#define WF_IS_FREE_JOB(j) (aJobs[j].iHolder < 0 && (aJobs[j].iPlotKey < 0 || aiPlotTaken[aJobs[j].iPlotKey] < 0) && WF_GROUP_FREE(j))
 
 	// colonies with a carpenter job (their first carpenter needs lumber before it is planned)
 	std::vector<bool> abHammerJob(iNumCities, false);
@@ -19985,6 +20001,10 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		kLearner.bLearning = true;
 		kLearner.iJob = j;
 		kJob.iHolder = iBest;
+		if (kJob.iGroup >= 0)
+		{
+			++aiGroupHeld[kJob.iGroup];
+		}
 		++iNewLearners;
 		if (gPlayerLogLevel >= 1) logWTPCity(*kJob.pCity, "WTP plan: %S learns %S in %S (%d,%d) for %S in %S at %d,%d", kUnit.getName().GetCString(),
 			GC.getUnitClassInfo(kJob.eExpertClass).getDescription(), pVillage->getName().GetCString(), pVillage->getX_INLINE(), pVillage->getY_INLINE(),
@@ -20533,6 +20553,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 	#undef WF_TYPE
 	#undef WF_ASSIGN
 	#undef WF_IS_FREE_JOB
+	#undef WF_GROUP_FREE
 	#undef WF_SEAT_KEY
 }
 
