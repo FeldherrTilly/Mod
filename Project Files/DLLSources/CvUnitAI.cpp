@@ -7926,13 +7926,18 @@ bool CvUnitAI::AI_sailTo(const SailToHelper& sth, bool bMove, bool bIgnoreDanger
 	int iBestDelayedRemainingMoves = INT_MAX;
 
 	// WTP: the candidate Europe plots, the nearest (by distance in turns plus the travel time off the map) first; paths are
-	// searched to the nearest 8 only (a path to every Europe plot of the map took several percent of the AI's time)
+	// searched to the nearest 8 (a path to every Europe plot of the map took several percent of the AI's time), and on to the
+	// next ones while none of them can be reached (an enemy ship in the way: the "sail to Europe" button did nothing). Plots
+	// in another body of water are left out
 	std::vector<std::pair<int, int> > aCandidates;
 	const int iShipMoves = std::max(1, baseMoves());
+	const CvArea* const pWaterArea = plot()->isWater() ? plot()->area() : NULL;
 	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
 	{
 		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
 		if (!pLoopPlot->isRevealed(getTeam(), false))
+			continue;
+		if (pWaterArea != NULL && pLoopPlot->area() != pWaterArea)
 			continue;
 		if (!pLoopPlot->isEurope())
 			continue;
@@ -7946,7 +7951,7 @@ bool CvUnitAI::AI_sailTo(const SailToHelper& sth, bool bMove, bool bIgnoreDanger
 	}
 	std::sort(aCandidates.begin(), aCandidates.end());
 	// Loop over candidate Europe plots.
-	for (uint iCandidate = 0; iCandidate < aCandidates.size() && iCandidate < 8; ++iCandidate)
+	for (uint iCandidate = 0; iCandidate < aCandidates.size() && (iCandidate < 8 || (pBestImmediatePlot == NULL && pBestDelayedPlot == NULL)); ++iCandidate)
 	{
 		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(aCandidates[iCandidate].second);
 
@@ -8125,7 +8130,8 @@ CvPlot* CvUnitAI::findNearbyOceanPlot(const CvPlot& kPlot) const
 		}
 	}
 	std::sort(aCandidates.begin(), aCandidates.end());
-	for (uint i = 0; i < aCandidates.size() && i < 8; ++i)
+	// the nearest 8, and on while none of them can be reached
+	for (uint i = 0; i < aCandidates.size() && (i < 8 || pBestPlot == NULL); ++i)
 	{
 		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(aCandidates[i].second);
 		int iPathTurns;
