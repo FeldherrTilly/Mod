@@ -13,8 +13,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from noise import Noise, poly_dist, smoothstep, interp
 from png import write_png
 
-W, H = 95, 115
-XOFF = 15                                 # tiles added on the left (compressed Asia gets room); the top got 15 rows as well
+W, H = 99, 115
+XOFF = 19                                 # tiles added on the left (compressed Asia gets room); the top got 15 rows as well
 SEED = int(sys.argv[1]) if len(sys.argv) > 1 else 1
 OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(os.path.abspath(__file__)), 'out_eporue')
 rng = random.Random(SEED)
@@ -65,6 +65,10 @@ def to_xy(lon, lat):
 
 def real_lat(y):
     return LAT_MAX - (y + 0.5 - Y0) / SY
+
+
+def T2L(x, y):                         # tile coordinates -> (lon, lat)
+    return (LON_MAX - (x - XOFF) / SX, LAT_MAX - (y - Y0) / SY)
 
 
 def P(pts):
@@ -190,6 +194,8 @@ for x, y in ALL:
         for pts, hw in CH:
             if poly_dist(x + 0.5, y + 0.5, pts)[0] <= hw:
                 ok = False
+    if ok and ((x - XOFF) / 24.0) ** 2 + (y / 28.0) ** 2 < 1 + 0.12 * NZ[19].fbm(x, y, 2, 5):
+        ok = False                                     # round off the lower-left corner of "Russia"
     land[I(x, y)] = ok
 ocean = [not v for v in land]
 
@@ -247,7 +253,7 @@ plot_type = [3 if not land[i] else 2 for i in range(W * H)]      # 0 peak, 1 hil
 # ---------------------------------------------------------------- lakes
 LAKES = [(31.3, 60.7, 1.7, 1.0), (35.4, 61.9, 1.0, 1.1), (27.7, 58.6, 0.8, 1.1), (13.2, 58.9, 1.0, 0.55), (14.5, 58.2, 0.5, 0.9),
          (16.5, 59.5, 0.9, 0.35), (6.5, 46.4, 0.7, 0.3), (9.4, 47.6, 0.6, 0.3), (17.8, 46.9, 1.0, 0.3), (28.2, 61.6, 1.2, 0.9),
-         (10.8, 45.6, 0.4, 0.45), (8.6, 46.0, 0.45, 0.4)]
+         (10.8, 45.6, 0.4, 0.45), (8.6, 46.0, 0.45, 0.4), (27.4, 25.8, 1.9, 0.9)]
 for lo, la, rx, ry in LAKES:
     for x, y in ALL:
         i = I(x, y)
@@ -258,6 +264,11 @@ for lo, la, rx, ry in LAKES:
         if ((lon - lo) / rx) ** 2 + ((lat - la) / ry) ** 2 < n:
             if not any(ocean[I(nx, ny)] for nx, ny in nbrs(x, y)):
                 lake[i], land[i], plot_type[i] = True, False, 3
+# small steppe lakes in the wide Russian plains
+for cx, cy, rx, ry in ((12, 45, 1.5, 1.0), (21, 58, 1.7, 1.1), (13, 62, 1.3, 1.3), (23, 41, 1.6, 1.0), (14, 53, 1.1, 1.1)):
+    for x, y in ALL:
+        if land[I(x, y)] and ((x + 0.5 - cx) / rx) ** 2 + ((y + 0.5 - cy) / ry) ** 2 < 1 + 0.3 * NZ[2].fbm(x, y, 2, 3):
+            lake[I(x, y)], land[I(x, y)], plot_type[I(x, y)] = True, False, 3
 # glacial lake district: Finland and Karelia
 for x, y in ALL:
     i = I(x, y)
@@ -286,12 +297,22 @@ RANGES = [   # polyline lon/lat, half width in tiles
     ('High Atlas', [(-9.5, 31.2), (-6.5, 32.0), (-3.5, 33.2), (-1.0, 34.0), (2.5, 34.6), (6.0, 34.8), (9.5, 34.6)], 1.9),
     ('Lebanon', [(35.6, 34.5), (36.2, 33.5)], 1.0),
     ('Sinai', [(33.7, 29.5), (34.2, 28.2)], 1.5),
-    ('Urals', [(56.6, 66.5), (57.2, 61.0), (56.2, 55.0)], 1.7),
+    ('Urals', [(53.2, 66.0), (54.4, 61.0), (53.4, 55.0)], 1.6),
     ('Elburz', [(49.5, 37.0), (52.0, 36.6), (55.5, 36.8)], 1.7),
     ('Zagros', [(45.5, 36.5), (47.5, 33.5), (50.0, 30.8), (53.5, 28.0)], 2.1),
     ('Hindu Kush', [(56.5, 38.0), (57.0, 33.5)], 1.5),
     ('Hejaz', [(37.8, 25.5), (40.0, 23.4)], 1.3),
+    ('Russian Heights', [(33.0, 57.5), (37.0, 56.0), (41.0, 55.2), (44.5, 55.8)], 1.3),     # invented chains for the wide plains
+    ('Steppe Ridge', [(35.0, 50.5), (38.5, 49.5), (42.0, 50.2)], 1.2),
+    ('Massif North', [(38.0, 61.0), (39.5, 60.3)], 1.4),
+    ('Massif East', [(45.0, 60.5), (46.5, 59.8)], 1.3),
+    ('Massif West', [(30.5, 53.5), (31.5, 52.5)], 1.2),
+    ('Massif South', [(44.0, 48.0), (45.5, 47.2)], 1.3),
 ]
+for _n, _pts, _w in (('Plain Chain West', [(9, 60), (13, 57), (17, 55)], 1.3), ('Plain Chain Mid', [(20, 48), (23, 46), (25, 43)], 1.2),
+                     ('Plain Chain South', [(10, 40), (13, 44), (16, 47)], 1.2), ('Plain Massif A', [(12, 64), (14, 62)], 1.3),
+                     ('Plain Massif B', [(22, 64), (23, 62)], 1.3), ('Plain Massif C', [(13, 50), (14, 52)], 1.2)):
+    RANGES.append((_n, [T2L(px, py) for px, py in _pts], _w))
 BLOBS = [   # centre lon/lat, radius in tiles: hill country
     (3.2, 45.0, 2.8), (8.0, 48.2, 1.8), (14.5, 50.4, 2.4), (5.5, 50.0, 1.6), (10.5, 51.8, 1.2), (-3.5, 52.5, 1.4), (-3.5, 50.5, 1.0),
     (33.0, 50.0, 2.2), (33.0, 57.5, 2.2), (27.0, 56.0, 1.6), (-8.0, 41.5, 1.8), (-1.0, 40.4, 2.0), (-5.5, 37.8, 1.6), (22.0, 41.8, 1.6),
@@ -348,6 +369,22 @@ for i in hill_spots:
         LONE.append(i)
         plot_type[i] = 1
 
+# hidden valley: a ring of peaks around a green plain, with a pass on the side facing the Atlantic
+HV = to_xy(35.0, 54.5)
+HIDDEN = set()
+for x, y in ALL:
+    i = I(x, y)
+    if not land[i]:
+        continue
+    d = math.hypot(x + 0.5 - HV[0], y + 0.5 - HV[1])
+    ang = math.degrees(math.atan2(y + 0.5 - HV[1], x + 0.5 - HV[0]))
+    if d < 2.4:
+        plot_type[i] = 2
+        HIDDEN.add(i)
+    elif d < 3.5 + 0.4 * NZ[20].fbm(x, y, 2, 3):
+        plot_type[i] = 1 if abs(ang) < 30 else 0
+        HIDDEN.add(i)
+
 # ---------------------------------------------------------------- large rivers
 RIVERS = {
     'Danube': [(8.6, 48.1), (10.0, 48.4), (12.0, 48.9), (13.5, 48.6), (16.4, 48.2), (17.2, 47.9), (19.0, 47.5), (19.1, 46.0), (20.2, 44.8),
@@ -361,7 +398,7 @@ RIVERS = {
     'Don': [(39.0, 52.0), (40.0, 50.0), (40.0, 49.5), (41.0, 48.0), (39.2, 47.0)],
     'Volga': [(42.0, 57.0), (44.5, 55.5), (46.5, 53.0), (47.5, 50.0), (47.0, 48.0), (47.6, 46.6)],
     'Euphrates': [(41.0, 38.5), (41.0, 36.0), (43.5, 34.0), (46.5, 31.0), (48.0, 29.8)],
-    'Nile': [(32.4, 21.0), (32.5, 24.0), (31.0, 28.0), (31.2, 30.0), (31.0, 31.7)],
+    'Nile': [(29.3, 26.2), (30.3, 28.0), (31.0, 29.8), (31.0, 31.7)],           # springs from a lake in the Sahara
 }
 RIVER_PATHS = {}
 river_rng = random.Random(SEED * 7 + 5)
@@ -405,6 +442,31 @@ for name, pts in RIVERS.items():
     for i in path:
         large[i], land[i], plot_type[i] = True, False, 3
         lake[i] = False
+
+
+def thin_rivers():
+    """No blocks of large river plots: no 2x2, at most 5 in 3x3, at most 8 in 4x4."""
+    removed = 0
+    while True:
+        changed = False
+        for size, limit in ((2, 3), (3, 5), (4, 8)):
+            for y0 in range(H - size + 1):
+                for x0 in range(W - size + 1):
+                    cells = [I(x0 + dx, y0 + dy) for dx in range(size) for dy in range(size) if large[I(x0 + dx, y0 + dy)]]
+                    while len(cells) > limit:
+                        n4 = lambda c: sum(1 for nx, ny in nbrs(c % W, c // W, N4) if large[I(nx, ny)])
+                        c = max(cells, key=lambda c: (n4(c), river_rng.random()))
+                        large[c], land[c], plot_type[c] = False, True, 2
+                        cells.remove(c)
+                        removed += 1
+                        changed = True
+        if not changed:
+            return removed
+
+
+RIVERS_THINNED = thin_rivers()
+for name in RIVER_PATHS:
+    RIVER_PATHS[name] = [i for i in RIVER_PATHS[name] if large[i]]
 # fords every 8 to 14 tiles so that land units can cross (peaks and large rivers are barriers)
 FORD = set()
 for name, path in RIVER_PATHS.items():
@@ -655,6 +717,59 @@ for i in RIVER_PATHS['Nile']:                          # green ribbon through th
             terrain[j] = 'SAVANNAH' if T[j] >= 0.8 else 'PLAINS'
             VALLEY_GREEN.add(j)
 
+# Russia: salt basin (salt lake, bare rim, salt pans later), hidden valley floor
+SB = (32, 56)
+BASIN = set()
+for x, y in ALL:
+    i = I(x, y)
+    if not land[i] or large[i]:
+        continue
+    d = math.hypot(x + 0.5 - SB[0], y + 0.5 - SB[1])
+    n = 0.6 * NZ[21].fbm(x, y, 2, 3)
+    if d < 1.6 + n and not any(large[I(nx, ny)] for nx, ny in nbrs(x, y)):
+        lake[i], land[i], plot_type[i] = True, False, 3
+    elif d < 4.0 + n:
+        BASIN.add(i)
+for i in BASIN:
+    if land[i] and plot_type[i] != 0:
+        d = math.hypot(i % W + 0.5 - SB[0], i // W + 0.5 - SB[1])
+        terrain[i] = 'DESERT' if d < 2.6 and NZ[22].fbm(i % W, i // W, 2, 3) > -0.1 else ('ROCK_STEPPES' if d < 3.4 else 'SHRUBLAND')
+        plot_type[i] = 2 if d < 2.6 else plot_type[i]
+for i in HIDDEN:
+    if land[i] and plot_type[i] != 0:
+        terrain[i] = 'GRASS' if T[i] < 0.66 else 'PLAINS_FERTILE'
+
+# the Nile springs from a lake that greens the desert around it
+LG = to_xy(27.4, 25.8)
+LAKE_GREEN = set()
+for x, y in ALL:
+    i = I(x, y)
+    if land[i] and plot_type[i] != 0 and terrain[i] in ('DESERT', 'ROCK_STEPPES', 'SHRUBLAND'):
+        d = math.hypot(x + 0.5 - LG[0], y + 0.5 - LG[1])
+        if d < 6.0 + 0.8 * NZ[23].fbm(x, y, 2, 3):
+            terrain[i] = 'SAVANNAH' if d < 3.4 else ('PLAINS' if d < 4.6 else 'SHRUBLAND')
+            LAKE_GREEN.add(i)
+
+# oases in the Sahara
+orng = random.Random(SEED * 7 + 13)
+OASES, OASIS_RING = [], set()
+cands = [(x, y) for x, y in ALL if land[I(x, y)] and terrain[I(x, y)] == 'DESERT' and plot_type[I(x, y)] == 2 and dcoast[I(x, y)] > 4
+         and real_lat(y) < 33 and not near_large(x, y) and all(land[I(nx, ny)] and terrain[I(nx, ny)] in ('DESERT', 'SHRUBLAND', 'ROCK_STEPPES') for nx, ny in nbrs(x, y))
+         and math.hypot(x + 0.5 - LG[0], y + 0.5 - LG[1]) > 9]
+orng.shuffle(cands)
+for x, y in cands:
+    if len(OASES) >= 6:
+        break
+    if all(math.hypot(x - ox, y - oy) >= 11 for ox, oy in OASES):
+        OASES.append((x, y))
+        i = I(x, y)
+        lake[i], land[i], plot_type[i] = True, False, 3
+        for nx, ny in nbrs(x, y):
+            j = I(nx, ny)
+            if plot_type[j] == 2:
+                terrain[j] = 'SHRUBLAND' if orng.random() < 0.5 else 'PLAINS'
+                OASIS_RING.add(j)
+
 # ---------------------------------------------------------------- clay hills (only hills on marsh, wetland or tundra give clay)
 clay_rng = random.Random(SEED * 7 + 19)
 for x, y in ALL:
@@ -809,6 +924,35 @@ for x, y in ALL:
     feature[i] = f
 for i in FORD:
     feature[i] = 'RIVER_FORD'
+for i in HIDDEN:
+    if land[i] and plot_type[i] != 0:
+        x, y = i % W, i // W
+        r = rng.random()
+        if near_large(x, y) and r < 0.45:
+            feature[i] = 'LUSHGRASS' if plot_type[i] == 2 else 'MEADOW'
+        elif r < 0.6:
+            feature[i] = pick([(3, 'FOREST'), (1, 'LIGHT_FOREST')])
+        else:
+            feature[i] = None
+for i in OASIS_RING:
+    r = rng.random()
+    feature[i] = ('SHRUB' if r < 0.4 else ('LIGHT_FOREST' if r < 0.6 else None)) if terrain[i] == 'SHRUBLAND' else ('LIGHT_FOREST' if r < 0.4 else None)
+for i in LAKE_GREEN:
+    r = rng.random()
+    if terrain[i] == 'SAVANNAH':
+        feature[i] = 'TROPICAL_GROVES' if r < 0.45 else ('LUSHGRASS' if r < 0.55 and plot_type[i] == 2 else None)
+    elif terrain[i] == 'PLAINS':
+        feature[i] = 'LIGHT_FOREST' if r < 0.35 else ('LUSHGRASS' if r < 0.5 and plot_type[i] == 2 else None)
+    else:
+        feature[i] = 'SHRUB' if r < 0.4 else ('LIGHT_FOREST' if r < 0.55 else None)
+SALT_PANS = []
+salt = [I(x, y) for x, y in ALL if land[I(x, y)] and plot_type[I(x, y)] == 2 and terrain[I(x, y)] in ('DESERT', 'ROCK_STEPPES') and feature[I(x, y)] is None
+        and I(x, y) in BASIN and not near_large(x, y)]
+rng.shuffle(salt)
+for i in salt:
+    if len(SALT_PANS) < 3 and all(math.hypot(i % W - j % W, i // W - j // W) >= 2.5 for j in SALT_PANS):
+        SALT_PANS.append(i)
+        feature[i] = 'SALT_PAN'
 
 # volcanoes: Etna, Vesuvius, a volcanic Aegean island and the Teide (FEATURE_VOLCANO sits on flat land, hills around the cone)
 VOLCANOES = []
@@ -842,6 +986,7 @@ FCH = {'FOREST': 'F', 'LIGHT_FOREST': 'F', 'THICKET': 'F', 'FOREST_EVERGREEN': '
 
 dland = bfs_dist([i for i in range(W * H) if not ocean[i]], lambda j: True)
 EUROPE = [ocean[i] and i % W >= W - 16 and dland[i] >= 5 for i in range(W * H)]      # Atlantic: Europe plots, at least 5 tiles from land
+PACIFIC = [ocean[i] and i % W < 4 for i in range(W * H)]                              # the four added columns on the left
 
 
 def ascii_terrain(x, y):
@@ -851,7 +996,7 @@ def ascii_terrain(x, y):
     if lake[i]:
         return 'L'
     if ocean[i]:
-        return ':' if EUROPE[i] else '.'
+        return ':' if EUROPE[i] else (';' if PACIFIC[i] else '.')
     if plot_type[i] == 0:
         return '^'
     c = TCH[terrain[i]]
@@ -865,7 +1010,7 @@ def ascii_features(x, y):
     if lake[i]:
         return 'L'
     if ocean[i]:
-        return ':' if EUROPE[i] else '.'
+        return ':' if EUROPE[i] else (';' if PACIFIC[i] else '.')
     if plot_type[i] == 0:
         return '^'
     f = feature[i]
@@ -926,6 +1071,7 @@ if __name__ == '__main__':
         f.write(ascii_map(ascii_features) + '\n')
     write_preview(os.path.join(OUT, 'preview.png'))
     nl = sum(land)
+    print('rivers thinned', RIVERS_THINNED, 'oases', OASES, 'salt pans', len(SALT_PANS))
     print('land %d (%.0f%%)' % (nl, 100.0 * nl / (W * H)), 'large river plots', sum(large), 'lakes', sum(lake), 'clay scatter', len(CLAY_SCATTER), 'lone hills', len(LONE))
     print(sorted(Counter(terrain[i] for i in range(W * H) if land[i]).items(), key=lambda kv: -kv[1]))
     print(sorted(Counter(feature[i] for i in range(W * H) if feature[i]).items(), key=lambda kv: -kv[1]))
