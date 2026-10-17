@@ -36,7 +36,7 @@ Copy the generated `.ColonizationWBSave` to `PrivateMaps/` and restart Colonizat
 
 ## Flipped Europe (`gen_eporue.py`, draft)
 
-Second map, work in progress: Europe turned by 180 degrees (Atlantic in the east = Europe side, Scandinavia in the south, Mediterranean with a strip of North Africa in the north), 95x115, same style rules as above. Real coastlines are drawn in lon/lat and projected (`SX`, `SY`); the climate is a free, slightly warmer variant (`LAT_SHIFT`). So far: land mask with seas and straits, ranges with passes, lakes, large rivers with fords, climate, biomes, clay hills, features, volcanoes, and an ASCII preview.
+Second map, work in progress: Europe turned by 180 degrees (Atlantic in the east = Europe side, Scandinavia in the south, Mediterranean with a strip of North Africa in the north), 99x115, same style rules as above. Real coastlines are drawn in lon/lat and projected (`SX`, `SY`); the climate is a free, slightly warmer variant (`LAT_SHIFT`). So far: land mask with seas and straits, ranges with passes, lakes, large rivers with fords, climate, biomes, clay hills, features, volcanoes, and an ASCII preview.
 
 ```
 python Tools/MapGenerator/gen_eporue.py [seed] [output dir]    # writes ascii_terrain.txt, ascii_features.txt, preview.png
