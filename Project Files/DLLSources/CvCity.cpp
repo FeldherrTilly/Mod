@@ -15772,16 +15772,22 @@ int CvCity::getExportAvailable(YieldTypes eYield) const
 }
 
 // WTP: trade route presets of the city screen (TASK_TRADEROUTE_PRESET). 0: building material: clay, stone and tools imported
-// with the feeder (at least 100, at most 150), horses, sailcloth, hardwood and rope as well; 1 and 2: the goods the domestic
-// market of the colony asks for, imported with the feeder (20/20 or 40/40). Export settings stay as they are
+// with the feeder (at least 100, at most 150); horses, sailcloth, hardwood and rope imported with the feeder, their levels
+// unchanged; 1 and 2: the goods the domestic market of the colony asks for, imported with the feeder (20/20 or 40/40). Export
+// settings stay as they are
 void CvCity::applyTradeRoutePreset(int iPreset)
 {
 	if (iPreset == 0)
 	{
-		const YieldTypes aeYields[7] = { YIELD_CLAY, YIELD_STONE, YIELD_TOOLS, YIELD_HORSES, YIELD_SAILCLOTH, YIELD_HARDWOOD, YIELD_ROPE };
-		for (int i = 0; i < 7; ++i)
+		const YieldTypes aeMaterial[3] = { YIELD_CLAY, YIELD_STONE, YIELD_TOOLS };
+		for (int i = 0; i < 3; ++i)
 		{
-			setImportFeeder(aeYields[i], 100, 150);
+			setImportFeeder(aeMaterial[i], 100, 150);
+		}
+		const YieldTypes aeOther[4] = { YIELD_HORSES, YIELD_SAILCLOTH, YIELD_HARDWOOD, YIELD_ROPE };
+		for (int i = 0; i < 4; ++i)
+		{
+			setImportFeeder(aeOther[i], getMaintainLevel(aeOther[i]), getImportsLimit(aeOther[i]));
 		}
 	}
 	else if (iPreset == 1 || iPreset == 2)

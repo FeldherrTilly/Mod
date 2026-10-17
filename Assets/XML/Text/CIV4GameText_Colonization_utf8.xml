@@ -2367,14 +2367,14 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_TRADEROUTE_PRESET_BUILD_HELP</Tag>
-		<English>Import building material with the feeder: clay, stone, tools, horses, sailcloth, hardwood and rope (keep at least 100, import at most 150). Export settings stay as they are.</English>
-		<Portuguese>Importar material de construção com o alimentador: argila, pedra, ferramentas, cavalos, lona, madeira de lei e cordas (manter pelo menos 100, importar no máximo 150). As configurações de exportação ficam como estão.</Portuguese>
-		<French>Importer les matériaux avec l'approvisionnement : argile, pierre, outils, chevaux, toile, bois dur et cordes (garder au moins 100, importer au plus 150). Les réglages d'exportation restent inchangés.</French>
-		<German>Baumaterial mit Feeder importieren: Lehm, Stein, Werkzeug, Pferde, Segeltuch, Hartholz und Seile (mindestens 100 halten, höchstens 150 importieren). Export-Einstellungen bleiben unverändert.</German>
-		<Italian>Importa materiali edili con il rifornimento: argilla, pietra, attrezzi, cavalli, tela, legno duro e corde (mantieni almeno 100, importa al massimo 150). Le impostazioni di esportazione restano invariate.</Italian>
-		<Spanish>Importar materiales con el abastecimiento: arcilla, piedra, herramientas, caballos, lona, madera dura y cuerdas (mantener al menos 100, importar como máximo 150). La configuración de exportación no cambia.</Spanish>
-		<Russian>Импорт стройматериалов с подвозом: глина, камень, инструменты, лошади, парусина, твёрдая древесина и канаты (держать не меньше 100, ввозить не больше 150). Настройки экспорта не меняются.</Russian>
-		<Hungarian>Építőanyag importja utánpótlással: agyag, kő, szerszám, ló, vitorlavászon, keményfa és kötél (legalább 100 megtartása, legfeljebb 150 import). Az export beállítások nem változnak.</Hungarian>
+		<English>Import building material with the feeder: clay, stone and tools (keep at least 100, import at most 150); horses, sailcloth, hardwood and rope with their levels unchanged. Export settings stay as they are.</English>
+		<Portuguese>Importar material de construção com o alimentador: argila, pedra e ferramentas (manter pelo menos 100, importar no máximo 150); cavalos, lona, madeira de lei e cordas com os limites inalterados. As configurações de exportação ficam como estão.</Portuguese>
+		<French>Importer les matériaux avec l'approvisionnement : argile, pierre et outils (garder au moins 100, importer au plus 150) ; chevaux, toile, bois dur et cordes avec leurs seuils inchangés. Les réglages d'exportation restent inchangés.</French>
+		<German>Baumaterial mit Feeder importieren: Lehm, Stein und Werkzeug (mindestens 100 halten, höchstens 150 importieren); Pferde, Segeltuch, Hartholz und Seile mit unveränderten Grenzen. Export-Einstellungen bleiben unverändert.</German>
+		<Italian>Importa materiali edili con il rifornimento: argilla, pietra e attrezzi (mantieni almeno 100, importa al massimo 150); cavalli, tela, legno duro e corde con i limiti invariati. Le impostazioni di esportazione restano invariate.</Italian>
+		<Spanish>Importar materiales con el abastecimiento: arcilla, piedra y herramientas (mantener al menos 100, importar como máximo 150); caballos, lona, madera dura y cuerdas con sus límites sin cambios. La configuración de exportación no cambia.</Spanish>
+		<Russian>Импорт стройматериалов с подвозом: глина, камень и инструменты (держать не меньше 100, ввозить не больше 150); лошади, парусина, твёрдая древесина и канаты — с прежними пределами. Настройки экспорта не меняются.</Russian>
+		<Hungarian>Építőanyag importja utánpótlással: agyag, kő és szerszám (legalább 100 megtartása, legfeljebb 150 import); ló, vitorlavászon, keményfa és kötél változatlan határokkal. Az export beállítások nem változnak.</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_TRADEROUTE_PRESET_MARKET_20_HELP</Tag>
