@@ -20112,6 +20112,61 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			kOpen.bAfrica = false;
 			m_aWfOpenOpportunities.push_back(kOpen);
 		}
+		// African slaves (bought in Africa) for the cotton, tobacco, indigo and sugar plots, by value per price like the experts
+		// (user 2026-10-17: not for other jobs, the unhappiness they cause does not matter to the AI, more would be too strong)
+		{
+			const UnitTypes eSlave = AI_africaFoodWorker();
+			const int iSlavePrice = (eSlave != NO_UNIT) ? getAfricaUnitBuyPrice(eSlave) : -1;
+			const UnitClassTypes eSlaveClass = (eSlave != NO_UNIT) ? (UnitClassTypes)GC.getUnitInfo(eSlave).getUnitClassType() : NO_UNITCLASS;
+			for (int j = 0; j < iNumJobs && iSlavePrice > 0; ++j)
+			{
+				const WfJob& kJob = aJobs[j];
+				if (kJob.pPlot == NULL || !(kJob.eYield == YIELD_COTTON || kJob.eYield == YIELD_TOBACCO || kJob.eYield == YIELD_INDIGO || kJob.eYield == YIELD_SUGAR))
+				{
+					continue;
+				}
+				if ((kJob.iHolder >= 0 && (aWorkers[kJob.iHolder].bLearning || aWorkers[kJob.iHolder].bExpert)) || (kJob.iHolder < 0 && !WF_IS_FREE_JOB(j)))
+				{
+					continue;
+				}
+				const int iOutput = wfOutput(*kJob.pCity, kJob.eProfession, eSlave, kJob.pPlot);
+				const int iSlaveGold = wfYieldGold(*kJob.pCity, kJob.eYield, iOutput, kJob.iSlot);
+				const int iSlaveFood = wfFoodOutput(kJob.eProfession, iOutput);
+				const WfCity& kCity = aCities[kJob.iCity];
+				int iGain;
+				if (kJob.iHolder >= 0)
+				{
+					// replaces the regular colonist, who is free for another job then (+12 gold, as for experts)
+					const int iT = WF_TYPE(kJob.iHolder, j);
+					if (aWorkers[kJob.iHolder].pUnit->getUnitType() == eSlave || iSlaveGold <= aiGold[iT * iNumJobs + j])
+					{
+						continue; // only a slave that produces more than the colonist in the job
+					}
+					iGain = iSlaveGold - aiGold[iT * iNumJobs + j] + wfFoodGold(kCity.iSurplus, iSlaveFood - aiFood[iT * iNumJobs + j]) + 1200;
+				}
+				else if (kCity.iSurplus + iSlaveFood - iConsumption >= WF_FOOD_MIN)
+				{
+					iGain = iSlaveGold + wfFoodGold(kCity.iSurplus, iSlaveFood - iConsumption);
+				}
+				else
+				{
+					continue;
+				}
+				if (iGain <= 0 || iGain * 30 < iSlavePrice * 100)
+				{
+					continue;
+				}
+				WfOpenOpportunity kOpen;
+				kOpen.iCityID = kJob.pCity->getID();
+				kOpen.eProfession = kJob.eProfession;
+				kOpen.iPlotIndex = kJob.iPlotKey;
+				kOpen.eExpertClass = eSlaveClass;
+				kOpen.iValue = iGain;
+				kOpen.iPrice = iSlavePrice;
+				kOpen.bAfrica = true;
+				m_aWfOpenOpportunities.push_back(kOpen);
+			}
+		}
 		// food providers: an expert farmer or fisherman for the best free food plot of a colony whose jobs lack food
 		for (int c = 0; c < iNumCities; ++c)
 		{
