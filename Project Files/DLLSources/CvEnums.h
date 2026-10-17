@@ -716,6 +716,7 @@ enum TaskTypes
 	// Teacher List - end - Nightinggale
 	TASK_YIELD_TRADEROUTE, // transport feeder - Nightinggale
 	TASK_AUTO_TRADEROUTE, // auto traderoute - Nightinggale
+	TASK_TRADEROUTE_PRESET, // WTP: trade route presets of the city screen
 	TASK_CHOOSE_CITY_PLOT_YIELD,
 	// WTP, Slave Emancipation
 	TASK_GRANT_FREEDOM,

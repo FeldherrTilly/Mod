@@ -788,6 +788,9 @@ public:
 	int getMaintainLevel(YieldTypes eYield) const;
 	// R&R mod, vetiarvind, max yield import limit - Start
 	void setImportsLimit(YieldTypes eYield, int iValue);
+	// WTP: trade route presets of the city screen
+	void applyTradeRoutePreset(int iPreset);
+	void setImportFeeder(YieldTypes eYield, int iMaintainLevel, int iImportLimit);
 	int getImportsLimit(YieldTypes eYield) const;
 	// R&R mod, vetiarvind, max yield import limit - End
 	// R&R, ray, finishing Custom House Screen START

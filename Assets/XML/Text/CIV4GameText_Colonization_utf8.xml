@@ -2333,6 +2333,72 @@
 		<Hungarian>%s1 átadja a helyét %s2 kolóniában %s3 számára, és a kolónia mezőjén áll.</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_TRADEROUTE_PRESET_BUILD</Tag>
+		<English>Building material</English>
+		<Portuguese>Material de construção</Portuguese>
+		<French>Matériaux</French>
+		<German>Baumaterial</German>
+		<Italian>Materiali edili</Italian>
+		<Spanish>Materiales</Spanish>
+		<Russian>Стройматериалы</Russian>
+		<Hungarian>Építőanyag</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRADEROUTE_PRESET_MARKET_20</Tag>
+		<English>Market 20</English>
+		<Portuguese>Mercado 20</Portuguese>
+		<French>Marché 20</French>
+		<German>Markt 20</German>
+		<Italian>Mercato 20</Italian>
+		<Spanish>Mercado 20</Spanish>
+		<Russian>Рынок 20</Russian>
+		<Hungarian>Piac 20</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRADEROUTE_PRESET_MARKET_40</Tag>
+		<English>Market 40</English>
+		<Portuguese>Mercado 40</Portuguese>
+		<French>Marché 40</French>
+		<German>Markt 40</German>
+		<Italian>Mercato 40</Italian>
+		<Spanish>Mercado 40</Spanish>
+		<Russian>Рынок 40</Russian>
+		<Hungarian>Piac 40</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRADEROUTE_PRESET_BUILD_HELP</Tag>
+		<English>Import building material with the feeder: clay, stone, tools, horses, sailcloth, hardwood and rope (keep at least 100, import at most 150). Export settings stay as they are.</English>
+		<Portuguese>Importar material de construção com o alimentador: argila, pedra, ferramentas, cavalos, lona, madeira de lei e cordas (manter pelo menos 100, importar no máximo 150). As configurações de exportação ficam como estão.</Portuguese>
+		<French>Importer les matériaux avec l'approvisionnement : argile, pierre, outils, chevaux, toile, bois dur et cordes (garder au moins 100, importer au plus 150). Les réglages d'exportation restent inchangés.</French>
+		<German>Baumaterial mit Feeder importieren: Lehm, Stein, Werkzeug, Pferde, Segeltuch, Hartholz und Seile (mindestens 100 halten, höchstens 150 importieren). Export-Einstellungen bleiben unverändert.</German>
+		<Italian>Importa materiali edili con il rifornimento: argilla, pietra, attrezzi, cavalli, tela, legno duro e corde (mantieni almeno 100, importa al massimo 150). Le impostazioni di esportazione restano invariate.</Italian>
+		<Spanish>Importar materiales con el abastecimiento: arcilla, piedra, herramientas, caballos, lona, madera dura y cuerdas (mantener al menos 100, importar como máximo 150). La configuración de exportación no cambia.</Spanish>
+		<Russian>Импорт стройматериалов с подвозом: глина, камень, инструменты, лошади, парусина, твёрдая древесина и канаты (держать не меньше 100, ввозить не больше 150). Настройки экспорта не меняются.</Russian>
+		<Hungarian>Építőanyag importja utánpótlással: agyag, kő, szerszám, ló, vitorlavászon, keményfa és kötél (legalább 100 megtartása, legfeljebb 150 import). Az export beállítások nem változnak.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRADEROUTE_PRESET_MARKET_20_HELP</Tag>
+		<English>Import all goods the market of this colony asks for with the feeder (keep at least 20, import at most 20). Export settings stay as they are.</English>
+		<Portuguese>Importar com o alimentador todos os bens que o mercado desta colônia procura (manter pelo menos 20, importar no máximo 20). As configurações de exportação ficam como estão.</Portuguese>
+		<French>Importer avec l'approvisionnement toutes les marchandises demandées par le marché de cette colonie (garder au moins 20, importer au plus 20). Les réglages d'exportation restent inchangés.</French>
+		<German>Alle Waren, die der Markt dieser Kolonie nachfragt, mit Feeder importieren (mindestens 20 halten, höchstens 20 importieren). Export-Einstellungen bleiben unverändert.</German>
+		<Italian>Importa con il rifornimento tutte le merci richieste dal mercato di questa colonia (mantieni almeno 20, importa al massimo 20). Le impostazioni di esportazione restano invariate.</Italian>
+		<Spanish>Importar con el abastecimiento todos los bienes que pide el mercado de esta colonia (mantener al menos 20, importar como máximo 20). La configuración de exportación no cambia.</Spanish>
+		<Russian>Импорт с подвозом всех товаров, которые спрашивает рынок этой колонии (держать не меньше 20, ввозить не больше 20). Настройки экспорта не меняются.</Russian>
+		<Hungarian>A kolónia piaca által keresett összes áru importja utánpótlással (legalább 20 megtartása, legfeljebb 20 import). Az export beállítások nem változnak.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRADEROUTE_PRESET_MARKET_40_HELP</Tag>
+		<English>Import all goods the market of this colony asks for with the feeder (keep at least 40, import at most 40). Export settings stay as they are.</English>
+		<Portuguese>Importar com o alimentador todos os bens que o mercado desta colônia procura (manter pelo menos 40, importar no máximo 40). As configurações de exportação ficam como estão.</Portuguese>
+		<French>Importer avec l'approvisionnement toutes les marchandises demandées par le marché de cette colonie (garder au moins 40, importer au plus 40). Les réglages d'exportation restent inchangés.</French>
+		<German>Alle Waren, die der Markt dieser Kolonie nachfragt, mit Feeder importieren (mindestens 40 halten, höchstens 40 importieren). Export-Einstellungen bleiben unverändert.</German>
+		<Italian>Importa con il rifornimento tutte le merci richieste dal mercato di questa colonia (mantieni almeno 40, importa al massimo 40). Le impostazioni di esportazione restano invariate.</Italian>
+		<Spanish>Importar con el abastecimiento todos los bienes que pide el mercado de esta colonia (mantener al menos 40, importar como máximo 40). La configuración de exportación no cambia.</Spanish>
+		<Russian>Импорт с подвозом всех товаров, которые спрашивает рынок этой колонии (держать не меньше 40, ввозить не больше 40). Настройки экспорта не меняются.</Russian>
+		<Hungarian>A kolónia piaca által keresett összes áru importja utánpótlással (legalább 40 megtartása, legfeljebb 40 import). Az export beállítások nem változnak.</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_ACTION_AUTOMATE_FULL_HELP</Tag>
 		<English>Automate this unit</English>
 		<Portuguese>Automatizar unidade</Portuguese>

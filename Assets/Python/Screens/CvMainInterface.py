@@ -1754,6 +1754,9 @@ class CvMainInterface:
 		screen.hide("ExportTradeRouteText")
 		screen.hide("ImportButton")
 		screen.hide("ExportButton")
+		# WTP: trade route presets
+		for iPreset in range(3):
+			screen.hide("TradeRoutePreset" + str(iPreset))
 		# teacher list - start - Nightinggale
 		screen.hide("TeacherListButton")
 		# teacher list - end - Nightinggale
@@ -1874,7 +1877,14 @@ class CvMainInterface:
 
 				#screen.setButtonGFC("ImportButton", self.setFontSize(localText.getText("TXT_KEY_DEMO_SCREEN_IMPORTS_TEXT", ()), 1), "", CITIZEN_BAR_WIDTH + (MAP_EDGE_MARGIN_WIDTH * 2), CITY_TITLE_BAR_HEIGHT + CITY_VIEW_BOX_HEIGHT_AND_WIDTH, BUILD_AREA_WIDTH - MEDIUM_BUTTON_SIZE, 3 * STACK_BAR_HEIGHT / 2, WidgetTypes.WIDGET_YIELD_IMPORT_EXPORT, true, -1, ButtonStyles.BUTTON_STYLE_STANDARD)
 				# R&R, Robert Surcouf, Custom House Popup-Screen END
-				screen.addTableControlGFC("ImportTradeRouteText", 1, CITIZEN_BAR_WIDTH + (MAP_EDGE_MARGIN_WIDTH * 2), CITY_TITLE_BAR_HEIGHT + CITY_VIEW_BOX_HEIGHT_AND_WIDTH + 3 * STACK_BAR_HEIGHT / 2, BUILD_AREA_WIDTH, TRANSPORT_AREA_HEIGHT - (STACK_BAR_HEIGHT * 3), False, False, MEDIUM_BUTTON_SIZE, MEDIUM_BUTTON_SIZE, TableStyles.TABLE_STYLE_STANDARD)
+				# WTP: trade route presets: a row of three buttons below the import and export tables (the tables are shorter by it)
+				iPresetHeight = 3 * STACK_BAR_HEIGHT / 2
+				iTradeTableHeight = TRANSPORT_AREA_HEIGHT - (STACK_BAR_HEIGHT * 3) - iPresetHeight
+				iPresetY = CITY_TITLE_BAR_HEIGHT + CITY_VIEW_BOX_HEIGHT_AND_WIDTH + 3 * STACK_BAR_HEIGHT / 2 + iTradeTableHeight
+				iPresetWidth = (2 * BUILD_AREA_WIDTH) / 3
+				for iPreset, szKey in enumerate(["TXT_KEY_TRADEROUTE_PRESET_BUILD", "TXT_KEY_TRADEROUTE_PRESET_MARKET_20", "TXT_KEY_TRADEROUTE_PRESET_MARKET_40"]):
+					screen.setButtonGFC("TradeRoutePreset" + str(iPreset), self.setFontSize(localText.getText(szKey, ()), 1), "", CITIZEN_BAR_WIDTH + (MAP_EDGE_MARGIN_WIDTH * 2) + iPreset * iPresetWidth, iPresetY, iPresetWidth, iPresetHeight, WidgetTypes.WIDGET_TRADEROUTE_PRESET, iPreset, -1, ButtonStyles.BUTTON_STYLE_STANDARD)
+				screen.addTableControlGFC("ImportTradeRouteText", 1, CITIZEN_BAR_WIDTH + (MAP_EDGE_MARGIN_WIDTH * 2), CITY_TITLE_BAR_HEIGHT + CITY_VIEW_BOX_HEIGHT_AND_WIDTH + 3 * STACK_BAR_HEIGHT / 2, BUILD_AREA_WIDTH, iTradeTableHeight, False, False, MEDIUM_BUTTON_SIZE, MEDIUM_BUTTON_SIZE, TableStyles.TABLE_STYLE_STANDARD)
 				screen.setStyle("ImportTradeRouteText", "Table_EmptyScroll_Style")
 
 				# R&R, Robert Surcouf, Custom House Popup-Screen START
@@ -1883,7 +1893,7 @@ class CvMainInterface:
 				# R&R mod, vetiarvind, max yield import limit - end
 				#screen.setButtonGFC("ExportButton", self.setFontSize(localText.getText("TXT_KEY_DEMO_SCREEN_EXPORTS_TEXT", ()), 1), "", CITIZEN_BAR_WIDTH + (MAP_EDGE_MARGIN_WIDTH * 2) + BUILD_AREA_WIDTH, CITY_TITLE_BAR_HEIGHT + CITY_VIEW_BOX_HEIGHT_AND_WIDTH, BUILD_AREA_WIDTH - MEDIUM_BUTTON_SIZE, 3 * STACK_BAR_HEIGHT / 2, WidgetTypes.WIDGET_YIELD_IMPORT_EXPORT, False, -1, ButtonStyles.BUTTON_STYLE_STANDARD)
 				# R&R, Robert Surcouf, Custom House Popup-Screen END
-				screen.addTableControlGFC("ExportTradeRouteText", 1, CITIZEN_BAR_WIDTH + (MAP_EDGE_MARGIN_WIDTH * 2) + BUILD_AREA_WIDTH, CITY_TITLE_BAR_HEIGHT + CITY_VIEW_BOX_HEIGHT_AND_WIDTH + 3 * STACK_BAR_HEIGHT / 2, BUILD_AREA_WIDTH, TRANSPORT_AREA_HEIGHT - (STACK_BAR_HEIGHT * 3), False, False, MEDIUM_BUTTON_SIZE, MEDIUM_BUTTON_SIZE, TableStyles.TABLE_STYLE_STANDARD)
+				screen.addTableControlGFC("ExportTradeRouteText", 1, CITIZEN_BAR_WIDTH + (MAP_EDGE_MARGIN_WIDTH * 2) + BUILD_AREA_WIDTH, CITY_TITLE_BAR_HEIGHT + CITY_VIEW_BOX_HEIGHT_AND_WIDTH + 3 * STACK_BAR_HEIGHT / 2, BUILD_AREA_WIDTH, iTradeTableHeight, False, False, MEDIUM_BUTTON_SIZE, MEDIUM_BUTTON_SIZE, TableStyles.TABLE_STYLE_STANDARD)
 				screen.setStyle("ExportTradeRouteText", "Table_EmptyScroll_Style")
 
 				for iYield in range(YieldTypes.NUM_YIELD_TYPES):

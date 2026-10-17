@@ -967,6 +967,11 @@ void CvCity::doTask(TaskTypes eTask, int iData1, int iData2, bool bOption, bool 
 		break;
 	// transport feeder - end - Nightinggale
 
+	// WTP: trade route presets of the city screen
+	case TASK_TRADEROUTE_PRESET:
+		applyTradeRoutePreset(iData1);
+		break;
+
 	// auto traderoute - start - Nightinggale
 	case TASK_AUTO_TRADEROUTE:
 		handleAutoTraderouteSetup(bOption, bAlt, bShift);
@@ -15764,4 +15769,42 @@ int CvCity::getExportAvailable(YieldTypes eYield) const
 
 	return std::max(0, getYieldStored(eYield)
 		- getAutoMaintainThreshold(eYield));
+}
+
+// WTP: trade route presets of the city screen (TASK_TRADEROUTE_PRESET). 0: building material: clay, stone and tools imported
+// with the feeder (at least 100, at most 150), horses, sailcloth, hardwood and rope as well; 1 and 2: the goods the domestic
+// market of the colony asks for, imported with the feeder (20/20 or 40/40). Export settings stay as they are
+void CvCity::applyTradeRoutePreset(int iPreset)
+{
+	if (iPreset == 0)
+	{
+		const YieldTypes aeYields[7] = { YIELD_CLAY, YIELD_STONE, YIELD_TOOLS, YIELD_HORSES, YIELD_SAILCLOTH, YIELD_HARDWOOD, YIELD_ROPE };
+		for (int i = 0; i < 7; ++i)
+		{
+			setImportFeeder(aeYields[i], 100, 150);
+		}
+	}
+	else if (iPreset == 1 || iPreset == 2)
+	{
+		const int iLevel = (iPreset == 1) ? 20 : 40;
+		YieldCargoArray<int> aiDemand;
+		getYieldDemands(aiDemand);
+		for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
+		{
+			if (aiDemand.get(eYield) > 0)
+			{
+				setImportFeeder(eYield, iLevel, iLevel);
+			}
+		}
+	}
+}
+
+// WTP: import with the feeder: the transports keep at least iMaintainLevel in the colony and bring at most iImportLimit; the
+// export and auto export settings of the yield stay as they are
+void CvCity::setImportFeeder(YieldTypes eYield, int iMaintainLevel, int iImportLimit)
+{
+	NetworkDataTradeRouteInts buffer;
+	buffer.iImportLimitLevel = (unsigned short)iImportLimit;
+	buffer.iMaintainLevel = (unsigned short)iMaintainLevel;
+	doTask(TASK_YIELD_TRADEROUTE, eYield, buffer.iNetwork, true, isExport(eYield), true, isAutoExport(eYield));
 }
