@@ -23942,6 +23942,35 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 			{
 				++mapIncoming[kOther.AI_getWfCityID()];
 			}
+	// the jobs other colonists with the job automation are on their way to: their plots, their building slots (per colony and
+	// building) and the colonists they replace
+	std::set<std::pair<int, int> > aReservedPlots; // (city ID, plot number)
+	std::map<std::pair<int, int>, int> mapReservedSlots; // (city ID, special building) -> colonists on their way
+	std::set<int> aReplaced; // unit IDs
+	{
+		int iUnitLoop;
+		for (CvUnit* pLoopUnit = firstUnit(&iUnitLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iUnitLoop))
+		{
+			const CvUnitAI& kOther = static_cast<const CvUnitAI&>(*pLoopUnit);
+			if (pLoopUnit == &kUnit || kOther.AI_getWfTask() != CvUnitAI::WF_ASSIGN || kOther.AI_getWfProfession() == NO_PROFESSION)
+			{
+				continue;
+			}
+			if (kOther.AI_getWfPlotX() >= 0)
+			{
+				aReservedPlots.insert(std::make_pair(kOther.AI_getWfCityID(), GC.getMap().plotNumINLINE(kOther.AI_getWfPlotX(), kOther.AI_getWfPlotY())));
+			}
+			else
+			{
+				++mapReservedSlots[std::make_pair(kOther.AI_getWfCityID(), GC.getProfessionInfo(kOther.AI_getWfProfession()).getSpecialBuilding())];
+			}
+			if (kOther.AI_getWfVillageX() >= 0)
+			{
+				aReplaced.insert(kOther.AI_getWfVillageX());
+			}
+		}
+	}
+
 	std::vector<ProfessionTypes> aePlot;
 	std::vector<ProfessionTypes> aeBuilding;
 	for (ProfessionTypes eProfession = FIRST_PROFESSION; eProfession < NUM_PROFESSION_TYPES; ++eProfession)
@@ -23995,6 +24024,11 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 				continue;
 			}
 			CvUnit* const pHolder = pCity->getUnitWorkingPlot(eLoopCityPlot);
+			if (aReservedPlots.count(std::make_pair(pCity->getID(), GC.getMap().plotNumINLINE(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()))) > 0
+				|| (pHolder != NULL && aReplaced.count(pHolder->getID()) > 0))
+			{
+				continue;
+			}
 			if (pHolder == NULL && !pCity->canWork(pLoopPlot))
 			{
 				continue;
@@ -24069,16 +24103,21 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 			{
 				continue;
 			}
+			// the slots of the building are shared by all its professions (coffee, cocoa and peanut roasters, ...)
 			const int iSlots = pCity->getNumProfessionBuildingSlots(eProfession);
-			int iUsed = 0;
+			const int iSpecial = kProfession.getSpecialBuilding();
+			const std::map<std::pair<int, int>, int>::const_iterator itReserved = mapReservedSlots.find(std::make_pair(pCity->getID(), iSpecial));
+			int iUsed = (itReserved != mapReservedSlots.end()) ? itReserved->second : 0;
 			CvUnit* pRegular = NULL;
 			for (int iPop = 0; iPop < pCity->getPopulation(); ++iPop)
 			{
 				CvUnit* const pCitizen = pCity->getPopulationUnitByIndex(iPop);
-				if (pCitizen != NULL && pCitizen->getProfession() == eProfession)
+				if (pCitizen != NULL && pCitizen->getProfession() != NO_PROFESSION && GC.getProfessionInfo(pCitizen->getProfession()).getSpecialBuilding() == iSpecial
+					&& !GC.getProfessionInfo(pCitizen->getProfession()).isWorkPlot())
 				{
 					++iUsed;
-					if (pRegular == NULL && !wfIsExpertFor(static_cast<const CvUnitAI&>(*pCitizen), eProfession))
+					if (pRegular == NULL && pCitizen->getProfession() == eProfession && !wfIsExpertFor(static_cast<const CvUnitAI&>(*pCitizen), eProfession)
+						&& aReplaced.count(pCitizen->getID()) == 0)
 					{
 						pRegular = pCitizen;
 					}
@@ -24285,14 +24324,17 @@ bool CvPlayerAI::AI_humanSeat(CvUnit& kUnit, CvCity& kCity, ProfessionTypes ePro
 	}
 	else
 	{
+		// the slots of the building are shared by all its professions
+		const int iSpecial = GC.getProfessionInfo(eProfession).getSpecialBuilding();
 		int iUsed = 0;
 		for (int iPop = 0; iPop < kCity.getPopulation(); ++iPop)
 		{
 			CvUnit* const pCitizen = kCity.getPopulationUnitByIndex(iPop);
-			if (pCitizen != NULL && pCitizen->getProfession() == eProfession)
+			if (pCitizen != NULL && pCitizen->getProfession() != NO_PROFESSION && GC.getProfessionInfo(pCitizen->getProfession()).getSpecialBuilding() == iSpecial
+				&& !GC.getProfessionInfo(pCitizen->getProfession()).isWorkPlot())
 			{
 				++iUsed;
-				if (pCitizen->getID() == iDisplaceID)
+				if (pCitizen->getID() == iDisplaceID && pCitizen->getProfession() == eProfession)
 				{
 					pDisplaced = pCitizen;
 				}
