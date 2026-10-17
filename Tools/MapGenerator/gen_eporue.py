@@ -1030,7 +1030,7 @@ FCH = {'FOREST': 'F', 'LIGHT_FOREST': 'F', 'THICKET': 'F', 'FOREST_EVERGREEN': '
 
 
 dland = bfs_dist([i for i in range(W * H) if not ocean[i]], lambda j: True)
-EUROPE = [ocean[i] and i % W >= W - 16 and dland[i] >= 5 for i in range(W * H)]      # Atlantic: Europe plots, at least 5 tiles from land
+EUROPE = [ocean[i] and i % W >= W - 14 and dland[i] >= 8 for i in range(W * H)]      # Atlantic: Europe plots, 8 tiles from land
 PACIFIC = [ocean[i] and i % W < 4 for i in range(W * H)]                              # the four added columns on the left
 
 
