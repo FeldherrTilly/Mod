@@ -172,13 +172,10 @@ def main():
 	if os.path.exists(ini):
 		with open(ini) as f:
 			text = f.read()
-		if 'Name = Mod
-' in text:
+		if 'Name = Mod\n' in text:
 			stat = os.stat(os.path.join(src_root, 'Mod.ini'))
 			with open(ini, 'w') as f:
-				f.write(text.replace('Name = Mod
-', 'Name = WTP (play)
-'))
+				f.write(text.replace('Name = Mod\n', 'Name = WTP (play)\n'))
 			# keeps the time of the original: no copy on the next run unless the original changes
 			os.utime(ini, (stat.st_atime, stat.st_mtime))
 
