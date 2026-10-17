@@ -23409,7 +23409,7 @@ bool CvPlayerAI::AI_humanSeat(CvUnit& kUnit, CvCity& kCity, ProfessionTypes ePro
 		{
 			pDisplaced->AI_setUnitAIType(UNITAI_COLONIST);
 			CvWString szBuffer = gDLL->getText("TXT_KEY_AUTO_ASSIGN_DISPLACED", pDisplaced->getNameKey(), kCity.getNameKey(), kUnit.getNameKey());
-			gDLL->UI().addPlayerMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_REVOLTEND", MESSAGE_TYPE_INFO, pDisplaced->getButton(), COLOR_WHITE, kCity.getX_INLINE(), kCity.getY_INLINE());
+			gDLL->UI().addPlayerMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, pDisplaced->getButton(), COLOR_WHITE, kCity.getX_INLINE(), kCity.getY_INLINE());
 		}
 	}
 	if (kUnit.canHaveProfession(eProfession, false))
@@ -23422,6 +23422,6 @@ bool CvPlayerAI::AI_humanSeat(CvUnit& kUnit, CvCity& kCity, ProfessionTypes ePro
 	}
 	kUnit.setColonistLocked(true);
 	CvWString szBuffer = gDLL->getText("TXT_KEY_AUTO_ASSIGN_JOINED", kUnit.getNameKey(), GC.getProfessionInfo(eProfession).getTextKeyWide(), kCity.getNameKey());
-	gDLL->UI().addPlayerMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_REVOLTEND", MESSAGE_TYPE_INFO, kUnit.getButton(), COLOR_GREEN, kCity.getX_INLINE(), kCity.getY_INLINE());
+	gDLL->UI().addPlayerMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, kUnit.getButton(), COLOR_GREEN, kCity.getX_INLINE(), kCity.getY_INLINE());
 	return true;
 }

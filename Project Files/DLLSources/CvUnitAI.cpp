@@ -22449,14 +22449,14 @@ bool CvUnitAI::AI_startAutoAssign()
 	if (!isOnMap_() || !kOwner.AI_humanFindJob(*this, iCityID, eProfession, iX, iY, iDisplaceID, iTurns, iGold))
 	{
 		CvWString szBuffer = gDLL->getText("TXT_KEY_AUTO_ASSIGN_NONE", getNameKey());
-		gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_REVOLTEND", MESSAGE_TYPE_INFO, getButton(), COLOR_WARNING_TEXT, getX_INLINE(), getY_INLINE());
+		gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, getButton(), COLOR_WARNING_TEXT, getX_INLINE(), getY_INLINE());
 		AI_clearWfTask();
 		return false;
 	}
 	CvCity* const pCity = kOwner.getCity(iCityID);
 	AI_setWfTask(WF_ASSIGN, iCityID, eProfession, iX, iY, iDisplaceID, -1);
 	CvWString szBuffer = gDLL->getText("TXT_KEY_AUTO_ASSIGN_TARGET", getNameKey(), pCity->getNameKey(), GC.getProfessionInfo(eProfession).getTextKeyWide(), iTurns, iGold);
-	gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_REVOLTEND", MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE, pCity->getX_INLINE(), pCity->getY_INLINE());
+	gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE, pCity->getX_INLINE(), pCity->getY_INLINE());
 	return true;
 }
 
@@ -22530,7 +22530,7 @@ bool CvUnitAI::AI_doAutoAssign()
 			return true;
 		}
 		CvWString szBuffer = gDLL->getText("TXT_KEY_AUTO_ASSIGN_UNREACHABLE", getNameKey(), pCity->getNameKey());
-		gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_REVOLTEND", MESSAGE_TYPE_INFO, getButton(), COLOR_WARNING_TEXT, getX_INLINE(), getY_INLINE());
+		gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, getButton(), COLOR_WARNING_TEXT, getX_INLINE(), getY_INLINE());
 		kOwner.AI_setWfUnreachable(getID(), pCity->getID());
 		AI_clearWfTask();
 	}
