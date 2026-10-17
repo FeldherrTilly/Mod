@@ -4334,6 +4334,12 @@ void CvUnitAI::AI_transportMoveFull()
 		return;
 	}
 
+	// WTP: colonists with the job automation come first (brought to their colony, fetched from their port)
+	if (AI_transportAutoAssignColonists())
+	{
+		return;
+	}
+
 	bool bEenish = false;
 	if (AI_getUnitAIState() == UNITAI_STATE_SAIL)
 	{
@@ -22190,6 +22196,109 @@ bool CvUnitAI::AI_isWfJob(const CvCity& kCity, ProfessionTypes eProfession, cons
 }
 
 // carry out the task; returns true if a mission was pushed or the unit was replaced
+// WTP: an automated transport (AUTOMATE_TRANSPORT_FULL) of a human player and the colonists with the job automation: colonists
+// aboard are brought to their colony (the nearest of their colonies first) and put ashore there; colonists waiting in a port
+// for a ship to their colony are fetched if the ship gets there within 6 turns. Returns true if the ship has a move for them
+bool CvUnitAI::AI_transportAutoAssignColonists()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	if (!isOnMap_() || getDomainType() != DOMAIN_SEA)
+	{
+		return false;
+	}
+
+	// 1. colonists aboard: put ashore those at their colony, sail to the nearest colony of the others
+	std::vector<CvUnit*> apAboard;
+	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && static_cast<CvUnitAI*>(pLoopUnit)->AI_getWfTask() == WF_ASSIGN)
+		{
+			apAboard.push_back(pLoopUnit);
+		}
+	}
+	CvCity* pDeliver = NULL;
+	int iDeliverTurns = MAX_INT;
+	for (uint i = 0; i < apAboard.size(); ++i)
+	{
+		CvCity* const pTarget = kOwner.getCity(static_cast<CvUnitAI*>(apAboard[i])->AI_getWfCityID());
+		if (pTarget == NULL)
+		{
+			continue;
+		}
+		if (atPlot(pTarget->plot()))
+		{
+			apAboard[i]->unload();
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S puts %S ashore in %S for its job",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), apAboard[i]->getName().GetCString(), pTarget->getName().GetCString());
+			continue;
+		}
+		int iPathTurns;
+		if (CvPlayerAI::AI_shipCanReachCity(getUnitType(), *pTarget) && generatePath(pTarget->plot(), 0, true, &iPathTurns) && iPathTurns < iDeliverTurns)
+		{
+			iDeliverTurns = iPathTurns;
+			pDeliver = pTarget;
+		}
+	}
+	if (pDeliver != NULL)
+	{
+		getGroup()->pushMission(MISSION_MOVE_TO, pDeliver->getX_INLINE(), pDeliver->getY_INLINE(), 0, false, false, MISSIONAI_TRANSPORT_SEA, pDeliver->plot());
+		return true;
+	}
+
+	// 2. colonists waiting in a port for a ship to their colony
+	if (getCargo() >= cargoSpace())
+	{
+		return false;
+	}
+	CvPlot* pPickup = NULL;
+	int iPickupTurns = 7; // within 6 turns
+	int iLoop;
+	for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
+	{
+		CvUnitAI* const pColonist = static_cast<CvUnitAI*>(pLoopUnit);
+		if (pLoopUnit->getDomainType() != DOMAIN_LAND || !pLoopUnit->isOnMap_() || pLoopUnit->isCargo() || pColonist->AI_getWfTask() != WF_ASSIGN
+			|| pLoopUnit->getGroup() == NULL || pLoopUnit->getGroup()->AI_getMissionAIType() != MISSIONAI_AWAIT_PICKUP)
+		{
+			continue;
+		}
+		CvCity* const pPort = pLoopUnit->plot()->getPlotCity();
+		CvCity* const pTarget = kOwner.getCity(pColonist->AI_getWfCityID());
+		if (pPort == NULL || pPort->getOwnerINLINE() != getOwnerINLINE() || pTarget == NULL || !CvPlayerAI::AI_shipCanReachCity(getUnitType(), *pTarget)
+			|| !CvPlayerAI::AI_shipCanReachCity(getUnitType(), *pPort))
+		{
+			continue;
+		}
+		if (atPlot(pPort->plot()))
+		{
+			// here: on board, the ship sails to the colony on its next move
+			if (pLoopUnit->canLoadUnit(this, plot(), true))
+			{
+				pLoopUnit->loadUnit(this);
+				pLoopUnit->getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_FOUND, pTarget->plot());
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S takes %S aboard in %S for its job in %S",
+					getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pLoopUnit->getName().GetCString(),
+					pPort->getName().GetCString(), pTarget->getName().GetCString());
+				return AI_transportAutoAssignColonists();
+			}
+			continue;
+		}
+		int iPathTurns;
+		if (generatePath(pPort->plot(), 0, true, &iPathTurns) && iPathTurns < iPickupTurns)
+		{
+			iPickupTurns = iPathTurns;
+			pPickup = pPort->plot();
+		}
+	}
+	if (pPickup != NULL)
+	{
+		getGroup()->pushMission(MISSION_MOVE_TO, pPickup->getX_INLINE(), pPickup->getY_INLINE(), 0, false, false, MISSIONAI_PICKUP, pPickup);
+		return true;
+	}
+	return false;
+}
+
 // WTP: automatic job assignment of a human player's colonist: the best job (see CvPlayerAI::AI_humanFindJob) becomes its task;
 // returns false if there is none (a message tells the player)
 bool CvUnitAI::AI_startAutoAssign()

@@ -135,6 +135,7 @@ public:
 	// WTP: automatic job assignment of a human player's colonist
 	bool AI_startAutoAssign();
 	bool AI_doAutoAssign();
+	bool AI_transportAutoAssignColonists();
 
 protected:
 
