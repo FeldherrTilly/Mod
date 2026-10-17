@@ -4680,6 +4680,15 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 		}
 		break;
 
+	// WTP: automatic job assignment: a single colonist on the map (not aboard a ship) of a player with a colony
+	case AUTOMATE_ASSIGN_JOB:
+		if (getDomainType() != DOMAIN_LAND || !isOnMap_() || isCargo() || isNative() || !getUnitInfo().isFound()
+			|| getGroup() == NULL || getGroup()->getNumUnits() != 1 || GET_PLAYER(getOwnerINLINE()).getNumCities() == 0)
+		{
+			return false;
+		}
+		break;
+
 	// WTP: native trade automation: merchant ships (no warships, no fishing or whaling boats) of a colonial player with a colony
 	case AUTOMATE_NATIVE_TRADE:
 		if (getDomainType() != DOMAIN_SEA || cargoSpace() == 0 || getUnitInfo().isGatherBoat() || getUnitInfo().getDefaultUnitAIType() != UNITAI_TRANSPORT_SEA

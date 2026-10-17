@@ -3547,6 +3547,19 @@ void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue)
 		{
 			getHeadUnit()->AI_setUnitAIState(UNITAI_STATE_DEFAULT);
 		}
+		// WTP: automatic job assignment: the colonist gets its job (none: the automation is off again); switched off, it drops it
+		if (eNewValue == AUTOMATE_ASSIGN_JOB && getHeadUnit() != NULL)
+		{
+			CvUnitAI* const pColonist = static_cast<CvUnitAI*>(getHeadUnit());
+			if (pColonist->AI_getWfTask() != CvUnitAI::WF_ASSIGN && !pColonist->AI_startAutoAssign())
+			{
+				m_eAutomateType = NO_AUTOMATE;
+			}
+		}
+		else if (eOldValue == AUTOMATE_ASSIGN_JOB && getHeadUnit() != NULL)
+		{
+			static_cast<CvUnitAI*>(getHeadUnit())->AI_clearWfTask();
+		}
 
 		// if canceling automation, cancel on cargo as well
 		if (eNewValue == NO_AUTOMATE)

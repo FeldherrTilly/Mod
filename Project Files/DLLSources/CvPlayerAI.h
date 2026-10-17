@@ -699,11 +699,18 @@ protected:
 	std::map<int, std::vector<int> > m_mapWfLandCost; // city ID -> movement cost of a colonist from each plot to the colony (MAX_INT: no way)
 	std::map<std::pair<int, int>, int> m_mapWfSeaTurns; // (port city ID, city ID) -> turns of a transport from the port to the colony
 	int m_iWfLandMoves; // movement points of a colonist per turn
+	int m_iWfTravelTurn; // WTP: turn the travel times were made for a human player's colonist (not saved)
 	void AI_wfUpdateTravel(const CvUnit& kColonist);
 public:
 	void AI_setWfUnreachable(int iUnitID, int iCityID);
 	bool AI_isWfUnreachable(int iUnitID, int iCityID) const;
-	int AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* piPortCityID = NULL) const;
+	int AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* piPortCityID = NULL, bool bNoShip = false) const;
+	// WTP: automatic job assignment of a human player's colonist (AUTOMATE_ASSIGN_JOB)
+	void AI_wfEnsureTravel(const CvUnit& kColonist);
+	static bool AI_isWfShip(const CvUnit& kShip);
+	bool AI_hasWfShip() const;
+	bool AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTypes& eBestProfession, int& iX, int& iY, int& iDisplaceID, int& iTurns, int& iGold);
+	bool AI_humanSeat(CvUnit& kUnit, CvCity& kCity, ProfessionTypes eProfession, int iX, int iY, int iDisplaceID);
 	bool AI_isEuropeBacklog() const;
 protected:
 	// WTP: native villages the native trade ship visited (plot key, turn), not saved

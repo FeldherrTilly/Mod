@@ -196,6 +196,13 @@ bool CvUnitAI::AI_update()
 				}
 				AI_nativeTradeShipMove();
 				break;
+			// WTP: automatic job assignment of a human player's colonist
+			case AUTOMATE_ASSIGN_JOB:
+				if (!AI_doAutoAssign() && getGroup() != NULL)
+				{
+					getGroup()->setAutomateType(NO_AUTOMATE);
+				}
+				break;
 			case AUTOMATE_FULL:
 				FAssert(false);
 				break;
@@ -5105,7 +5112,7 @@ bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget, CvCity* pPreferredPort)
 	for (CvUnit* pLoopUnit = kOwner.firstUnit(&iShipLoop); pLoopUnit != NULL && !bReachable; pLoopUnit = kOwner.nextUnit(&iShipLoop))
 	{
 		// (coastal transports too: they ferry colonists between the colonies)
-		bReachable = (pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA || pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_COAST) && CvPlayerAI::AI_shipCanReachCity(pLoopUnit->getUnitType(), kTarget);
+		bReachable = pLoopUnit->getDomainType() == DOMAIN_SEA && CvPlayerAI::AI_isWfShip(*pLoopUnit) && CvPlayerAI::AI_shipCanReachCity(pLoopUnit->getUnitType(), kTarget);
 	}
 	if (!bReachable)
 	{
@@ -5171,7 +5178,7 @@ bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget, CvCity* pPreferredPort)
 	{
 		CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
 		if (pLoopUnit != NULL && pLoopUnit != this && pLoopUnit->getOwnerINLINE() == getOwnerINLINE() && pLoopUnit->getDomainType() == DOMAIN_SEA
-			&& (pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA || pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_COAST) && CvPlayerAI::AI_shipCanReachCity(pLoopUnit->getUnitType(), kTarget)
+			&& CvPlayerAI::AI_isWfShip(*pLoopUnit) && CvPlayerAI::AI_shipCanReachCity(pLoopUnit->getUnitType(), kTarget)
 			&& canLoadUnit(pLoopUnit, plot(), true))
 		{
 			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S boards %S in %S for its job in %S (waited %d turns)", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
@@ -22183,6 +22190,109 @@ bool CvUnitAI::AI_isWfJob(const CvCity& kCity, ProfessionTypes eProfession, cons
 }
 
 // carry out the task; returns true if a mission was pushed or the unit was replaced
+// WTP: automatic job assignment of a human player's colonist: the best job (see CvPlayerAI::AI_humanFindJob) becomes its task;
+// returns false if there is none (a message tells the player)
+bool CvUnitAI::AI_startAutoAssign()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	int iCityID;
+	ProfessionTypes eProfession;
+	int iX;
+	int iY;
+	int iDisplaceID;
+	int iTurns;
+	int iGold;
+	if (!isOnMap_() || !kOwner.AI_humanFindJob(*this, iCityID, eProfession, iX, iY, iDisplaceID, iTurns, iGold))
+	{
+		CvWString szBuffer = gDLL->getText("TXT_KEY_AUTO_ASSIGN_NONE", getNameKey());
+		gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_REVOLTEND", MESSAGE_TYPE_INFO, getButton(), COLOR_WARNING_TEXT, getX_INLINE(), getY_INLINE());
+		AI_clearWfTask();
+		return false;
+	}
+	CvCity* const pCity = kOwner.getCity(iCityID);
+	AI_setWfTask(WF_ASSIGN, iCityID, eProfession, iX, iY, iDisplaceID, -1);
+	CvWString szBuffer = gDLL->getText("TXT_KEY_AUTO_ASSIGN_TARGET", getNameKey(), pCity->getNameKey(), GC.getProfessionInfo(eProfession).getTextKeyWide(), iTurns, iGold);
+	gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_REVOLTEND", MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE, pCity->getX_INLINE(), pCity->getY_INLINE());
+	return true;
+}
+
+// WTP: automatic job assignment of a human player's colonist: goes to its colony (on foot or by an automated transport) and
+// joins it in the job; a job that is gone or a colony it cannot reach makes it look again. Returns false when the automation
+// ends without a job (it ends itself once the colonist has joined)
+bool CvUnitAI::AI_doAutoAssign()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	for (int iTry = 0; iTry < 3; ++iTry)
+	{
+		if (m_iWfTask != WF_ASSIGN && !AI_startAutoAssign())
+		{
+			return false;
+		}
+		CvCity* const pCity = kOwner.getCity(m_iWfCityID);
+		if (pCity == NULL)
+		{
+			AI_clearWfTask();
+			continue;
+		}
+		if (isCargo())
+		{
+			// the transport takes us there
+			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_FOUND, pCity->plot());
+			return true;
+		}
+		if (atPlot(pCity->plot()))
+		{
+			if (!canMove())
+			{
+				getGroup()->pushMission(MISSION_SKIP);
+				return true;
+			}
+			const ProfessionTypes eProfession = m_eWfProfession;
+			const int iX = m_iWfPlotX;
+			const int iY = m_iWfPlotY;
+			const int iDisplaceID = m_iWfVillageX;
+			AI_clearWfTask();
+			// the automation ends before the colonist leaves the map
+			CvSelectionGroup* const pGroup = getGroup();
+			pGroup->setAutomateType(NO_AUTOMATE);
+			if (kOwner.AI_humanSeat(*this, *pCity, eProfession, iX, iY, iDisplaceID))
+			{
+				return true;
+			}
+			// the job is gone: another one
+			if (!AI_startAutoAssign())
+			{
+				return true; // (the automation is off already)
+			}
+			getGroup()->setAutomateType(AUTOMATE_ASSIGN_JOB);
+			continue;
+		}
+		kOwner.AI_wfEnsureTravel(*this);
+		const bool bShips = kOwner.AI_hasWfShip();
+		int iPortID = -1;
+		kOwner.AI_wfTravelTurns(*plot(), *pCity, &iPortID, !bShips);
+		CvCity* const pPort = (iPortID >= 0) ? kOwner.getCity(iPortID) : NULL;
+		if (pPort != NULL && AI_wfTravelByShip(*pCity, pPort))
+		{
+			return true;
+		}
+		if (generatePath(pCity->plot(), MOVE_NO_ENEMY_TERRITORY, true))
+		{
+			getGroup()->pushMission(MISSION_MOVE_TO, pCity->getX_INLINE(), pCity->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_FOUND, pCity->plot());
+			return true;
+		}
+		if (bShips && AI_wfTravelByShip(*pCity, NULL))
+		{
+			return true;
+		}
+		CvWString szBuffer = gDLL->getText("TXT_KEY_AUTO_ASSIGN_UNREACHABLE", getNameKey(), pCity->getNameKey());
+		gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_REVOLTEND", MESSAGE_TYPE_INFO, getButton(), COLOR_WARNING_TEXT, getX_INLINE(), getY_INLINE());
+		kOwner.AI_setWfUnreachable(getID(), pCity->getID());
+		AI_clearWfTask();
+	}
+	return false;
+}
+
 bool CvUnitAI::AI_doWfTask()
 {
 	MOD_PROFILE("CvUnitAI::AI_doWfTask");

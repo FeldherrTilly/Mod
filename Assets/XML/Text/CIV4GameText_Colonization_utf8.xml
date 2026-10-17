@@ -2256,6 +2256,83 @@
 		<Hungarian>A hajó a legközelebbi kolónia körüli bennszülött falvakkal kereskedik: megveszi az áruikat és eladja őket Európában, ahol csereárut vásárol a bennszülötteknek (útonként legfeljebb 1000 arany, 500 arany a kincstárban marad), majd visszatér ehhez a kolóniához. Nem ad el fegyvert vagy lovat a bennszülötteknek, és nem visz utasokat.</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_ASSIGN_JOB</Tag>
+		<English>Auto Assign Job</English>
+		<Portuguese>Atribuir trabalho automaticamente</Portuguese>
+		<French>Affecter un emploi automatiquement</French>
+		<German>Automatisch zuweisen</German>
+		<Italian>Assegna lavoro automaticamente</Italian>
+		<Spanish>Asignar trabajo automáticamente</Spanish>
+		<Russian>Автоматически назначить работу</Russian>
+		<Hungarian>Munka automatikus kiosztása</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_ASSIGN_JOB_HELP</Tag>
+		<English>The colonist looks for the best free job in your colonies (an expert also the job of a regular colonist in his trade), goes there on foot or by an automated transport and joins the colony in that job. Regular colonists go at most 12 turns far; the colony must keep 2 food to spare unless the job produces food.</English>
+		<Portuguese>O colono procura o melhor trabalho livre nas suas colônias (um especialista também o trabalho de um colono comum no seu ofício), vai até lá a pé ou num transporte automatizado e junta-se à colônia nesse trabalho. Colonos comuns vão no máximo a 12 turnos de distância; a colônia deve manter 2 de comida de sobra, a menos que o trabalho produza comida.</Portuguese>
+		<French>Le colon cherche le meilleur emploi libre dans vos colonies (un expert aussi l'emploi d'un colon ordinaire de son métier), s'y rend à pied ou par un transport automatisé et rejoint la colonie à cet emploi. Les colons ordinaires vont à 12 tours au plus ; la colonie doit garder 2 de nourriture en surplus, sauf si l'emploi produit de la nourriture.</French>
+		<German>Der Kolonist sucht die beste freie Stelle in deinen Kolonien (ein Experte auch die Stelle eines regulären Kolonisten in seinem Beruf), geht zu Fuß oder mit einem automatischen Transporter dorthin und tritt der Kolonie mit dieser Arbeit bei. Reguläre Kolonisten gehen höchstens 12 Runden weit; die Kolonie muss 2 Nahrung übrig behalten, außer die Arbeit erzeugt Nahrung.</German>
+		<Italian>Il colono cerca il miglior lavoro libero nelle tue colonie (un esperto anche il lavoro di un colono comune del suo mestiere), ci va a piedi o con un trasporto automatizzato e si unisce alla colonia con quel lavoro. I coloni comuni vanno al massimo a 12 turni di distanza; la colonia deve conservare 2 di cibo in eccesso, a meno che il lavoro produca cibo.</Italian>
+		<Spanish>El colono busca el mejor trabajo libre en tus colonias (un experto también el trabajo de un colono común de su oficio), va allí a pie o en un transporte automatizado y se une a la colonia en ese trabajo. Los colonos comunes van como máximo a 12 turnos de distancia; la colonia debe conservar 2 de comida de sobra, salvo que el trabajo produzca comida.</Spanish>
+		<Russian>Колонист ищет лучшую свободную работу в ваших колониях (эксперт — также место обычного колониста по своей специальности), идёт туда пешком или на автоматическом транспорте и вступает в колонию на эту работу. Обычные колонисты идут не дальше 12 ходов; у колонии должно оставаться 2 избытка еды, если работа сама не производит еду.</Russian>
+		<Hungarian>A telepes megkeresi a legjobb szabad munkát a kolóniáidban (egy szakértő a saját szakmájában egy közönséges telepes munkáját is), gyalog vagy automatikus szállítóval odamegy, és ezzel a munkával csatlakozik a kolóniához. A közönséges telepesek legfeljebb 12 környi távolságra mennek; a kolóniának 2 élelmiszer-többletet kell megtartania, hacsak a munka nem termel élelmiszert.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_TARGET</Tag>
+		<English>%s1 goes to %s2 to work as %s3 (%d4 turns, about %d5 gold per turn).</English>
+		<Portuguese>%s1 vai para %s2 para trabalhar como %s3 (%d4 turnos, cerca de %d5 de ouro por turno).</Portuguese>
+		<French>%s1 se rend à %s2 pour travailler comme %s3 (%d4 tours, environ %d5 pièces d'or par tour).</French>
+		<German>%s1 geht nach %s2 und arbeitet dort als %s3 (%d4 Runden, etwa %d5 Gold pro Runde).</German>
+		<Italian>%s1 va a %s2 per lavorare come %s3 (%d4 turni, circa %d5 monete d'oro per turno).</Italian>
+		<Spanish>%s1 va a %s2 para trabajar como %s3 (%d4 turnos, unos %d5 de oro por turno).</Spanish>
+		<Russian>%s1 направляется в %s2, чтобы работать как %s3 (%d4 ход., около %d5 золота за ход).</Russian>
+		<Hungarian>%s1 %s2 felé indul, hogy ott %s3 legyen (%d4 kör, körönként kb. %d5 arany).</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_NONE</Tag>
+		<English>%s1 finds no suitable job in your colonies.</English>
+		<Portuguese>%s1 não encontra nenhum trabalho adequado nas suas colônias.</Portuguese>
+		<French>%s1 ne trouve aucun emploi convenable dans vos colonies.</French>
+		<German>%s1 findet keine passende Arbeit in deinen Kolonien.</German>
+		<Italian>%s1 non trova un lavoro adatto nelle tue colonie.</Italian>
+		<Spanish>%s1 no encuentra ningún trabajo adecuado en tus colonias.</Spanish>
+		<Russian>%s1 не находит подходящей работы в ваших колониях.</Russian>
+		<Hungarian>%s1 nem talál megfelelő munkát a kolóniáidban.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_UNREACHABLE</Tag>
+		<English>%s1 cannot reach %s2 and looks for another job.</English>
+		<Portuguese>%s1 não consegue chegar a %s2 e procura outro trabalho.</Portuguese>
+		<French>%s1 ne peut pas atteindre %s2 et cherche un autre emploi.</French>
+		<German>%s1 kann %s2 nicht erreichen und sucht eine andere Arbeit.</German>
+		<Italian>%s1 non riesce a raggiungere %s2 e cerca un altro lavoro.</Italian>
+		<Spanish>%s1 no puede llegar a %s2 y busca otro trabajo.</Spanish>
+		<Russian>%s1 не может добраться до %s2 и ищет другую работу.</Russian>
+		<Hungarian>%s1 nem tudja elérni %s2 kolóniát, és másik munkát keres.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_JOINED</Tag>
+		<English>%s1 now works as %s2 in %s3.</English>
+		<Portuguese>%s1 agora trabalha como %s2 em %s3.</Portuguese>
+		<French>%s1 travaille maintenant comme %s2 à %s3.</French>
+		<German>%s1 arbeitet jetzt als %s2 in %s3.</German>
+		<Italian>%s1 ora lavora come %s2 a %s3.</Italian>
+		<Spanish>%s1 ahora trabaja como %s2 en %s3.</Spanish>
+		<Russian>%s1 теперь работает как %s2 в %s3.</Russian>
+		<Hungarian>%s1 mostantól %s2 munkát végez itt: %s3.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_DISPLACED</Tag>
+		<English>%s1 makes room in %s2 for %s3 and stands on the colony plot.</English>
+		<Portuguese>%s1 dá lugar em %s2 a %s3 e fica no terreno da colônia.</Portuguese>
+		<French>%s1 cède sa place à %s3 dans %s2 et attend sur la case de la colonie.</French>
+		<German>%s1 macht in %s2 Platz für %s3 und steht auf dem Stadtfeld.</German>
+		<Italian>%s1 lascia il posto a %s3 a %s2 e resta sulla casella della colonia.</Italian>
+		<Spanish>%s1 deja su puesto en %s2 a %s3 y queda en la casilla de la colonia.</Spanish>
+		<Russian>%s1 уступает место в %s2 для %s3 и стоит на клетке колонии.</Russian>
+		<Hungarian>%s1 átadja a helyét %s2 kolóniában %s3 számára, és a kolónia mezőjén áll.</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_ACTION_AUTOMATE_FULL_HELP</Tag>
 		<English>Automate this unit</English>
 		<Portuguese>Automatizar unidade</Portuguese>

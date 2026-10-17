@@ -110,6 +110,7 @@ public:
 		WF_JOIN_CITY = 4,  // move to the city and join it (it has food to spare; the plan keeps this task)
 		WF_FOOD_LEARN = 5, // learn a food expert in the village at VillageX/Y, then work the food job in the city (kept)
 		WF_WAIT = 6,       // no job: go to the city and wait on its plot (the workforce plan seats it when a job is free)
+		WF_ASSIGN = 7,     // human player's colonist (AUTOMATE_ASSIGN_JOB): go to the city and join it in the job (VillageX: the unit it replaces)
 	};
 	int AI_getWfTask() const { return m_iWfTask; }
 	int AI_getWfCityID() const { return m_iWfCityID; }
@@ -131,6 +132,9 @@ public:
 	CvCity* AI_nativeTradeHomeCity() const;
 	bool AI_nativeTradeInHomeArea(const CvCity& kVillage) const;
 	bool AI_humanNativeTradeEurope();
+	// WTP: automatic job assignment of a human player's colonist
+	bool AI_startAutoAssign();
+	bool AI_doAutoAssign();
 
 protected:
 
