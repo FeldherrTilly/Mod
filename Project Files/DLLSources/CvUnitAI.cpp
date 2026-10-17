@@ -11092,7 +11092,9 @@ bool CvUnitAI::AI_breakAutomation()
 			{
 				if (pLoopUnit->getTransportUnit()->getGroup() == getGroup())
 				{
-					if ((pLoopUnit->getYield() == NO_YIELD) || (pLoopUnit->AI_getUnitAIState() == UNITAI_STATE_PURCHASED))
+					// WTP: colonists with the job automation are brought to their colony by the transport (not a reason to stop)
+					if (((pLoopUnit->getYield() == NO_YIELD) || (pLoopUnit->AI_getUnitAIState() == UNITAI_STATE_PURCHASED))
+						&& static_cast<CvUnitAI*>(pLoopUnit)->AI_getWfTask() != WF_ASSIGN)
 					{
 						bBreak = true;
 					}
