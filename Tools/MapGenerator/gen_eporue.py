@@ -207,6 +207,7 @@ def inside(poly, px, py):
 
 
 CH = [([to_xy(lo, la) for lo, la in pts], hw) for pts, hw in CHANNELS]
+EDGE = [Shifted(Noise(SEED * 1000 + 30 + i)) for i in range(3)]
 land = [False] * (W * H)
 for x, y in ALL:
     px = x + 0.5 + 0.45 * WARP[0].fbm(x, y, 3, 6)
@@ -218,8 +219,16 @@ for x, y in ALL:
         for pts, hw in CH:
             if poly_dist(x + 0.5, y + 0.5, pts)[0] <= hw:
                 ok = False
-    if ok and ((from_xy(x + 0.5, y + 0.5)[0] - 47.0) / 21.8) ** 2 + ((from_xy(x + 0.5, y + 0.5)[1] - 71.5) / 12.7) ** 2 < 1 + 0.12 * NZ[19].fbm(x, y, 2, 5):
+    if ok and ((from_xy(x + 0.5, y + 0.5)[0] - 47.0) / 21.8) ** 2 + ((from_xy(x + 0.5, y + 0.5)[1] - 71.5) / 12.7) ** 2 < 1 + 0.12 * NZ[19].fbm(x, y, 2, 5) + 0.22 * EDGE[0].fbm(x, y, 3, 4):
         ok = False                                     # round off the lower-left corner of "Russia"
+    if ok:
+        lon, lat = from_xy(x + 0.5, y + 0.5)
+        if lon > 57.5 + 5.0 * EDGE[0].fbm(x, y, 3, 7) + 1.5 * EDGE[0].fbm(x, y, 2, 3):
+            ok = False                                 # frayed eastern edge of Russia (map edge to Asia)
+        if lat < 25.8 + 3.2 * EDGE[1].fbm(x, y, 3, 8) + 1.2 * EDGE[1].fbm(x, y, 2, 3):
+            ok = False                                 # irregular southern edge of the Sahara
+        if lon > 41.0 + 5.0 * EDGE[2].fbm(x, y, 3, 8) and lat < 31.0:
+            ok = False                                 # irregular eastern edge of the Sahara
     land[I(x, y)] = ok
 ocean = [not v for v in land]
 
