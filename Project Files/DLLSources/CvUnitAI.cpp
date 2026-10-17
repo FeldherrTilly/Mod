@@ -22292,6 +22292,11 @@ bool CvUnitAI::AI_transportAutoAssignColonists()
 		{
 			continue;
 		}
+		// only if the ship gets from the port to the colony (else it would put the colonist ashore again at once)
+		if (!getGroup()->generatePath(pPort->plot(), pTarget->plot(), MOVE_IGNORE_DANGER, true, NULL))
+		{
+			continue;
+		}
 		if (atPlot(pPort->plot()))
 		{
 			// here: on board, the ship sails to the colony on its next move
