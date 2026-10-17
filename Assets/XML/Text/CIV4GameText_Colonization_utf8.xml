@@ -2236,24 +2236,24 @@
 	<TEXT>
 		<Tag>TXT_KEY_ACTION_AUTOMATE_NATIVE_TRADE</Tag>
 		<English>Automate Native Trade</English>
-		<Portuguese>Automate Native Trade</Portuguese>
-		<French>Automate Native Trade</French>
+		<Portuguese>Automatizar comércio indígena</Portuguese>
+		<French>Automatiser le commerce indigène</French>
 		<German>Automatischer Indianerhandel</German>
-		<Italian>Automate Native Trade</Italian>
-		<Spanish>Automate Native Trade</Spanish>
-		<Russian>Automate Native Trade</Russian>
-		<Hungarian>Automate Native Trade</Hungarian>
+		<Italian>Automatizza il commercio con i nativi</Italian>
+		<Spanish>Automatizar comercio indígena</Spanish>
+		<Russian>Автоматизировать торговлю с индейцами</Russian>
+		<Hungarian>Bennszülött kereskedelem automatizálása</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_ACTION_AUTOMATE_NATIVE_TRADE_HELP</Tag>
 		<English>The ship trades with the native villages around the nearest colony: it buys their goods and sells them in Europe, where it buys Trade Goods for the natives (at most 1000 gold per trip, 500 gold stay in the treasury) and comes back to that colony. It sells no weapons or horses to the natives and takes no passengers.</English>
-		<Portuguese>The ship trades with the native villages around the nearest colony: it buys their goods and sells them in Europe, where it buys Trade Goods for the natives (at most 1000 gold per trip, 500 gold stay in the treasury) and comes back to that colony. It sells no weapons or horses to the natives and takes no passengers.</Portuguese>
-		<French>The ship trades with the native villages around the nearest colony: it buys their goods and sells them in Europe, where it buys Trade Goods for the natives (at most 1000 gold per trip, 500 gold stay in the treasury) and comes back to that colony. It sells no weapons or horses to the natives and takes no passengers.</French>
+		<Portuguese>O navio comercia com as aldeias indígenas em torno da colônia mais próxima: compra os seus produtos e vende-os na Europa, onde compra Bugigangas para os indígenas (no máximo 1000 de ouro por viagem, 500 de ouro ficam no tesouro) e volta para essa colônia. Não vende armas nem cavalos aos indígenas e não leva passageiros.</Portuguese>
+		<French>Le navire commerce avec les villages indigènes autour de la colonie la plus proche : il achète leurs marchandises et les vend en Europe, où il achète des marchandises de traite pour les indigènes (au plus 1000 pièces d'or par voyage, 500 pièces d'or restent dans le trésor) et revient à cette colonie. Il ne vend ni armes ni chevaux aux indigènes et ne prend pas de passagers.</French>
 		<German>Das Schiff handelt mit den Indianerdörfern rund um die nächste Kolonie: Es kauft ihre Waren und verkauft sie in Europa, kauft dort Handelswaren für die Indianer (höchstens 1000 Gold pro Fahrt, 500 Gold bleiben in der Kasse) und kehrt zu dieser Kolonie zurück. Es verkauft keine Waffen oder Pferde an Indianer und nimmt keine Passagiere mit.</German>
-		<Italian>The ship trades with the native villages around the nearest colony: it buys their goods and sells them in Europe, where it buys Trade Goods for the natives (at most 1000 gold per trip, 500 gold stay in the treasury) and comes back to that colony. It sells no weapons or horses to the natives and takes no passengers.</Italian>
-		<Spanish>The ship trades with the native villages around the nearest colony: it buys their goods and sells them in Europe, where it buys Trade Goods for the natives (at most 1000 gold per trip, 500 gold stay in the treasury) and comes back to that colony. It sells no weapons or horses to the natives and takes no passengers.</Spanish>
-		<Russian>The ship trades with the native villages around the nearest colony: it buys their goods and sells them in Europe, where it buys Trade Goods for the natives (at most 1000 gold per trip, 500 gold stay in the treasury) and comes back to that colony. It sells no weapons or horses to the natives and takes no passengers.</Russian>
-		<Hungarian>The ship trades with the native villages around the nearest colony: it buys their goods and sells them in Europe, where it buys Trade Goods for the natives (at most 1000 gold per trip, 500 gold stay in the treasury) and comes back to that colony. It sells no weapons or horses to the natives and takes no passengers.</Hungarian>
+		<Italian>La nave commercia con i villaggi nativi intorno alla colonia più vicina: compra le loro merci e le vende in Europa, dove compra merci di scambio per i nativi (al massimo 1000 monete d'oro per viaggio, 500 monete d'oro restano nel tesoro) e torna a quella colonia. Non vende armi né cavalli ai nativi e non trasporta passeggeri.</Italian>
+		<Spanish>El barco comercia con las aldeas indígenas alrededor de la colonia más cercana: compra sus mercancías y las vende en Europa, donde compra bienes de comercio para los indígenas (como máximo 1000 de oro por viaje, 500 de oro quedan en el tesoro) y vuelve a esa colonia. No vende armas ni caballos a los indígenas y no lleva pasajeros.</Spanish>
+		<Russian>Корабль торгует с индейскими поселениями вокруг ближайшей колонии: покупает их товары и продаёт их в Европе, где покупает товары для обмена с индейцами (не более 1000 золота за рейс, 500 золота остаются в казне), и возвращается в эту колонию. Он не продаёт индейцам оружие и лошадей и не берёт пассажиров.</Russian>
+		<Hungarian>A hajó a legközelebbi kolónia körüli bennszülött falvakkal kereskedik: megveszi az áruikat és eladja őket Európában, ahol csereárut vásárol a bennszülötteknek (útonként legfeljebb 1000 arany, 500 arany a kincstárban marad), majd visszatér ehhez a kolóniához. Nem ad el fegyvert vagy lovat a bennszülötteknek, és nem visz utasokat.</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_ACTION_AUTOMATE_FULL_HELP</Tag>
