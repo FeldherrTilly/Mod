@@ -17834,6 +17834,14 @@ void CvPlayerAI::AI_doCitizenRelocation()
 // WTP: workforce plan helpers (the plan itself: AI_doWorkforcePlan)
 namespace
 {
+	// the unit is an expert: it has an ideal profession, or it is an expert missionary (see wfIsExpertFor)
+	bool wfIsExpert(const CvUnitAI& kUnit)
+	{
+		const CvUnitInfo& kInfo = kUnit.getUnitInfo();
+		return kUnit.AI_getIdealProfession() != NO_PROFESSION
+			|| (kInfo.NBMOD_GetTeachLevel() == 3 && (kInfo.getYieldChange(YIELD_CROSSES) > 0 || kInfo.getYieldModifier(YIELD_CROSSES) > 0));
+	}
+
 	// the unit is an expert for this profession; expert missionaries (university level, cross bonus) also count
 	// as experts for the church jobs
 	bool wfIsExpertFor(const CvUnitAI& kUnit, ProfessionTypes eProfession)
@@ -18937,9 +18945,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			kWorker.iJob = -1;
 			// an expert has an ideal profession; expert missionaries (teach level 3 with a cross bonus, see wfIsExpertFor)
 			// have none among the citizen professions but are experts for the church jobs
-			const CvUnitInfo& kUnitInfo = kUnit.getUnitInfo();
-			kWorker.bExpert = kUnit.AI_getIdealProfession() != NO_PROFESSION
-				|| (kUnitInfo.NBMOD_GetTeachLevel() == 3 && (kUnitInfo.getYieldChange(YIELD_CROSSES) > 0 || kUnitInfo.getYieldModifier(YIELD_CROSSES) > 0));
+			kWorker.bExpert = wfIsExpert(kUnit);
 			const int iTask = kUnit.AI_getWfTask();
 			kWorker.bLearning = kUnit.getUnitTravelState() == UNIT_TRAVEL_STATE_LIVE_AMONG_NATIVES
 				|| iTask == CvUnitAI::WF_LEARN || iTask == CvUnitAI::WF_RETRAIN || iTask == CvUnitAI::WF_FOOD_LEARN;
@@ -18966,9 +18972,15 @@ void CvPlayerAI::AI_doWorkforcePlan()
 
 	// output table: gold x100 of the non-food output (inputs deducted) and food per (unit type, job)
 	const int iNumTypes = (int)aeTypes.size();
-	std::vector<int> aiGold(iNumTypes * iNumJobs, 0);
-	std::vector<int> aiFood(iNumTypes * iNumJobs, 0);
-	std::vector<int> aiOutput(iNumTypes * iNumJobs, 0);
+	// an expert never studies: its student jobs (school) use an extra row in which no job is possible
+	const int iNoStudentType = iNumTypes;
+	std::vector<int> aiGold((iNumTypes + 1) * iNumJobs, 0);
+	std::vector<int> aiFood((iNumTypes + 1) * iNumJobs, 0);
+	std::vector<int> aiOutput((iNumTypes + 1) * iNumJobs, 0);
+	for (int j = 0; j < iNumJobs; ++j)
+	{
+		aiGold[iNoStudentType * iNumJobs + j] = -1000000;
+	}
 	// colonists that never work in buildings (indentured servants, mulattoes, mestizos, slaves, converted natives); failed
 	// traders only as carpenters, disillusioned missionaries only in the church (all of them may work plots)
 	const UnitClassTypes aeFieldOnly[6] = { (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_INDENTURED_SERVANT"),
@@ -19023,8 +19035,8 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		}
 	}
 
-	// the unit type that does the job: an expert outside its trade works like a free colonist (side bonuses ignored)
-	#define WF_TYPE(w, j) ((aWorkers[w].bExpert && !wfIsExpertFor(*aWorkers[w].pUnit, aJobs[j].eProfession)) ? 0 : aWorkers[w].iTypeIdx)
+	// the unit type that does the job: an expert outside its trade works like a free colonist (side bonuses ignored), it never studies
+	#define WF_TYPE(w, j) ((aWorkers[w].bExpert && aJobs[j].eYield == YIELD_EDUCATION) ? iNoStudentType : (aWorkers[w].bExpert && !wfIsExpertFor(*aWorkers[w].pUnit, aJobs[j].eProfession)) ? 0 : aWorkers[w].iTypeIdx)
 
 	// the jobs worked now and the tasks held
 	std::vector<int> aiPlotTaken(GC.getMap().numPlotsINLINE(), -1); // plot number -> job holding it in the target plan
@@ -23274,7 +23286,8 @@ bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTy
 			const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
 			const YieldTypes eYield = (YieldTypes)kProfession.getYieldsProduced(0);
 			const bool bExpert = wfIsExpertFor(kUnitAI, eProfession);
-			if ((iCityTurns > 12 && !bExpert) || !wfMayWorkInBuilding(kUnit, eYield))
+			// (an expert never studies)
+			if ((iCityTurns > 12 && !bExpert) || !wfMayWorkInBuilding(kUnit, eYield) || (eYield == YIELD_EDUCATION && wfIsExpert(kUnitAI)))
 			{
 				continue;
 			}
