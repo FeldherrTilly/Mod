@@ -23447,6 +23447,7 @@ bool CvUnitAI::AI_transportAutoAssignColonists()
 	}
 	CvPlot* pPickup = NULL;
 	int iPickupTurns = 7; // within 6 turns
+	bool bLoaded = false;
 	int iLoop;
 	for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
 	{
@@ -23470,7 +23471,7 @@ bool CvUnitAI::AI_transportAutoAssignColonists()
 		}
 		if (atPlot(pPort->plot()))
 		{
-			// here: on board, the ship sails to the colony on its next move
+			// here: on board (all colonists waiting here, as far as there is room), then the ship sails to their colonies
 			if (pLoopUnit->canLoadUnit(this, plot(), true))
 			{
 				pLoopUnit->loadUnit(this);
@@ -23478,7 +23479,7 @@ bool CvUnitAI::AI_transportAutoAssignColonists()
 				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S takes %S aboard in %S for its job in %S",
 					getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pLoopUnit->getName().GetCString(),
 					pPort->getName().GetCString(), pTarget->getName().GetCString());
-				return AI_transportAutoAssignColonists();
+				bLoaded = true;
 			}
 			continue;
 		}
@@ -23488,6 +23489,10 @@ bool CvUnitAI::AI_transportAutoAssignColonists()
 			iPickupTurns = iPathTurns;
 			pPickup = pPort->plot();
 		}
+	}
+	if (bLoaded)
+	{
+		return AI_transportAutoAssignColonists();
 	}
 	if (pPickup != NULL)
 	{
