@@ -19,6 +19,7 @@ const int defaultWfCoord = -1;
 const int defaultNativeTradeBuyTurn = -1;
 const int defaultNativeTradeArriveTurn = -1;
 const int defaultNativeTradeSlotsFullTurn = -1;
+const int defaultNativeTradeHomeCityID = -1;
 
 enum SavegameVariableTypes
 {
@@ -41,6 +42,7 @@ enum SavegameVariableTypes
 	UnitSaveAI_NativeTradeBuyTurn,
 	UnitSaveAI_NativeTradeArriveTurn,
 	UnitSaveAI_NativeTradeSlotsFullTurn,
+	UnitSaveAI_NativeTradeHomeCityID,
 	NUM_SAVE_ENUM_VALUES,
 };
 
@@ -67,6 +69,7 @@ const char* getSavedEnumNameUnitAi(SavegameVariableTypes eType)
 	case UnitSaveAI_NativeTradeBuyTurn: return "UnitSaveAI_NativeTradeBuyTurn";
 	case UnitSaveAI_NativeTradeArriveTurn: return "UnitSaveAI_NativeTradeArriveTurn";
 	case UnitSaveAI_NativeTradeSlotsFullTurn: return "UnitSaveAI_NativeTradeSlotsFullTurn";
+	case UnitSaveAI_NativeTradeHomeCityID: return "UnitSaveAI_NativeTradeHomeCityID";
 
 }
 	FAssertMsg(0, "Missing case");
@@ -99,6 +102,7 @@ void CvUnitAI::AI_resetSavedData()
 	m_iNativeTradeBuyTurn = defaultNativeTradeBuyTurn;
 	m_iNativeTradeArriveTurn = defaultNativeTradeArriveTurn;
 	m_iNativeTradeSlotsFullTurn = defaultNativeTradeSlotsFullTurn;
+	m_iNativeTradeHomeCityID = defaultNativeTradeHomeCityID;
 }
 
 void CvUnitAI::read(CvSavegameReader reader)
@@ -140,6 +144,7 @@ void CvUnitAI::read(CvSavegameReader reader)
 		case UnitSaveAI_NativeTradeBuyTurn: reader.Read(m_iNativeTradeBuyTurn); break;
 		case UnitSaveAI_NativeTradeArriveTurn: reader.Read(m_iNativeTradeArriveTurn); break;
 		case UnitSaveAI_NativeTradeSlotsFullTurn: reader.Read(m_iNativeTradeSlotsFullTurn); break;
+		case UnitSaveAI_NativeTradeHomeCityID: reader.Read(m_iNativeTradeHomeCityID); break;
 		}
 	}
 	
@@ -178,5 +183,6 @@ void CvUnitAI::write(CvSavegameWriter writer)
 	writer.Write(UnitSaveAI_NativeTradeBuyTurn, m_iNativeTradeBuyTurn, defaultNativeTradeBuyTurn);
 	writer.Write(UnitSaveAI_NativeTradeArriveTurn, m_iNativeTradeArriveTurn, defaultNativeTradeArriveTurn);
 	writer.Write(UnitSaveAI_NativeTradeSlotsFullTurn, m_iNativeTradeSlotsFullTurn, defaultNativeTradeSlotsFullTurn);
+	writer.Write(UnitSaveAI_NativeTradeHomeCityID, m_iNativeTradeHomeCityID, defaultNativeTradeHomeCityID);
 	writer.Write(UnitSaveAI_END);
 }

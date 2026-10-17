@@ -4680,6 +4680,15 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 		}
 		break;
 
+	// WTP: native trade automation: merchant ships (no warships, no fishing or whaling boats) of a colonial player with a colony
+	case AUTOMATE_NATIVE_TRADE:
+		if (getDomainType() != DOMAIN_SEA || cargoSpace() == 0 || getUnitInfo().isGatherBoat() || getUnitInfo().getDefaultUnitAIType() != UNITAI_TRANSPORT_SEA
+			|| isNative() || GET_PLAYER(getOwnerINLINE()).getNumCities() == 0 || !GET_PLAYER(getOwnerINLINE()).canTradeWithEurope())
+		{
+			return false;
+		}
+		break;
+
 	default:
 		FAssert(false);
 		break;
