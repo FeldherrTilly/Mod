@@ -5185,7 +5185,9 @@ bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget, CvCity* pPreferredPort)
 		CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
 		if (pLoopUnit != NULL && pLoopUnit != this && pLoopUnit->getOwnerINLINE() == getOwnerINLINE() && pLoopUnit->getDomainType() == DOMAIN_SEA
 			&& CvPlayerAI::AI_isWfShip(*pLoopUnit) && CvPlayerAI::AI_shipCanReachCity(pLoopUnit->getUnitType(), kTarget)
-			&& canLoadUnit(pLoopUnit, plot(), true))
+			&& canLoadUnit(pLoopUnit, plot(), true)
+			// only a ship that finds a way from here to the colony (else it puts the colonist ashore again)
+			&& pLoopUnit->getGroup()->generatePath(plot(), kTarget.plot(), MOVE_IGNORE_DANGER, true, NULL))
 		{
 			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S boards %S in %S for its job in %S (waited %d turns)", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
 				GC.getGameINLINE().getGameTurn(), getName().GetCString(), pLoopUnit->getName().GetCString(), pPort->getName().GetCString(), kTarget.getName().GetCString(),
