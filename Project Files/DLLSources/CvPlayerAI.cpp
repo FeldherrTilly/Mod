@@ -667,16 +667,28 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 		// WTP: a ship with the native trade automation does its business in Europe (sells, buys Trade Goods, sails back); the
 		// units are collected first as buying goods creates units
 		std::vector<CvUnitAI*> apTraders;
+		std::vector<CvUnitAI*> apBack;
 		for (pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 		{
-			if (pLoopUnit->getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE && static_cast<CvUnitAI*>(pLoopUnit)->AI_isHumanNativeTrade())
+			CvUnitAI* const pTrader = static_cast<CvUnitAI*>(pLoopUnit);
+			if (pLoopUnit->getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE && pTrader->AI_isHumanNativeTrade())
 			{
-				apTraders.push_back(static_cast<CvUnitAI*>(pLoopUnit));
+				apTraders.push_back(pTrader);
+			}
+			// back from Europe (the automation of the group was lost on the way): automated again
+			else if (pLoopUnit->isOnMap_() && pTrader->AI_hasNativeTradeAutomation() && pLoopUnit->getGroup() != NULL
+				&& pLoopUnit->getGroup()->getNumUnits() == 1 && pLoopUnit->getGroup()->getAutomateType() == NO_AUTOMATE)
+			{
+				apBack.push_back(pTrader);
 			}
 		}
 		for (uint i = 0; i < apTraders.size(); ++i)
 		{
 			apTraders[i]->AI_humanNativeTradeEurope();
+		}
+		for (uint i = 0; i < apBack.size(); ++i)
+		{
+			apBack[i]->getGroup()->setAutomateType(AUTOMATE_NATIVE_TRADE);
 		}
 		return;
 	}
