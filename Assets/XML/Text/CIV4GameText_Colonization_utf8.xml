@@ -2334,69 +2334,36 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_TRADEROUTE_PRESET_BUILD</Tag>
-		<English>Building material</English>
-		<Portuguese>Material de construção</Portuguese>
-		<French>Matériaux</French>
-		<German>Baumaterial</German>
-		<Italian>Materiali edili</Italian>
-		<Spanish>Materiales</Spanish>
-		<Russian>Стройматериалы</Russian>
-		<Hungarian>Építőanyag</Hungarian>
+		<English>Building material: import clay, stone, tools (feeder 100/150), feeder for horses, sailcloth, hardwood, rope</English>
+		<Portuguese>Material de construção: importar argila, pedra, ferramentas (alimentador 100/150), alimentador para cavalos, lona, madeira de lei, cordas</Portuguese>
+		<French>Matériaux : importer argile, pierre, outils (approvisionnement 100/150), approvisionnement pour chevaux, toile, bois dur, cordes</French>
+		<German>Baumaterial: Lehm, Stein, Werkzeug importieren (Feeder 100/150), Feeder für Pferde, Segeltuch, Hartholz, Seile</German>
+		<Italian>Materiali edili: importa argilla, pietra, attrezzi (rifornimento 100/150), rifornimento per cavalli, tela, legno duro, corde</Italian>
+		<Spanish>Materiales: importar arcilla, piedra, herramientas (abastecimiento 100/150), abastecimiento para caballos, lona, madera dura, cuerdas</Spanish>
+		<Russian>Стройматериалы: импорт глины, камня, инструментов (подвоз 100/150), подвоз лошадей, парусины, твёрдой древесины, канатов</Russian>
+		<Hungarian>Építőanyag: agyag, kő, szerszám importja (utánpótlás 100/150), utánpótlás lóhoz, vitorlavászonhoz, keményfához, kötélhez</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_TRADEROUTE_PRESET_MARKET_20</Tag>
-		<English>Market 20</English>
-		<Portuguese>Mercado 20</Portuguese>
-		<French>Marché 20</French>
-		<German>Markt 20</German>
-		<Italian>Mercato 20</Italian>
-		<Spanish>Mercado 20</Spanish>
-		<Russian>Рынок 20</Russian>
-		<Hungarian>Piac 20</Hungarian>
+		<English>Market: import all goods the market asks for (feeder 20/20)</English>
+		<Portuguese>Mercado: importar todos os bens que o mercado procura (alimentador 20/20)</Portuguese>
+		<French>Marché : importer toutes les marchandises demandées par le marché (approvisionnement 20/20)</French>
+		<German>Markt: alle vom Markt nachgefragten Waren importieren (Feeder 20/20)</German>
+		<Italian>Mercato: importa tutte le merci richieste dal mercato (rifornimento 20/20)</Italian>
+		<Spanish>Mercado: importar todos los bienes que pide el mercado (abastecimiento 20/20)</Spanish>
+		<Russian>Рынок: импорт всех товаров, нужных рынку (подвоз 20/20)</Russian>
+		<Hungarian>Piac: a piac által keresett összes áru importja (utánpótlás 20/20)</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_TRADEROUTE_PRESET_MARKET_40</Tag>
-		<English>Market 40</English>
-		<Portuguese>Mercado 40</Portuguese>
-		<French>Marché 40</French>
-		<German>Markt 40</German>
-		<Italian>Mercato 40</Italian>
-		<Spanish>Mercado 40</Spanish>
-		<Russian>Рынок 40</Russian>
-		<Hungarian>Piac 40</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_TRADEROUTE_PRESET_BUILD_HELP</Tag>
-		<English>Import building material with the feeder: clay, stone and tools (keep at least 100, import at most 150); horses, sailcloth, hardwood and rope with their levels unchanged. Export settings stay as they are.</English>
-		<Portuguese>Importar material de construção com o alimentador: argila, pedra e ferramentas (manter pelo menos 100, importar no máximo 150); cavalos, lona, madeira de lei e cordas com os limites inalterados. As configurações de exportação ficam como estão.</Portuguese>
-		<French>Importer les matériaux avec l'approvisionnement : argile, pierre et outils (garder au moins 100, importer au plus 150) ; chevaux, toile, bois dur et cordes avec leurs seuils inchangés. Les réglages d'exportation restent inchangés.</French>
-		<German>Baumaterial mit Feeder importieren: Lehm, Stein und Werkzeug (mindestens 100 halten, höchstens 150 importieren); Pferde, Segeltuch, Hartholz und Seile mit unveränderten Grenzen. Export-Einstellungen bleiben unverändert.</German>
-		<Italian>Importa materiali edili con il rifornimento: argilla, pietra e attrezzi (mantieni almeno 100, importa al massimo 150); cavalli, tela, legno duro e corde con i limiti invariati. Le impostazioni di esportazione restano invariate.</Italian>
-		<Spanish>Importar materiales con el abastecimiento: arcilla, piedra y herramientas (mantener al menos 100, importar como máximo 150); caballos, lona, madera dura y cuerdas con sus límites sin cambios. La configuración de exportación no cambia.</Spanish>
-		<Russian>Импорт стройматериалов с подвозом: глина, камень и инструменты (держать не меньше 100, ввозить не больше 150); лошади, парусина, твёрдая древесина и канаты — с прежними пределами. Настройки экспорта не меняются.</Russian>
-		<Hungarian>Építőanyag importja utánpótlással: agyag, kő és szerszám (legalább 100 megtartása, legfeljebb 150 import); ló, vitorlavászon, keményfa és kötél változatlan határokkal. Az export beállítások nem változnak.</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_TRADEROUTE_PRESET_MARKET_20_HELP</Tag>
-		<English>Import all goods the market of this colony asks for with the feeder (keep at least 20, import at most 20). Export settings stay as they are.</English>
-		<Portuguese>Importar com o alimentador todos os bens que o mercado desta colônia procura (manter pelo menos 20, importar no máximo 20). As configurações de exportação ficam como estão.</Portuguese>
-		<French>Importer avec l'approvisionnement toutes les marchandises demandées par le marché de cette colonie (garder au moins 20, importer au plus 20). Les réglages d'exportation restent inchangés.</French>
-		<German>Alle Waren, die der Markt dieser Kolonie nachfragt, mit Feeder importieren (mindestens 20 halten, höchstens 20 importieren). Export-Einstellungen bleiben unverändert.</German>
-		<Italian>Importa con il rifornimento tutte le merci richieste dal mercato di questa colonia (mantieni almeno 20, importa al massimo 20). Le impostazioni di esportazione restano invariate.</Italian>
-		<Spanish>Importar con el abastecimiento todos los bienes que pide el mercado de esta colonia (mantener al menos 20, importar como máximo 20). La configuración de exportación no cambia.</Spanish>
-		<Russian>Импорт с подвозом всех товаров, которые спрашивает рынок этой колонии (держать не меньше 20, ввозить не больше 20). Настройки экспорта не меняются.</Russian>
-		<Hungarian>A kolónia piaca által keresett összes áru importja utánpótlással (legalább 20 megtartása, legfeljebb 20 import). Az export beállítások nem változnak.</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_TRADEROUTE_PRESET_MARKET_40_HELP</Tag>
-		<English>Import all goods the market of this colony asks for with the feeder (keep at least 40, import at most 40). Export settings stay as they are.</English>
-		<Portuguese>Importar com o alimentador todos os bens que o mercado desta colônia procura (manter pelo menos 40, importar no máximo 40). As configurações de exportação ficam como estão.</Portuguese>
-		<French>Importer avec l'approvisionnement toutes les marchandises demandées par le marché de cette colonie (garder au moins 40, importer au plus 40). Les réglages d'exportation restent inchangés.</French>
-		<German>Alle Waren, die der Markt dieser Kolonie nachfragt, mit Feeder importieren (mindestens 40 halten, höchstens 40 importieren). Export-Einstellungen bleiben unverändert.</German>
-		<Italian>Importa con il rifornimento tutte le merci richieste dal mercato di questa colonia (mantieni almeno 40, importa al massimo 40). Le impostazioni di esportazione restano invariate.</Italian>
-		<Spanish>Importar con el abastecimiento todos los bienes que pide el mercado de esta colonia (mantener al menos 40, importar como máximo 40). La configuración de exportación no cambia.</Spanish>
-		<Russian>Импорт с подвозом всех товаров, которые спрашивает рынок этой колонии (держать не меньше 40, ввозить не больше 40). Настройки экспорта не меняются.</Russian>
-		<Hungarian>A kolónia piaca által keresett összes áru importja utánpótlással (legalább 40 megtartása, legfeljebb 40 import). Az export beállítások nem változnak.</Hungarian>
+		<English>Market: import all goods the market asks for (feeder 40/40)</English>
+		<Portuguese>Mercado: importar todos os bens que o mercado procura (alimentador 40/40)</Portuguese>
+		<French>Marché : importer toutes les marchandises demandées par le marché (approvisionnement 40/40)</French>
+		<German>Markt: alle vom Markt nachgefragten Waren importieren (Feeder 40/40)</German>
+		<Italian>Mercato: importa tutte le merci richieste dal mercato (rifornimento 40/40)</Italian>
+		<Spanish>Mercado: importar todos los bienes que pide el mercado (abastecimiento 40/40)</Spanish>
+		<Russian>Рынок: импорт всех товаров, нужных рынку (подвоз 40/40)</Russian>
+		<Hungarian>Piac: a piac által keresett összes áru importja (utánpótlás 40/40)</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_ACTION_AUTOMATE_FULL_HELP</Tag>

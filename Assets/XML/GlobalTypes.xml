@@ -268,7 +268,6 @@
 		<WidgetType>WIDGET_XML_DOWN</WidgetType>
 		<WidgetType>WIDGET_XML_ZERO</WidgetType>
 		<WidgetType>WIDGET_XML_UP</WidgetType>
-		<WidgetType>WIDGET_TRADEROUTE_PRESET</WidgetType> <!-- WTP: trade route presets of the city screen -->
 		<!-- xml editor end -->
 
 	</WidgetTypes>

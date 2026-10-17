@@ -432,12 +432,6 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, const CvWidgetDataStr
 		parseEmphasizeHelp(widgetDataStruct, szBuffer);
 		break;
 
-	// WTP: trade route presets of the city screen
-	case WIDGET_TRADEROUTE_PRESET:
-		szBuffer.assign(gDLL->getText(widgetDataStruct.m_iData1 == 0 ? "TXT_KEY_TRADEROUTE_PRESET_BUILD_HELP"
-			: widgetDataStruct.m_iData1 == 1 ? "TXT_KEY_TRADEROUTE_PRESET_MARKET_20_HELP" : "TXT_KEY_TRADEROUTE_PRESET_MARKET_40_HELP"));
-		break;
-
 	case WIDGET_TRADE_ITEM:
 		parseTradeItem(widgetDataStruct, szBuffer);
 		break;
@@ -750,14 +744,6 @@ bool CvDLLWidgetData::executeAction(const CvWidgetDataStruct &widgetDataStruct)
 
 	case WIDGET_EMPHASIZE:
 		doEmphasize(widgetDataStruct);
-		break;
-
-	// WTP: trade route presets of the city screen
-	case WIDGET_TRADEROUTE_PRESET:
-		if (gDLL->getInterfaceIFace()->getHeadSelectedCity() != NULL)
-		{
-			GC.getGameINLINE().selectedCitiesGameNetMessage(GAMEMESSAGE_DO_TASK, TASK_TRADEROUTE_PRESET, widgetDataStruct.m_iData1, -1);
-		}
 		break;
 
 	case WIDGET_DIPLOMACY_RESPONSE:
