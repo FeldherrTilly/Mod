@@ -54,21 +54,45 @@ def nbrs(x, y, d=N8):
 ALL = [(x, y) for y in range(H) for x in range(W)]
 
 # ---------------------------------------------------------------- projection (rotated by 180 degrees)
-SX, SY, Y0 = 1.1, 2.2, 5.0            # tiles per degree of longitude / latitude, bottom margin
-LON_MAX, LAT_MAX = 47.0, 71.5          # lon 47 E = left edge, lat 71.5 N = near the bottom edge
+LON_MAX, LAT_MAX = 47.0, 71.5          # reference of the first draft (old tile grid: 1.1 tiles per degree of longitude, 2.2 per degree of latitude)
 LAT_SHIFT = 4.0                        # free climate: everything counts as 4 degrees further north (a little warmer)
+# west and central Europe get the most tiles per degree, Russia, Asia, Scandinavia and Africa are compressed
+LON_KN = [(60.0, 4.5), (38.0, 17.7), (26.0, 27.3), (-10.0, 79.5), (-14.0, 83.5)]      # lon -> x
+LAT_KN = [(71.5, 5.0), (58.0, 28.0), (40.0, 82.0), (34.0, 94.0), (22.7, 111.0)]       # lat -> y
+
+
+def _pw(knots, v):
+    for k in range(len(knots) - 1):
+        if v >= knots[k + 1][0] or k == len(knots) - 2:
+            (a, fa), (b, fb) = knots[k], knots[k + 1]
+            return fa + (v - a) * (fb - fa) / (b - a)
+
+
+def _pw_inv(knots, t):
+    for k in range(len(knots) - 1):
+        if t <= knots[k + 1][1] or k == len(knots) - 2:
+            (a, fa), (b, fb) = knots[k], knots[k + 1]
+            return a + (t - fa) * (b - a) / (fb - fa)
 
 
 def to_xy(lon, lat):
-    return ((LON_MAX - lon) * SX + XOFF, (LAT_MAX - lat) * SY + Y0)
+    return (_pw(LON_KN, lon), _pw(LAT_KN, lat))
+
+
+def from_xy(x, y):
+    return (_pw_inv(LON_KN, x), _pw_inv(LAT_KN, y))
 
 
 def real_lat(y):
-    return LAT_MAX - (y + 0.5 - Y0) / SY
+    return _pw_inv(LAT_KN, y + 0.5)
 
 
-def T2L(x, y):                         # tile coordinates -> (lon, lat)
-    return (LON_MAX - (x - XOFF) / SX, LAT_MAX - (y - Y0) / SY)
+def T2L(x, y):                         # tile coordinates of the first draft -> (lon, lat)
+    return (LON_MAX - (x - XOFF) / 1.1, LAT_MAX - (y - 5.0) / 2.2)
+
+
+def T2X(x, y):                         # tile coordinates of the first draft -> tile coordinates now
+    return to_xy(*T2L(x, y))
 
 
 def P(pts):
@@ -194,7 +218,7 @@ for x, y in ALL:
         for pts, hw in CH:
             if poly_dist(x + 0.5, y + 0.5, pts)[0] <= hw:
                 ok = False
-    if ok and ((x - XOFF) / 24.0) ** 2 + (y / 28.0) ** 2 < 1 + 0.12 * NZ[19].fbm(x, y, 2, 5):
+    if ok and ((from_xy(x + 0.5, y + 0.5)[0] - 47.0) / 21.8) ** 2 + ((from_xy(x + 0.5, y + 0.5)[1] - 71.5) / 12.7) ** 2 < 1 + 0.12 * NZ[19].fbm(x, y, 2, 5):
         ok = False                                     # round off the lower-left corner of "Russia"
     land[I(x, y)] = ok
 ocean = [not v for v in land]
@@ -259,20 +283,20 @@ for lo, la, rx, ry in LAKES:
         i = I(x, y)
         if not land[i]:
             continue
-        lon, lat = LON_MAX - (x + 0.5 - XOFF) / SX, LAT_MAX - (y + 0.5 - Y0) / SY
+        lon, lat = from_xy(x + 0.5, y + 0.5)
         n = 1 + 0.35 * NZ[2].fbm(x, y, 2, 3)
         if ((lon - lo) / rx) ** 2 + ((lat - la) / ry) ** 2 < n:
             if not any(ocean[I(nx, ny)] for nx, ny in nbrs(x, y)):
                 lake[i], land[i], plot_type[i] = True, False, 3
 # small steppe lakes in the wide Russian plains
-for cx, cy, rx, ry in ((12, 45, 1.5, 1.0), (21, 58, 1.7, 1.1), (13, 62, 1.3, 1.3), (23, 41, 1.6, 1.0), (14, 53, 1.1, 1.1)):
+for (cx, cy), rx, ry in ((T2X(12, 45), 1.2, 1.3), (T2X(21, 58), 1.4, 1.4), (T2X(13, 62), 1.1, 1.7), (T2X(23, 41), 1.3, 1.3), (T2X(14, 53), 0.9, 1.4)):
     for x, y in ALL:
         if land[I(x, y)] and ((x + 0.5 - cx) / rx) ** 2 + ((y + 0.5 - cy) / ry) ** 2 < 1 + 0.3 * NZ[2].fbm(x, y, 2, 3):
             lake[I(x, y)], land[I(x, y)], plot_type[I(x, y)] = True, False, 3
 # glacial lake district: Finland and Karelia
 for x, y in ALL:
     i = I(x, y)
-    lon, lat = LON_MAX - (x + 0.5 - XOFF) / SX, LAT_MAX - (y + 0.5 - Y0) / SY
+    lon, lat = from_xy(x + 0.5, y + 0.5)
     if land[i] and 60.5 < lat < 65.5 and 23 < lon < 34 and NZ[4].fbm(x, y, 3, 4) > 0.30 and not any(ocean[I(nx, ny)] for nx, ny in nbrs(x, y)):
         lake[i], land[i], plot_type[i] = True, False, 3
 
@@ -321,7 +345,8 @@ BLOBS = [   # centre lon/lat, radius in tiles: hill country
 PLATEAUS = [(34.5, 38.8, 4.5, 0.38), (-3.5, 40.0, 4.5, 0.30), (28.0, 61.0, 6.0, 0.18), (53.0, 47.0, 6.0, 0.12), (53.0, 33.0, 6.0, 0.30), (3.0, 25.0, 6.0, 0.20)]   # lon, lat, radius, elevation
 ridge = [0.0] * (W * H)
 elev = [0.0] * (W * H)
-RXY = [(n, [to_xy(lo, la) for lo, la in pts], w) for n, pts, w in RANGES]
+RXY = [(n, [to_xy(lo, la) for lo, la in pts], w * (1.25 if 36 < sum(q[1] for q in pts) / len(pts) < 58 and -10 < sum(q[0] for q in pts) / len(pts) < 26 else 1.0))
+       for n, pts, w in RANGES]
 for x, y in ALL:
     i = I(x, y)
     if not land[i]:
@@ -387,9 +412,9 @@ for x, y in ALL:
 
 # ---------------------------------------------------------------- large rivers
 RIVERS = {
-    'Danube': [(8.6, 48.1), (10.0, 48.4), (12.0, 48.9), (13.5, 48.6), (16.4, 48.2), (17.2, 47.9), (19.0, 47.5), (19.1, 46.0), (20.2, 44.8),
+    'Danube': [(10.4, 48.0), (11.6, 48.6), (12.6, 48.9), (13.5, 48.6), (16.4, 48.2), (17.2, 47.9), (19.0, 47.5), (19.1, 46.0), (20.2, 44.8),
                (22.4, 44.6), (24.5, 43.8), (26.5, 44.0), (28.0, 44.6), (29.5, 45.2)],
-    'Rhine': [(9.2, 46.7), (9.5, 47.5), (8.2, 47.6), (7.6, 47.6), (8.2, 49.0), (8.4, 50.0), (7.0, 50.8), (6.2, 51.6), (4.6, 51.9), (4.0, 52.0)],
+    'Rhine': [(8.6, 46.6), (8.2, 47.4), (7.2, 47.8), (7.0, 48.9), (7.6, 50.0), (6.6, 50.9), (6.2, 51.6), (4.6, 51.9), (4.0, 52.0)],
     'Rhone': [(6.1, 46.2), (4.9, 45.8), (4.8, 44.5), (4.7, 43.6), (4.5, 43.2)],
     'Loire': [(4.0, 45.0), (3.6, 46.5), (2.0, 47.5), (0.5, 47.3), (-1.5, 47.2), (-2.3, 47.2)],
     'Elbe': [(15.5, 50.5), (14.0, 50.5), (13.5, 51.0), (11.5, 52.5), (10.0, 53.4), (8.7, 53.9)],
@@ -444,8 +469,25 @@ for name, pts in RIVERS.items():
         lake[i] = False
 
 
+def safe_to_remove(c):
+    """Removing c must not cut the river: its river neighbours stay connected (N4) and river mouths stay."""
+    x, y = c % W, c // W
+    nb = [I(nx, ny) for nx, ny in nbrs(x, y, N4) if large[I(nx, ny)]]
+    if len(nb) < 2 or any(ocean[I(nx, ny)] or lake[I(nx, ny)] for nx, ny in nbrs(x, y, N4)):
+        return False
+    seen, dq = {nb[0]}, deque([nb[0]])
+    while dq:
+        q = dq.popleft()
+        for nx, ny in nbrs(q % W, q // W, N4):
+            r = I(nx, ny)
+            if r != c and large[r] and r not in seen and max(abs(nx - x), abs(ny - y)) <= 4:
+                seen.add(r)
+                dq.append(r)
+    return all(n in seen for n in nb)
+
+
 def thin_rivers():
-    """No blocks of large river plots: no 2x2, at most 5 in 3x3, at most 8 in 4x4."""
+    """No blocks of large river plots: no 2x2, at most 5 in 3x3, at most 8 in 4x4 - and every river plot keeps its straight (N4) links."""
     removed = 0
     while True:
         changed = False
@@ -455,7 +497,10 @@ def thin_rivers():
                     cells = [I(x0 + dx, y0 + dy) for dx in range(size) for dy in range(size) if large[I(x0 + dx, y0 + dy)]]
                     while len(cells) > limit:
                         n4 = lambda c: sum(1 for nx, ny in nbrs(c % W, c // W, N4) if large[I(nx, ny)])
-                        c = max(cells, key=lambda c: (n4(c), river_rng.random()))
+                        cands = sorted([c for c in cells if safe_to_remove(c)], key=lambda c: (-n4(c), river_rng.random()))
+                        if not cands:
+                            break
+                        c = cands[0]
                         large[c], land[c], plot_type[c] = False, True, 2
                         cells.remove(c)
                         removed += 1
@@ -546,7 +591,7 @@ dcoast = bfs_dist([i for i in range(W * H) if ocean[i]], lambda j: True)
 # the Norwegian coast faces the Atlantic: keep a settleable strip (no peaks within three tiles of the water)
 for x, y in ALL:
     i = I(x, y)
-    if land[i] and plot_type[i] == 0 and dcoast[i] <= 2 and y < 45 and x >= 26 + XOFF:
+    if land[i] and plot_type[i] == 0 and dcoast[i] <= 2 and from_xy(x + 0.5, y + 0.5)[1] > 57.0 and from_xy(x + 0.5, y + 0.5)[0] < 14.0:
         plot_type[i] = 1
 
 # ---------------------------------------------------------------- climate
@@ -557,7 +602,7 @@ for x, y in ALL:
     t = 1 - (eff / 80.0) ** 1.3
     t -= 0.22 * ridge[i] + (0.03 if plot_type[i] == 1 else 0)
     if real_lat(y) > 44:
-        t -= 0.06 * (1 - (x - XOFF) / 50.0)                  # continental cold towards the old Russia
+        t -= 0.06 * (1 - (47.0 - from_xy(x + 0.5, y + 0.5)[0]) * 0.022)                  # continental cold towards the old Russia
     t += 0.03 * NZ[10].fbm(x, y, 3, 10)
     T[i] = t
 
@@ -718,7 +763,7 @@ for i in RIVER_PATHS['Nile']:                          # green ribbon through th
             VALLEY_GREEN.add(j)
 
 # Russia: salt basin (salt lake, bare rim, salt pans later), hidden valley floor
-SB = (32, 56)
+SB = T2X(32, 56)
 BASIN = set()
 for x, y in ALL:
     i = I(x, y)
@@ -1071,6 +1116,7 @@ if __name__ == '__main__':
         f.write(ascii_map(ascii_features) + '\n')
     write_preview(os.path.join(OUT, 'preview.png'))
     nl = sum(land)
+    print('river plots without a straight neighbour:', sum(1 for i in range(W * H) if large[i] and not any(large[I(nx, ny)] or ocean[I(nx, ny)] or lake[I(nx, ny)] for nx, ny in nbrs(i % W, i // W, N4))))
     print('rivers thinned', RIVERS_THINNED, 'oases', OASES, 'salt pans', len(SALT_PANS))
     print('land %d (%.0f%%)' % (nl, 100.0 * nl / (W * H)), 'large river plots', sum(large), 'lakes', sum(lake), 'clay scatter', len(CLAY_SCATTER), 'lone hills', len(LONE))
     print(sorted(Counter(terrain[i] for i in range(W * H) if land[i]).items(), key=lambda kv: -kv[1]))
