@@ -33,3 +33,11 @@ Copy the generated `.ColonizationWBSave` to `PrivateMaps/` and restart Colonizat
 - Water regions below 50 plots without Europe become lakes when the map is loaded; lakes next to snow become ice lakes.
 - Clay comes from hills on marsh, wetland or tundra only.
 - The map uses `Randomize Features=false` (forests are placed by the generator); resources and goodies are randomized by the game.
+
+## Flipped Europe (`gen_europe.py`, draft)
+
+Second map, work in progress: Europe turned by 180 degrees (Atlantic in the east = Europe side, Scandinavia in the south, Mediterranean with a strip of North Africa in the north), 80x100, same style rules as above. Real coastlines are drawn in lon/lat and projected (`SX`, `SY`); the climate is a free, slightly warmer variant (`LAT_SHIFT`). So far: land mask with seas and straits, ranges with passes, lakes, large rivers with fords, climate, biomes, clay hills, features, volcanoes, and an ASCII preview.
+
+```
+python Tools/MapGenerator/gen_europe.py [seed] [output dir]    # writes ascii_terrain.txt, ascii_features.txt, preview.png
+```
