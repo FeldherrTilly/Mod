@@ -129,6 +129,7 @@ public:
 	// colony when the automation was switched on) and comes back there from Europe
 	void AI_startNativeTrade();
 	bool AI_isHumanNativeTrade() const;
+	bool AI_isNativeVillageTargeted(const CvCity& kVillage) const;
 	CvCity* AI_nativeTradeHomeCity() const;
 	bool AI_nativeTradeInHomeArea(const CvCity& kVillage) const;
 	bool AI_humanNativeTradeEurope();

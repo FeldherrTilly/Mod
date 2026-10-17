@@ -17343,6 +17343,24 @@ int CvUnitAI::AI_nativeTradeBuy()
 	return iDeals;
 }
 
+// WTP: another native trade ship of ours heads for this village or trades there now
+bool CvUnitAI::AI_isNativeVillageTargeted(const CvCity& kVillage) const
+{
+	int iLoop;
+	for (CvUnit* pLoopUnit = GET_PLAYER(getOwnerINLINE()).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER(getOwnerINLINE()).nextUnit(&iLoop))
+	{
+		if (pLoopUnit == this || pLoopUnit->getDomainType() != DOMAIN_SEA || !pLoopUnit->isOnMap_() || !static_cast<CvUnitAI*>(pLoopUnit)->AI_isNativeTradeShip())
+		{
+			continue;
+		}
+		if (pLoopUnit->atPlot(kVillage.plot()) || (pLoopUnit->getGroup() != NULL && pLoopUnit->getGroup()->AI_getMissionAIPlot() == kVillage.plot()))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 bool CvUnitAI::AI_isHumanNativeTrade() const
 {
 	return isHuman() && getGroup() != NULL && getGroup()->getAutomateType() == AUTOMATE_NATIVE_TRADE;
@@ -17875,6 +17893,11 @@ CvCity* CvUnitAI::AI_nativeTradeBuyVillage(bool bDraw)
 			{
 				iWeight = iWeight * std::min(100, std::max(5, 100 * (iTurn - iLastVisit) / 25)) / 100;
 			}
+			// another of our native trade ships heads there (several ships around the same colonies went to the same villages)
+			if (AI_isNativeVillageTargeted(*pCity))
+			{
+				iWeight /= 20;
+			}
 			iWeight = std::max(1, iWeight);
 			aCandidates.push_back(std::make_pair(pCity, iWeight));
 			iTotalWeight += iWeight;
@@ -17993,6 +18016,11 @@ CvCity* CvUnitAI::AI_nativeTradeSellVillage(const CvCity* pFavourite, bool bMusk
 			else
 			{
 				iDistance = kOwner.AI_nativeVillageDistanceToColonies(*pCity);
+			}
+			// another of our native trade ships heads there: its sale takes the natives' gold
+			if (iDistance < MAX_INT - 20 && AI_isNativeVillageTargeted(*pCity))
+			{
+				iDistance += 20;
 			}
 
 			if (kNative.getGold() >= 2000)
