@@ -124,6 +124,14 @@ public:
 	bool AI_isWfJob(const CvCity& kCity, ProfessionTypes eProfession, const CvPlot* pPlot) const;
 	bool AI_doWfTask();
 
+	// WTP: native trade automation of a human player's ship: it trades with the villages around its home colony (the nearest
+	// colony when the automation was switched on) and comes back there from Europe
+	void AI_startNativeTrade();
+	bool AI_isHumanNativeTrade() const;
+	CvCity* AI_nativeTradeHomeCity() const;
+	bool AI_nativeTradeInHomeArea(const CvCity& kVillage) const;
+	bool AI_humanNativeTradeEurope();
+
 protected:
 
 	void AI_resetSavedData();
@@ -149,6 +157,7 @@ protected:
 	int m_iNativeTradeBuyTurn; // WTP: native trade ship: turn of its last purchase at a village
 	int m_iNativeTradeArriveTurn; // WTP: native trade ship: turn of its first move on the map after Europe (-1: not yet)
 	int m_iNativeTradeSlotsFullTurn; // WTP: native trade ship: turn all its cargo slots were taken (-1: not yet)
+	int m_iNativeTradeHomeCityID; // WTP: native trade automation (human): the colony it trades around (-1: none)
 
 	mutable ProfessionTypes m_eIdealProfessionCache;
 

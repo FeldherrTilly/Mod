@@ -3532,10 +3532,21 @@ void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue)
 
 	if (getAutomateType() != eNewValue)
 	{
+		const AutomateTypes eOldValue = getAutomateType();
 		m_eAutomateType = eNewValue;
 
 		clearMissionQueue();
 		setActivityType(ACTIVITY_AWAKE);
+
+		// WTP: native trade automation: the ship gets its home colony and trade state; it drops them when switched to another automation
+		if (eNewValue == AUTOMATE_NATIVE_TRADE && getHeadUnit() != NULL)
+		{
+			static_cast<CvUnitAI*>(getHeadUnit())->AI_startNativeTrade();
+		}
+		else if (eOldValue == AUTOMATE_NATIVE_TRADE && eNewValue != NO_AUTOMATE && getHeadUnit() != NULL)
+		{
+			getHeadUnit()->AI_setUnitAIState(UNITAI_STATE_DEFAULT);
+		}
 
 		// if canceling automation, cancel on cargo as well
 		if (eNewValue == NO_AUTOMATE)

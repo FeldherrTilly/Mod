@@ -664,6 +664,20 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 
 	if (isHuman())
 	{
+		// WTP: a ship with the native trade automation does its business in Europe (sells, buys Trade Goods, sails back); the
+		// units are collected first as buying goods creates units
+		std::vector<CvUnitAI*> apTraders;
+		for (pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+		{
+			if (pLoopUnit->getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE && static_cast<CvUnitAI*>(pLoopUnit)->AI_isHumanNativeTrade())
+			{
+				apTraders.push_back(static_cast<CvUnitAI*>(pLoopUnit));
+			}
+		}
+		for (uint i = 0; i < apTraders.size(); ++i)
+		{
+			apTraders[i]->AI_humanNativeTradeEurope();
+		}
 		return;
 	}
 
