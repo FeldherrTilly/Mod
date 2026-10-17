@@ -3526,7 +3526,7 @@ bool CvSelectionGroup::isAutomated() const
 }
 
 
-void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue)
+void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue, bool bImplicit)
 {
 	FAssert(getOwnerINLINE() != NO_PLAYER);
 
@@ -3538,10 +3538,15 @@ void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue)
 		clearMissionQueue();
 		setActivityType(ACTIVITY_AWAKE);
 
-		// WTP: native trade automation: the ship gets its home colony and trade state; it drops them when switched to another automation
+		// WTP: native trade automation: the ship gets its home colony and trade state (a ship that lost the automation on its way
+		// to or from Europe keeps them); it drops them when switched to another automation
 		if (eNewValue == AUTOMATE_NATIVE_TRADE && getHeadUnit() != NULL)
 		{
-			static_cast<CvUnitAI*>(getHeadUnit())->AI_startNativeTrade();
+			CvUnitAI* const pTrader = static_cast<CvUnitAI*>(getHeadUnit());
+			if (!pTrader->AI_hasNativeTradeAutomation())
+			{
+				pTrader->AI_startNativeTrade();
+			}
 		}
 		else if (eOldValue == AUTOMATE_NATIVE_TRADE && eNewValue != NO_AUTOMATE && getHeadUnit() != NULL)
 		{
@@ -3556,7 +3561,7 @@ void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue)
 				m_eAutomateType = NO_AUTOMATE;
 			}
 		}
-		else if (eOldValue == AUTOMATE_ASSIGN_JOB && getHeadUnit() != NULL)
+		else if (eOldValue == AUTOMATE_ASSIGN_JOB && !bImplicit && getHeadUnit() != NULL)
 		{
 			static_cast<CvUnitAI*>(getHeadUnit())->AI_clearWfTask();
 		}
@@ -3564,7 +3569,11 @@ void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue)
 		// if canceling automation, cancel on cargo as well
 		if (eNewValue == NO_AUTOMATE)
 		{
-			getHeadUnit()->AI_setUnitAIState(UNITAI_STATE_DEFAULT);
+			// WTP: not when a unit only leaves the group (the native trade ship keeps its trade state)
+			if (!bImplicit && getHeadUnit() != NULL)
+			{
+				getHeadUnit()->AI_setUnitAIState(UNITAI_STATE_DEFAULT);
+			}
 
 			CvPlot* pPlot = plot();
 			if (pPlot != NULL)
@@ -3579,7 +3588,8 @@ void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue)
 						CvUnit* pTransportUnit = pCargoUnit->getTransportUnit();
 						if (pTransportUnit != NULL && pTransportUnit->getGroup() == this)
 						{
-							pCargoUnit->getGroup()->setAutomateType(NO_AUTOMATE);
+							// WTP: passengers keep their tasks (colonists with the job automation keep their job)
+							pCargoUnit->getGroup()->setAutomateType(NO_AUTOMATE, true);
 						}
 					}
 				}
@@ -3843,7 +3853,7 @@ CLLNode<IDInfo>* CvSelectionGroup::deleteUnitNode(CLLNode<IDInfo>* pNode)
 
 	if (getOwnerINLINE() != NO_PLAYER)
 	{
-		setAutomateType(NO_AUTOMATE);
+		setAutomateType(NO_AUTOMATE, true); // WTP: implicit (the unit keeps its task)
 		clearMissionQueue();
 
 		switch (getActivityType())

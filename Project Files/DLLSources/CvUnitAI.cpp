@@ -17172,7 +17172,7 @@ namespace
 
 // WTP: native trade ship: sells the goods aboard to the native village on this plot, bargaining once per sale.
 // Returns 1 if something was sold, 0 if not, -1 if the natives refuse to trade with us for some turns (angry).
-int CvUnitAI::AI_nativeTradeSell()
+int CvUnitAI::AI_nativeTradeSell(CvWString* pszDeals)
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	CvCity* const pCity = plot()->getPlotCity();
@@ -17239,6 +17239,14 @@ int CvUnitAI::AI_nativeTradeSell()
 		if (iGained > 0)
 		{
 			iResult = 1;
+			if (pszDeals != NULL)
+			{
+				if (!pszDeals->empty())
+				{
+					*pszDeals += L", ";
+				}
+				*pszDeals += CvWString::format(L"%d %s (%d)", iAmount, GC.getYieldInfo(eYield).getDescription(), iGained);
+			}
 		}
 	}
 	return iResult;
@@ -17247,7 +17255,7 @@ int CvUnitAI::AI_nativeTradeSell()
 // WTP: native trade ship: buys goods from the native village on this plot for the free cargo space. Furs, silver, gold and
 // gems always, any other yield only if the village has more than 50 of it. Takes the yield with the best absolute profit per
 // cargo slot first (the profit ratio only decides ties). Returns the number of deals made.
-int CvUnitAI::AI_nativeTradeBuy()
+int CvUnitAI::AI_nativeTradeBuy(CvWString* pszDeals)
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	CvCity* const pCity = plot()->getPlotCity();
@@ -17339,6 +17347,14 @@ int CvUnitAI::AI_nativeTradeBuy()
 			break;
 		}
 		++iDeals;
+		if (pszDeals != NULL)
+		{
+			if (!pszDeals->empty())
+			{
+				*pszDeals += L", ";
+			}
+			*pszDeals += CvWString::format(L"%d %s (%d)", iBestAmount, GC.getYieldInfo(eBestYield).getDescription(), iSpent);
+		}
 	}
 	return iDeals;
 }
@@ -17363,7 +17379,14 @@ bool CvUnitAI::AI_isNativeVillageTargeted(const CvCity& kVillage) const
 
 bool CvUnitAI::AI_isHumanNativeTrade() const
 {
-	return isHuman() && getGroup() != NULL && getGroup()->getAutomateType() == AUTOMATE_NATIVE_TRADE;
+	return isHuman() && ((getGroup() != NULL && getGroup()->getAutomateType() == AUTOMATE_NATIVE_TRADE) || AI_hasNativeTradeAutomation());
+}
+
+// the automation of the group is lost when the ship leaves the map for Europe or comes back; the ship keeps its home colony
+// and trade state (cleared when the player stops the automation) and gets the automation back
+bool CvUnitAI::AI_hasNativeTradeAutomation() const
+{
+	return isHuman() && AI_isNativeTradeShip() && AI_nativeTradeHomeCity() != NULL;
 }
 
 CvCity* CvUnitAI::AI_nativeTradeHomeCity() const
@@ -17562,11 +17585,16 @@ void CvUnitAI::AI_nativeTradeShipMove()
 		return;
 	}
 
+	// WTP: the human player gets a message with the deals of each village visit
+	CvWString szSold;
+	CvWString szBought;
+	bool bSoldHere = false;
 	if (AI_getUnitAIState() == UNITAI_STATE_NATIVE_TRADE_SELL)
 	{
 		if (bAtVillage && kOwner.AI_getNativeVillageVisitTurn(*pHere) != iTurn)
 		{
-			const int iSold = AI_nativeTradeSell();
+			bSoldHere = true;
+			const int iSold = AI_nativeTradeSell(&szSold);
 			kOwner.AI_setNativeVillageVisited(*pHere);
 			iGoods = AI_nativeTradeCargoCount(true, &bMuskets);
 			if (bHuman)
@@ -17610,10 +17638,10 @@ void CvUnitAI::AI_nativeTradeShipMove()
 		}
 	}
 
-	// buying
-	if (bAtVillage && kOwner.AI_getNativeVillageVisitTurn(*pHere) != iTurn)
+	// buying (also right after selling everything here)
+	if (bAtVillage && (kOwner.AI_getNativeVillageVisitTurn(*pHere) != iTurn || bSoldHere))
 	{
-		const int iDeals = AI_nativeTradeBuy();
+		const int iDeals = AI_nativeTradeBuy(&szBought);
 		kOwner.AI_setNativeVillageVisited(*pHere);
 		if (iDeals > 0)
 		{
@@ -17623,8 +17651,16 @@ void CvUnitAI::AI_nativeTradeShipMove()
 		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S visited %S to buy: %d deals, cargo %d/%d",
 			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pHere->getName().GetCString(), iDeals, getCargo(), cargoSpace());
 	}
+	if (bAtVillage && isHuman() && (bSoldHere || !szBought.empty()))
+	{
+		const CvWString szNothing = gDLL->getText("TXT_KEY_NATIVE_TRADE_REPORT_NOTHING");
+		CvWString szBuffer = gDLL->getText("TXT_KEY_NATIVE_TRADE_REPORT_VILLAGE", getName().GetCString(), pHere->getNameKey(),
+			szSold.empty() ? szNothing.GetCString() : szSold.GetCString(), szBought.empty() ? szNothing.GetCString() : szBought.GetCString());
+		gDLL->UI().addPlayerMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, NULL, MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE, getX_INLINE(), getY_INLINE());
+	}
 
-	// back to Europe: hold full to the brim, or 2 turns after all cargo slots were taken, or 12 turns after the arrival from Europe
+	// back to Europe: all cargo slots taken (the visits to top up partly filled slots mostly found nothing), or 12 turns after
+	// the arrival from Europe
 	if (isFull() && m_iNativeTradeSlotsFullTurn < 0)
 	{
 		m_iNativeTradeSlotsFullTurn = iTurn;
@@ -17634,9 +17670,9 @@ void CvUnitAI::AI_nativeTradeShipMove()
 	{
 		szEurope = "hold is full";
 	}
-	else if (m_iNativeTradeSlotsFullTurn >= 0 && iTurn - m_iNativeTradeSlotsFullTurn >= 2)
+	else if (isFull())
 	{
-		szEurope = "2 turns since all cargo slots were taken";
+		szEurope = "all cargo slots are taken";
 	}
 	else if (iTurn - m_iNativeTradeArriveTurn >= 12)
 	{
@@ -17697,8 +17733,28 @@ bool CvUnitAI::AI_nativeTradeEurope()
 	}
 
 	const int iGoldBefore = kOwner.getGold();
+	// WTP: what is sold, for the human player's message
+	CvWString szSold;
+	if (isHuman() && plot() != NULL)
+	{
+		CLLNode<IDInfo>* pCargoNode = plot()->headUnitNode();
+		while (pCargoNode != NULL)
+		{
+			const CvUnit* const pCargo = plot()->getUnitNodeLoop(pCargoNode);
+			if (pCargo != NULL && pCargo->getTransportUnit() == this && pCargo->isGoods() && pCargo->getYield() != NO_YIELD)
+			{
+				if (!szSold.empty())
+				{
+					szSold += L", ";
+				}
+				szSold += CvWString::format(L"%d %s", pCargo->getYieldStored(), GC.getYieldInfo(pCargo->getYield()).getDescription());
+			}
+		}
+	}
 	AI_sellYieldUnits(TRADE_LOCATION_EUROPE);
 	AI_unloadUnits(TRADE_LOCATION_EUROPE);
+	const int iSoldFor = kOwner.getGold() - iGoldBefore;
+	CvWString szBought;
 	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S in Europe sold its goods for %d gold (gold now %d), %d units wait at the dock",
 		getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), kOwner.getGold() - iGoldBefore, kOwner.getGold(), kOwner.getNumEuropeUnits());
 
@@ -17754,6 +17810,11 @@ bool CvUnitAI::AI_nativeTradeEurope()
 					}
 					bBought = true;
 					iWanted -= iAmount;
+					if (!szBought.empty())
+					{
+						szBought += L", ";
+					}
+					szBought += CvWString::format(L"%d %s (%d)", iAmount, GC.getYieldInfo(eYield).getDescription(), iAmount * iPrice);
 					if (bHuman)
 					{
 						iBudget -= iAmount * iPrice;
@@ -17776,6 +17837,14 @@ bool CvUnitAI::AI_nativeTradeEurope()
 				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), kOwner.getGold());
 			AI_setUnitAIState(bBought ? UNITAI_STATE_NATIVE_TRADE_SELL : UNITAI_STATE_NATIVE_TRADE_BUY);
 		}
+	}
+
+	if (isHuman())
+	{
+		const CvWString szNothing = gDLL->getText("TXT_KEY_NATIVE_TRADE_REPORT_NOTHING");
+		CvWString szBuffer = gDLL->getText("TXT_KEY_NATIVE_TRADE_REPORT_EUROPE", getName().GetCString(), szSold.empty() ? szNothing.GetCString() : szSold.GetCString(),
+			iSoldFor, szBought.empty() ? szNothing.GetCString() : szBought.GetCString());
+		gDLL->UI().addPlayerMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, NULL, MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE);
 	}
 
 	// a new round trip: its clock starts with the first move on the map
@@ -17868,6 +17937,9 @@ CvCity* CvUnitAI::AI_nativeTradeBuyVillage(bool bDraw)
 	int iTotalWeight = 0;
 	CvCity* pBestCity = NULL;
 	int iBestWeight = 0;
+	// WTP: villages one of our ships visited in the last 8 turns only if there is no other one (a schooner went back to the
+	// village it had just bought everything from)
+	for (int iPass = 0; iPass < 2 && aCandidates.empty(); ++iPass)
 	for (PlayerTypes eNative = FIRST_PLAYER; eNative < NUM_PLAYER_TYPES; ++eNative)
 	{
 		CvPlayerAI& kNative = GET_PLAYER(eNative);
@@ -17878,6 +17950,10 @@ CvCity* CvUnitAI::AI_nativeTradeBuyVillage(bool bDraw)
 		for (CvCity* pCity = kNative.firstCity(&iLoop); pCity != NULL; pCity = kNative.nextCity(&iLoop))
 		{
 			if (atPlot(pCity->plot()) || !AI_canTradeWithVillage(*pCity) || !AI_nativeTradeInHomeArea(*pCity))
+			{
+				continue;
+			}
+			if (iPass == 0 && kOwner.AI_getNativeVillageVisitTurn(*pCity) >= 0 && iTurn - kOwner.AI_getNativeVillageVisitTurn(*pCity) < 8)
 			{
 				continue;
 			}

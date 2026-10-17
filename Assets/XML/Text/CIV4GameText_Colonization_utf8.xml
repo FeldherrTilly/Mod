@@ -2366,6 +2366,39 @@
 		<Hungarian>Piac: a piac által keresett összes áru importja (utánpótlás 40/40)</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_NATIVE_TRADE_REPORT_VILLAGE</Tag>
+		<English>%s1 at %s2 - sold: %s3; bought: %s4</English>
+		<Portuguese>%s1 em %s2 - vendido: %s3; comprado: %s4</Portuguese>
+		<French>%s1 à %s2 - vendu : %s3 ; acheté : %s4</French>
+		<German>%s1 in %s2 - verkauft: %s3; gekauft: %s4</German>
+		<Italian>%s1 a %s2 - venduto: %s3; comprato: %s4</Italian>
+		<Spanish>%s1 en %s2 - vendido: %s3; comprado: %s4</Spanish>
+		<Russian>%s1 в %s2 - продано: %s3; куплено: %s4</Russian>
+		<Hungarian>%s1 itt: %s2 - eladva: %s3; vásárolva: %s4</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NATIVE_TRADE_REPORT_EUROPE</Tag>
+		<English>%s1 in Europe - sold: %s2 for %d3 gold; bought: %s4</English>
+		<Portuguese>%s1 na Europa - vendido: %s2 por %d3 de ouro; comprado: %s4</Portuguese>
+		<French>%s1 en Europe - vendu : %s2 pour %d3 pièces d'or ; acheté : %s4</French>
+		<German>%s1 in Europa - verkauft: %s2 für %d3 Gold; gekauft: %s4</German>
+		<Italian>%s1 in Europa - venduto: %s2 per %d3 monete d'oro; comprato: %s4</Italian>
+		<Spanish>%s1 en Europa - vendido: %s2 por %d3 de oro; comprado: %s4</Spanish>
+		<Russian>%s1 в Европе - продано: %s2 за %d3 золота; куплено: %s4</Russian>
+		<Hungarian>%s1 Európában - eladva: %s2 %d3 aranyért; vásárolva: %s4</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NATIVE_TRADE_REPORT_NOTHING</Tag>
+		<English>nothing</English>
+		<Portuguese>nada</Portuguese>
+		<French>rien</French>
+		<German>nichts</German>
+		<Italian>niente</Italian>
+		<Spanish>nada</Spanish>
+		<Russian>ничего</Russian>
+		<Hungarian>semmi</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_ACTION_AUTOMATE_FULL_HELP</Tag>
 		<English>Automate this unit</English>
 		<Portuguese>Automatizar unidade</Portuguese>

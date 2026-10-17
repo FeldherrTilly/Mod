@@ -142,7 +142,8 @@ public:
 
 	AutomateTypes getAutomateType() const;
 	bool isAutomated() const;
-	void setAutomateType(AutomateTypes eNewValue);
+	// bImplicit: the automation ends because a unit leaves the group (boarding, Europe): the units keep their tasks (WTP)
+	void setAutomateType(AutomateTypes eNewValue, bool bImplicit = false);
 
 	// FAStarNode* getPathLastNode() const; // disabled by K-Mod. Use path_finder methods instead.
 	CvPlot* getPathFirstPlot() const;

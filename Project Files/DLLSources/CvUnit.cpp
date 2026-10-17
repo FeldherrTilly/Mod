@@ -6048,6 +6048,13 @@ void CvUnit::unload()
 	}
 
 	setTransportUnit(NULL);
+
+	// WTP: a colonist with the job automation (lost while aboard) goes on with its job
+	if (isHuman() && static_cast<CvUnitAI*>(this)->AI_getWfTask() == CvUnitAI::WF_ASSIGN && getGroup() != NULL
+		&& getGroup()->getNumUnits() == 1 && getGroup()->getAutomateType() == NO_AUTOMATE)
+	{
+		getGroup()->setAutomateType(AUTOMATE_ASSIGN_JOB);
+	}
 }
 
 // returns true if the unit is still alive

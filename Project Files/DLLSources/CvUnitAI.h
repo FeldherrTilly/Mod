@@ -129,6 +129,7 @@ public:
 	// colony when the automation was switched on) and comes back there from Europe
 	void AI_startNativeTrade();
 	bool AI_isHumanNativeTrade() const;
+	bool AI_hasNativeTradeAutomation() const; // a human player's native trade ship (home colony and trade state)
 	bool AI_isNativeVillageTargeted(const CvCity& kVillage) const;
 	CvCity* AI_nativeTradeHomeCity() const;
 	bool AI_nativeTradeInHomeArea(const CvCity& kVillage) const;
@@ -404,8 +405,8 @@ protected:
 	void AI_explorerShipMove();
 	bool AI_nativeTradeEurope();
 	bool AI_crossFromEurope();
-	int AI_nativeTradeSell();
-	int AI_nativeTradeBuy();
+	int AI_nativeTradeSell(CvWString* pszDeals = NULL);
+	int AI_nativeTradeBuy(CvWString* pszDeals = NULL);
 	bool AI_canTradeWithVillage(const CvCity& kCity) const;
 	CvCity* AI_nativeTradeBuyVillage(bool bDraw = true);
 	CvCity* AI_nativeTradeSellVillage(const CvCity* pFavourite, bool bMuskets);
