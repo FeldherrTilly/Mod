@@ -18945,6 +18945,7 @@ CvCity* CvUnitAI::AI_nativeTradeBuyVillage(bool bDraw)
 	const bool bHumanTrade = AI_isHumanNativeTrade();
 	const int iAvoidTurns = bHumanTrade ? NATIVE_TRADE_HUMAN_VISIT_TURNS : 8;
 	const int iFullWeightTurns = bHumanTrade ? 2 * NATIVE_TRADE_HUMAN_VISIT_TURNS : 25;
+	// village it had just bought everything from)
 	for (int iPass = 0; iPass < 2 && aCandidates.empty(); ++iPass)
 	for (PlayerTypes eNative = FIRST_PLAYER; eNative < NUM_PLAYER_TYPES; ++eNative)
 	{
@@ -18960,6 +18961,7 @@ CvCity* CvUnitAI::AI_nativeTradeBuyVillage(bool bDraw)
 				continue;
 			}
 			if (iPass == 0 && kOwner.AI_getNativeVillageVisitTurn(*pCity) >= 0 && iTurn - kOwner.AI_getNativeVillageVisitTurn(*pCity) < iAvoidTurns)
+			if (iPass == 0 && kOwner.AI_getNativeVillageVisitTurn(*pCity) >= 0 && iTurn - kOwner.AI_getNativeVillageVisitTurn(*pCity) < 8)
 			{
 				continue;
 			}

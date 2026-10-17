@@ -3569,7 +3569,7 @@ void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue, bool bImplicit)
 				m_eAutomateType = NO_AUTOMATE;
 			}
 		}
-		else if (eOldValue == AUTOMATE_ASSIGN_JOB && getHeadUnit() != NULL)
+		else if (eOldValue == AUTOMATE_ASSIGN_JOB && !bImplicit && getHeadUnit() != NULL)
 		{
 			static_cast<CvUnitAI*>(getHeadUnit())->AI_clearWfTask();
 		}
