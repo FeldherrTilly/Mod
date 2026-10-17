@@ -219,7 +219,7 @@ for x, y in ALL:
         for pts, hw in CH:
             if poly_dist(x + 0.5, y + 0.5, pts)[0] <= hw:
                 ok = False
-    if ok and ((from_xy(x + 0.5, y + 0.5)[0] - 47.0) / 21.8) ** 2 + ((from_xy(x + 0.5, y + 0.5)[1] - 71.5) / 12.7) ** 2 < 1 + 0.12 * NZ[19].fbm(x, y, 2, 5) + 0.22 * EDGE[0].fbm(x, y, 3, 4):
+    if ok and ((from_xy(x + 0.5, y + 0.5)[0] - 47.0) / 24.5) ** 2 + ((from_xy(x + 0.5, y + 0.5)[1] - 71.5) / 14.5) ** 2 < 1 + 0.12 * NZ[19].fbm(x, y, 2, 5) + 0.22 * EDGE[0].fbm(x, y, 3, 4):
         ok = False                                     # round off the lower-left corner of "Russia"
     if ok:
         lon, lat = from_xy(x + 0.5, y + 0.5)
