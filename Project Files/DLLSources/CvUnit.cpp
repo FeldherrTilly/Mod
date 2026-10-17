@@ -14039,10 +14039,17 @@ bool CvUnit::setTransportUnit(CvUnit* pTransportUnit, bool bUnload)
 				}
 			}
 
+			// WTP: a colonist with the job automation keeps it on board (its new group would wake up and ask for orders)
+			const bool bAssignJob = getGroup() != NULL && getGroup()->getAutomateType() == AUTOMATE_ASSIGN_JOB;
+
 			joinGroup(NULL, true); // Because what if a group of 3 tries to get in a transport which can hold 2...
 
 			m_transportUnit = pTransportUnit->getIDInfo();
 
+			if (bAssignJob)
+			{
+				getGroup()->setAutomateType(AUTOMATE_ASSIGN_JOB);
+			}
 			getGroup()->setActivityType(ACTIVITY_SLEEP);
 
 			if (pPlot != pTransportUnit->plot())
