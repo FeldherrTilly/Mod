@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from noise import Noise, poly_dist, smoothstep, interp
 from png import write_png
 
-W, H = 99, 115
+W, H = 107, 125
 XOFF = 19                                 # tiles added on the left (compressed Asia gets room); the top got 15 rows as well
 SEED = int(sys.argv[1]) if len(sys.argv) > 1 else 1
 OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(os.path.abspath(__file__)), 'out_eporue')
@@ -57,8 +57,8 @@ ALL = [(x, y) for y in range(H) for x in range(W)]
 LON_MAX, LAT_MAX = 47.0, 71.5          # reference of the first draft (old tile grid: 1.1 tiles per degree of longitude, 2.2 per degree of latitude)
 LAT_SHIFT = 4.0                        # free climate: everything counts as 4 degrees further north (a little warmer)
 # west and central Europe get the most tiles per degree, Russia, Asia, Scandinavia and Africa are compressed
-LON_KN = [(60.0, 4.5), (38.0, 17.7), (26.0, 27.3), (-10.0, 79.5), (-14.0, 83.5)]      # lon -> x
-LAT_KN = [(71.5, 5.0), (58.0, 28.0), (40.0, 82.0), (34.0, 94.0), (22.7, 111.0)]       # lat -> y
+LON_KN = [(60.0, 4.5), (38.0, 25.7), (26.0, 35.3), (-10.0, 87.5), (-14.0, 91.5)]      # lon -> x
+LAT_KN = [(71.5, 5.0), (58.0, 28.0), (40.0, 82.0), (34.0, 94.0), (22.7, 121.0)]       # lat -> y
 
 
 def _pw(knots, v):
