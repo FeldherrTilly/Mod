@@ -258,6 +258,7 @@ void CvPlayerAI::AI_resetSavedData()
 	m_eWfExpertToBuy = NO_UNITCLASS;
 	m_aWfOpenOpportunities.clear();
 	m_iWfIdleCount = 0;
+	m_iWfTravelTurn = -1;
 	m_iWfFoodCityID = -1;
 	m_bWfFoodWater = false;
 	m_iMoveQueuePasses = defaultMoveQueuePasses;
