@@ -110,6 +110,17 @@
 		<German>Fantasie-Neue-Welt (Riesig, 80x110): zwei erfundene Kontinente, verbunden durch eine Landenge, vom arktischen Norden bis in den gemäßigten Süden. Klimazonen, Regenschatten, Gebirgsketten mit Pässen, große Flüsse und Seen folgen geografischen Regeln. Zufällige Ureinwohner, Ressourcen und Schatzfelder.</German>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_WORLDBUILDER_EPORUE_DESC</Tag>
+		<English>Eporue (Huge, 107x125): Europe turned upside down - the Atlantic and the Europe side in the east, Scandinavia in the south, the Mediterranean and North Africa in the north, Russia and Asia in the west. Real coastlines, mountain ranges with passes, large rivers and lakes. Random Natives, resources and goodies.</English>
+		<Portuguese>Eporue (Enorme, 107x125): a Europa de cabeça para baixo - o Atlântico e o lado da Europa a leste, a Escandinávia a sul, o Mediterrâneo e o Norte de África a norte, a Rússia e a Ásia a oeste. Costas reais, cadeias montanhosas com passagens, grandes rios e lagos. Nativos, recursos e tesouros aleatórios.</Portuguese>
+		<French>Eporue (Énorme, 107x125) : l'Europe sens dessus dessous - l'Atlantique et le côté de l'Europe à l'est, la Scandinavie au sud, la Méditerranée et l'Afrique du Nord au nord, la Russie et l'Asie à l'ouest. Côtes réelles, chaînes de montagnes avec cols, grands fleuves et lacs. Indigènes, ressources et trésors aléatoires.</French>
+		<German>Eporue (Riesig, 107x125): Europa auf den Kopf gestellt - der Atlantik und die Europaseite im Osten, Skandinavien im Süden, das Mittelmeer und Nordafrika im Norden, Russland und Asien im Westen. Echte Küstenlinien, Gebirgsketten mit Pässen, große Flüsse und Seen. Zufällige Ureinwohner, Ressourcen und Schatzfelder.</German>
+		<Italian>Eporue (Enorme, 107x125): l'Europa capovolta - l'Atlantico e il lato dell'Europa a est, la Scandinavia a sud, il Mediterraneo e il Nordafrica a nord, la Russia e l'Asia a ovest. Coste reali, catene montuose con passi, grandi fiumi e laghi. Nativi, risorse e tesori casuali.</Italian>
+		<Spanish>Eporue (Enorme, 107x125): Europa boca abajo - el Atlántico y el lado de Europa al este, Escandinavia al sur, el Mediterráneo y el norte de África al norte, Rusia y Asia al oeste. Costas reales, cordilleras con pasos, grandes ríos y lagos. Nativos, recursos y tesoros aleatorios.</Spanish>
+		<Russian>Eporue (огромная, 107x125): перевернутая Европа - Атлантика и европейская сторона на востоке, Скандинавия на юге, Средиземное море и Северная Африка на севере, Россия и Азия на западе. Реальные береговые линии, горные цепи с перевалами, большие реки и озера. Случайные туземцы, ресурсы и сокровища.</Russian>
+		<Hungarian>Eporue (Hatalmas, 107x125): a fejtetőre állított Európa - az Atlanti-óceán és az európai oldal keleten, Skandinávia délen, a Földközi-tenger és Észak-Afrika északon, Oroszország és Ázsia nyugaton. Valódi partvonalak, hegységek hágókkal, nagy folyók és tavak. Véletlenszerű bennszülöttek, erőforrások és kincsek.</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_WORLDBUILDER_NEW_ENGLAND_DESC</Tag>
 		<English>New England (Standard, 30x70): Map of New England</English>
 		<Portuguese>Nova Inglaterra (Padrão, 30x70): Mapa da Nova Inglaterra</Portuguese>
