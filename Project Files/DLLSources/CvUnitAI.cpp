@@ -22241,7 +22241,7 @@ bool CvUnitAI::AI_transportAutoAssignColonists()
 			continue;
 		}
 		int iPathTurns;
-		if (CvPlayerAI::AI_shipCanReachCity(getUnitType(), *pTarget) && generatePath(pTarget->plot(), 0, true, &iPathTurns) && iPathTurns < iDeliverTurns)
+		if (CvPlayerAI::AI_shipCanReachCity(getUnitType(), *pTarget) && generatePath(pTarget->plot(), MOVE_IGNORE_DANGER, true, &iPathTurns) && iPathTurns < iDeliverTurns)
 		{
 			iDeliverTurns = iPathTurns;
 			pDeliver = pTarget;
@@ -22249,8 +22249,24 @@ bool CvUnitAI::AI_transportAutoAssignColonists()
 	}
 	if (pDeliver != NULL)
 	{
-		getGroup()->pushMission(MISSION_MOVE_TO, pDeliver->getX_INLINE(), pDeliver->getY_INLINE(), 0, false, false, MISSIONAI_TRANSPORT_SEA, pDeliver->plot());
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S sails to %S with colonists for their jobs (%d turns)",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pDeliver->getName().GetCString(), iDeliverTurns);
+		getGroup()->pushMission(MISSION_MOVE_TO, pDeliver->getX_INLINE(), pDeliver->getY_INLINE(), MOVE_IGNORE_DANGER, false, false, MISSIONAI_TRANSPORT_SEA, pDeliver->plot());
 		return true;
+	}
+	// no way to their colonies (storms, the colony out of reach): in an own colony they go ashore and plan again from there
+	CvCity* const pHere = plot()->getPlotCity();
+	if (pHere != NULL && pHere->getOwnerINLINE() == getOwnerINLINE())
+	{
+		for (uint i = 0; i < apAboard.size(); ++i)
+		{
+			if (apAboard[i]->getTransportUnit() == this)
+			{
+				apAboard[i]->unload();
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S cannot reach the colony of %S and puts it ashore in %S",
+					getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), apAboard[i]->getName().GetCString(), pHere->getName().GetCString());
+			}
+		}
 	}
 
 	// 2. colonists waiting in a port for a ship to their colony
