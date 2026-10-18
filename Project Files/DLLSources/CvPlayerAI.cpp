@@ -23126,6 +23126,11 @@ namespace
 	bool wfMayWorkInBuilding(const CvUnit& kUnit, YieldTypes eYield)
 	{
 		const UnitClassTypes eClass = (UnitClassTypes)kUnit.getUnitInfo().getUnitClassType();
+		// (an indentured servant may study at school)
+		if (eYield == YIELD_EDUCATION && eClass == (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_INDENTURED_SERVANT"))
+		{
+			return true;
+		}
 		const char* const aszFieldOnly[6] = { "UNITCLASS_INDENTURED_SERVANT", "UNITCLASS_MULATTO", "UNITCLASS_MESTIZZO",
 			"UNITCLASS_AFRICAN_SLAVE", "UNITCLASS_NATIVE_SLAVE", "UNITCLASS_CONVERTED_NATIVE" };
 		for (int k = 0; k < 6; ++k)
@@ -23180,6 +23185,46 @@ namespace
 	}
 
 	// gold x100 per turn a unit earns in a job (output at the Europe price, the input deducted, food 4 gold); -1: no output
+	// gold x100 of the output of a human player's colonist (job automation): learning at school 10 gold for a free colonist,
+	// 6 for an indentured servant, nothing for others; health 1 gold if the colony gains 2 health already; law 1 gold from 15
+	// law on; bells 9 gold; everything else as in the workforce plan (wfYieldGold)
+	int wfHumanYieldGold(const CvCity& kCity, const CvUnitAI& kUnit, YieldTypes eYield, int iAmount, int iSlot)
+	{
+		switch (eYield)
+		{
+		case YIELD_EDUCATION:
+			{
+				const UnitClassTypes eClass = (UnitClassTypes)kUnit.getUnitInfo().getUnitClassType();
+				if (eClass == (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_COLONIST"))
+				{
+					return iAmount * 1000;
+				}
+				if (eClass == (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_INDENTURED_SERVANT"))
+				{
+					return iAmount * 600;
+				}
+				return 0;
+			}
+		case YIELD_HEALTH:
+			if (kCity.getCityHealthChange() >= 2)
+			{
+				return iAmount * 100;
+			}
+			break;
+		case YIELD_LAW:
+			if (kCity.getCityLaw() >= 15)
+			{
+				return iAmount * 100;
+			}
+			break;
+		case YIELD_BELLS:
+			return iAmount * 900;
+		default:
+			break;
+		}
+		return wfYieldGold(kCity, eYield, iAmount, iSlot);
+	}
+
 	int wfHumanJobValue(const CvCity& kCity, const CvUnitAI& kUnit, ProfessionTypes eProfession, const CvPlot* pPlot, int iSlot, UnitTypes eColonist, int* piFood)
 	{
 		const UnitTypes eType = wfWorkingType(kUnit, eProfession, eColonist);
@@ -23195,7 +23240,7 @@ namespace
 		{
 			*piFood = iFood;
 		}
-		int iGold = (eYield == YIELD_FOOD) ? 0 : wfYieldGold(kCity, eYield, iOutput, iSlot);
+		int iGold = (eYield == YIELD_FOOD) ? 0 : wfHumanYieldGold(kCity, kUnit, eYield, iOutput, iSlot);
 		for (int k = 0; k < kProfession.getNumYieldsConsumed(); ++k)
 		{
 			const YieldTypes eInput = (YieldTypes)kProfession.getYieldsConsumed(k);
@@ -23208,11 +23253,6 @@ namespace
 	}
 }
 
-// WTP: the best job for a human player's colonist: a free plot or building slot in one of our colonies, or the job of a regular
-// colonist in the expert's own trade (that colonist makes room). Regular colonists only within 12 turns; the colony keeps 2
-// food to spare unless the job produces food; a building job only if the colony produces its raw material. A new citizen
-// only if the colony's unhappiness stays at most 2 above its happiness with all colonists on their way there. Value per
-// turn (gold x100), less for a long way. Returns false if there is no job
 // WTP: colonists with the job automation on their way to kCity as new citizens (not replacing anybody)
 int CvPlayerAI::AI_humanIncomingCitizens(const CvCity& kCity) const
 {
@@ -23263,6 +23303,11 @@ bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTy
 	return true;
 }
 
+// WTP: the best jobs for a human player's colonist (the best per colony and profession, best first, at most iMaxJobs): a free
+// plot or building slot in one of our colonies, or the job of a regular colonist in the expert's own trade (that colonist
+// makes room). Regular colonists only within 12 turns; the colony keeps 2 food to spare unless the job produces food; a
+// building job only if the colony produces its raw material. A new citizen only if the colony's unhappiness stays at most
+// 2 above its happiness with all colonists on their way there. Value per turn (gold x100, wfHumanJobValue), less for a long way
 void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJobs, int iMaxJobs)
 {
 	const CvUnitAI& kUnitAI = static_cast<const CvUnitAI&>(kUnit);
