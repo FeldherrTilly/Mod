@@ -23188,6 +23188,29 @@ namespace
 // food to spare unless the job produces food; a building job only if the colony produces its raw material. A new citizen
 // only if the colony's unhappiness stays at most 2 above its happiness with all colonists on their way there. Value per
 // turn (gold x100), less for a long way. Returns false if there is no job
+// WTP: colonists with the job automation on their way to kCity as new citizens (not replacing anybody)
+int CvPlayerAI::AI_humanIncomingCitizens(const CvCity& kCity) const
+{
+	int iCount = 0;
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		const CvUnitAI& kOther = static_cast<const CvUnitAI&>(*pLoopUnit);
+		if (kOther.AI_getWfTask() == CvUnitAI::WF_ASSIGN && kOther.AI_getWfCityID() == kCity.getID() && kOther.AI_getWfProfession() != NO_PROFESSION
+			&& kOther.AI_getWfVillageX() < 0)
+		{
+			++iCount;
+		}
+	}
+	return iCount;
+}
+
+// WTP: the unhappiness balance of kCity (unhappiness minus happiness) with iNewCitizens more citizens
+int CvPlayerAI::AI_humanUnhappinessWith(const CvCity& kCity, int iNewCitizens) const
+{
+	return wfUnhappinessWith(kCity, iNewCitizens);
+}
+
 bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTypes& eBestProfession, int& iX, int& iY, int& iDisplaceID, int& iTurns, int& iGold)
 {
 	const CvUnitAI& kUnitAI = static_cast<const CvUnitAI&>(kUnit);

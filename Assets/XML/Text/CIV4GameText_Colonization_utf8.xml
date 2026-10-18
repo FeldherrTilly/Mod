@@ -2499,14 +2499,25 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_COMMAND_TRANSPORT_TO_MENU_SELECTION</Tag>
-		<English>%s1 (%d2)</English>
-		<Portuguese>%s1 (%d2)</Portuguese>
-		<French>%s1 (%d2)</French>
-		<German>%s1 (%d2)</German>
-		<Italian>%s1 (%d2)</Italian>
-		<Spanish>%s1 (%d2)</Spanish>
-		<Russian>%s1 (%d2)</Russian>
-		<Hungarian>%s1 (%d2)</Hungarian>
+		<English>%s1 (%d2) - Happiness %d3</English>
+		<Portuguese>%s1 (%d2) - Felicidade %d3</Portuguese>
+		<French>%s1 (%d2) - Bonheur %d3</French>
+		<German>%s1 (%d2) - Zufriedenheit %d3</German>
+		<Italian>%s1 (%d2) - Soddisfazione %d3</Italian>
+		<Spanish>%s1 (%d2) - Satisfacción %d3</Spanish>
+		<Russian>%s1 (%d2) - Счастье %d3</Russian>
+		<Hungarian>%s1 (%d2) - Boldogság %d3</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_TRANSPORT_TO_MENU_SELECTION_PLANNED</Tag>
+		<English>%s1 (%d2) - Happiness %d3, with %d5 on their way %d4</English>
+		<Portuguese>%s1 (%d2) - Felicidade %d3, com %d5 a caminho %d4</Portuguese>
+		<French>%s1 (%d2) - Bonheur %d3, avec %d5 en route %d4</French>
+		<German>%s1 (%d2) - Zufriedenheit %d3, mit %d5 unterwegs %d4</German>
+		<Italian>%s1 (%d2) - Soddisfazione %d3, con %d5 in arrivo %d4</Italian>
+		<Spanish>%s1 (%d2) - Satisfacción %d3, con %d5 en camino %d4</Spanish>
+		<Russian>%s1 (%d2) - Счастье %d3, с %d5 в пути %d4</Russian>
+		<Hungarian>%s1 (%d2) - Boldogság %d3, %d5 úton lévővel %d4</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_TRAVEL_WALK</Tag>

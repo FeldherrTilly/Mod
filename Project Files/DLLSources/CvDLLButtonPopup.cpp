@@ -4200,7 +4200,7 @@ bool CvDLLButtonPopup::launchTransportToMenuPopup(CvPopup* pPopup, CvPopupInfo &
 	{
 		return false;
 	}
-	const CvPlayer& kPlayer = GET_PLAYER(ePlayer);
+	const CvPlayerAI& kPlayer = GET_PLAYER(ePlayer);
 	CvUnit* const pUnit = kPlayer.getUnit(info.getData1());
 	if (pUnit == NULL || !pUnit->canTransportTo())
 	{
@@ -4213,7 +4213,13 @@ bool CvDLLButtonPopup::launchTransportToMenuPopup(CvPopup* pPopup, CvPopupInfo &
 	{
 		if (pUnit->plot() != pLoopCity->plot())
 		{
-			gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, L"  " + gDLL->getText("TXT_KEY_COMMAND_TRANSPORT_TO_MENU_SELECTION", pLoopCity->getNameKey(), pLoopCity->getPopulation()),
+			// population and happiness (happiness minus unhappiness), also with the colonists of the job automation on their way there
+			const int iHappiness = pLoopCity->getCityHappiness() - pLoopCity->getCityUnHappiness();
+			const int iIncoming = kPlayer.AI_humanIncomingCitizens(*pLoopCity);
+			const CvWString szCity = (iIncoming > 0)
+				? gDLL->getText("TXT_KEY_COMMAND_TRANSPORT_TO_MENU_SELECTION_PLANNED", pLoopCity->getNameKey(), pLoopCity->getPopulation(), iHappiness, -kPlayer.AI_humanUnhappinessWith(*pLoopCity, iIncoming), iIncoming)
+				: gDLL->getText("TXT_KEY_COMMAND_TRANSPORT_TO_MENU_SELECTION", pLoopCity->getNameKey(), pLoopCity->getPopulation(), iHappiness);
+			gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, L"  " + szCity,
 				ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION")->getPath(), pLoopCity->getID(), WIDGET_GENERAL, pUnit->getID(), -1);
 			bValid = true;
 		}
