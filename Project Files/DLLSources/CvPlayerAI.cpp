@@ -24016,7 +24016,9 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 			const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
 			const YieldTypes eYield = (YieldTypes)kProfession.getYieldsProduced(0);
 			const bool bExpert = wfIsExpertFor(kUnitAI, eProfession);
-			if ((iCityTurns > 12 && !bExpert) || !wfMayWorkInBuilding(kUnit, eYield))
+			// (an expert never studies; happiness jobs only for units with a happiness bonus)
+			if ((iCityTurns > 12 && !bExpert) || !wfMayWorkInBuilding(kUnit, eYield) || (eYield == YIELD_EDUCATION && wfIsExpert(kUnitAI))
+				|| (eYield == YIELD_HAPPINESS && kUnit.getUnitInfo().getYieldChange(YIELD_HAPPINESS) <= 0 && kUnit.getUnitInfo().getYieldModifier(YIELD_HAPPINESS) <= 0))
 			{
 				continue;
 			}
