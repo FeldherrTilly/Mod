@@ -22771,7 +22771,11 @@ void CvUnitAI::AI_travelBoardMessage(const CvUnit& kShip)
 	{
 		iTurns += iOn;
 	}
-	CvWString szBuffer = gDLL->getText("TXT_KEY_TRAVEL_BOARDED", getName().GetCString(), kShip.getName().GetCString(), pPort->getNameKey(), std::max(1, iTurns));
+	// the destination: its colony or village, else the colony nearest to the plot
+	const CvCity* const pTargetCity = pTarget->getPlotCity();
+	const CvCity* const pNearCity = (pTargetCity != NULL) ? pTargetCity : GC.getMap().findCity(pTarget->getX_INLINE(), pTarget->getY_INLINE(), NO_PLAYER, NO_TEAM, false);
+	CvWString szBuffer = (pNearCity == NULL) ? gDLL->getText("TXT_KEY_TRAVEL_BOARDED", getName().GetCString(), kShip.getName().GetCString(), pPort->getNameKey(), std::max(1, iTurns))
+		: gDLL->getText((pTargetCity != NULL) ? "TXT_KEY_TRAVEL_BOARDED_FOR" : "TXT_KEY_TRAVEL_BOARDED_NEAR", getName().GetCString(), kShip.getName().GetCString(), pPort->getNameKey(), std::max(1, iTurns), pNearCity->getNameKey());
 	gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE, getX_INLINE(), getY_INLINE());
 }
 

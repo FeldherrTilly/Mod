@@ -2531,6 +2531,28 @@
 		<Hungarian>%s1 gyalog megy a célhoz (kb. %d2 kör).</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_TRAVEL_BOARDED_FOR</Tag>
+		<English>%s1 boards %s2 in %s3 for %s5 (about %d4 turns).</English>
+		<Portuguese>%s1 embarca no %s2 em %s3 rumo a %s5 (cerca de %d4 turnos).</Portuguese>
+		<French>%s1 embarque sur le %s2 à %s3 pour %s5 (environ %d4 tours).</French>
+		<German>%s1 geht in %s3 an Bord der %s2, Ziel %s5 (etwa %d4 Runden).</German>
+		<Italian>%s1 si imbarca sulla %s2 a %s3 per %s5 (circa %d4 turni).</Italian>
+		<Spanish>%s1 embarca en el %s2 en %s3 rumbo a %s5 (unos %d4 turnos).</Spanish>
+		<Russian>%s1 садится на %s2 в %s3, цель %s5 (около %d4 ходов).</Russian>
+		<Hungarian>%s1 felszáll a(z) %s2 hajóra itt: %s3, cél: %s5 (kb. %d4 kör).</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRAVEL_BOARDED_NEAR</Tag>
+		<English>%s1 boards %s2 in %s3 for a plot near %s5 (about %d4 turns).</English>
+		<Portuguese>%s1 embarca no %s2 em %s3 rumo a uma casa perto de %s5 (cerca de %d4 turnos).</Portuguese>
+		<French>%s1 embarque sur le %s2 à %s3 pour une case près de %s5 (environ %d4 tours).</French>
+		<German>%s1 geht in %s3 an Bord der %s2, Ziel ein Feld nahe %s5 (etwa %d4 Runden).</German>
+		<Italian>%s1 si imbarca sulla %s2 a %s3 per una casella vicino a %s5 (circa %d4 turni).</Italian>
+		<Spanish>%s1 embarca en el %s2 en %s3 rumbo a una casilla cerca de %s5 (unos %d4 turnos).</Spanish>
+		<Russian>%s1 садится на %s2 в %s3, цель — клетка у %s5 (около %d4 ходов).</Russian>
+		<Hungarian>%s1 felszáll a(z) %s2 hajóra itt: %s3, cél: egy mező %s5 közelében (kb. %d4 kör).</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_TRAVEL_BOARDED</Tag>
 		<English>%s1 boards %s2 in %s3 (about %d4 turns to its destination).</English>
 		<Portuguese>%s1 embarca no %s2 em %s3 (cerca de %d4 turnos até o destino).</Portuguese>
