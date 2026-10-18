@@ -223,6 +223,7 @@
 		<ButtonPopupType>BUTTONPOPUP_NETWORK_OOS_MENU</ButtonPopupType>
 		<!-- OOS hunting tools END -->
 		<ButtonPopupType>BUTTONPOPUP_TRANSPORT_TO_MENU</ButtonPopupType> <!-- WTP: transport to a city -->
+		<ButtonPopupType>BUTTONPOPUP_ASSIGN_JOB_MENU</ButtonPopupType> <!-- WTP: the job for the job automation -->
 	</ButtonPopupTypes>
 	<WidgetTypes>
 		<!-- vanilla widgets are script inserted to ensure exe compatibility -->

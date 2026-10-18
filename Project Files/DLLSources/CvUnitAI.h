@@ -166,7 +166,7 @@ public:
 	bool AI_isNativeSupplyShip() const;
 	void AI_nativeSupplyMove();
 	// WTP: automatic job assignment of a human player's colonist
-	bool AI_startAutoAssign();
+	bool AI_startAutoAssign(int iCityID = -1, ProfessionTypes eProfession = NO_PROFESSION);
 	bool AI_doAutoAssign();
 	bool AI_transportAutoAssignColonists();
 

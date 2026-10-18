@@ -86,6 +86,7 @@ private:
 	bool launchTalkNativesPopup(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchGotoMenuPopup(CvPopup* pPopup, CvPopupInfo &info);	// TAC - Goto Menu - koma13
 	bool launchTransportToMenuPopup(CvPopup* pPopup, CvPopupInfo &info); // WTP: transport to a city
+	bool launchAssignJobMenuPopup(CvPopup* pPopup, CvPopupInfo &info); // WTP: the job for the job automation
 	bool launchPurchaseAfricaUnitPopup(CvPopup* pPopup, CvPopupInfo &info); /*** TRIANGLETRADE 10/15/08 by DPII ***/
 	bool launchPurchasePortRoyalUnitPopup(CvPopup* pPopup, CvPopupInfo &info); // R&R, ray, Port Royal
 	bool isYieldSupportedInExportPanelForCity(CvCity* pCity, YieldTypes eYield); // R&R mod, vetiarvind, max yield import limit
