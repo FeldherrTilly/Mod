@@ -224,6 +224,7 @@ protected:
 	void AI_workerSeaMove();
 	//End TAC Whaling, ray
 	void AI_transportSeaMove();
+	void AI_imperialTransportMove(); // WTP
 	void AI_logShipTarget();
 	void AI_logSettler();
 	bool AI_sailForAfricaUnits();
