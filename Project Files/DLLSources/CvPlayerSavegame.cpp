@@ -322,12 +322,13 @@ enum SavegameVariableTypes
 	// WTP, Schmiddie, Slave Emancipation - START
 	PlayerSave_SlaveEmancipationCount,
 	PlayerSave_SlaveEmancipationCooldownEndTurn,
-	PlayerSave_MilitaryDismissTurn, // WTP
 	// WTP, Schmiddie, Slave Emancipation - END
 	// WTP, Schmiddie, Trade Post Mestizo - START
 	PlayerSave_TradePostMestizoPoints,
 	PlayerSave_TradePostMestizoThresholdMultiplier,
 	// WTP, Schmiddie, Trade Post Mestizo - END
+	// (new values only at the end: savegames store the enum index)
+	PlayerSave_MilitaryDismissTurn, // WTP
 
 	NUM_SAVE_ENUM_VALUES,
 };
