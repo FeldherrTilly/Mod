@@ -23210,6 +23210,34 @@ namespace
 	}
 
 	// gold x100 per turn a unit earns in a job (output at the Europe price, the input deducted, food 4 gold); -1: no output
+	// the happiness balance of a colony (happiness minus unhappiness) with the colonists of the job automation on their way
+	// there (pExclude: not this one): their population, the happiness of those who will make it
+	int wfPlannedHappiness(const CvCity& kCity, const CvUnit* pExclude)
+	{
+		int iNewCitizens = 0;
+		int iHappinessOnWay = 0;
+		const CvPlayerAI& kOwner = GET_PLAYER(kCity.getOwnerINLINE());
+		int iLoop;
+		for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
+		{
+			const CvUnitAI& kOther = static_cast<const CvUnitAI&>(*pLoopUnit);
+			const ProfessionTypes eOtherJob = kOther.AI_getWfProfession();
+			if (pLoopUnit == pExclude || kOther.AI_getWfTask() != CvUnitAI::WF_ASSIGN || kOther.AI_getWfCityID() != kCity.getID() || eOtherJob == NO_PROFESSION)
+			{
+				continue;
+			}
+			if (kOther.AI_getWfVillageX() < 0)
+			{
+				++iNewCitizens;
+			}
+			if ((YieldTypes)GC.getProfessionInfo(eOtherJob).getYieldsProduced(0) == YIELD_HAPPINESS)
+			{
+				iHappinessOnWay += wfOutput(kCity, eOtherJob, pLoopUnit->getUnitType(), NULL);
+			}
+		}
+		return iHappinessOnWay - wfUnhappinessWith(kCity, iNewCitizens);
+	}
+
 	// gold x100 of the output of a human player's colonist (job automation): learning at school 10 gold for a free colonist,
 	// 6 for an indentured servant, nothing for others; health 1 gold if the colony gains 2 health already; law 1 gold from 15
 	// law on; bells 9 gold; happiness 15 to 20 gold in an unhappy colony, 8 in a very happy one; everything else as in the workforce plan (wfYieldGold)
@@ -23248,30 +23276,8 @@ namespace
 			{
 				// (prostitutes) 15 gold in a colony with less than 1 happiness above its unhappiness, rising to 20 gold with more
 				// than 3 unhappiness above its happiness; 8 gold with more than 10 happiness above its unhappiness
-				// (with the colonists of the job automation on their way there: their population, the happiness of those who will
-				// make it)
-				int iNewCitizens = 0;
-				int iHappinessOnWay = 0;
-				const CvPlayerAI& kOwner = GET_PLAYER(kCity.getOwnerINLINE());
-				int iLoop;
-				for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
-				{
-					const CvUnitAI& kOther = static_cast<const CvUnitAI&>(*pLoopUnit);
-					const ProfessionTypes eOtherJob = kOther.AI_getWfProfession();
-					if (&kOther == &kUnit || kOther.AI_getWfTask() != CvUnitAI::WF_ASSIGN || kOther.AI_getWfCityID() != kCity.getID() || eOtherJob == NO_PROFESSION)
-					{
-						continue;
-					}
-					if (kOther.AI_getWfVillageX() < 0)
-					{
-						++iNewCitizens;
-					}
-					if ((YieldTypes)GC.getProfessionInfo(eOtherJob).getYieldsProduced(0) == YIELD_HAPPINESS)
-					{
-						iHappinessOnWay += wfOutput(kCity, eOtherJob, pLoopUnit->getUnitType(), NULL);
-					}
-				}
-				const int iBalance = iHappinessOnWay - wfUnhappinessWith(kCity, iNewCitizens);
+				// (with the colonists of the job automation on their way there)
+				const int iBalance = wfPlannedHappiness(kCity, &kUnit);
 				if (iBalance < 1)
 				{
 					return iAmount * std::min(2000, 1500 + 125 * -iBalance);
@@ -23337,6 +23343,13 @@ int CvPlayerAI::AI_humanIncomingCitizens(const CvCity& kCity) const
 int CvPlayerAI::AI_humanUnhappinessWith(const CvCity& kCity, int iNewCitizens) const
 {
 	return wfUnhappinessWith(kCity, iNewCitizens);
+}
+
+// WTP: the happiness balance of kCity (happiness minus unhappiness) with the colonists of the job automation on their way
+// there (not pExclude)
+int CvPlayerAI::AI_humanPlannedHappiness(const CvCity& kCity, const CvUnit* pExclude) const
+{
+	return wfPlannedHappiness(kCity, pExclude);
 }
 
 namespace

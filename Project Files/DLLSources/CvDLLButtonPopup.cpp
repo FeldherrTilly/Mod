@@ -4257,6 +4257,11 @@ bool CvDLLButtonPopup::launchAssignJobMenuPopup(CvPopup* pPopup, CvPopupInfo &in
 		{
 			szJob += gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_FOOD_SHORTAGE");
 		}
+		// happiness jobs (prostitutes): the colony's happiness with the colonists already on their way there
+		if ((YieldTypes)kProfession.getYieldsProduced(0) == YIELD_HAPPINESS)
+		{
+			szJob += gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_HAPPINESS", kPlayer.AI_humanPlannedHappiness(*pCity, pUnit));
+		}
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, L"  " + szJob, kProfession.getButton(), kJob.iCityID * NUM_PROFESSION_TYPES + kJob.eProfession, WIDGET_GENERAL, pUnit->getID(), -1);
 	}
 	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, L"  " + gDLL->getText("TXT_KEY_NEVER_MIND"), ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CANCEL")->getPath(), -1, WIDGET_GENERAL);

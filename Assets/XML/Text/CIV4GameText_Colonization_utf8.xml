@@ -2608,6 +2608,17 @@
 		<Hungarian> - kevés élelem</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_HAPPINESS</Tag>
+		<English> - happiness with those on their way %d1</English>
+		<Portuguese> - felicidade com os a caminho %d1</Portuguese>
+		<French> - bonheur avec ceux en route %d1</French>
+		<German> - Zufriedenheit mit den Geplanten %d1</German>
+		<Italian> - soddisfazione con quelli in arrivo %d1</Italian>
+		<Spanish> - satisfacción con los que van en camino %d1</Spanish>
+		<Russian> - счастье с теми, кто в пути, %d1</Russian>
+		<Hungarian> - boldogság az úton lévőkkel %d1</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_TITLE</Tag>
 		<English>Which job for %s1?</English>
 		<Portuguese>Qual trabalho para %s1?</Portuguese>

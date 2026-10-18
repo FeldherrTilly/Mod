@@ -728,6 +728,7 @@ public:
 	bool AI_humanSeat(CvUnit& kUnit, CvCity& kCity, ProfessionTypes eProfession, int iX, int iY, int iDisplaceID);
 	int AI_humanIncomingCitizens(const CvCity& kCity) const;
 	int AI_humanUnhappinessWith(const CvCity& kCity, int iNewCitizens) const;
+	int AI_humanPlannedHappiness(const CvCity& kCity, const CvUnit* pExclude) const;
 	bool AI_isEuropeBacklog() const;
 protected:
 	// WTP: native villages the native trade ship visited (plot key, turn), not saved
