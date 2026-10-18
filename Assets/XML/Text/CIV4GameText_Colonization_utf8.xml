@@ -2641,6 +2641,28 @@
 		<Hungarian>%s1 itt: %s2: %d3 kör távolságra (%s4 helyére)</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_ARMY_UPKEEP_GOLD_STR</Tag>
+		<English> (pay: -%d1 per turn)</English>
+		<Portuguese> (soldo: -%d1 por turno)</Portuguese>
+		<French> (solde : -%d1 par tour)</French>
+		<German> (Sold: -%d1 pro Runde)</German>
+		<Italian> (soldo: -%d1 per turno)</Italian>
+		<Spanish> (soldada: -%d1 por turno)</Spanish>
+		<Russian> (жалованье: -%d1 за ход)</Russian>
+		<Hungarian> (zsold: -%d1 körönként)</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ARMY_UPKEEP_DISMISSED</Tag>
+		<English>%s1 was dismissed: there is no gold left for the pay.</English>
+		<Portuguese>%s1 foi dispensado: não há ouro para o soldo.</Portuguese>
+		<French>%s1 a été renvoyé : il n'y a plus d'or pour la solde.</French>
+		<German>%s1 wurde entlassen: Es ist kein Gold für den Sold mehr da.</German>
+		<Italian>%s1 è stato congedato: non c'è più oro per il soldo.</Italian>
+		<Spanish>%s1 ha sido licenciado: no queda oro para la soldada.</Spanish>
+		<Russian>%s1 уволен: нет золота на жалованье.</Russian>
+		<Hungarian>%s1 elbocsátva: nincs több arany a zsoldra.</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_TITLE</Tag>
 		<English>Which job for %s1?</English>
 		<Portuguese>Qual trabalho para %s1?</Portuguese>

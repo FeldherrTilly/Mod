@@ -11630,10 +11630,162 @@ void CvPlayer::doGold()
 
 	int iGoldChange = 0;
 
+	// WTP: army upkeep. Not enough gold: the most expensive paid units are dismissed, at most 2 per turn
+	if (isHuman())
+	{
+		std::vector<std::pair<int, int> > aPaid;
+		getArmyUpkeepUnits(aPaid);
+		int iUpkeep = 0;
+		for (uint i = 0; i < aPaid.size(); ++i)
+		{
+			iUpkeep += aPaid[i].first;
+		}
+		std::sort(aPaid.begin(), aPaid.end());
+		int iDismissed = 0;
+		for (int i = (int)aPaid.size() - 1; i >= 0 && iUpkeep > getGold() && iDismissed < 2; --i)
+		{
+			CvUnit* const pUnit = getUnit(aPaid[i].second);
+			if (pUnit == NULL)
+			{
+				continue;
+			}
+			const CvWString szBuffer = gDLL->getText("TXT_KEY_ARMY_UPKEEP_DISMISSED", pUnit->getName().GetCString());
+			gDLL->UI().addPlayerMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_MAJOR_EVENT, pUnit->getButton(), COLOR_RED, pUnit->getX_INLINE(), pUnit->getY_INLINE());
+			if (pUnit->getProfession() != NO_PROFESSION)
+			{
+				// lays down the arms: back to a free colonist (the equipment stays in the colony if the unit is in one)
+				pUnit->setProfession(GC.getCivilizationInfo(getCivilizationType()).getDefaultProfession(), true);
+			}
+			else
+			{
+				pUnit->kill(false);
+			}
+			iUpkeep -= aPaid[i].first;
+			++iDismissed;
+		}
+		iGoldChange -= std::min(iUpkeep, std::max(0, getGold()));
+	}
+
 	FAssert(isHuman() || ((getGold() + iGoldChange) >= 0));
 
 	OOS_LOG("doGold", iGoldChange);
 	changeGold(iGoldChange);
+}
+
+// WTP: the upkeep of a land unit per turn; bFreeable: the unit may be one of the free units
+int CvPlayer::getArmyUpkeepCost(const CvUnit& kUnit, bool& bFreeable) const
+{
+	bFreeable = false;
+	if (kUnit.getDomainType() != DOMAIN_LAND)
+	{
+		return 0;
+	}
+	const ProfessionTypes eProfession = kUnit.getProfession();
+	if (eProfession != NO_PROFESSION)
+	{
+		if (eProfession == PROFESSION_TOWN_GUARD || eProfession == PROFESSION_COLONIAL_MILITIA)
+		{
+			bFreeable = true;
+			return 40;
+		}
+		if (eProfession == PROFESSION_DRAGOON)
+		{
+			bFreeable = true;
+			return 80;
+		}
+		if (eProfession == PROFESSION_LINE_INFANTRY || eProfession == PROFESSION_HEAVY_CAVALRY || eProfession == PROFESSION_LIGHT_ARTILLERY)
+		{
+			return 80;
+		}
+		if (eProfession == PROFESSION_HEAVY_ARTILLERY)
+		{
+			return 120;
+		}
+		return 0;
+	}
+	const UnitClassTypes eClass = kUnit.getUnitClassType();
+	if (eClass == UNITCLASS_RANGER || eClass == UNITCLASS_MILITIA)
+	{
+		bFreeable = true;
+		return 40;
+	}
+	if (eClass == UNITCLASS_CONQUISTADOR || eClass == UNITCLASS_MOUNTED_CONQUISTADOR)
+	{
+		bFreeable = true;
+		return 60;
+	}
+	if (eClass == UNITCLASS_SLAVE_HUNTER || eClass == UNITCLASS_SLAVE_MASTER)
+	{
+		return 40;
+	}
+	if (eClass == UNITCLASS_NATIVE_MERC || eClass == UNITCLASS_BUCCANNEER)
+	{
+		return 60;
+	}
+	if (eClass == UNITCLASS_CONTINENTAL_GUARD)
+	{
+		return 80;
+	}
+	if (eClass == UNITCLASS_HESSIAN || eClass == UNITCLASS_MORTAR)
+	{
+		return 120;
+	}
+	return 0;
+}
+
+// WTP: 5 units are free, one more for each colony of size 5 and another one at size 20
+int CvPlayer::getArmyUpkeepFreeUnits() const
+{
+	int iFree = 5;
+	int iLoop;
+	for (const CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	{
+		if (pLoopCity->getPopulation() >= 5)
+		{
+			++iFree;
+		}
+		if (pLoopCity->getPopulation() >= 20)
+		{
+			++iFree;
+		}
+	}
+	return iFree;
+}
+
+// WTP: the units the player pays for, as (upkeep, unit ID); the most expensive freeable units are the free ones
+void CvPlayer::getArmyUpkeepUnits(std::vector<std::pair<int, int> >& aPaid) const
+{
+	aPaid.clear();
+	if (!isHuman())
+	{
+		return;
+	}
+	std::vector<std::pair<int, int> > aFreeable;
+	int iLoop;
+	for (const CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		bool bFreeable;
+		const int iCost = getArmyUpkeepCost(*pLoopUnit, bFreeable);
+		if (iCost > 0)
+		{
+			(bFreeable ? aFreeable : aPaid).push_back(std::make_pair(iCost, pLoopUnit->getID()));
+		}
+	}
+	std::sort(aFreeable.begin(), aFreeable.end());
+	const int iPaidFreeable = std::max(0, (int)aFreeable.size() - getArmyUpkeepFreeUnits());
+	aPaid.insert(aPaid.end(), aFreeable.begin(), aFreeable.begin() + iPaidFreeable);
+}
+
+int CvPlayer::getArmyUpkeep() const
+{
+	std::vector<std::pair<int, int> > aPaid;
+	getArmyUpkeepUnits(aPaid);
+	int iUpkeep = 0;
+	for (uint i = 0; i < aPaid.size(); ++i)
+	{
+		iUpkeep += aPaid[i].first;
+	}
+	return iUpkeep;
 }
 
 /** NBMOD REF **/

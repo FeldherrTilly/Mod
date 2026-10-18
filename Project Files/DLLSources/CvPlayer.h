@@ -1252,6 +1252,13 @@ protected:
 	// TAC - Trade Messages - koma13 - END
 
 	void doGold();
+	// WTP: army upkeep (human player only)
+	int getArmyUpkeepCost(const CvUnit& kUnit, bool& bFreeable) const;
+	int getArmyUpkeepFreeUnits() const;
+	void getArmyUpkeepUnits(std::vector<std::pair<int, int> >& aPaid) const;
+public:
+	int getArmyUpkeep() const;
+protected:
 	void doBells();
 	void doCrosses();
 	void doWarnings();
