@@ -110,7 +110,7 @@ public:
 		WF_JOIN_CITY = 4,  // move to the city and join it (it has food to spare; the plan keeps this task)
 		WF_FOOD_LEARN = 5, // learn a food expert in the village at VillageX/Y, then work the food job in the city (kept)
 		WF_WAIT = 6,       // no job: go to the city and wait on its plot (the workforce plan seats it when a job is free)
-		WF_ASSIGN = 7,     // human player's colonist (AUTOMATE_ASSIGN_JOB): go to the city and join it in the job (VillageX: the unit it replaces)
+		WF_ASSIGN = 7,     // human player's colonist (AUTOMATE_ASSIGN_JOB): go to the city and join it in the job (VillageX: the unit it replaces, VillageY: plot number where the ship puts it ashore)
 		WF_TRAVEL = 8,     // human player's land unit (AUTOMATE_TRAVEL): go to plot X/Y (city: CityID), by ship to VillageX/Y if set
 	};
 	int AI_getWfTask() const { return m_iWfTask; }
@@ -129,6 +129,15 @@ public:
 	// WTP: transport to a city or plot (human player's land unit): it walks or takes an automated transport
 	void AI_startTravel(int iX, int iY);
 	bool AI_doTravel();
+	enum TravelStep
+	{
+		TRAVEL_ON_WAY,
+		TRAVEL_ARRIVED,
+		TRAVEL_NO_WAY,
+	};
+	TravelStep AI_travelStep(CvPlot& kTarget, bool bAnnounceWalk);
+	CvPlot* AI_travelDrop() const;
+	void AI_setTravelDrop(const CvPlot* pDrop);
 	bool AI_travelPlan(const CvPlot& kTarget, CvPlot*& pPickup, CvPlot*& pDrop, int& iShipID, int& iTurns);
 	int AI_getTravelShipID() const { return m_iTravelShipID; }
 

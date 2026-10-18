@@ -23216,7 +23216,19 @@ bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTy
 			continue;
 		}
 		int iPort = -1;
-		const int iCityTurns = AI_wfTravelTurns(*kUnit.plot(), *pCity, &iPort, bNoShip);
+		int iCityTurns = AI_wfTravelTurns(*kUnit.plot(), *pCity, &iPort, bNoShip);
+		// a colony on another coast and inland: by ship and on foot from where the ship puts the colonist ashore
+		if (iCityTurns == MAX_INT && !bNoShip)
+		{
+			CvPlot* pPickup;
+			CvPlot* pDrop;
+			int iShipID;
+			int iPlanTurns;
+			if (const_cast<CvUnitAI&>(kUnitAI).AI_travelPlan(*pCity->plot(), pPickup, pDrop, iShipID, iPlanTurns))
+			{
+				iCityTurns = iPlanTurns;
+			}
+		}
 		if (iCityTurns == MAX_INT)
 		{
 			continue;
