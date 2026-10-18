@@ -18160,7 +18160,7 @@ void CvPlayerAI::AI_wfUpdateTravel(const CvUnit& kColonist)
 // WTP: turns a colonist on kFrom needs to the colony kTo: over land, or walking to a port, waiting for a transport there
 // and sailing (the faster way; the ship only if it saves 2 turns). piPortCityID gets the port (-1: over land). MAX_INT if
 // there is no way (or no travel times yet)
-int CvPlayerAI::AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* piPortCityID, bool bNoShip) const
+int CvPlayerAI::AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* piPortCityID, bool bNoShip, bool bShipThenWalk) const
 {
 	// waiting for a transport and boarding
 	static const int WF_SHIP_WAIT = 3;
@@ -18193,6 +18193,31 @@ int CvPlayerAI::AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* pi
 		{
 			iShip = iTurns;
 			iPort = it->first.first;
+		}
+	}
+	// WTP: bShipThenWalk (human job search): also by ship to another colony and on foot from there (a colony inland on another
+	// coast); the ship of Transport to City may put the colonist ashore nearer, this is the estimate
+	if (bShipThenWalk && !bNoShip && itTo != m_mapWfLandCost.end())
+	{
+		for (std::map<std::pair<int, int>, int>::const_iterator it = m_mapWfSeaTurns.begin(); it != m_mapWfSeaTurns.end(); ++it)
+		{
+			const CvCity* const pLanding = getCity(it->first.second);
+			if (it->first.second == kTo.getID() || pLanding == NULL)
+			{
+				continue;
+			}
+			const int iOnFoot = itTo->second[GC.getMap().plotNumINLINE(pLanding->getX_INLINE(), pLanding->getY_INLINE())];
+			const std::map<int, std::vector<int> >::const_iterator itPort = m_mapWfLandCost.find(it->first.first);
+			if (iOnFoot == MAX_INT || itPort == m_mapWfLandCost.end() || itPort->second[iFrom] == MAX_INT)
+			{
+				continue;
+			}
+			const int iTurns = (itPort->second[iFrom] + m_iWfLandMoves - 1) / m_iWfLandMoves + WF_SHIP_WAIT + it->second + (iOnFoot + m_iWfLandMoves - 1) / m_iWfLandMoves;
+			if (iTurns < iShip)
+			{
+				iShip = iTurns;
+				iPort = it->first.first;
+			}
 		}
 	}
 	if (iShip != MAX_INT && (iLand == MAX_INT || iShip + 2 <= iLand))
@@ -23284,19 +23309,8 @@ bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTy
 			continue;
 		}
 		int iPort = -1;
-		int iCityTurns = AI_wfTravelTurns(*kUnit.plot(), *pCity, &iPort, bNoShip);
-		// a colony on another coast and inland: by ship and on foot from where the ship puts the colonist ashore
-		if (iCityTurns == MAX_INT && !bNoShip)
-		{
-			CvPlot* pPickup;
-			CvPlot* pDrop;
-			int iShipID;
-			int iPlanTurns;
-			if (const_cast<CvUnitAI&>(kUnitAI).AI_travelPlan(*pCity->plot(), pPickup, pDrop, iShipID, iPlanTurns))
-			{
-				iCityTurns = iPlanTurns;
-			}
-		}
+		// (also by ship and on foot from another colony: a colony inland on another coast)
+		const int iCityTurns = AI_wfTravelTurns(*kUnit.plot(), *pCity, &iPort, bNoShip, true);
 		if (iCityTurns == MAX_INT)
 		{
 			continue;

@@ -704,7 +704,7 @@ protected:
 public:
 	void AI_setWfUnreachable(int iUnitID, int iCityID);
 	bool AI_isWfUnreachable(int iUnitID, int iCityID) const;
-	int AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* piPortCityID = NULL, bool bNoShip = false) const;
+	int AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* piPortCityID = NULL, bool bNoShip = false, bool bShipThenWalk = false) const;
 	// WTP: automatic job assignment of a human player's colonist (AUTOMATE_ASSIGN_JOB)
 	void AI_wfEnsureTravel(const CvUnit& kColonist);
 	static bool AI_isWfShip(const CvUnit& kShip);

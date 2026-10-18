@@ -22352,39 +22352,71 @@ namespace
 		return kDrop.isCity() && kShip.canMoveInto(kDrop);
 	}
 
+	// the sea ways found during one plan: (unit type, from plot, landing plot) -> (turns, plot the ship sails to; -1: none)
+	typedef std::map<std::pair<int, std::pair<int, int> >, std::pair<int, int> > TravelSailCache;
+	TravelSailCache* g_pTravelSailCache = NULL;
+
 	// the plot the ship sails to from kFrom to put a traveller ashore on kDrop: kDrop itself if the ship may enter it, else
-	// an adjacent water plot it reaches; NULL if none
+	// an adjacent water plot it reaches (only water connected to the ocean and passable for the ship: a failing search
+	// floods the whole sea); NULL if none
 	CvPlot* travelShipPlot(const CvUnit& kShip, const CvPlot& kFrom, CvPlot& kDrop, int& iTurns)
 	{
+		const CvMap& kMap = GC.getMap();
+		const std::pair<int, std::pair<int, int> > kKey(kShip.getUnitType(), std::make_pair(kMap.plotNumINLINE(kFrom.getX_INLINE(), kFrom.getY_INLINE()),
+			kMap.plotNumINLINE(kDrop.getX_INLINE(), kDrop.getY_INLINE())));
+		if (g_pTravelSailCache != NULL)
+		{
+			const TravelSailCache::const_iterator it = g_pTravelSailCache->find(kKey);
+			if (it != g_pTravelSailCache->end())
+			{
+				iTurns = it->second.first;
+				return (it->second.second >= 0) ? kMap.plotByIndexINLINE(it->second.second) : NULL;
+			}
+		}
 		iTurns = MAX_INT;
+		CvPlot* pResult = NULL;
 		if (travelShipEnters(kShip, kDrop))
 		{
 			if (&kFrom == &kDrop)
 			{
 				iTurns = 0;
-				return &kDrop;
+				pResult = &kDrop;
 			}
-			return kShip.getGroup()->generatePath(&kFrom, &kDrop, MOVE_IGNORE_DANGER, false, &iTurns, -1, true) ? &kDrop : NULL;
+			else if (kShip.getGroup()->generatePath(&kFrom, &kDrop, MOVE_IGNORE_DANGER, false, &iTurns, -1, true))
+			{
+				pResult = &kDrop;
+			}
 		}
-		for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+		else
 		{
-			CvPlot* const pAdjacent = plotDirection(kDrop.getX_INLINE(), kDrop.getY_INLINE(), (DirectionTypes)iI);
-			if (pAdjacent == NULL || !pAdjacent->isWater())
+			const CvUnitInfo& kInfo = kShip.getUnitInfo();
+			for (int iI = 0; iI < NUM_DIRECTION_TYPES && pResult == NULL; ++iI)
 			{
-				continue;
-			}
-			if (pAdjacent == &kFrom)
-			{
-				iTurns = 0;
-				return pAdjacent;
-			}
-			if (kShip.canMoveInto(*pAdjacent) && kShip.getGroup()->generatePath(&kFrom, pAdjacent, MOVE_IGNORE_DANGER, false, &iTurns, -1, true))
-			{
-				return pAdjacent;
+				CvPlot* const pAdjacent = plotDirection(kDrop.getX_INLINE(), kDrop.getY_INLINE(), (DirectionTypes)iI);
+				if (pAdjacent == NULL || !pAdjacent->isWater() || !pAdjacent->isEuropeAccessable() || kInfo.getTerrainImpassable(pAdjacent->getTerrainType()))
+				{
+					continue;
+				}
+				if (pAdjacent == &kFrom)
+				{
+					iTurns = 0;
+					pResult = pAdjacent;
+				}
+				else if (kShip.canMoveInto(*pAdjacent) && kShip.getGroup()->generatePath(&kFrom, pAdjacent, MOVE_IGNORE_DANGER, false, &iTurns, -1, true))
+				{
+					pResult = pAdjacent;
+				}
 			}
 		}
-		iTurns = MAX_INT;
-		return NULL;
+		if (pResult == NULL)
+		{
+			iTurns = MAX_INT;
+		}
+		if (g_pTravelSailCache != NULL)
+		{
+			(*g_pTravelSailCache)[kKey] = std::make_pair(iTurns, (pResult != NULL) ? kMap.plotNumINLINE(pResult->getX_INLINE(), pResult->getY_INLINE()) : -1);
+		}
+		return pResult;
 	}
 }
 
@@ -22491,7 +22523,9 @@ bool CvUnitAI::AI_travelPlan(const CvPlot& kTarget, CvPlot*& pPickup, CvPlot*& p
 			}
 		}
 
-		// the ship: the fastest whole journey
+		// the ship: the fastest whole journey (sea ways of a ship type searched once)
+		TravelSailCache aSailCache;
+		g_pTravelSailCache = &aSailCache;
 		int iBestScore = MAX_INT;
 		int iBestTotal = MAX_INT;
 		int iLoop;
@@ -22532,6 +22566,7 @@ bool CvUnitAI::AI_travelPlan(const CvPlot& kTarget, CvPlot*& pPickup, CvPlot*& p
 				}
 			}
 		}
+		g_pTravelSailCache = NULL;
 		if (iShipID >= 0 && (iWalk == MAX_INT || iBestTotal + 2 <= iWalk))
 		{
 			iTurns = iBestTotal;
