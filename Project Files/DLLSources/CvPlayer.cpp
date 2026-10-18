@@ -11711,6 +11711,11 @@ void CvPlayer::doGold()
 // WTP: the upkeep of a military unit per turn; iFreePool: the free units it may be one of (0: none, 1: land units, 2: warships)
 int CvPlayer::getMilitaryUpkeepCost(const CvUnit& kUnit, int& iFreePool) const
 {
+	// (these unit classes have no constant in every build)
+	static const UnitClassTypes eSlaveHunter = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_SLAVE_HUNTER");
+	static const UnitClassTypes eSlaveMaster = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_SLAVE_MASTER");
+	static const UnitClassTypes eBuccanneer = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_BUCCANNEER");
+	static const UnitClassTypes eHessian = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_HESSIAN");
 	iFreePool = 0;
 	if (kUnit.getDomainType() == DOMAIN_SEA)
 	{
@@ -11742,11 +11747,11 @@ int CvPlayer::getMilitaryUpkeepCost(const CvUnit& kUnit, int& iFreePool) const
 		iFreePool = 1;
 		return 60;
 	}
-	if (eClass == UNITCLASS_SLAVE_HUNTER || eClass == UNITCLASS_SLAVE_MASTER)
+	if (eClass == eSlaveHunter || eClass == eSlaveMaster)
 	{
 		return 40;
 	}
-	if (eClass == UNITCLASS_NATIVE_MERC || eClass == UNITCLASS_BUCCANNEER)
+	if (eClass == UNITCLASS_NATIVE_MERC || eClass == eBuccanneer)
 	{
 		return 60;
 	}
@@ -11754,7 +11759,7 @@ int CvPlayer::getMilitaryUpkeepCost(const CvUnit& kUnit, int& iFreePool) const
 	{
 		return 80;
 	}
-	if (eClass == UNITCLASS_HESSIAN || eClass == UNITCLASS_MORTAR)
+	if (eClass == eHessian || eClass == UNITCLASS_MORTAR)
 	{
 		return 120;
 	}
@@ -11764,22 +11769,30 @@ int CvPlayer::getMilitaryUpkeepCost(const CvUnit& kUnit, int& iFreePool) const
 // WTP: the upkeep of a soldier profession per turn (0: no soldier); iFreePool 1: the unit may be one of the free land units
 int CvPlayer::getMilitaryProfessionUpkeep(ProfessionTypes eProfession, int& iFreePool)
 {
+	// (these professions have no constant in every build)
+	static const ProfessionTypes eTownGuard = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_TOWN_GUARD");
+	static const ProfessionTypes eColonialMilitia = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_COLONIAL_MILITIA");
+	static const ProfessionTypes eDragoon = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_DRAGOON");
+	static const ProfessionTypes eLineInfantry = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_LINE_INFANTRY");
+	static const ProfessionTypes eHeavyCavalry = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_HEAVY_CAVALRY");
+	static const ProfessionTypes eLightArtillery = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_LIGHT_ARTILLERY");
+	static const ProfessionTypes eHeavyArtillery = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_HEAVY_ARTILLERY");
 	iFreePool = 0;
-	if (eProfession == PROFESSION_TOWN_GUARD || eProfession == PROFESSION_COLONIAL_MILITIA)
+	if (eProfession == eTownGuard || eProfession == eColonialMilitia)
 	{
 		iFreePool = 1;
 		return 40;
 	}
-	if (eProfession == PROFESSION_DRAGOON)
+	if (eProfession == eDragoon)
 	{
 		iFreePool = 1;
 		return 80;
 	}
-	if (eProfession == PROFESSION_LINE_INFANTRY || eProfession == PROFESSION_HEAVY_CAVALRY || eProfession == PROFESSION_LIGHT_ARTILLERY)
+	if (eProfession == eLineInfantry || eProfession == eHeavyCavalry || eProfession == eLightArtillery)
 	{
 		return 80;
 	}
-	if (eProfession == PROFESSION_HEAVY_ARTILLERY)
+	if (eProfession == eHeavyArtillery)
 	{
 		return 120;
 	}
