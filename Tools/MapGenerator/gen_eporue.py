@@ -1599,10 +1599,10 @@ EUROPE = [ocean[i] and i % W >= W - 22 and dland[i] >= 8 for i in range(W * H)]
 # a narrow strip of Europe plots in the northern North Sea (five plots, deep water), joined to the Atlantic zone by a corridor of open sea
 ns_best = None
 for x, y in ALL:
-    if 56 <= x <= 82 and 3 <= y <= 14:
+    if 64 <= x <= 68 and 6 <= y <= 18:
         cells = [I(x, y + k) for k in range(5)]
         if all(ocean[c] and dland[c] >= 4 for c in cells):
-            sc = (-x, -y)                      # the left-most spot that is still open sea
+            sc = (-abs(x - 66) - abs(y - 11), 0)      # close to the middle of the North Sea strip position, in open sea
             if ns_best is None or sc > ns_best[0]:
                 ns_best = (sc, cells)
 NORTH_SEA_EUROPE = ns_best[1] if ns_best else []
@@ -1614,7 +1614,7 @@ if NORTH_SEA_EUROPE:
         if ocean[i] and dland[i] >= 4 and i % W >= sx0 and i // W <= sy1 + 3:
             EUROPE[i] = True
 for i in range(W * H):                 # above the Sahara the zone reaches further to the centre
-    if ocean[i] and dland[i] >= 3 and i % W >= 58 and i // W >= H - 7:
+    if ocean[i] and dland[i] >= 3 and i % W >= 68 and i // W >= H - 7:
         EUROPE[i] = True
 for comp in components(ocean, N8):     # sea regions below 50 plots would turn into lakes when the game loads the map
     if len(comp) < 50 and not any(EUROPE[I(x, y)] or PACIFIC[I(x, y)] for x, y in comp):
