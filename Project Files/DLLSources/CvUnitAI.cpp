@@ -378,6 +378,11 @@ bool CvUnitAI::AI_update()
 				{
 					AI_nativeTradeShipMove();
 				}
+				// WTP: the king's transports (galleons) land his troops like the royal troop ships
+				else if (kOwner.AI_isKing())
+				{
+					AI_imperialTransportMove();
+				}
 				else if (AI_getUnitAIState() == UNITAI_STATE_EXPLORER_SHIP)
 				{
 					AI_explorerShipMove();
@@ -5930,7 +5935,9 @@ void CvUnitAI::AI_transportSeaMove()
 		// TAC - AI Improved Naval AI - koma13 - START
 		//if ((GET_PLAYER(getOwnerINLINE()).getNumEuropeUnits() > 0) || isFull())
 		// WTP: goods aboard go to Europe (collecting more on the way in the sail state)
-		if (bPickupUnitsFromEurope || isFull() || hasCargo())
+		// (not again if this move started in the sail state: it found nothing to do there, and switching back without a
+		// mission looped forever; a king's galleon full of troops crashed the game)
+		if ((bPickupUnitsFromEurope || isFull() || hasCargo()) && eStartingState != UNITAI_STATE_SAIL)
 			// TAC - AI Improved Naval AI - koma13 - END
 		{
 			FAssert(AI_getUnitAIState() != UNITAI_STATE_SAIL);
@@ -5975,6 +5982,40 @@ void CvUnitAI::AI_transportSeaMove()
 		getGroup()->pushMission(MISSION_SKIP);
 		return;
 	}
+}
+
+// WTP: the king's transports (galleons): with troops aboard they land them near a rebel colony (like the royal troop
+// ships); empty they fetch new troops in Europe. They used the colonial transport AI before: it found no port for the
+// troops, fled from danger and sailed the troops back to Europe, again and again.
+void CvUnitAI::AI_imperialTransportMove()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	if (getGroup()->hasCargo())
+	{
+		if (GET_TEAM(getTeam()).getAnyWarPlanCount() > 0 && AI_imperialSeaAssault())
+		{
+			return;
+		}
+		if (AI_retreatToCity())
+		{
+			return;
+		}
+		if (AI_safety())
+		{
+			return;
+		}
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
+	}
+	if (kOwner.getNumEuropeUnits() > 0 && AI_sailToEurope())
+	{
+		return;
+	}
+	if (AI_retreatToCity())
+	{
+		return;
+	}
+	getGroup()->pushMission(MISSION_SKIP);
 }
 
 // Attempt to determine if a great admiral is waiting in a city
