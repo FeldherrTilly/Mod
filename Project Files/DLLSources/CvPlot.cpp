@@ -7811,6 +7811,13 @@ int CvPlot::getBuyPrice(PlayerTypes ePlayer) const
 		{
 			iBuyCultureAmount = iFullCulturePriceThreshold + (iBuyCultureAmount - iFullCulturePriceThreshold) / 5;
 		}
+
+		// WTP: the cost from the natives' culture (above the minimum price) is halved
+		const int iMinCulture = GC.getDefineINT("BUY_PLOT_MIN_CULTURE") * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getGrowthPercent() / 100;
+		if (iBuyCultureAmount > iMinCulture)
+		{
+			iBuyCultureAmount = iMinCulture + (iBuyCultureAmount - iMinCulture) / 2;
+		}
 	}
 	// WTP, Schmiddie, Native Land Price Scaling - END
 
@@ -7845,6 +7852,13 @@ int CvPlot::getBuyPrice(PlayerTypes ePlayer) const
 
 	iBuyPrice *= std::max(0, iModifier);
 	iBuyPrice /= 100;
+
+	// WTP: the natives' land of a colony (3x3 plots) never costs more than 4000 gold
+	static const int NATIVE_LAND_MAX_COLONY_PRICE = 4000;
+	if (getOwnerINLINE() != NO_PLAYER && GET_PLAYER(getOwnerINLINE()).isNative())
+	{
+		iBuyPrice = std::min(iBuyPrice, NATIVE_LAND_MAX_COLONY_PRICE / NUM_CITY_PLOTS_1_PLOT);
+	}
 
 	return iBuyPrice;
 }
