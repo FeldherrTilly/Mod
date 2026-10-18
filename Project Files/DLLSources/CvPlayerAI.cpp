@@ -23372,7 +23372,7 @@ bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTy
 // building job only if the colony produces its raw material. A new citizen only if the colony's unhappiness stays at most
 // 2 above its happiness with all colonists on their way there. Value per turn (gold x100, wfHumanJobValue), less for a long way.
 // paFoodJobs: for slaves, indentured servants, petty criminals and expert farmers and fishermen also the best food job (net
-// 3 food or more) in each colony short of food (at most +2 food with those on their way, storage below half the growth
+// 3 food or more) in each colony short of food (less than +4 food with those on their way, storage below half the growth
 // threshold), the 3 best of them; such jobs are marked in aJobs too
 void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJobs, int iMaxJobs, std::vector<HumanJob>* paFoodJobs)
 {
@@ -23463,8 +23463,8 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 		const std::map<int, int>::const_iterator itIncoming = mapIncoming.find(pCity->getID());
 		const int iIncoming = (itIncoming != mapIncoming.end()) ? itIncoming->second : 0;
 		const bool bCrowded = wfUnhappinessWith(*pCity, 1 + iIncoming) > WF_MAX_UNHAPPINESS_BALANCE;
-		// short of food: at most +2 food (with those on their way) and the storage below half the growth threshold
-		if (bFoodWorker && pCity->foodDifference() - iConsumption * iIncoming <= 2 && pCity->getFood() * 2 < pCity->growthThreshold())
+		// short of food: less than +4 food (with those on their way) and the storage below half the growth threshold
+		if (bFoodWorker && pCity->foodDifference() - iConsumption * iIncoming < 4 && pCity->getFood() * 2 < pCity->growthThreshold())
 		{
 			aFoodShortCities.insert(pCity->getID());
 		}
