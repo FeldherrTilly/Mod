@@ -537,11 +537,11 @@ RIVERS = {
     'Dnieper': [(30.0, 55.0), (29.8, 53.0), (29.5, 50.8), (31.0, 49.0), (32.0, 47.6), (31.6, 46.5)],
     'Euphrates': [(41.0, 38.5), (41.0, 36.0), (43.5, 34.0), (46.5, 31.0), (48.0, 29.8)],
     'Nile': [(29.3, 26.2), (30.3, 28.0), (31.0, 29.8), (31.0, 31.7)],           # springs from a lake in the Sahara
-    'Draa': [(-6.0, 31.0), (-7.5, 29.8), (-9.3, 28.8), (-11.0, 28.4)],           # rivers from the Atlas through the Sahara, most end in a lake
+    'Draa': [(-6.0, 31.0), (-7.5, 29.8), (-9.3, 28.8), (-11.0, 28.4), (-14.0, 28.0)],           # rivers from the Atlas through the Sahara, most end in a lake
     'Saoura': [(-1.5, 32.3), (-1.7, 30.2), (-1.0, 28.2), (0.0, 26.8)],
-    'Igharghar': [(5.5, 32.0), (5.9, 30.0), (6.8, 28.4), (7.8, 27.0)],
+    'Igharghar': [(5.5, 32.0), (5.9, 30.0), (6.8, 28.4), (7.8, 27.0), (8.4, 24.8), (8.6, 22.0)],
     'Mya': [(10.0, 32.8), (9.6, 30.5), (10.8, 28.6), (11.6, 27.0)],
-    'Zousfana': [(21.0, 31.2), (21.5, 29.3), (22.8, 27.6)],
+    'Zousfana': [(21.0, 31.2), (21.5, 29.3), (22.8, 27.6), (23.5, 25.0), (23.8, 22.0)],
 }
 RIVER_PATHS = {}
 river_rng = random.Random(SEED * 7 + 5)
@@ -629,7 +629,7 @@ def thin_rivers():
 
 RIVERS_THINNED = thin_rivers()
 ENDO = []                              # the Sahara rivers from the Atlas end in a small lake in the desert
-for name in ('Saoura', 'Igharghar', 'Mya', 'Zousfana'):
+for name in ('Saoura', 'Mya'):
     pc = [i for i in RIVER_PATHS.get(name, []) if large[i]]
     if len(pc) >= 5:
         e = pc[-1]
@@ -1599,10 +1599,10 @@ EUROPE = [ocean[i] and i % W >= W - 22 and dland[i] >= 8 for i in range(W * H)]
 # a narrow strip of Europe plots in the northern North Sea (five plots, deep water), joined to the Atlantic zone by a corridor of open sea
 ns_best = None
 for x, y in ALL:
-    if 64 <= x <= 68 and 6 <= y <= 18:
+    if 69 <= x <= 73 and 11 <= y <= 23:
         cells = [I(x, y + k) for k in range(5)]
         if all(ocean[c] and dland[c] >= 4 for c in cells):
-            sc = (-abs(x - 66) - abs(y - 11), 0)      # close to the middle of the North Sea strip position, in open sea
+            sc = (-abs(x - 71) - abs(y - 16), 0)      # close to the middle of the North Sea strip position, in open sea
             if ns_best is None or sc > ns_best[0]:
                 ns_best = (sc, cells)
 NORTH_SEA_EUROPE = ns_best[1] if ns_best else []
