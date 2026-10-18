@@ -23121,6 +23121,29 @@ namespace
 		return true;
 	}
 
+	// the unhappiness balance of a colony (unhappiness minus happiness) with iNewColonists more citizens: more unhappiness
+	// from the population and from missing defenders, the other factors as now
+	int wfUnhappinessWith(const CvCity& kCity, int iNewColonists)
+	{
+		const int iPop = kCity.getPopulation();
+		const int iNewPop = iPop + iNewColonists;
+		const int iMinPop = GC.getMIN_POP_NEG_HAPPINESS();
+		int iDelta = std::max(0, iNewPop - iMinPop) - std::max(0, iPop - iMinPop);
+		const int iDivisor = std::max(1, GC.getPOP_DIVISOR_DEFENSE_UNHAPPINESS());
+		int iDefenders = 0;
+		const CvPlot* const pPlot = kCity.plot();
+		for (int i = 0; i < pPlot->getNumUnits(); ++i)
+		{
+			const CvUnit* const pLoopUnit = pPlot->getUnitByIndex(i);
+			if (pLoopUnit != NULL && pLoopUnit->getDomainType() == DOMAIN_LAND && pLoopUnit->canAttack() && pLoopUnit->getOwnerINLINE() == kCity.getOwnerINLINE())
+			{
+				++iDefenders;
+			}
+		}
+		iDelta += std::max(0, iNewPop / iDivisor - iDefenders) - std::max(0, iPop / iDivisor - iDefenders);
+		return kCity.getCityUnHappiness() - kCity.getCityHappiness() + iDelta;
+	}
+
 	// the unit type whose output counts: an expert outside its trade works like a free colonist (as in the workforce plan)
 	UnitTypes wfWorkingType(const CvUnitAI& kUnit, ProfessionTypes eProfession, UnitTypes eColonist)
 	{
@@ -23162,8 +23185,9 @@ namespace
 
 // WTP: the best job for a human player's colonist: a free plot or building slot in one of our colonies, or the job of a regular
 // colonist in the expert's own trade (that colonist makes room). Regular colonists only within 12 turns; the colony keeps 2
-// food to spare unless the job produces food; a building job only if the colony produces its raw material. Value per turn
-// (gold x100), less for a long way. Returns false if there is no job
+// food to spare unless the job produces food; a building job only if the colony produces its raw material. A new citizen
+// only if the colony's unhappiness stays at most 2 above its happiness with all colonists on their way there. Value per
+// turn (gold x100), less for a long way. Returns false if there is no job
 bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTypes& eBestProfession, int& iX, int& iY, int& iDisplaceID, int& iTurns, int& iGold)
 {
 	const CvUnitAI& kUnitAI = static_cast<const CvUnitAI&>(kUnit);
@@ -23187,6 +23211,7 @@ bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTy
 	std::set<std::pair<int, int> > aReservedPlots; // (city ID, plot number)
 	std::map<std::pair<int, int>, int> mapReservedSlots; // (city ID, special building) -> colonists on their way
 	std::set<int> aReplaced; // unit IDs
+	std::map<int, int> mapIncoming; // city ID -> new citizens on their way (not replacing anybody)
 	{
 		int iUnitLoop;
 		for (CvUnit* pLoopUnit = firstUnit(&iUnitLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iUnitLoop))
@@ -23207,6 +23232,10 @@ bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTy
 			if (kOther.AI_getWfVillageX() >= 0)
 			{
 				aReplaced.insert(kOther.AI_getWfVillageX());
+			}
+			else
+			{
+				++mapIncoming[kOther.AI_getWfCityID()];
 			}
 		}
 	}
@@ -23250,6 +23279,10 @@ bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTy
 			continue;
 		}
 		const int iSpare = pCity->foodDifference() - iConsumption;
+		// a new citizen only if the colony's unhappiness stays at most 2 above its happiness (with those on their way)
+		static const int WF_MAX_UNHAPPINESS_BALANCE = 2;
+		const std::map<int, int>::const_iterator itIncoming = mapIncoming.find(pCity->getID());
+		const bool bCrowded = wfUnhappinessWith(*pCity, 1 + ((itIncoming != mapIncoming.end()) ? itIncoming->second : 0)) > WF_MAX_UNHAPPINESS_BALANCE;
 
 		// plots
 		FOREACH(CityPlot)
@@ -23269,7 +23302,7 @@ bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTy
 			{
 				continue;
 			}
-			if (pHolder == NULL && !pCity->canWork(pLoopPlot))
+			if (pHolder == NULL && (bCrowded || !pCity->canWork(pLoopPlot)))
 			{
 				continue;
 			}
@@ -23341,7 +23374,7 @@ bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTy
 				}
 			}
 			CvUnit* const pHolder = (iUsed < iSlots) ? NULL : (bExpert ? pRegular : NULL);
-			if (iSlots <= 0 || (iUsed >= iSlots && pHolder == NULL))
+			if (iSlots <= 0 || (iUsed >= iSlots && pHolder == NULL) || (bCrowded && pHolder == NULL))
 			{
 				continue;
 			}
