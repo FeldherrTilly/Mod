@@ -23200,7 +23200,7 @@ namespace
 	// gold x100 per turn a unit earns in a job (output at the Europe price, the input deducted, food 4 gold); -1: no output
 	// gold x100 of the output of a human player's colonist (job automation): learning at school 10 gold for a free colonist,
 	// 6 for an indentured servant, nothing for others; health 1 gold if the colony gains 2 health already; law 1 gold from 15
-	// law on; bells 9 gold; everything else as in the workforce plan (wfYieldGold)
+	// law on; bells 9 gold; happiness 15 to 20 gold in an unhappy colony; everything else as in the workforce plan (wfYieldGold)
 	int wfHumanYieldGold(const CvCity& kCity, const CvUnitAI& kUnit, YieldTypes eYield, int iAmount, int iSlot)
 	{
 		switch (eYield)
@@ -23232,6 +23232,17 @@ namespace
 			break;
 		case YIELD_BELLS:
 			return iAmount * 900;
+		case YIELD_HAPPINESS:
+			{
+				// (prostitutes) 15 gold in a colony with less than 1 happiness above its unhappiness, rising to 20 gold with more
+				// than 3 unhappiness above its happiness
+				const int iBalance = kCity.getCityHappiness() - kCity.getCityUnHappiness();
+				if (iBalance < 1)
+				{
+					return iAmount * std::min(2000, 1500 + 125 * -iBalance);
+				}
+			}
+			break;
 		default:
 			break;
 		}
