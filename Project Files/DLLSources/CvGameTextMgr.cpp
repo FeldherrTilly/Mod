@@ -3071,6 +3071,11 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					{
 						iImprovementBarracksSpace = iImprovementBarracksSpace * 2;
 					}
+					// WTP: forts have 50% more room
+					if (kImprovement.isFort())
+					{
+						iImprovementBarracksSpace = iImprovementBarracksSpace * 3 / 2;
+					}
 
 					szString.append(NEWLINE);
 					szString.append(gDLL->getText("TXT_KEY_BUILDING_MAX_BARRACKS_SPACE_PROVIDED", iImprovementBarracksSpace, GC.getSymbolID(BARRACKS_CHAR)));
@@ -7671,6 +7676,11 @@ void CvGameTextMgr::setImprovementHelp(CvWStringBuffer &szBuffer, ImprovementTyp
 		if (info.getImprovementUpgrade() == NO_IMPROVEMENT)
 		{
 			iImprovementBarracksSpace = iImprovementBarracksSpace * 2;
+		}
+		// WTP: forts have 50% more room
+		if (info.isFort())
+		{
+			iImprovementBarracksSpace = iImprovementBarracksSpace * 3 / 2;
 		}
 
 		szBuffer.append(NEWLINE);

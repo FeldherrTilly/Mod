@@ -4027,6 +4027,11 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 					{
 						iImprovementBarracksSpace = iImprovementBarracksSpace * 2;
 					}
+					// WTP: forts have 50% more room
+					if (kPlot.isFort())
+					{
+						iImprovementBarracksSpace = iImprovementBarracksSpace * 3 / 2;
+					}
 
 					// now we calculate how much is already used
 					int iImprovementBarracksSpaceUsed = 0;
@@ -6019,6 +6024,11 @@ bool CvUnit::canUnload() const
 				if (GC.getImprovementInfo(plot()->getImprovementType()).getImprovementUpgrade() == NO_IMPROVEMENT)
 				{
 					iImprovementBarracksSpace = iImprovementBarracksSpace * 2;
+				}
+				// WTP: forts have 50% more room
+				if (plot()->isFort())
+				{
+					iImprovementBarracksSpace = iImprovementBarracksSpace * 3 / 2;
 				}
 
 				// now we calculate how much is already used
