@@ -23098,28 +23098,39 @@ bool CvUnitAI::AI_transportAutoAssignColonists()
 	return false;
 }
 
-// WTP: automatic job assignment of a human player's colonist: the best job (see CvPlayerAI::AI_humanFindJob) becomes its task;
-// returns false if there is none (a message tells the player)
-bool CvUnitAI::AI_startAutoAssign()
+// WTP: automatic job assignment of a human player's colonist: the best job (see CvPlayerAI::AI_humanFindJobs), or the one the
+// player picked (colony and profession), becomes its task; returns false if there is none (a message tells the player)
+bool CvUnitAI::AI_startAutoAssign(int iChosenCityID, ProfessionTypes eChosenProfession)
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
-	int iCityID;
-	ProfessionTypes eProfession;
-	int iX;
-	int iY;
-	int iDisplaceID;
-	int iTurns;
-	int iGold;
-	if (!isOnMap_() || !kOwner.AI_humanFindJob(*this, iCityID, eProfession, iX, iY, iDisplaceID, iTurns, iGold))
+	std::vector<CvPlayerAI::HumanJob> aJobs;
+	if (isOnMap_())
+	{
+		kOwner.AI_humanFindJobs(*this, aJobs, (iChosenCityID >= 0) ? MAX_INT : 1);
+	}
+	int iJob = aJobs.empty() ? -1 : 0;
+	if (iChosenCityID >= 0)
+	{
+		iJob = -1;
+		for (uint i = 0; i < aJobs.size() && iJob < 0; ++i)
+		{
+			if (aJobs[i].iCityID == iChosenCityID && aJobs[i].eProfession == eChosenProfession)
+			{
+				iJob = i;
+			}
+		}
+	}
+	if (iJob < 0)
 	{
 		CvWString szBuffer = gDLL->getText("TXT_KEY_AUTO_ASSIGN_NONE", getNameKey());
 		gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, getButton(), COLOR_WARNING_TEXT, getX_INLINE(), getY_INLINE());
 		AI_clearWfTask();
 		return false;
 	}
-	CvCity* const pCity = kOwner.getCity(iCityID);
-	AI_setWfTask(WF_ASSIGN, iCityID, eProfession, iX, iY, iDisplaceID, -1);
-	CvWString szBuffer = gDLL->getText("TXT_KEY_AUTO_ASSIGN_TARGET", getNameKey(), pCity->getNameKey(), GC.getProfessionInfo(eProfession).getTextKeyWide(), iTurns, iGold);
+	const CvPlayerAI::HumanJob& kJob = aJobs[iJob];
+	CvCity* const pCity = kOwner.getCity(kJob.iCityID);
+	AI_setWfTask(WF_ASSIGN, kJob.iCityID, kJob.eProfession, kJob.iX, kJob.iY, kJob.iDisplaceID, -1);
+	CvWString szBuffer = gDLL->getText("TXT_KEY_AUTO_ASSIGN_TARGET", getNameKey(), pCity->getNameKey(), GC.getProfessionInfo(kJob.eProfession).getTextKeyWide(), kJob.iTurns, kJob.iGold);
 	gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE, pCity->getX_INLINE(), pCity->getY_INLINE());
 	return true;
 }

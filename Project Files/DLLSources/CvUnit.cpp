@@ -3058,6 +3058,14 @@ bool CvUnit::canDoCommand(CommandTypes eCommand, int iData1, int iData2, bool bT
 		}
 		break;
 
+	// WTP: the job the player picked for the job automation (colony iData1, profession iData2)
+	case COMMAND_ASSIGN_JOB:
+		if (canAutomate(AUTOMATE_ASSIGN_JOB))
+		{
+			return true;
+		}
+		break;
+
 	// TAC - Goto Menu - koma13 - START
 	case COMMAND_GOTO_MENU:
 		if (getTransportUnit() == NULL || plot()->isValidDomainForAction(getUnitType()))
@@ -3507,6 +3515,14 @@ void CvUnit::doCommand(CommandTypes eCommand, int iData1, int iData2)
 
 		case COMMAND_HOTKEY:
 			setHotKeyNumber(iData1);
+			break;
+
+		// WTP: the job the player picked for the job automation
+		case COMMAND_ASSIGN_JOB:
+			if (static_cast<CvUnitAI*>(this)->AI_startAutoAssign(iData1, (ProfessionTypes)iData2) && getGroup() != NULL)
+			{
+				getGroup()->setAutomateType(AUTOMATE_ASSIGN_JOB);
+			}
 			break;
 
 		// WTP: transport to a city: the player picks the colony
@@ -4707,6 +4723,17 @@ void CvUnit::automate(AutomateTypes eAutomate)
 {
 	if (canAutomate(eAutomate))
 	{
+		// WTP: job automation of the active player's colonist: the player picks one of the best jobs (COMMAND_ASSIGN_JOB)
+		if (eAutomate == AUTOMATE_ASSIGN_JOB && getOwnerINLINE() == GC.getGameINLINE().getActivePlayer())
+		{
+			if (gDLL->getInterfaceIFace()->getHeadSelectedUnit() == this)
+			{
+				CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_ASSIGN_JOB_MENU);
+				pInfo->setData1(getID());
+				gDLL->getInterfaceIFace()->addPopup(pInfo, getOwnerINLINE(), true, true);
+			}
+			return;
+		}
 		getGroup()->setAutomateType(eAutomate);
 	}
 }

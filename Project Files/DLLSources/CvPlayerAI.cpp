@@ -23236,7 +23236,34 @@ int CvPlayerAI::AI_humanUnhappinessWith(const CvCity& kCity, int iNewCitizens) c
 	return wfUnhappinessWith(kCity, iNewCitizens);
 }
 
+namespace
+{
+	bool humanJobBetter(const CvPlayerAI::HumanJob& kA, const CvPlayerAI::HumanJob& kB)
+	{
+		return kA.iScore > kB.iScore;
+	}
+}
+
+// WTP: the best job for a human player's colonist (see AI_humanFindJobs); returns false if there is none
 bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTypes& eBestProfession, int& iX, int& iY, int& iDisplaceID, int& iTurns, int& iGold)
+{
+	std::vector<HumanJob> aJobs;
+	AI_humanFindJobs(kUnit, aJobs, 1);
+	if (aJobs.empty())
+	{
+		return false;
+	}
+	iCityID = aJobs[0].iCityID;
+	eBestProfession = aJobs[0].eProfession;
+	iX = aJobs[0].iX;
+	iY = aJobs[0].iY;
+	iDisplaceID = aJobs[0].iDisplaceID;
+	iTurns = aJobs[0].iTurns;
+	iGold = aJobs[0].iGold;
+	return true;
+}
+
+void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJobs, int iMaxJobs)
 {
 	const CvUnitAI& kUnitAI = static_cast<const CvUnitAI&>(kUnit);
 	const CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
@@ -23245,14 +23272,8 @@ bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTy
 	const bool bNoShip = !AI_hasWfShip();
 	AI_wfEnsureTravel(kUnit);
 
-	iCityID = -1;
-	eBestProfession = NO_PROFESSION;
-	iX = -1;
-	iY = -1;
-	iDisplaceID = -1;
-	iTurns = 0;
-	iGold = 0;
-	int iBestScore = 0;
+	// the best job per (colony, profession)
+	std::map<std::pair<int, int>, HumanJob> mapJobs;
 
 	// the jobs other colonists with the job automation are on their way to: their plots, their building slots (per colony and
 	// building) and the colonists they replace
@@ -23364,16 +23385,20 @@ bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTy
 					continue;
 				}
 				const int iScore = iValue * 20 / (20 + iCityTurns);
-				if (iScore > iBestScore)
+				const std::pair<int, int> kKey(pCity->getID(), (int)eProfession);
+				const std::map<std::pair<int, int>, HumanJob>::const_iterator itJob = mapJobs.find(kKey);
+				if (iScore > 0 && (itJob == mapJobs.end() || iScore > itJob->second.iScore))
 				{
-					iBestScore = iScore;
-					iCityID = pCity->getID();
-					eBestProfession = eProfession;
-					iX = pLoopPlot->getX_INLINE();
-					iY = pLoopPlot->getY_INLINE();
-					iDisplaceID = (pHolder != NULL) ? pHolder->getID() : -1;
-					iTurns = iCityTurns;
-					iGold = iValue / 100;
+					HumanJob kJob;
+					kJob.iScore = iScore;
+					kJob.iCityID = pCity->getID();
+					kJob.eProfession = eProfession;
+					kJob.iX = pLoopPlot->getX_INLINE();
+					kJob.iY = pLoopPlot->getY_INLINE();
+					kJob.iDisplaceID = (pHolder != NULL) ? pHolder->getID() : -1;
+					kJob.iTurns = iCityTurns;
+					kJob.iGold = iValue / 100;
+					mapJobs[kKey] = kJob;
 				}
 			}
 		}
@@ -23439,20 +23464,33 @@ bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTy
 				continue;
 			}
 			const int iScore = iValue * 20 / (20 + iCityTurns);
-			if (iScore > iBestScore)
+			const std::pair<int, int> kKey(pCity->getID(), (int)eProfession);
+			const std::map<std::pair<int, int>, HumanJob>::const_iterator itJob = mapJobs.find(kKey);
+			if (iScore > 0 && (itJob == mapJobs.end() || iScore > itJob->second.iScore))
 			{
-				iBestScore = iScore;
-				iCityID = pCity->getID();
-				eBestProfession = eProfession;
-				iX = -1;
-				iY = -1;
-				iDisplaceID = (pHolder != NULL) ? pHolder->getID() : -1;
-				iTurns = iCityTurns;
-				iGold = iValue / 100;
+				HumanJob kJob;
+				kJob.iScore = iScore;
+				kJob.iCityID = pCity->getID();
+				kJob.eProfession = eProfession;
+				kJob.iX = -1;
+				kJob.iY = -1;
+				kJob.iDisplaceID = (pHolder != NULL) ? pHolder->getID() : -1;
+				kJob.iTurns = iCityTurns;
+				kJob.iGold = iValue / 100;
+				mapJobs[kKey] = kJob;
 			}
 		}
 	}
-	return iCityID >= 0;
+	aJobs.clear();
+	for (std::map<std::pair<int, int>, HumanJob>::const_iterator it = mapJobs.begin(); it != mapJobs.end(); ++it)
+	{
+		aJobs.push_back(it->second);
+	}
+	std::stable_sort(aJobs.begin(), aJobs.end(), humanJobBetter);
+	if ((int)aJobs.size() > iMaxJobs)
+	{
+		aJobs.resize(iMaxJobs);
+	}
 }
 
 // WTP: the colonist has arrived in the colony: it joins it in its job (a regular colonist it replaces is put on the colony

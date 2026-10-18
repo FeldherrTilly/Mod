@@ -156,7 +156,7 @@ public:
 	bool AI_nativeTradeInHomeArea(const CvCity& kVillage) const;
 	bool AI_humanNativeTradeEurope();
 	// WTP: automatic job assignment of a human player's colonist
-	bool AI_startAutoAssign();
+	bool AI_startAutoAssign(int iCityID = -1, ProfessionTypes eProfession = NO_PROFESSION);
 	bool AI_doAutoAssign();
 	bool AI_transportAutoAssignColonists();
 

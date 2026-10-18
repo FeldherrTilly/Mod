@@ -2597,6 +2597,39 @@
 		<Hungarian>%s1 nem talál utat a céljához, sem gyalog, sem automatikus szállítással.</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_TITLE</Tag>
+		<English>Which job for %s1?</English>
+		<Portuguese>Qual trabalho para %s1?</Portuguese>
+		<French>Quel emploi pour %s1 ?</French>
+		<German>Welcher Job für %s1?</German>
+		<Italian>Quale lavoro per %s1?</Italian>
+		<Spanish>¿Qué trabajo para %s1?</Spanish>
+		<Russian>Какую работу дать %s1?</Russian>
+		<Hungarian>Milyen munka legyen %s1 számára?</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_SELECTION</Tag>
+		<English>%s1 in %s2: %d3 gold per turn, %d4 turns away</English>
+		<Portuguese>%s1 em %s2: %d3 de ouro por turno, a %d4 turnos</Portuguese>
+		<French>%s1 à %s2 : %d3 pièces d'or par tour, à %d4 tours</French>
+		<German>%s1 in %s2: %d3 Gold pro Runde, %d4 Runden entfernt</German>
+		<Italian>%s1 a %s2: %d3 monete d'oro per turno, a %d4 turni</Italian>
+		<Spanish>%s1 en %s2: %d3 de oro por turno, a %d4 turnos</Spanish>
+		<Russian>%s1 в %s2: %d3 золота за ход, %d4 ходов пути</Russian>
+		<Hungarian>%s1 itt: %s2: %d3 arany körönként, %d4 kör távolságra</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_REPLACE</Tag>
+		<English>%s1 in %s2: %d3 gold per turn, %d4 turns away (replaces %s5)</English>
+		<Portuguese>%s1 em %s2: %d3 de ouro por turno, a %d4 turnos (substitui %s5)</Portuguese>
+		<French>%s1 à %s2 : %d3 pièces d'or par tour, à %d4 tours (remplace %s5)</French>
+		<German>%s1 in %s2: %d3 Gold pro Runde, %d4 Runden entfernt (ersetzt %s5)</German>
+		<Italian>%s1 a %s2: %d3 monete d'oro per turno, a %d4 turni (sostituisce %s5)</Italian>
+		<Spanish>%s1 en %s2: %d3 de oro por turno, a %d4 turnos (sustituye a %s5)</Spanish>
+		<Russian>%s1 в %s2: %d3 золота за ход, %d4 ходов пути (заменяет %s5)</Russian>
+		<Hungarian>%s1 itt: %s2: %d3 arany körönként, %d4 kör távolságra (%s5 helyére)</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_ACTION_AUTOMATE_FULL_HELP</Tag>
 		<English>Automate this unit</English>
 		<Portuguese>Automatizar unidade</Portuguese>

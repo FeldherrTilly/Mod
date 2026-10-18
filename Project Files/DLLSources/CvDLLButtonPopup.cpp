@@ -1401,6 +1401,14 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 		}
 		break;
 
+	// WTP: the job for the job automation (button: colony ID * number of professions + profession)
+	case BUTTONPOPUP_ASSIGN_JOB_MENU:
+		if (pPopupReturn->getButtonClicked() >= 0)
+		{
+			gDLL->sendDoCommand(info.getData1(), COMMAND_ASSIGN_JOB, pPopupReturn->getButtonClicked() / NUM_PROFESSION_TYPES, pPopupReturn->getButtonClicked() % NUM_PROFESSION_TYPES, false);
+		}
+		break;
+
 	// WTP: transport to a city
 	case BUTTONPOPUP_TRANSPORT_TO_MENU:
 		if (pPopupReturn->getButtonClicked() >= 0)
@@ -1777,6 +1785,9 @@ bool CvDLLButtonPopup::launchButtonPopup(CvPopup* pPopup, CvPopupInfo &info)
 		break;
 	case BUTTONPOPUP_TRANSPORT_TO_MENU: // WTP
 		bLaunched = launchTransportToMenuPopup(pPopup, info);
+		break;
+	case BUTTONPOPUP_ASSIGN_JOB_MENU: // WTP
+		bLaunched = launchAssignJobMenuPopup(pPopup, info);
 		break;
 	// TAC - Goto Menu - koma13 - END
 	case BUTTONPOPUP_CHOOSE_CITY_PLOT_YIELD:
@@ -4191,6 +4202,49 @@ bool CvDLLButtonPopup::launchGotoMenuPopup(CvPopup* pPopup, CvPopupInfo &info)
 	return true;
 }
 // TAC - Goto Menu - koma13 - END
+
+// WTP: the job automation: the 8 best jobs for the colonist (one per colony and profession) to pick from
+bool CvDLLButtonPopup::launchAssignJobMenuPopup(CvPopup* pPopup, CvPopupInfo &info)
+{
+	const PlayerTypes ePlayer = GC.getGameINLINE().getActivePlayer();
+	if (ePlayer == NO_PLAYER)
+	{
+		return false;
+	}
+	CvPlayerAI& kPlayer = GET_PLAYER(ePlayer);
+	CvUnit* const pUnit = kPlayer.getUnit(info.getData1());
+	if (pUnit == NULL || !pUnit->canAutomate(AUTOMATE_ASSIGN_JOB))
+	{
+		return false;
+	}
+	std::vector<CvPlayerAI::HumanJob> aJobs;
+	kPlayer.AI_humanFindJobs(*pUnit, aJobs, 8);
+	if (aJobs.empty())
+	{
+		CvWString szBuffer = gDLL->getText("TXT_KEY_AUTO_ASSIGN_NONE", pUnit->getNameKey());
+		gDLL->UI().addPlayerMessage(ePlayer, true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, pUnit->getButton(), COLOR_WARNING_TEXT, pUnit->getX_INLINE(), pUnit->getY_INLINE());
+		return false;
+	}
+	gDLL->getInterfaceIFace()->popupSetHeaderString(pPopup, gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_TITLE", pUnit->getNameKey()));
+	for (uint i = 0; i < aJobs.size(); ++i)
+	{
+		const CvPlayerAI::HumanJob& kJob = aJobs[i];
+		const CvCity* const pCity = kPlayer.getCity(kJob.iCityID);
+		const CvUnit* const pReplaced = (kJob.iDisplaceID >= 0) ? kPlayer.getUnit(kJob.iDisplaceID) : NULL;
+		if (pCity == NULL)
+		{
+			continue;
+		}
+		const CvProfessionInfo& kProfession = GC.getProfessionInfo(kJob.eProfession);
+		const CvWString szJob = (pReplaced != NULL)
+			? gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_REPLACE", kProfession.getTextKeyWide(), pCity->getNameKey(), kJob.iGold, kJob.iTurns, pReplaced->getNameKey())
+			: gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_SELECTION", kProfession.getTextKeyWide(), pCity->getNameKey(), kJob.iGold, kJob.iTurns);
+		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, L"  " + szJob, kProfession.getButton(), kJob.iCityID * NUM_PROFESSION_TYPES + kJob.eProfession, WIDGET_GENERAL, pUnit->getID(), -1);
+	}
+	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, L"  " + gDLL->getText("TXT_KEY_NEVER_MIND"), ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CANCEL")->getPath(), -1, WIDGET_GENERAL);
+	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, POPUPSTATE_IMMEDIATE);
+	return true;
+}
 
 // WTP: transport to a city: the player's colonies (the unit walks or takes an automated transport)
 bool CvDLLButtonPopup::launchTransportToMenuPopup(CvPopup* pPopup, CvPopupInfo &info)

@@ -709,6 +709,19 @@ public:
 	void AI_wfEnsureTravel(const CvUnit& kColonist);
 	static bool AI_isWfShip(const CvUnit& kShip);
 	bool AI_hasWfShip() const;
+	// WTP: a job for a human player's colonist (AI_humanFindJobs)
+	struct HumanJob
+	{
+		int iScore;
+		int iCityID;
+		ProfessionTypes eProfession;
+		int iX;
+		int iY;
+		int iDisplaceID;
+		int iTurns;
+		int iGold;
+	};
+	void AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJobs, int iMaxJobs);
 	bool AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTypes& eBestProfession, int& iX, int& iY, int& iDisplaceID, int& iTurns, int& iGold);
 	bool AI_humanSeat(CvUnit& kUnit, CvCity& kCity, ProfessionTypes eProfession, int iX, int iY, int iDisplaceID);
 	int AI_humanIncomingCitizens(const CvCity& kCity) const;
