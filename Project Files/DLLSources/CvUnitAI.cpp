@@ -23107,7 +23107,7 @@ bool CvUnitAI::AI_transportAutoAssignColonists()
 }
 
 // WTP: patrol of a human player's military unit or warship (AUTOMATE_PATROL) within 10 plots of the plot where it was
-// switched on: it attacks runaway and revolting slaves, criminals and hostile natives (barbarians, no animals), pirates and
+// switched on: it attacks runaway and revolting slaves, criminals, hostile natives and wild animals (barbarians), pirates and
 // enemies at war outside their borders, only with less than 5% risk of being destroyed; below 95% strength it heals first
 // (in the nearest own colony it gets to, else where it is); with nothing to attack it patrols the area (a move of one turn
 // to a random plot). The moves end with the turn, so each turn it looks again
@@ -23124,11 +23124,11 @@ void CvUnitAI::AI_setPatrolCenter(const CvPlot* pPlot)
 
 bool CvUnitAI::AI_isPatrolTarget(const CvUnit& kTarget, const CvPlot& kPlot) const
 {
-	if (kTarget.getUnitInfo().isAnimal() || !isEnemy(kTarget.getCombatTeam(getTeam(), &kPlot), &kPlot))
+	if (!isEnemy(kTarget.getCombatTeam(getTeam(), &kPlot), &kPlot))
 	{
 		return false;
 	}
-	// runaway and revolting slaves, criminals, hostile natives; pirates
+	// runaway and revolting slaves, criminals, hostile natives, wild animals (they stay out of the colonies' radius); pirates
 	if (kTarget.isBarbarian() || kTarget.isAlwaysHostile(&kPlot))
 	{
 		return true;
