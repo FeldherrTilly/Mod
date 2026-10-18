@@ -244,7 +244,7 @@
 			<Help>TXT_KEY_INTERFACEMODE_TRANSPORT_TO_HELP</Help>
 			<CursorType>CURSOR_GO_TO</CursorType>
 			<Mission>MISSION_TRANSPORT_TO</Mission>
-			<HotKey/>
+			<HotKey>KB_Q</HotKey>
 			<bAltDown>0</bAltDown>
 			<bShiftDown>0</bShiftDown>
 			<bCtrlDown>0</bCtrlDown>
