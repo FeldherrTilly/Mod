@@ -12806,13 +12806,26 @@ int CvPlayerAI::AI_unitAIValueMultipler(UnitAITypes eUnitAI)
 			}
 		case UNITAI_COMBAT_SEA:
 			{
+				// WTP: in a war with a colonial power twice as many warships (counted as half; natives have no ships)
+				int iWarshipCount = iCount;
+				const CvTeam& kTeam = GET_TEAM(getTeam());
+				for (PlayerTypes ePlayer = FIRST_PLAYER; ePlayer < NUM_PLAYER_TYPES; ++ePlayer)
+				{
+					const CvPlayer& kOther = GET_PLAYER(ePlayer);
+					if (kOther.isAlive() && kOther.getTeam() != getTeam() && !kOther.isNative() && !GC.getGameINLINE().isBarbarianPlayer(ePlayer)
+						&& kTeam.isAtWar(kOther.getTeam()))
+					{
+						iWarshipCount = iCount / 2;
+						break;
+					}
+				}
 				int iLowerPop = 5;
-				int iPop = 40 + 30 * iCount;
+				int iPop = 40 + 30 * iWarshipCount;
 				if (AI_isStrategy(STRATEGY_REVOLUTION_PREPARING))
 				{
 					iPop /= 2;
 				}
-				iValue = (140 * std::max(0, iPopulation - (iLowerPop + iPop * iCount))) / iPop;
+				iValue = (140 * std::max(0, iPopulation - (iLowerPop + iPop * iWarshipCount))) / iPop;
 			}
 			break;
 
