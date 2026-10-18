@@ -4010,7 +4010,8 @@ int CvCity::getDefenseModifier() const
 		return 0;
 	}
 
-	return ((getTotalDefense() * (GC.getMAX_CITY_DEFENSE_DAMAGE() - getDefenseDamage())) / GC.getMAX_CITY_DEFENSE_DAMAGE());
+	// WTP: less with too many military units for the barracks space
+	return ((getTotalDefense() * (GC.getMAX_CITY_DEFENSE_DAMAGE() - getDefenseDamage())) / GC.getMAX_CITY_DEFENSE_DAMAGE()) * getBarracksDefensePercent() / 100;
 }
 
 
@@ -11215,6 +11216,27 @@ int CvCity::getCityBarracksSpaceUsed() const
 	}
 
 	return iCityBarracksSpaceUsed;
+}
+
+// WTP: the share of its defense bonus a human player's colony keeps with its military units: all of it up to its barracks
+// space, falling evenly to none at twice the space (the units' own city defense bonuses are not affected)
+int CvCity::getBarracksDefensePercent() const
+{
+	if (!GLOBAL_DEFINE_ENABLE_NEW_BARRACKS_SYSTEM || !isHuman())
+	{
+		return 100;
+	}
+	const int iSpace = getCityBarracksSpace();
+	const int iUsed = getCityBarracksSpaceUsed();
+	if (iUsed <= iSpace)
+	{
+		return 100;
+	}
+	if (iSpace <= 0 || iUsed >= 2 * iSpace)
+	{
+		return 0;
+	}
+	return 100 * (2 * iSpace - iUsed) / iSpace;
 }
 
 bool CvCity::bShouldShowCityBarracksSystem() const

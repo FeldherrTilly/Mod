@@ -3984,35 +3984,9 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 		// here we also check just for can Attack - we check City owner further down
 		if (DOMAIN_LAND == getDomainType() && kPlot.isCity(true, getTeam()) && canAttack())
 		{
-			// Case real City
+			// Case real City: WTP: no limit for the units in a colony; units over its barracks space lower its defense bonus instead (CvCity::getBarracksDefensePercent)
 			if (kPlot.getImprovementType() == NO_IMPROVEMENT)
 			{
-				// this is only checked for Colonial Cities, Native Villages can always be entered
-				CvCity* pCity = kPlot.getPlotCity();
-				if (pCity != NULL)
-				{
-					// here we ensure we check this only for the Owner of the Unit being Owner of the City
-					if(!pCity->isNative() && pCity->getOwnerINLINE() == getOwnerINLINE())
-					{
-						int iBarracksSpaceNeededByUnit = getUnitInfo().getBarracksSpaceNeeded();
-
-						// we also need to check the PRofession
-						if (getProfession() != NO_PROFESSION)
-						{
-							iBarracksSpaceNeededByUnit += GC.getProfessionInfo(getProfession()).getBarracksSpaceNeededChange();
-						}
-
-						// Caclulating free Harbour Space in City
-						int iBarracksSpaceMaxInCity = kPlot.getPlotCity()->getCityBarracksSpace();
-						int iBarracksSpaceUsedInCity = kPlot.getPlotCity()->getCityBarracksSpaceUsed();
-						int iBarracksSpaceAvailableInCity = iBarracksSpaceMaxInCity - iBarracksSpaceUsedInCity;
-
-						if (iBarracksSpaceNeededByUnit > iBarracksSpaceAvailableInCity)
-						{
-							return false;
-						}
-					}
-				}
 			}
 
 			// Case "actAsCity" Improvement - also considered as City
@@ -5986,37 +5960,9 @@ bool CvUnit::canUnload() const
 	// Comment: I am afraid to damage AI logc thus I will only check this for Human
 	if (GLOBAL_DEFINE_ENABLE_NEW_BARRACKS_SYSTEM && isHuman())
 	{
-		// Case real City
+		// Case real City: WTP: no limit for the units in a colony; units over its barracks space lower its defense bonus instead (CvCity::getBarracksDefensePercent)
 		if (plot()->getImprovementType() == NO_IMPROVEMENT)
 		{
-			// this is only checked for Colonial Cities, Native Villages can always be entered
-			CvCity* pCity = plot()->getPlotCity();
-			if (pCity != NULL)
-			{
-				// here we ensure we check this only for the Owner of the Unit being Owner of the City
-				if(!pCity->isNative() && pCity->getOwnerINLINE() == getOwnerINLINE())
-				{
-					int iBarracksSpaceNeededByUnit = getUnitInfo().getBarracksSpaceNeeded();
-					if (getProfession() != NO_PROFESSION)
-					{
-						iBarracksSpaceNeededByUnit += GC.getProfessionInfo(getProfession()).getBarracksSpaceNeededChange();
-					}
-
-					// WTP, ray, fix issue of unloading Non-Military Units not allowed
-					if (iBarracksSpaceNeededByUnit > 0)
-					{
-						// Caclulating free Barracks Space in City
-						int iBarracksSpaceMaxInCity = plot()->getPlotCity()->getCityBarracksSpace();
-						int iBarracksSpaceUsedInCity = plot()->getPlotCity()->getCityBarracksSpaceUsed();
-						int iBarracksSpaceAvailableInCity = iBarracksSpaceMaxInCity - iBarracksSpaceUsedInCity;
-
-						if (iBarracksSpaceNeededByUnit > iBarracksSpaceAvailableInCity)
-						{
-							return false;
-						}
-					}
-				}
-			}
 		}
 
 		// Case "actAsCity" Improvement - also considered as City
@@ -13381,51 +13327,8 @@ bool CvUnit::canHaveProfession(ProfessionTypes eProfession, bool bBumpOther, con
 		}
 	}
 
-	// WTP, ray, Barracks System, check if there is still enough Barracks Space - START
-	// Comment: I am afraid to damage AI logc thus I will only check this for Human
-	int iBarracksSpaceChangeByProfessionChange = kNewProfession.getBarracksSpaceNeededChange();
-	if (GLOBAL_DEFINE_ENABLE_NEW_BARRACKS_SYSTEM && pPlot != NULL && isHuman() && iBarracksSpaceChangeByProfessionChange > 0)
-	{
-		// Case real City
-		if (pPlot->getImprovementType() == NO_IMPROVEMENT)
-		{
-			// this is only checked for Colonial Cities, Native Villages can always be entered
-			CvCity* pCity = pPlot->getPlotCity();
-			if (pCity != NULL)
-			{
-				// here we ensure we check this only for the Owner of the Unit being Owner of the City
-				if(!pCity->isNative() && pCity->getOwnerINLINE() == getOwnerINLINE())
-				{
-					// this is how much the Unit without a Profession needs
-					// but we do not need to calculate it because it will not change
-					// int iBarracksSpaceNeededByUnit = getUnitInfo().getBarracksSpaceNeeded();
-
-					int iCurrentBarracksSpaceNeededByProfession = 0; // default case for No Profession
-					if (getProfession() != NO_PROFESSION)
-					{
-						iCurrentBarracksSpaceNeededByProfession = GC.getProfessionInfo(getProfession()).getBarracksSpaceNeededChange();
-					}
-
-					// So when changing the profession the new value will be added and the old will be substracted
-					int iAdditionalBarracksSpaceNeededForProfession = iBarracksSpaceChangeByProfessionChange - iCurrentBarracksSpaceNeededByProfession;
-
-					// Caclulating free Barracks Space in City
-					int iBarracksSpaceMaxInCity = pPlot->getPlotCity()->getCityBarracksSpace();
-					int iBarracksSpaceUsedInCity = pPlot->getPlotCity()->getCityBarracksSpaceUsed();
-					int iBarracksSpaceAvailableInCity = iBarracksSpaceMaxInCity - iBarracksSpaceUsedInCity;
-
-					if (iAdditionalBarracksSpaceNeededForProfession > iBarracksSpaceAvailableInCity)
-					{
-						return false;
-					}
-				}
-			}
-		}
-
-		// Case "actAsCity" Improvement does not need to be considered - already caught otherwise
-		// Profession changes like this are not allowed outside Cities
-	}
-	// WTP, ray, Barracks System, check if there is still enough Barracks Space - END
+	// WTP: no barracks limit for a profession change in a colony any more; units over its barracks space lower its defense
+	// bonus instead (CvCity::getBarracksDefensePercent)
 
 
 	return true;

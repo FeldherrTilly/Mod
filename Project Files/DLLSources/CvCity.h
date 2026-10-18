@@ -564,6 +564,7 @@ public:
 	int getCityBarracksSpace() const;
 	void changeCityBarracksSpace(int iValue);
 	int getCityBarracksSpaceUsed() const;
+	int getBarracksDefensePercent() const; // WTP
 	bool bShouldShowCityBarracksSystem() const;
 	// WTP, ray, new Barracks  System - END
 

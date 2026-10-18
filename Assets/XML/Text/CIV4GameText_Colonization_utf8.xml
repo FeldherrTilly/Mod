@@ -2553,6 +2553,17 @@
 		<Hungarian>%s1 felszáll a(z) %s2 hajóra itt: %s3, cél: egy mező %s5 közelében (kb. %d4 kör).</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_CITY_BARRACKS_DEFENSE_REDUCED</Tag>
+		<English>Too many military units: city defense bonus at %d1%%</English>
+		<Portuguese>Unidades militares demais: bônus de defesa da cidade em %d1%%</Portuguese>
+		<French>Trop d'unités militaires : bonus de défense de la ville à %d1%%</French>
+		<German>Zu viele Militäreinheiten: Verteidigungsbonus der Stadt bei %d1%%</German>
+		<Italian>Troppe unità militari: bonus di difesa della città al %d1%%</Italian>
+		<Spanish>Demasiadas unidades militares: bonificación de defensa de la ciudad al %d1%%</Spanish>
+		<Russian>Слишком много военных отрядов: бонус защиты города %d1%%</Russian>
+		<Hungarian>Túl sok katonai egység: a város védelmi bónusza %d1%%</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_TRAVEL_BOARDED</Tag>
 		<English>%s1 boards %s2 in %s3 (about %d4 turns to its destination).</English>
 		<Portuguese>%s1 embarca no %s2 em %s3 (cerca de %d4 turnos até o destino).</Portuguese>
