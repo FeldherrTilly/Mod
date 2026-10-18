@@ -23647,6 +23647,19 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 		aJobs.push_back(it->second);
 	}
 	std::stable_sort(aJobs.begin(), aJobs.end(), humanJobBetter);
+	// at most the 2 best student jobs (learning is worth so much that they would fill the list)
+	int iStudentJobs = 0;
+	for (uint i = 0; i < aJobs.size(); )
+	{
+		if ((YieldTypes)GC.getProfessionInfo(aJobs[i].eProfession).getYieldsProduced(0) == YIELD_EDUCATION && ++iStudentJobs > 2)
+		{
+			aJobs.erase(aJobs.begin() + i);
+		}
+		else
+		{
+			++i;
+		}
+	}
 	if ((int)aJobs.size() > iMaxJobs)
 	{
 		aJobs.resize(iMaxJobs);
