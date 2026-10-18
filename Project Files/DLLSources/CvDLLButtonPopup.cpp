@@ -4250,15 +4250,22 @@ bool CvDLLButtonPopup::launchAssignJobMenuPopup(CvPopup* pPopup, CvPopupInfo &in
 			continue;
 		}
 		const CvProfessionInfo& kProfession = GC.getProfessionInfo(kJob.eProfession);
-		CvWString szJob = (pReplaced != NULL)
-			? gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_REPLACE", kProfession.getTextKeyWide(), pCity->getNameKey(), kJob.iGold, kJob.iTurns, pReplaced->getNameKey())
-			: gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_SELECTION", kProfession.getTextKeyWide(), pCity->getNameKey(), kJob.iGold, kJob.iTurns);
+		// (no gold for students and prostitutes: their value is a rating, not money)
+		const YieldTypes eJobYield = (YieldTypes)kProfession.getYieldsProduced(0);
+		const bool bNoGold = eJobYield == YIELD_EDUCATION || eJobYield == YIELD_HAPPINESS;
+		CvWString szJob = bNoGold
+			? ((pReplaced != NULL)
+				? gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_NO_GOLD_REPLACE", kProfession.getTextKeyWide(), pCity->getNameKey(), kJob.iTurns, pReplaced->getNameKey())
+				: gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_NO_GOLD", kProfession.getTextKeyWide(), pCity->getNameKey(), kJob.iTurns))
+			: ((pReplaced != NULL)
+				? gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_REPLACE", kProfession.getTextKeyWide(), pCity->getNameKey(), kJob.iGold, kJob.iTurns, pReplaced->getNameKey())
+				: gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_SELECTION", kProfession.getTextKeyWide(), pCity->getNameKey(), kJob.iGold, kJob.iTurns));
 		if (kJob.bFoodShortage)
 		{
 			szJob += gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_FOOD_SHORTAGE");
 		}
 		// happiness jobs (prostitutes): the colony's happiness with the colonists already on their way there
-		if ((YieldTypes)kProfession.getYieldsProduced(0) == YIELD_HAPPINESS)
+		if (eJobYield == YIELD_HAPPINESS)
 		{
 			szJob += gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_HAPPINESS", kPlayer.AI_humanPlannedHappiness(*pCity, pUnit));
 		}

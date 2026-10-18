@@ -2619,6 +2619,28 @@
 		<Hungarian> - boldogság az úton lévőkkel %d1</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_NO_GOLD</Tag>
+		<English>%s1 in %s2: %d3 turns away</English>
+		<Portuguese>%s1 em %s2: a %d3 turnos</Portuguese>
+		<French>%s1 à %s2 : à %d3 tours</French>
+		<German>%s1 in %s2: %d3 Runden entfernt</German>
+		<Italian>%s1 a %s2: a %d3 turni</Italian>
+		<Spanish>%s1 en %s2: a %d3 turnos</Spanish>
+		<Russian>%s1 в %s2: %d3 ходов пути</Russian>
+		<Hungarian>%s1 itt: %s2: %d3 kör távolságra</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_NO_GOLD_REPLACE</Tag>
+		<English>%s1 in %s2: %d3 turns away (replaces %s4)</English>
+		<Portuguese>%s1 em %s2: a %d3 turnos (substitui %s4)</Portuguese>
+		<French>%s1 à %s2 : à %d3 tours (remplace %s4)</French>
+		<German>%s1 in %s2: %d3 Runden entfernt (ersetzt %s4)</German>
+		<Italian>%s1 a %s2: a %d3 turni (sostituisce %s4)</Italian>
+		<Spanish>%s1 en %s2: a %d3 turnos (sustituye a %s4)</Spanish>
+		<Russian>%s1 в %s2: %d3 ходов пути (заменяет %s4)</Russian>
+		<Hungarian>%s1 itt: %s2: %d3 kör távolságra (%s4 helyére)</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_TITLE</Tag>
 		<English>Which job for %s1?</English>
 		<Portuguese>Qual trabalho para %s1?</Portuguese>
