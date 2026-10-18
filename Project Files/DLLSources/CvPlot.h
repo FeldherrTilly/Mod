@@ -190,6 +190,7 @@ public:
 	int movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,														// Exposed to Python
 		bool bAssumeRevealed = false) const; // advc.001i, WTP: default is false rather than true
 	int navalControlMovementCost(const CvUnit* pMovingUnit) const; // WTP, Schmiddie, Naval Control Movement
+	int fortZoneMovementCost(const CvUnit* pMovingUnit) const; // WTP: occupied forts slow down their enemies around them
 	
 	bool isAdjacentOwned() const;
 	bool isAdjacentPlayer(PlayerTypes ePlayer, bool bLandOnly = false) const;

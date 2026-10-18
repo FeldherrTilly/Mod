@@ -39,6 +39,33 @@
 // In general the game will use a low realistic number while it can increase if a rare promotion combo comes up.
 
 // WTP, Schmiddie, Naval Control Movement - START
+// WTP: an occupied fort makes the plots around it harder to cross for its enemies (land units): one move more
+int CvPlot::fortZoneMovementCost(const CvUnit* pMovingUnit) const
+{
+	if (pMovingUnit->getDomainType() != DOMAIN_LAND)
+	{
+		return 0;
+	}
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		const CvPlot* const pAdjacent = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
+		if (pAdjacent == NULL || !pAdjacent->isFort())
+		{
+			continue;
+		}
+		for (int i = 0; i < pAdjacent->getNumUnits(); ++i)
+		{
+			const CvUnit* const pFortUnit = pAdjacent->getUnitByIndex(i);
+			if (pFortUnit != NULL && !pFortUnit->isCargo() && pFortUnit->canDefend()
+				&& pMovingUnit->isEnemy(pFortUnit->getCombatTeam(pMovingUnit->getTeam(), pAdjacent), pAdjacent))
+			{
+				return GLOBAL_DEFINE_MOVE_DENOMINATOR;
+			}
+		}
+	}
+	return 0;
+}
+
 int CvPlot::navalControlMovementCost(const CvUnit* pMovingUnit) const
 {
 	if (pMovingUnit == NULL)
@@ -3835,6 +3862,7 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 	{
 		iMovementCost += navalControlMovementCost(pUnit);
 	}
+	iMovementCost += fortZoneMovementCost(pUnit);
 
 	return iMovementCost;
 }
