@@ -142,6 +142,7 @@ public:
 	void AI_setTravelPickup(const CvPlot* pPickup);
 	int AI_travelShipApproach(const CvUnit& kShip, const CvPlot& kPickup) const;
 	void AI_travelChooseShip();
+	void AI_travelBoardMessage(const CvUnit& kShip);
 	bool AI_travelPlan(const CvPlot& kTarget, CvPlot*& pPickup, CvPlot*& pDrop, int& iShipID, int& iTurns);
 	int AI_getTravelShipID() const { return m_iTravelShipID; }
 

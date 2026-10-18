@@ -22742,24 +22742,37 @@ void CvUnitAI::AI_travelChooseShip()
 		return;
 	}
 	m_iTravelShipID = pBest->getID();
-	// the whole journey for the message: on foot to the port, the ship there, at sea, on foot from the landing plot
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S now travels with %S from %d,%d (ship there in %d turns, %d at sea)", getOwnerINLINE(),
+		kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pBest->getName().GetCString(), pPickup->getX_INLINE(), pPickup->getY_INLINE(),
+		iBestApproach, iBestSail);
+}
+
+// WTP: the message when the ship takes a travelling unit aboard in its port: the ship, the port and the turns from here
+// to the destination (at sea and on foot from the landing plot)
+void CvUnitAI::AI_travelBoardMessage(const CvUnit& kShip)
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const CvCity* const pPort = plot()->getPlotCity();
 	const CvCity* const pJobCity = (m_iWfTask == WF_ASSIGN) ? kOwner.getCity(m_iWfCityID) : NULL;
 	CvPlot* const pTarget = (pJobCity != NULL) ? pJobCity->plot() : GC.getMap().plotINLINE(m_iWfPlotX, m_iWfPlotY);
-	int iFoot = 0;
-	if (!atPlot(pPickup))
+	CvPlot* const pDrop = AI_travelDrop();
+	if (pPort == NULL || pTarget == NULL || pDrop == NULL)
 	{
-		getGroup()->generatePath(plot(), pPickup, 0, false, &iFoot, -1, true);
+		return;
 	}
-	int iOn = 0;
-	if (pTarget != NULL && pTarget != pDrop)
+	int iTurns = 0;
+	int iSail;
+	if (travelShipPlot(kShip, *plot(), *pDrop, iSail) != NULL)
 	{
-		getGroup()->generatePath(pDrop, pTarget, 0, false, &iOn, -1, true);
+		iTurns += iSail;
 	}
-	const int iTurns = std::max(iFoot, iBestApproach) + iBestSail + ((iOn != MAX_INT) ? iOn : 0);
-	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S now travels with %S from %d,%d (%d turns)", getOwnerINLINE(),
-		kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pBest->getName().GetCString(), pPickup->getX_INLINE(), pPickup->getY_INLINE(), iTurns);
-	CvWString szBuffer = gDLL->getText("TXT_KEY_TRAVEL_SHIP", getName().GetCString(), pBest->getName().GetCString(), pPickup->getPlotCity()->getNameKey(), iTurns);
-	gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE, pPickup->getX_INLINE(), pPickup->getY_INLINE());
+	int iOn;
+	if (pDrop != pTarget && getGroup()->generatePath(pDrop, pTarget, 0, false, &iOn, -1, true))
+	{
+		iTurns += iOn;
+	}
+	CvWString szBuffer = gDLL->getText("TXT_KEY_TRAVEL_BOARDED", getName().GetCString(), kShip.getName().GetCString(), pPort->getNameKey(), std::max(1, iTurns));
+	gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE, getX_INLINE(), getY_INLINE());
 }
 
 // WTP: a human player's unit on its way to kTarget (transport to a city or plot, job automation): on foot, waiting in its
@@ -22806,6 +22819,7 @@ CvUnitAI::TravelStep CvUnitAI::AI_travelStep(CvPlot& kTarget, bool bAnnounceWalk
 	{
 		if (pShip->atPlot(plot()) && canLoadUnit(pShip, plot(), true))
 		{
+			AI_travelBoardMessage(*pShip);
 			AI_setTravelPickup(NULL);
 			loadUnit(pShip);
 			getGroup()->pushMission(MISSION_SKIP);
@@ -22844,8 +22858,6 @@ CvUnitAI::TravelStep CvUnitAI::AI_travelStep(CvPlot& kTarget, bool bAnnounceWalk
 	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S travels with %S from %d,%d to %d,%d, ashore at %d,%d (%d turns)", getOwnerINLINE(),
 		kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pNewShip->getName().GetCString(), pPickup->getX_INLINE(), pPickup->getY_INLINE(),
 		kTarget.getX_INLINE(), kTarget.getY_INLINE(), pNewDrop->getX_INLINE(), pNewDrop->getY_INLINE(), iTurns);
-	CvWString szBuffer = gDLL->getText("TXT_KEY_TRAVEL_SHIP", getName().GetCString(), pNewShip->getName().GetCString(), pPickup->getPlotCity()->getNameKey(), iTurns);
-	gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE, pPickup->getX_INLINE(), pPickup->getY_INLINE());
 	if (!atPlot(pPickup))
 	{
 		getGroup()->pushMission(MISSION_MOVE_TO, pPickup->getX_INLINE(), pPickup->getY_INLINE(), 0, false, false, MISSIONAI_AWAIT_PICKUP, pPickup);
@@ -22853,6 +22865,7 @@ CvUnitAI::TravelStep CvUnitAI::AI_travelStep(CvPlot& kTarget, bool bAnnounceWalk
 	}
 	if (pNewShip->atPlot(plot()) && canLoadUnit(pNewShip, plot(), true))
 	{
+		AI_travelBoardMessage(*pNewShip);
 		AI_setTravelPickup(NULL);
 		loadUnit(pNewShip);
 		getGroup()->pushMission(MISSION_SKIP);
@@ -23007,6 +23020,7 @@ bool CvUnitAI::AI_transportAutoAssignColonists()
 		{
 			if (pLoopUnit->atPlot(pPort) && pLoopUnit->canLoadUnit(this, plot(), true))
 			{
+				pColonist->AI_travelBoardMessage(*this);
 				pColonist->AI_setTravelPickup(NULL);
 				pLoopUnit->loadUnit(this);
 				pLoopUnit->getGroup()->pushMission(MISSION_SKIP);

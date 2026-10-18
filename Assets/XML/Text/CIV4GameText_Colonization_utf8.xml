@@ -2520,15 +2520,15 @@
 		<Hungarian>%s1 gyalog megy a célhoz (kb. %d2 kör).</Hungarian>
 	</TEXT>
 	<TEXT>
-		<Tag>TXT_KEY_TRAVEL_SHIP</Tag>
-		<English>%s1 travels with %s2, boarding in %s3 (about %d4 turns).</English>
-		<Portuguese>%s1 viaja com %s2, embarcando em %s3 (cerca de %d4 turnos).</Portuguese>
-		<French>%s1 voyage avec %s2, embarquement à %s3 (environ %d4 tours).</French>
-		<German>%s1 reist mit %s2, Einstieg in %s3 (etwa %d4 Runden).</German>
-		<Italian>%s1 viaggia con %s2, imbarco a %s3 (circa %d4 turni).</Italian>
-		<Spanish>%s1 viaja con %s2, embarca en %s3 (unos %d4 turnos).</Spanish>
-		<Russian>%s1 плывёт на %s2, посадка в %s3 (около %d4 ходов).</Russian>
-		<Hungarian>%s1 a(z) %s2 hajóval utazik, beszállás: %s3 (kb. %d4 kör).</Hungarian>
+		<Tag>TXT_KEY_TRAVEL_BOARDED</Tag>
+		<English>%s1 boards %s2 in %s3 (about %d4 turns to its destination).</English>
+		<Portuguese>%s1 embarca no %s2 em %s3 (cerca de %d4 turnos até o destino).</Portuguese>
+		<French>%s1 embarque sur le %s2 à %s3 (environ %d4 tours jusqu'à destination).</French>
+		<German>%s1 geht in %s3 an Bord der %s2 (etwa %d4 Runden bis zum Ziel).</German>
+		<Italian>%s1 si imbarca sulla %s2 a %s3 (circa %d4 turni alla destinazione).</Italian>
+		<Spanish>%s1 embarca en el %s2 en %s3 (unos %d4 turnos hasta su destino).</Spanish>
+		<Russian>%s1 садится на %s2 в %s3 (около %d4 ходов до цели).</Russian>
+		<Hungarian>%s1 felszáll a(z) %s2 hajóra itt: %s3 (kb. %d4 kör a célig).</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_TRAVEL_ARRIVED</Tag>
