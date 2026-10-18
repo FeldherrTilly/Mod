@@ -425,7 +425,8 @@ BLOBS = [   # centre lon/lat, radius in tiles: hill country
 BLOBS = BLOBS + ISLE_BLOBS + [(10.5, 52.6, 1.4), (12.8, 53.1, 1.2), (21.5, 53.5, 1.5), (24.5, 51.2, 1.3), (20.0, 46.6, 1.0), (2.0, 49.6, 1.3), (-0.5, 48.6, 1.2),
                               (4.0, 47.6, 1.3), (1.0, 45.5, 1.4), (26.5, 49.3, 1.5), (28.5, 52.0, 1.2), (24.0, 55.8, 1.3), (-2.0, 44.0, 1.0), (12.0, 49.2, 1.4),
                               (18.5, 51.5, 1.2), (13.5, 54.0, 1.0), (22.5, 44.2, 1.3), (8.0, 25.8, 1.8), (13.0, 25.5, 2.0), (21.0, 26.8, 1.6), (26.0, 27.5, 1.5),
-                              (40.0, 24.5, 2.0), (48.0, 25.5, 1.8), (32.0, 36.5, 1.4), (37.0, 33.0, 1.6)]
+                              (40.0, 24.5, 2.0), (48.0, 25.5, 1.8), (32.0, 36.5, 1.4), (37.0, 33.0, 1.6),
+                              (6.0, 26.5, 2.5), (11.0, 28.0, 2.2), (21.0, 29.5, 2.0), (-2.0, 29.0, 2.0), (27.0, 29.0, 2.0), (32.0, 27.5, 2.0), (16.0, 26.0, 2.0), (-6.0, 28.0, 1.8)]
 LOW_CHAINS = [   # (polyline lon/lat, half width in tiles, height): low, broken uplands in the plains and lowlands
     ([(7.0, 47.9), (7.1, 48.5), (7.3, 49.0)], 1.1, 0.62), ([(8.0, 47.6), (8.3, 48.4), (8.6, 49.0)], 1.0, 0.60),
     ([(5.8, 46.0), (6.4, 46.7), (7.2, 47.2), (8.0, 47.5)], 1.0, 0.64), ([(4.5, 49.9), (6.0, 50.2), (7.2, 50.4)], 1.1, 0.55),
@@ -438,13 +439,16 @@ LOW_CHAINS = [   # (polyline lon/lat, half width in tiles, height): low, broken 
     ([(-6.0, 39.4), (-4.5, 39.4)], 1.0, 0.5), ([(-6.5, 38.1), (-4.0, 38.3)], 1.0, 0.55), ([(2.0, 41.7), (2.4, 42.0)], 0.9, 0.55),
     ([(14.0, 26.0), (19.0, 27.0)], 1.2, 0.62), ([(34.0, 28.0), (36.0, 30.5)], 1.2, 0.62), ([(44.0, 26.0), (46.0, 29.0), (47.5, 31.0)], 1.3, 0.62),
     ([(21.5, 45.4), (23.0, 45.0), (24.5, 45.2)], 1.0, 0.55), ([(15.5, 47.3), (17.0, 47.0)], 0.9, 0.55),
+    ([(-1.0, 27.0), (2.0, 28.4), (4.5, 27.6)], 1.2, 0.62), ([(8.0, 26.8), (12.0, 27.8), (16.0, 27.2)], 1.2, 0.6), ([(20.0, 27.5), (23.5, 28.5)], 1.2, 0.6),
+    ([(-6.0, 25.8), (-4.0, 27.4)], 1.1, 0.6), ([(26.0, 26.2), (29.0, 27.5)], 1.1, 0.58), ([(36.0, 26.0), (39.0, 27.5), (42.0, 26.5)], 1.2, 0.6),
 ]
 MASSIFS = [(10.6, 51.7, 2.6), (13.2, 49.1, 2.4), (19.9, 49.2, 2.2), (5.5, 50.1, 2.2), (7.1, 48.3, 2.4), (2.8, 45.3, 3.2), (8.2, 48.0, 2.2),
            (16.2, 50.7, 2.2), (24.5, 41.8, 3.0), (21.2, 39.7, 2.6), (-5.2, 40.3, 2.2), (-3.8, 52.4, 2.0), (4.0, 47.0, 1.8), (20.9, 50.9, 1.8),
            (27.0, 54.0, 1.8), (28.0, 48.8, 2.0), (25.5, 56.8, 1.6), (5.5, 24.0, 3.5), (17.0, 23.5, 3.0), (9.0, 25.5, 2.2), (-1.5, 47.7, 1.8),
            (-6.8, 42.4, 2.0), (1.5, 43.0, 2.0), (12.0, 43.8, 1.8), (16.0, 40.5, 2.0), (18.0, 44.0, 2.4), (22.0, 47.0, 2.2), (25.5, 46.5, 2.2),
            (30.5, 49.0, 1.6), (0.5, 49.9, 1.4), (-8.0, 40.5, 1.8), (13.0, 56.2, 1.8), (22.0, 58.5, 1.6), (36.5, 37.0, 2.4), (43.5, 37.5, 2.4),
-           (50.0, 33.0, 2.4), (55.0, 30.0, 2.4), (52.0, 27.0, 2.0)]
+           (50.0, 33.0, 2.4), (55.0, 30.0, 2.4), (52.0, 27.0, 2.0), (3.0, 27.5, 2.4), (9.5, 28.0, 2.2), (14.0, 28.2, 2.4), (19.5, 28.5, 2.0),
+           (24.0, 27.0, 2.2), (-3.0, 27.0, 2.0), (-8.0, 26.5, 2.0), (31.0, 25.5, 1.8), (38.0, 28.0, 2.0), (42.0, 26.0, 2.0), (47.0, 24.5, 1.8)]
 MASSIFXY = [to_xy(lo, la) + (r,) for lo, la, r in MASSIFS]
 LOWXY = [([to_xy(lo, la) for lo, la in pts], w, h) for pts, w, h in LOW_CHAINS]
 PLATEAUS = [(34.5, 38.8, 4.5, 0.38), (-3.5, 40.0, 4.5, 0.30), (28.0, 61.0, 6.0, 0.18), (53.0, 47.0, 6.0, 0.12), (53.0, 33.0, 6.0, 0.30), (3.0, 25.0, 6.0, 0.20)]   # lon, lat, radius, elevation
@@ -533,6 +537,11 @@ RIVERS = {
     'Dnieper': [(30.0, 55.0), (29.8, 53.0), (29.5, 50.8), (31.0, 49.0), (32.0, 47.6), (31.6, 46.5)],
     'Euphrates': [(41.0, 38.5), (41.0, 36.0), (43.5, 34.0), (46.5, 31.0), (48.0, 29.8)],
     'Nile': [(29.3, 26.2), (30.3, 28.0), (31.0, 29.8), (31.0, 31.7)],           # springs from a lake in the Sahara
+    'Draa': [(-6.0, 31.0), (-7.5, 29.8), (-9.3, 28.8), (-11.0, 28.4)],           # rivers from the Atlas through the Sahara, most end in a lake
+    'Saoura': [(-1.5, 32.3), (-1.7, 30.2), (-1.0, 28.2), (0.0, 26.8)],
+    'Igharghar': [(5.5, 32.0), (5.9, 30.0), (6.8, 28.4), (7.8, 27.0)],
+    'Mya': [(10.0, 32.8), (9.6, 30.5), (10.8, 28.6), (11.6, 27.0)],
+    'Zousfana': [(21.0, 31.2), (21.5, 29.3), (22.8, 27.6)],
 }
 RIVER_PATHS = {}
 river_rng = random.Random(SEED * 7 + 5)
@@ -619,6 +628,13 @@ def thin_rivers():
 
 
 RIVERS_THINNED = thin_rivers()
+ENDO = []                              # the Sahara rivers from the Atlas end in a small lake in the desert
+for name in ('Saoura', 'Igharghar', 'Mya', 'Zousfana'):
+    pc = [i for i in RIVER_PATHS.get(name, []) if large[i]]
+    if len(pc) >= 5:
+        e = pc[-1]
+        large[e], lake[e] = False, True
+        ENDO.append((e % W, e // W))
 for name in RIVER_PATHS:
     RIVER_PATHS[name] = [i for i in RIVER_PATHS[name] if large[i]]
 # fords every 8 to 14 tiles so that land units can cross (peaks and large rivers are barriers)
@@ -878,7 +894,7 @@ for name, path in RIVER_PATHS.items():
                 terrain[i] = 'MARSH' if T[i] >= 0.55 else 'WETLAND'
                 DELTA.add(i)
 VALLEY_GREEN = set()
-for i in RIVER_PATHS['Nile']:                          # green ribbon through the desert
+for i in [j for nm in ('Nile', 'Draa', 'Saoura', 'Igharghar', 'Mya', 'Zousfana') for j in RIVER_PATHS.get(nm, [])]:      # green ribbon through the desert
     for nx, ny in nbrs(i % W, i // W):
         j = I(nx, ny)
         if land[j] and plot_type[j] == 2 and j not in DELTA and terrain[j] in ('DESERT', 'ROCK_STEPPES', 'SHRUBLAND'):
@@ -913,10 +929,12 @@ LAKE_GREEN = set()
 for x, y in ALL:
     i = I(x, y)
     if land[i] and plot_type[i] != 0 and terrain[i] in ('DESERT', 'ROCK_STEPPES', 'SHRUBLAND'):
-        d = math.hypot(x + 0.5 - LG[0], y + 0.5 - LG[1])
-        if d < 6.0 + 0.8 * NZ[23].fbm(x, y, 2, 3):
-            terrain[i] = 'SAVANNAH' if d < 3.4 else ('PLAINS' if d < 4.6 else 'SHRUBLAND')
-            LAKE_GREEN.add(i)
+        for (gx, gy), gr in [(LG, 6.0)] + [((ex + 0.5, ey + 0.5), 3.8) for ex, ey in ENDO]:
+            d = math.hypot(x + 0.5 - gx, y + 0.5 - gy) * 6.0 / gr
+            if d < 6.0 + 0.8 * NZ[23].fbm(x, y, 2, 3):
+                terrain[i] = 'SAVANNAH' if d < 3.4 else ('PLAINS' if d < 4.6 else 'SHRUBLAND')
+                LAKE_GREEN.add(i)
+                break
 
 # oases in the Sahara
 orng = random.Random(SEED * 7 + 13)
@@ -1224,7 +1242,7 @@ for x, y in ALL:
             f = 'FLOOD_PLAINS'
         elif r < 0.08 and flat:
             f = 'CACTUS_TREES'
-        elif r < 0.30 and not coastal_land(x, y) and any(plot_type[I(nx, ny)] in (0, 1) for nx, ny in nbrs(x, y)):
+        elif r < 0.13 and not coastal_land(x, y) and any(plot_type[I(nx, ny)] in (0, 1) for nx, ny in nbrs(x, y)):
             f = 'ROCK_FORMATIONS_DESERT'
     elif b == 'ROCK_STEPPES':
         r = rng.random()
@@ -1316,8 +1334,8 @@ FCH = {'FOREST': 'F', 'LIGHT_FOREST': 'F', 'THICKET': 'F', 'FOREST_EVERGREEN': '
 
 
 dland = bfs_dist([i for i in range(W * H) if not ocean[i]], lambda j: True)
-EUROPE = [ocean[i] and i % W >= W - 14 and dland[i] >= 8 for i in range(W * H)]      # Atlantic: Europe plots, 8 tiles from land
-PACIFIC = [ocean[i] and i % W < 4 for i in range(W * H)]                              # the four added columns on the left
+EUROPE = [ocean[i] and i % W >= W - 22 and dland[i] >= 8 for i in range(W * H)]      # Atlantic: Europe plots, 8 tiles from land
+PACIFIC = [ocean[i] and (i % W < 4 or (i % W < 18 and dland[i] >= 6)) for i in range(W * H)]      # the four added columns on the left, and wide open sea beyond
 
 
 # ---------------------------------------------------------------- finishing: small rivers, hardwood, coastal water, reefs, signs
@@ -1576,7 +1594,20 @@ for i in BARRIER:
         if ocean[j] and dl1[j] == 1:
             SHALLOW_WATER.add(j)
 dland = bfs_dist([i for i in range(W * H) if not ocean[i]], lambda j: True)
-EUROPE = [ocean[i] and i % W >= W - 14 and dland[i] >= 8 for i in range(W * H)]
+EUROPE = [ocean[i] and i % W >= W - 22 and dland[i] >= 8 for i in range(W * H)]
+# a narrow strip of Europe plots in the North Sea (five plots, deep water, at least three tiles from land)
+ns_best = None
+for x, y in ALL:
+    lon, la = from_xy(x + 0.5, y + 0.5)
+    if -1.0 <= lon <= 7.0 and 55.0 <= la <= 60.5 and y + 4 < H:
+        cells = [I(x, y + k) for k in range(5)]
+        if all(ocean[c] and dland[c] >= 3 for c in cells):
+            sc = min(dland[c] for c in cells)
+            if ns_best is None or sc > ns_best[0]:
+                ns_best = (sc, cells)
+NORTH_SEA_EUROPE = ns_best[1] if ns_best else []
+for c in NORTH_SEA_EUROPE:
+    EUROPE[c] = True
 for comp in components(ocean, N8):     # sea regions below 50 plots would turn into lakes when the game loads the map
     if len(comp) < 50 and not any(EUROPE[I(x, y)] or PACIFIC[I(x, y)] for x, y in comp):
         for x, y in comp:
