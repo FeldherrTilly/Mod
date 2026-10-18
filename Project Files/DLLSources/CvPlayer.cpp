@@ -20110,27 +20110,53 @@ bool CvPlayer::checkIndependence() const
 
 		if (kParent.isAlive() && GET_TEAM(kParent.getTeam()).isParentOf(getTeam()))
 		{
-			// land units on map
-			int iNumUnits = kParent.countNumTravelUnits(NO_UNIT_TRAVEL_STATE, DOMAIN_LAND);
-			if (iNumUnits > 0)
+			// WTP: only military land units count (a treasure of the king or the colonists of a city he took kept the war going forever)
+			// military land units on map
+			int iLoop;
+			int iNumLandUnits = 0;
+			for (CvUnit* pLoopUnit = kParent.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kParent.nextUnit(&iLoop))
 			{
-				return false;
+				if (isIndependenceMilitaryUnit(*pLoopUnit))
+				{
+					if (pLoopUnit->getUnitTravelState() == NO_UNIT_TRAVEL_STATE)
+					{
+						return false;
+					}
+					++iNumLandUnits;
+				}
 			}
 
-			// need both ships and land units
-			int iNumLandUnits = kParent.countNumDomainUnits(DOMAIN_LAND);
+			// need both ships and military land units
 			int iShips = kParent.countNumDomainUnits(DOMAIN_SEA);
+			const std::vector<CvUnit*>* const apOffMapUnits[3] = { &kParent.m_aEuropeUnits, &kParent.m_aAfricaUnits, &kParent.m_aPortRoyalUnits };
+			for (int iList = 0; iList < 3; ++iList)
+			{
+				for (uint i = 0; i < apOffMapUnits[iList]->size(); ++i)
+				{
+					if (isIndependenceMilitaryUnit(*(*apOffMapUnits[iList])[i]))
+					{
+						++iNumLandUnits;
+					}
+				}
+			}
 
 			for (int i = 0; i < getNumRevolutionEuropeUnits(); ++i)
 			{
-				switch (GC.getUnitInfo(getRevolutionEuropeUnit(i)).getDomainType())
+				const CvUnitInfo& kUnitInfo = GC.getUnitInfo(getRevolutionEuropeUnit(i));
+				switch (kUnitInfo.getDomainType())
 				{
 				case DOMAIN_SEA:
 					++iShips;
 					break;
 				case DOMAIN_LAND:
-					++iNumLandUnits;
+				{
+					const ProfessionTypes eProfession = getRevolutionEuropeProfession(i);
+					if (eProfession != NO_PROFESSION ? !GC.getProfessionInfo(eProfession).isUnarmed() : (kUnitInfo.getCombat() > 0 && !kUnitInfo.isOnlyDefensive()))
+					{
+						++iNumLandUnits;
+					}
 					break;
+				}
 				default:
 					break;
 				}
@@ -20146,6 +20172,12 @@ bool CvPlayer::checkIndependence() const
 	return true;
 }
 
+
+// WTP: a land unit that keeps the war of independence going: one that can attack (no treasure, no colonist)
+bool CvPlayer::isIndependenceMilitaryUnit(const CvUnit& kUnit)
+{
+	return kUnit.getDomainType() == DOMAIN_LAND && !kUnit.isOnlyDefensive() && !kUnit.isUnarmed();
+}
 
 void CvPlayer::applyMissionaryPoints(CvCity* pCity)
 {

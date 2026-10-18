@@ -852,6 +852,7 @@ public:
 	bool isEurope() const;
 	bool isInRevolution() const;
 	bool checkIndependence() const;
+	static bool isIndependenceMilitaryUnit(const CvUnit& kUnit); // WTP
 
 	void applyMissionaryPoints(CvCity* pCity);
 	int getMissionaryPoints(PlayerTypes ePlayer) const;
