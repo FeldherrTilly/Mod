@@ -1759,6 +1759,44 @@ while True:
             lanes += 1
         i = prev[i]
 
+# open-ocean lanes: ships that cannot enter coastal water need a chain of TERRAIN_OCEAN plots from every big sea to the Atlantic
+# (Gibraltar for the Mediterranean, the Bosporus for the Black Sea)
+oc_lanes, oc_skip = 0, set()
+while True:
+    comps = components([ocean[i] and terrain[i] == 'OCEAN' for i in range(W * H)], N4)
+    main = set(I(x, y) for c in comps if any(EUROPE[I(x, y)] for x, y in c) for x, y in c)
+    todo = [c for c in comps if len(c) >= 25 and I(*c[0]) not in main and I(*c[0]) not in oc_skip]
+    if not todo:
+        break
+    c = max(todo, key=len)
+    src = [I(x, y) for x, y in c]
+    dist, prev, pq, found = {i: 0 for i in src}, {}, [(0, i) for i in src], None
+    while pq:
+        d, i = heapq.heappop(pq)
+        if i in main:
+            found = i
+            break
+        if d > dist[i]:
+            continue
+        for nx, ny in nbrs(i % W, i // W, N4):
+            j = I(nx, ny)
+            if not ocean[j]:
+                continue
+            step = {'OCEAN': 0.01, 'COAST': 1.0}.get(terrain[j], 1.5)
+            if d + step < dist.get(j, 1e9):
+                dist[j], prev[j] = d + step, i
+                heapq.heappush(pq, (d + step, j))
+    if found is None:
+        oc_skip.add(I(*c[0]))
+        continue
+    i = found
+    while i in prev:
+        if terrain[i] != 'OCEAN':
+            WATER_TERRAIN[i] = terrain[i] = 'OCEAN'
+            feature[i] = None
+            oc_lanes += 1
+        i = prev[i]
+
 # water features: kelp and seagrass, a few rock reefs, coral in the warm south, pearl reefs, vents in the open ocean
 wrng = random.Random(SEED * 7 + 59)
 for x, y in ALL:
