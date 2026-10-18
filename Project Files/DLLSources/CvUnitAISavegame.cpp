@@ -12,6 +12,7 @@ const UnitAIStates defaultUnitAIState = UNITAI_STATE_DEFAULT;
 const ProfessionTypes defaultOldProfession = NO_PROFESSION;
 const ProfessionTypes defaultIdealProfessionCache = INVALID_PROFESSION;
 const int defaultAutomatedAbortTurn = -1;
+const int defaultPatrolCenter = -1;
 
 enum SavegameVariableTypes
 {
@@ -24,6 +25,7 @@ enum SavegameVariableTypes
 	UnitSaveAI_OldProfession,
 	UnitSaveAI_IdealProfessionCache,
 	UnitSaveAI_AutomatedAbortTurn,
+	UnitSaveAI_PatrolCenter,
 	NUM_SAVE_ENUM_VALUES,
 };
 
@@ -40,6 +42,7 @@ const char* getSavedEnumNameUnitAi(SavegameVariableTypes eType)
 	case UnitSaveAI_OldProfession: return "UnitSaveAI_OldProfession";
 	case UnitSaveAI_IdealProfessionCache: return "UnitSaveAI_IdealProfessionCache";
 	case UnitSaveAI_AutomatedAbortTurn: return "UnitSaveAI_AutomatedAbortTurn";
+	case UnitSaveAI_PatrolCenter: return "UnitSaveAI_PatrolCenter";
 
 }
 	FAssertMsg(0, "Missing case");
@@ -62,6 +65,7 @@ void CvUnitAI::AI_resetSavedData()
 	m_eOldProfession =  defaultOldProfession;
 	m_eIdealProfessionCache =  defaultIdealProfessionCache;
 	m_iAutomatedAbortTurn =  defaultAutomatedAbortTurn;
+	m_iPatrolCenter = defaultPatrolCenter;
 }
 
 void CvUnitAI::read(CvSavegameReader reader)
@@ -93,6 +97,7 @@ void CvUnitAI::read(CvSavegameReader reader)
 		case UnitSaveAI_OldProfession: reader.Read(m_eOldProfession); break;
 		case UnitSaveAI_IdealProfessionCache: reader.Read(m_eIdealProfessionCache); break;
 		case UnitSaveAI_AutomatedAbortTurn: reader.Read(m_iAutomatedAbortTurn); break;
+		case UnitSaveAI_PatrolCenter: reader.Read(m_iPatrolCenter); break;
 		}
 	}
 	
@@ -121,5 +126,6 @@ void CvUnitAI::write(CvSavegameWriter writer)
 	writer.Write(UnitSaveAI_OldProfession, m_eOldProfession, defaultOldProfession);
 	writer.Write(UnitSaveAI_IdealProfessionCache, m_eIdealProfessionCache, defaultIdealProfessionCache);
 	writer.Write(UnitSaveAI_AutomatedAbortTurn, m_iAutomatedAbortTurn, defaultAutomatedAbortTurn);
+	writer.Write(UnitSaveAI_PatrolCenter, m_iPatrolCenter, defaultPatrolCenter);
 	writer.Write(UnitSaveAI_END);
 }

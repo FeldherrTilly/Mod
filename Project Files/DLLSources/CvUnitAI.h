@@ -99,6 +99,11 @@ public:
 	bool is(UnitAIStates) const;
 	bool is(UnitAITypes) const;
 
+	// WTP: patrol of a human player's military unit or warship (AUTOMATE_PATROL) around the plot where it was switched on
+	void AI_setPatrolCenter(const CvPlot* pPlot);
+	bool AI_doPatrol();
+	bool AI_isPatrolTarget(const CvUnit& kTarget, const CvPlot& kPlot) const;
+
 protected:
 
 	void AI_resetSavedData();
@@ -114,6 +119,7 @@ protected:
 
 	int m_iAutomatedAbortTurn;
 	
+	int m_iPatrolCenter; // WTP: patrol: plot number of the plot it patrols around (-1: none)
 	mutable ProfessionTypes m_eIdealProfessionCache;
 
 	// < JAnimals Mod Start >
