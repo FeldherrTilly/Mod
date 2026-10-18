@@ -23370,8 +23370,11 @@ bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTy
 // plot or building slot in one of our colonies, or the job of a regular colonist in the expert's own trade (that colonist
 // makes room). Regular colonists only within 12 turns; the colony keeps 2 food to spare unless the job produces food; a
 // building job only if the colony produces its raw material. A new citizen only if the colony's unhappiness stays at most
-// 2 above its happiness with all colonists on their way there. Value per turn (gold x100, wfHumanJobValue), less for a long way
-void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJobs, int iMaxJobs)
+// 2 above its happiness with all colonists on their way there. Value per turn (gold x100, wfHumanJobValue), less for a long way.
+// paFoodJobs: for slaves, indentured servants, petty criminals and expert farmers and fishermen also the best food job (net
+// 3 food or more) in each colony short of food (at most +2 food with those on their way, storage below half the growth
+// threshold), the 3 best of them; such jobs are marked in aJobs too
+void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJobs, int iMaxJobs, std::vector<HumanJob>* paFoodJobs)
 {
 	const CvUnitAI& kUnitAI = static_cast<const CvUnitAI&>(kUnit);
 	const CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
@@ -23382,6 +23385,16 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 
 	// the best job per (colony, profession)
 	std::map<std::pair<int, int>, HumanJob> mapJobs;
+	// colonies short of food, and whether this worker is offered food jobs there
+	std::set<int> aFoodShortCities;
+	const UnitClassTypes eUnitClass = (UnitClassTypes)kUnit.getUnitInfo().getUnitClassType();
+	const char* const aszFoodWorkers[7] = { "UNITCLASS_AFRICAN_SLAVE", "UNITCLASS_NATIVE_SLAVE", "UNITCLASS_INDENTURED_SERVANT", "UNITCLASS_CRIMINAL",
+		"UNITCLASS_FARMER", "UNITCLASS_RICE_FARMER", "UNITCLASS_FISHERMAN" };
+	bool bFoodWorker = false;
+	for (int k = 0; k < 7 && !bFoodWorker; ++k)
+	{
+		bFoodWorker = eUnitClass == (UnitClassTypes)GC.getInfoTypeForString(aszFoodWorkers[k]);
+	}
 
 	// the jobs other colonists with the job automation are on their way to: their plots, their building slots (per colony and
 	// building) and the colonists they replace
@@ -23448,7 +23461,13 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 		// a new citizen only if the colony's unhappiness stays at most 2 above its happiness (with those on their way)
 		static const int WF_MAX_UNHAPPINESS_BALANCE = 2;
 		const std::map<int, int>::const_iterator itIncoming = mapIncoming.find(pCity->getID());
-		const bool bCrowded = wfUnhappinessWith(*pCity, 1 + ((itIncoming != mapIncoming.end()) ? itIncoming->second : 0)) > WF_MAX_UNHAPPINESS_BALANCE;
+		const int iIncoming = (itIncoming != mapIncoming.end()) ? itIncoming->second : 0;
+		const bool bCrowded = wfUnhappinessWith(*pCity, 1 + iIncoming) > WF_MAX_UNHAPPINESS_BALANCE;
+		// short of food: at most +2 food (with those on their way) and the storage below half the growth threshold
+		if (bFoodWorker && pCity->foodDifference() - iConsumption * iIncoming <= 2 && pCity->getFood() * 2 < pCity->growthThreshold())
+		{
+			aFoodShortCities.insert(pCity->getID());
+		}
 
 		// plots
 		FOREACH(CityPlot)
@@ -23506,6 +23525,8 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 					kJob.iDisplaceID = (pHolder != NULL) ? pHolder->getID() : -1;
 					kJob.iTurns = iCityTurns;
 					kJob.iGold = iValue / 100;
+					kJob.iFood = iFood;
+					kJob.bFoodShortage = false;
 					mapJobs[kKey] = kJob;
 				}
 			}
@@ -23585,8 +23606,39 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 				kJob.iDisplaceID = (pHolder != NULL) ? pHolder->getID() : -1;
 				kJob.iTurns = iCityTurns;
 				kJob.iGold = iValue / 100;
+				kJob.iFood = iFood;
+				kJob.bFoodShortage = false;
 				mapJobs[kKey] = kJob;
 			}
+		}
+	}
+	// food jobs in colonies short of food: net 3 food or more (a new citizen eats too), the best per colony
+	std::map<int, HumanJob> mapFoodJobs;
+	for (std::map<std::pair<int, int>, HumanJob>::iterator it = mapJobs.begin(); it != mapJobs.end(); ++it)
+	{
+		HumanJob& kJob = it->second;
+		const int iNetFood = kJob.iFood - ((kJob.iDisplaceID < 0) ? iConsumption : 0);
+		if (aFoodShortCities.count(kJob.iCityID) > 0 && iNetFood >= 3)
+		{
+			kJob.bFoodShortage = true;
+			const std::map<int, HumanJob>::const_iterator itFood = mapFoodJobs.find(kJob.iCityID);
+			if (itFood == mapFoodJobs.end() || kJob.iScore > itFood->second.iScore)
+			{
+				mapFoodJobs[kJob.iCityID] = kJob;
+			}
+		}
+	}
+	if (paFoodJobs != NULL)
+	{
+		paFoodJobs->clear();
+		for (std::map<int, HumanJob>::const_iterator it = mapFoodJobs.begin(); it != mapFoodJobs.end(); ++it)
+		{
+			paFoodJobs->push_back(it->second);
+		}
+		std::stable_sort(paFoodJobs->begin(), paFoodJobs->end(), humanJobBetter);
+		if (paFoodJobs->size() > 3)
+		{
+			paFoodJobs->resize(3);
 		}
 	}
 	aJobs.clear();

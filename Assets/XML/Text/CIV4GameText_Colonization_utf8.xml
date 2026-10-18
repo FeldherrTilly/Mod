@@ -2597,6 +2597,17 @@
 		<Hungarian>%s1 nem talál utat a céljához, sem gyalog, sem automatikus szállítással.</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_FOOD_SHORTAGE</Tag>
+		<English> - food short</English>
+		<Portuguese> - comida escassa</Portuguese>
+		<French> - nourriture rare</French>
+		<German> - Knappe Nahrung</German>
+		<Italian> - cibo scarso</Italian>
+		<Spanish> - comida escasa</Spanish>
+		<Russian> - нехватка еды</Russian>
+		<Hungarian> - kevés élelem</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_TITLE</Tag>
 		<English>Which job for %s1?</English>
 		<Portuguese>Qual trabalho para %s1?</Portuguese>

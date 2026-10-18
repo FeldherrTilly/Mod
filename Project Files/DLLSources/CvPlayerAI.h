@@ -720,8 +720,10 @@ public:
 		int iDisplaceID;
 		int iTurns;
 		int iGold;
+		int iFood;
+		bool bFoodShortage; // a food job (net 3 food or more) in a colony short of food, for a worker who may be offered it
 	};
-	void AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJobs, int iMaxJobs);
+	void AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJobs, int iMaxJobs, std::vector<HumanJob>* paFoodJobs = NULL);
 	bool AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTypes& eBestProfession, int& iX, int& iY, int& iDisplaceID, int& iTurns, int& iGold);
 	bool AI_humanSeat(CvUnit& kUnit, CvCity& kCity, ProfessionTypes eProfession, int iX, int iY, int iDisplaceID);
 	int AI_humanIncomingCitizens(const CvCity& kCity) const;

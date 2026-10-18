@@ -4218,7 +4218,21 @@ bool CvDLLButtonPopup::launchAssignJobMenuPopup(CvPopup* pPopup, CvPopupInfo &in
 		return false;
 	}
 	std::vector<CvPlayerAI::HumanJob> aJobs;
-	kPlayer.AI_humanFindJobs(*pUnit, aJobs, 8);
+	std::vector<CvPlayerAI::HumanJob> aFoodJobs;
+	kPlayer.AI_humanFindJobs(*pUnit, aJobs, 8, &aFoodJobs);
+	// food jobs in colonies short of food that are not among the best (marked)
+	for (uint i = 0; i < aFoodJobs.size(); ++i)
+	{
+		bool bListed = false;
+		for (uint j = 0; j < aJobs.size() && !bListed; ++j)
+		{
+			bListed = aJobs[j].iCityID == aFoodJobs[i].iCityID && aJobs[j].eProfession == aFoodJobs[i].eProfession;
+		}
+		if (!bListed)
+		{
+			aJobs.push_back(aFoodJobs[i]);
+		}
+	}
 	if (aJobs.empty())
 	{
 		CvWString szBuffer = gDLL->getText("TXT_KEY_AUTO_ASSIGN_NONE", pUnit->getNameKey());
@@ -4236,9 +4250,13 @@ bool CvDLLButtonPopup::launchAssignJobMenuPopup(CvPopup* pPopup, CvPopupInfo &in
 			continue;
 		}
 		const CvProfessionInfo& kProfession = GC.getProfessionInfo(kJob.eProfession);
-		const CvWString szJob = (pReplaced != NULL)
+		CvWString szJob = (pReplaced != NULL)
 			? gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_REPLACE", kProfession.getTextKeyWide(), pCity->getNameKey(), kJob.iGold, kJob.iTurns, pReplaced->getNameKey())
 			: gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_SELECTION", kProfession.getTextKeyWide(), pCity->getNameKey(), kJob.iGold, kJob.iTurns);
+		if (kJob.bFoodShortage)
+		{
+			szJob += gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_FOOD_SHORTAGE");
+		}
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, L"  " + szJob, kProfession.getButton(), kJob.iCityID * NUM_PROFESSION_TYPES + kJob.eProfession, WIDGET_GENERAL, pUnit->getID(), -1);
 	}
 	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, L"  " + gDLL->getText("TXT_KEY_NEVER_MIND"), ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CANCEL")->getPath(), -1, WIDGET_GENERAL);
