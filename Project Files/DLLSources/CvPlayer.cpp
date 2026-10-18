@@ -20114,6 +20114,7 @@ bool CvPlayer::checkIndependence() const
 			int iNumUnits = kParent.countNumTravelUnits(NO_UNIT_TRAVEL_STATE, DOMAIN_LAND);
 			if (iNumUnits > 0)
 			{
+				logIndependenceBlockers(kParent, "the king has land units on the map");
 				return false;
 			}
 
@@ -20138,12 +20139,43 @@ bool CvPlayer::checkIndependence() const
 
 			if (iShips > 0 && iNumLandUnits > 0)
 			{
+				logIndependenceBlockers(kParent, "the king has ships and land units (anywhere)");
 				return false;
 			}
 		}
 	}
 
 	return true;
+}
+
+// WTP: log (once per turn) why the war of independence is not won yet: every land unit and ship the king still has
+void CvPlayer::logIndependenceBlockers(const CvPlayer& kParent, const char* szWhy) const
+{
+	static int s_iLoggedTurn = -1;
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+	if (gPlayerLogLevel < 1 || !isHuman() || s_iLoggedTurn == iTurn)
+	{
+		return;
+	}
+	s_iLoggedTurn = iTurn;
+	logWTP(WTP_LOG_MILITARY, getID(), "WTP independence: Player %d (%S) turn %d not won yet: %s", getID(), getCivilizationDescription(0), iTurn, szWhy);
+	int iLoop;
+	for (CvUnit* pLoopUnit = kParent.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kParent.nextUnit(&iLoop))
+	{
+		const CvUnit* const pTransport = pLoopUnit->getTransportUnit();
+		logWTP(WTP_LOG_MILITARY, getID(), "WTP independence:   king's %S (%S, %s, unit AI %d) at %d,%d travel state %d%s%S%s",
+			pLoopUnit->getName().GetCString(), GC.getUnitInfo(pLoopUnit->getUnitType()).getDescription(),
+			pLoopUnit->getDomainType() == DOMAIN_SEA ? "ship" : (pLoopUnit->getDomainType() == DOMAIN_LAND ? "land" : "other"),
+			pLoopUnit->AI_getUnitAIType(), pLoopUnit->getX_INLINE(), pLoopUnit->getY_INLINE(), pLoopUnit->getUnitTravelState(),
+			pTransport != NULL ? ", aboard " : "", pTransport != NULL ? pTransport->getName().GetCString() : L"",
+			(pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->hasCargo()) ? ", has cargo" : "");
+	}
+	for (CvCity* pLoopCity = kParent.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kParent.nextCity(&iLoop))
+	{
+		logWTP(WTP_LOG_MILITARY, getID(), "WTP independence:   king's city %S at %d,%d population %d", pLoopCity->getName().GetCString(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), pLoopCity->getPopulation());
+	}
+	logWTP(WTP_LOG_MILITARY, getID(), "WTP independence:   king's units in Europe %d, Africa %d, Port Royal %d; revolution units not sent yet %d",
+		kParent.getNumEuropeUnits(), (int)kParent.m_aAfricaUnits.size(), (int)kParent.m_aPortRoyalUnits.size(), getNumRevolutionEuropeUnits());
 }
 
 
