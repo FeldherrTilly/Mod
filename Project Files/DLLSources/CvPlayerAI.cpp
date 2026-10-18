@@ -17864,10 +17864,22 @@ void CvPlayerAI::AI_doCitizenRelocation()
 namespace
 {
 	// the unit is an expert: it has an ideal profession, or it is an expert missionary (see wfIsExpertFor)
+	// the profession the unit is an expert for; learning is none (its expert unit is the free colonist: a free colonist would
+	// count as an expert and never study)
+	ProfessionTypes wfIdealProfession(const CvUnitAI& kUnit)
+	{
+		const ProfessionTypes eIdeal = kUnit.AI_getIdealProfession();
+		if (eIdeal != NO_PROFESSION && (YieldTypes)GC.getProfessionInfo(eIdeal).getYieldsProduced(0) == YIELD_EDUCATION)
+		{
+			return NO_PROFESSION;
+		}
+		return eIdeal;
+	}
+
 	bool wfIsExpert(const CvUnitAI& kUnit)
 	{
 		const CvUnitInfo& kInfo = kUnit.getUnitInfo();
-		return kUnit.AI_getIdealProfession() != NO_PROFESSION
+		return wfIdealProfession(kUnit) != NO_PROFESSION
 			|| (kInfo.NBMOD_GetTeachLevel() == 3 && (kInfo.getYieldChange(YIELD_CROSSES) > 0 || kInfo.getYieldModifier(YIELD_CROSSES) > 0));
 	}
 
@@ -17879,7 +17891,7 @@ namespace
 		{
 			return false;
 		}
-		if (kUnit.AI_getIdealProfession() == eProfession)
+		if (wfIdealProfession(kUnit) == eProfession)
 		{
 			return true;
 		}
@@ -17897,7 +17909,7 @@ namespace
 		// counted with their own unit type anyway, and an expert may still be bought for their job)
 		// The bonus only counts for the same kind of work as the ideal profession (plot or building, land or water): the
 		// prospector gets no extra pearls on water, the farmer no extra food in the bakery.
-		const ProfessionTypes eIdeal = kUnit.AI_getIdealProfession();
+		const ProfessionTypes eIdeal = wfIdealProfession(kUnit);
 		if (eYield == NO_YIELD || eIdeal == NO_PROFESSION)
 		{
 			return false;
@@ -18289,7 +18301,7 @@ bool CvPlayerAI::AI_doWfExpertPurchase()
 bool CvPlayerAI::AI_isUselessExpert(const CvUnitAI& kUnit, std::vector<int>& aiYieldAvailable)
 {
 	const int iRadius = GC.getGameINLINE().isOption(GAMEOPTION_TWO_PLOT_CITY_RADIUS) ? 2 : 1;
-	const ProfessionTypes eIdeal = kUnit.AI_getIdealProfession();
+	const ProfessionTypes eIdeal = wfIdealProfession(kUnit);
 	if (eIdeal == NO_PROFESSION || AI_isProtectedSpecialty(kUnit.getUnitClassType()))
 	{
 		return false;
