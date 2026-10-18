@@ -1085,6 +1085,7 @@ protected:
 	// WTP, Slave Emancipation - START
 	int m_iSlaveEmancipationCount;
 	int m_iSlaveEmancipationCooldownEndTurn;
+	int m_iMilitaryDismissTurn; // WTP: the turn in which no unit may be armed as a soldier (a unit was dismissed for lack of upkeep)
 	// WTP, Slave Emancipation - END
 	int m_iFatherPointMultiplier;
 	int m_iMissionaryRateModifier;
@@ -1252,12 +1253,14 @@ protected:
 	// TAC - Trade Messages - koma13 - END
 
 	void doGold();
-	// WTP: army upkeep (human player only)
-	int getArmyUpkeepCost(const CvUnit& kUnit, bool& bFreeable) const;
-	int getArmyUpkeepFreeUnits() const;
-	void getArmyUpkeepUnits(std::vector<std::pair<int, int> >& aPaid) const;
+	// WTP: military upkeep (human player only)
+	int getMilitaryUpkeepCost(const CvUnit& kUnit, int& iFreePool) const;
+	int getMilitaryUpkeepFreeUnits() const;
+	void getMilitaryUpkeepUnits(std::vector<std::pair<int, int> >& aPaid) const;
 public:
-	int getArmyUpkeep() const;
+	int getMilitaryUpkeep() const;
+	static int getMilitaryProfessionUpkeep(ProfessionTypes eProfession, int& iFreePool);
+	bool isMilitaryEquipBlocked() const;
 protected:
 	void doBells();
 	void doCrosses();

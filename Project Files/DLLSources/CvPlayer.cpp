@@ -11630,26 +11630,60 @@ void CvPlayer::doGold()
 
 	int iGoldChange = 0;
 
-	// WTP: army upkeep. Not enough gold: the most expensive paid units are dismissed, at most 2 per turn
+	// WTP: military upkeep. Not enough gold: paid units are dismissed, at most 2 per turn. First the soldiers that become colonists
+	// again (a random one, non-veterans before veterans), then the units that leave (the most expensive first).
+	// After a dismissal no unit may be armed as a soldier in the coming turn.
 	if (isHuman())
 	{
 		std::vector<std::pair<int, int> > aPaid;
-		getArmyUpkeepUnits(aPaid);
+		getMilitaryUpkeepUnits(aPaid);
 		int iUpkeep = 0;
 		for (uint i = 0; i < aPaid.size(); ++i)
 		{
 			iUpkeep += aPaid[i].first;
 		}
 		std::sort(aPaid.begin(), aPaid.end());
-		int iDismissed = 0;
-		for (int i = (int)aPaid.size() - 1; i >= 0 && iUpkeep > getGold() && iDismissed < 2; --i)
+		for (int iDismissed = 0; iDismissed < 2 && iUpkeep > getGold(); ++iDismissed)
 		{
-			CvUnit* const pUnit = getUnit(aPaid[i].second);
-			if (pUnit == NULL)
+			// candidates: 0 non-veteran soldiers, 1 veteran soldiers, 2 units that leave
+			std::vector<int> aiCandidates[3];
+			for (uint i = 0; i < aPaid.size(); ++i)
 			{
-				continue;
+				const CvUnit* const pUnit = getUnit(aPaid[i].second);
+				// (a ship with cargo is kept: its cargo would die with it)
+				if (pUnit == NULL || pUnit->hasCargo())
+				{
+					continue;
+				}
+				if (pUnit->getProfession() == NO_PROFESSION)
+				{
+					aiCandidates[2].push_back(i);
+				}
+				else
+				{
+					int iFreePool;
+					const bool bVeteran = getMilitaryProfessionUpkeep(pUnit->getUnitInfo().getDefaultProfession(), iFreePool) > 0;
+					aiCandidates[bVeteran ? 1 : 0].push_back(i);
+				}
 			}
-			const CvWString szBuffer = gDLL->getText("TXT_KEY_ARMY_UPKEEP_DISMISSED", pUnit->getName().GetCString());
+			int iChosen = -1;
+			for (int iGroup = 0; iGroup < 2 && iChosen < 0; ++iGroup)
+			{
+				if (!aiCandidates[iGroup].empty())
+				{
+					iChosen = aiCandidates[iGroup][GC.getGameINLINE().getSorenRandNum(aiCandidates[iGroup].size(), "military upkeep dismissal")];
+				}
+			}
+			if (iChosen < 0 && !aiCandidates[2].empty())
+			{
+				iChosen = aiCandidates[2].back();
+			}
+			if (iChosen < 0)
+			{
+				break;
+			}
+			CvUnit* const pUnit = getUnit(aPaid[iChosen].second);
+			const CvWString szBuffer = gDLL->getText("TXT_KEY_MILITARY_UPKEEP_DISMISSED", pUnit->getName().GetCString());
 			gDLL->UI().addPlayerMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_MAJOR_EVENT, pUnit->getButton(), COLOR_RED, pUnit->getX_INLINE(), pUnit->getY_INLINE());
 			if (pUnit->getProfession() != NO_PROFESSION)
 			{
@@ -11660,8 +11694,10 @@ void CvPlayer::doGold()
 			{
 				pUnit->kill(false);
 			}
-			iUpkeep -= aPaid[i].first;
-			++iDismissed;
+			iUpkeep -= aPaid[iChosen].first;
+			aPaid.erase(aPaid.begin() + iChosen);
+			// (the player's turn is over: the block is for the coming turn)
+			m_iMilitaryDismissTurn = GC.getGameINLINE().getGameTurn() + 1;
 		}
 		iGoldChange -= std::min(iUpkeep, std::max(0, getGold()));
 	}
@@ -11672,46 +11708,38 @@ void CvPlayer::doGold()
 	changeGold(iGoldChange);
 }
 
-// WTP: the upkeep of a land unit per turn; bFreeable: the unit may be one of the free units
-int CvPlayer::getArmyUpkeepCost(const CvUnit& kUnit, bool& bFreeable) const
+// WTP: the upkeep of a military unit per turn; iFreePool: the free units it may be one of (0: none, 1: land units, 2: warships)
+int CvPlayer::getMilitaryUpkeepCost(const CvUnit& kUnit, int& iFreePool) const
 {
-	bFreeable = false;
+	iFreePool = 0;
+	if (kUnit.getDomainType() == DOMAIN_SEA)
+	{
+		// warships: 50 for the small ones that can sail the coastal waters, 100 for the big ones
+		const CvUnitInfo& kInfo = kUnit.getUnitInfo();
+		if (kInfo.getDefaultUnitAIType() != UNITAI_COMBAT_SEA && kInfo.getDefaultUnitAIType() != UNITAI_PIRATE_SEA)
+		{
+			return 0;
+		}
+		iFreePool = 2;
+		return kInfo.getTerrainImpassable(TERRAIN_SHALLOW_COAST) ? 100 : 50;
+	}
 	if (kUnit.getDomainType() != DOMAIN_LAND)
 	{
 		return 0;
 	}
-	const ProfessionTypes eProfession = kUnit.getProfession();
-	if (eProfession != NO_PROFESSION)
+	if (kUnit.getProfession() != NO_PROFESSION)
 	{
-		if (eProfession == PROFESSION_TOWN_GUARD || eProfession == PROFESSION_COLONIAL_MILITIA)
-		{
-			bFreeable = true;
-			return 40;
-		}
-		if (eProfession == PROFESSION_DRAGOON)
-		{
-			bFreeable = true;
-			return 80;
-		}
-		if (eProfession == PROFESSION_LINE_INFANTRY || eProfession == PROFESSION_HEAVY_CAVALRY || eProfession == PROFESSION_LIGHT_ARTILLERY)
-		{
-			return 80;
-		}
-		if (eProfession == PROFESSION_HEAVY_ARTILLERY)
-		{
-			return 120;
-		}
-		return 0;
+		return getMilitaryProfessionUpkeep(kUnit.getProfession(), iFreePool);
 	}
 	const UnitClassTypes eClass = kUnit.getUnitClassType();
 	if (eClass == UNITCLASS_RANGER || eClass == UNITCLASS_MILITIA)
 	{
-		bFreeable = true;
+		iFreePool = 1;
 		return 40;
 	}
 	if (eClass == UNITCLASS_CONQUISTADOR || eClass == UNITCLASS_MOUNTED_CONQUISTADOR)
 	{
-		bFreeable = true;
+		iFreePool = 1;
 		return 60;
 	}
 	if (eClass == UNITCLASS_SLAVE_HUNTER || eClass == UNITCLASS_SLAVE_MASTER)
@@ -11733,8 +11761,39 @@ int CvPlayer::getArmyUpkeepCost(const CvUnit& kUnit, bool& bFreeable) const
 	return 0;
 }
 
+// WTP: the upkeep of a soldier profession per turn (0: no soldier); iFreePool 1: the unit may be one of the free land units
+int CvPlayer::getMilitaryProfessionUpkeep(ProfessionTypes eProfession, int& iFreePool)
+{
+	iFreePool = 0;
+	if (eProfession == PROFESSION_TOWN_GUARD || eProfession == PROFESSION_COLONIAL_MILITIA)
+	{
+		iFreePool = 1;
+		return 40;
+	}
+	if (eProfession == PROFESSION_DRAGOON)
+	{
+		iFreePool = 1;
+		return 80;
+	}
+	if (eProfession == PROFESSION_LINE_INFANTRY || eProfession == PROFESSION_HEAVY_CAVALRY || eProfession == PROFESSION_LIGHT_ARTILLERY)
+	{
+		return 80;
+	}
+	if (eProfession == PROFESSION_HEAVY_ARTILLERY)
+	{
+		return 120;
+	}
+	return 0;
+}
+
+// WTP: a unit was dismissed for lack of upkeep: no unit may be armed as a soldier this turn
+bool CvPlayer::isMilitaryEquipBlocked() const
+{
+	return m_iMilitaryDismissTurn == GC.getGameINLINE().getGameTurn();
+}
+
 // WTP: 5 units are free, one more for each colony of size 5 and another one at size 20
-int CvPlayer::getArmyUpkeepFreeUnits() const
+int CvPlayer::getMilitaryUpkeepFreeUnits() const
 {
 	int iFree = 5;
 	int iLoop;
@@ -11752,34 +11811,38 @@ int CvPlayer::getArmyUpkeepFreeUnits() const
 	return iFree;
 }
 
-// WTP: the units the player pays for, as (upkeep, unit ID); the most expensive freeable units are the free ones
-void CvPlayer::getArmyUpkeepUnits(std::vector<std::pair<int, int> >& aPaid) const
+// WTP: the units the player pays for, as (upkeep, unit ID); the most expensive freeable units are the free ones (one warship is free)
+void CvPlayer::getMilitaryUpkeepUnits(std::vector<std::pair<int, int> >& aPaid) const
 {
 	aPaid.clear();
 	if (!isHuman())
 	{
 		return;
 	}
-	std::vector<std::pair<int, int> > aFreeable;
+	std::vector<std::pair<int, int> > aFreeableLand;
+	std::vector<std::pair<int, int> > aFreeableSea;
 	int iLoop;
 	for (const CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 	{
-		bool bFreeable;
-		const int iCost = getArmyUpkeepCost(*pLoopUnit, bFreeable);
+		int iFreePool;
+		const int iCost = getMilitaryUpkeepCost(*pLoopUnit, iFreePool);
 		if (iCost > 0)
 		{
-			(bFreeable ? aFreeable : aPaid).push_back(std::make_pair(iCost, pLoopUnit->getID()));
+			(iFreePool == 1 ? aFreeableLand : (iFreePool == 2 ? aFreeableSea : aPaid)).push_back(std::make_pair(iCost, pLoopUnit->getID()));
 		}
 	}
-	std::sort(aFreeable.begin(), aFreeable.end());
-	const int iPaidFreeable = std::max(0, (int)aFreeable.size() - getArmyUpkeepFreeUnits());
-	aPaid.insert(aPaid.end(), aFreeable.begin(), aFreeable.begin() + iPaidFreeable);
+	std::sort(aFreeableLand.begin(), aFreeableLand.end());
+	const int iPaidLand = std::max(0, (int)aFreeableLand.size() - getMilitaryUpkeepFreeUnits());
+	aPaid.insert(aPaid.end(), aFreeableLand.begin(), aFreeableLand.begin() + iPaidLand);
+	std::sort(aFreeableSea.begin(), aFreeableSea.end());
+	const int iPaidSea = std::max(0, (int)aFreeableSea.size() - 1);
+	aPaid.insert(aPaid.end(), aFreeableSea.begin(), aFreeableSea.begin() + iPaidSea);
 }
 
-int CvPlayer::getArmyUpkeep() const
+int CvPlayer::getMilitaryUpkeep() const
 {
 	std::vector<std::pair<int, int> > aPaid;
-	getArmyUpkeepUnits(aPaid);
+	getMilitaryUpkeepUnits(aPaid);
 	int iUpkeep = 0;
 	for (uint i = 0; i < aPaid.size(); ++i)
 	{

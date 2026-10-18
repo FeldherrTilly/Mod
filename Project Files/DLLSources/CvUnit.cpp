@@ -13144,6 +13144,17 @@ bool CvUnit::canHaveProfession(ProfessionTypes eProfession, bool bBumpOther, con
 		return false;
 	}
 
+	// WTP: a unit was dismissed for lack of military upkeep: no unit may be armed as a soldier this turn
+	if (kOwner.isMilitaryEquipBlocked())
+	{
+		int iFreePool;
+		if (CvPlayer::getMilitaryProfessionUpkeep(eProfession, iFreePool) > 0
+			&& (getProfession() == NO_PROFESSION || CvPlayer::getMilitaryProfessionUpkeep(getProfession(), iFreePool) == 0))
+		{
+			return false;
+		}
+	}
+
 	//TAC Whaling, ray
 	if (eProfession == PROFESSION_WHALING_BOAT_WORKING)
 	{
