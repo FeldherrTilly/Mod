@@ -690,6 +690,22 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 		{
 			apBack[i]->getGroup()->setAutomateType(AUTOMATE_NATIVE_TRADE);
 		}
+		// WTP: units on their way to a port for a transport (transport to a city or plot, job automation): their ship is
+		// chosen again now that the ships have their moves back, one unit after the other (each counts the tours before)
+		std::vector<CvUnitAI*> apTravellers;
+		for (pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+		{
+			CvUnitAI* const pTraveller = static_cast<CvUnitAI*>(pLoopUnit);
+			if ((pTraveller->AI_getWfTask() == CvUnitAI::WF_TRAVEL || pTraveller->AI_getWfTask() == CvUnitAI::WF_ASSIGN)
+				&& pTraveller->AI_travelPickup() != NULL && pLoopUnit->isOnMap_() && !pLoopUnit->isCargo())
+			{
+				apTravellers.push_back(pTraveller);
+			}
+		}
+		for (uint i = 0; i < apTravellers.size(); ++i)
+		{
+			apTravellers[i]->AI_travelChooseShip();
+		}
 		return;
 	}
 

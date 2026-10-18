@@ -21,6 +21,7 @@ const int defaultNativeTradeArriveTurn = -1;
 const int defaultNativeTradeSlotsFullTurn = -1;
 const int defaultNativeTradeHomeCityID = -1;
 const int defaultTravelShipID = -1;
+const int defaultTravelPickup = -1;
 
 enum SavegameVariableTypes
 {
@@ -45,6 +46,7 @@ enum SavegameVariableTypes
 	UnitSaveAI_NativeTradeSlotsFullTurn,
 	UnitSaveAI_NativeTradeHomeCityID,
 	UnitSaveAI_TravelShipID,
+	UnitSaveAI_TravelPickup,
 	NUM_SAVE_ENUM_VALUES,
 };
 
@@ -73,6 +75,7 @@ const char* getSavedEnumNameUnitAi(SavegameVariableTypes eType)
 	case UnitSaveAI_NativeTradeSlotsFullTurn: return "UnitSaveAI_NativeTradeSlotsFullTurn";
 	case UnitSaveAI_NativeTradeHomeCityID: return "UnitSaveAI_NativeTradeHomeCityID";
 	case UnitSaveAI_TravelShipID: return "UnitSaveAI_TravelShipID";
+	case UnitSaveAI_TravelPickup: return "UnitSaveAI_TravelPickup";
 
 }
 	FAssertMsg(0, "Missing case");
@@ -107,6 +110,7 @@ void CvUnitAI::AI_resetSavedData()
 	m_iNativeTradeSlotsFullTurn = defaultNativeTradeSlotsFullTurn;
 	m_iNativeTradeHomeCityID = defaultNativeTradeHomeCityID;
 	m_iTravelShipID = defaultTravelShipID;
+	m_iTravelPickup = defaultTravelPickup;
 }
 
 void CvUnitAI::read(CvSavegameReader reader)
@@ -150,6 +154,7 @@ void CvUnitAI::read(CvSavegameReader reader)
 		case UnitSaveAI_NativeTradeSlotsFullTurn: reader.Read(m_iNativeTradeSlotsFullTurn); break;
 		case UnitSaveAI_NativeTradeHomeCityID: reader.Read(m_iNativeTradeHomeCityID); break;
 		case UnitSaveAI_TravelShipID: reader.Read(m_iTravelShipID); break;
+		case UnitSaveAI_TravelPickup: reader.Read(m_iTravelPickup); break;
 		}
 	}
 	
@@ -190,5 +195,6 @@ void CvUnitAI::write(CvSavegameWriter writer)
 	writer.Write(UnitSaveAI_NativeTradeSlotsFullTurn, m_iNativeTradeSlotsFullTurn, defaultNativeTradeSlotsFullTurn);
 	writer.Write(UnitSaveAI_NativeTradeHomeCityID, m_iNativeTradeHomeCityID, defaultNativeTradeHomeCityID);
 	writer.Write(UnitSaveAI_TravelShipID, m_iTravelShipID, defaultTravelShipID);
+	writer.Write(UnitSaveAI_TravelPickup, m_iTravelPickup, defaultTravelPickup);
 	writer.Write(UnitSaveAI_END);
 }

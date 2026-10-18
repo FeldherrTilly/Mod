@@ -138,6 +138,10 @@ public:
 	TravelStep AI_travelStep(CvPlot& kTarget, bool bAnnounceWalk);
 	CvPlot* AI_travelDrop() const;
 	void AI_setTravelDrop(const CvPlot* pDrop);
+	CvPlot* AI_travelPickup() const;
+	void AI_setTravelPickup(const CvPlot* pPickup);
+	int AI_travelShipApproach(const CvUnit& kShip, const CvPlot& kPickup) const;
+	void AI_travelChooseShip();
 	bool AI_travelPlan(const CvPlot& kTarget, CvPlot*& pPickup, CvPlot*& pDrop, int& iShipID, int& iTurns);
 	int AI_getTravelShipID() const { return m_iTravelShipID; }
 
@@ -178,6 +182,7 @@ protected:
 	int m_iWfVillageX;
 	int m_iWfVillageY;
 	int m_iTravelShipID; // WTP: transport to a city or plot: the ship that takes the unit (-1: it walks)
+	int m_iTravelPickup; // WTP: transport to a city or plot: plot number of the port where the ship picks it up (-1: none)
 	int m_iNativeTradeBuyTurn; // WTP: native trade ship: turn of its last purchase at a village
 	int m_iNativeTradeArriveTurn; // WTP: native trade ship: turn of its first move on the map after Europe (-1: not yet)
 	int m_iNativeTradeSlotsFullTurn; // WTP: native trade ship: turn all its cargo slots were taken (-1: not yet)
