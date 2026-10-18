@@ -336,5 +336,10 @@
 			<Description>TXT_KEY_CONCEPT_TERRITORIAL_INFLUENCE</Description>
 			<Civilopedia>TXT_KEY_CONCEPT_TERRITORIAL_INFLUENCE_PEDIA</Civilopedia>
 		</ConceptInfo>
+		<ConceptInfo>
+			<Type>CONCEPT_MILITARY_UPKEEP</Type>
+			<Description>TXT_KEY_CONCEPT_MILITARY_UPKEEP</Description>
+			<Civilopedia>TXT_KEY_CONCEPT_MILITARY_UPKEEP_PEDIA</Civilopedia>
+		</ConceptInfo>
 	</ConceptInfos>
 </Civ4BasicInfos>

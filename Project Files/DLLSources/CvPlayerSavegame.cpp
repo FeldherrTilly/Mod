@@ -104,6 +104,7 @@ const int defaultRevolutionEuropeTradeCount = 0;
 // WTP, Schmiddie, Slave Emancipation - START
 const int defaultSlaveEmancipationCount = 0;
 const int defaultSlaveEmancipationCooldownEndTurn = 0;
+const int defaultMilitaryDismissTurn = -1;
 // WTP, Schmiddie, Slave Emancipation - END
 const int defaultFatherPointMultiplier = 100;
 const int defaultMissionaryRateModifier = 0;
@@ -321,6 +322,7 @@ enum SavegameVariableTypes
 	// WTP, Schmiddie, Slave Emancipation - START
 	PlayerSave_SlaveEmancipationCount,
 	PlayerSave_SlaveEmancipationCooldownEndTurn,
+	PlayerSave_MilitaryDismissTurn, // WTP
 	// WTP, Schmiddie, Slave Emancipation - END
 	// WTP, Schmiddie, Trade Post Mestizo - START
 	PlayerSave_TradePostMestizoPoints,
@@ -535,6 +537,7 @@ const char* getSavedEnumNamePlayer(SavegameVariableTypes eType)
 	// WTP, Schmiddie, Slave Emancipation - START
 	case PlayerSave_SlaveEmancipationCount: return "PlayerSave_SlaveEmancipationCount";
 	case PlayerSave_SlaveEmancipationCooldownEndTurn: return "PlayerSave_SlaveEmancipationCooldownEndTurn";
+	case PlayerSave_MilitaryDismissTurn: return "PlayerSave_MilitaryDismissTurn";
 	// WTP, Schmiddie, Slave Emancipation - END
 	// WTP, Schmiddie, Trade Post Mestizo - START
 	case PlayerSave_TradePostMestizoPoints: return "PlayerSave_TradePostMestizoPoints";
@@ -721,6 +724,7 @@ void CvPlayer::resetSavedData(PlayerTypes eID, bool bConstructorCall)
 	// WTP, Schmiddie, Slave Emancipation - START
 	m_iSlaveEmancipationCount = defaultSlaveEmancipationCount;
 	m_iSlaveEmancipationCooldownEndTurn = defaultSlaveEmancipationCooldownEndTurn;
+	m_iMilitaryDismissTurn = defaultMilitaryDismissTurn;
 	// WTP, Schmiddie, Slave Emancipation - END
 	m_iFatherPointMultiplier = defaultFatherPointMultiplier;
 	m_iMissionaryRateModifier = defaultMissionaryRateModifier;
@@ -985,6 +989,9 @@ void CvPlayer::read(CvSavegameReader reader)
 
 		case PlayerSave_SlaveEmancipationCooldownEndTurn:
 			reader.Read(m_iSlaveEmancipationCooldownEndTurn);
+			break;
+		case PlayerSave_MilitaryDismissTurn:
+			reader.Read(m_iMilitaryDismissTurn);
 			break;
 		// WTP, Schmiddie, Slave Emancipation - END
 		case PlayerSave_FatherPointMultiplier: reader.Read(m_iFatherPointMultiplier); break;
@@ -1255,6 +1262,7 @@ void CvPlayer::write(CvSavegameWriter writer)
 	// WTP, Schmiddie, Slave Emancipation - START
 	writer.Write(PlayerSave_SlaveEmancipationCount, m_iSlaveEmancipationCount, defaultSlaveEmancipationCount);
 	writer.Write(PlayerSave_SlaveEmancipationCooldownEndTurn, m_iSlaveEmancipationCooldownEndTurn, defaultSlaveEmancipationCooldownEndTurn);
+	writer.Write(PlayerSave_MilitaryDismissTurn, m_iMilitaryDismissTurn, defaultMilitaryDismissTurn);
 	// WTP, Schmiddie, Slave Emancipation - END
 	writer.Write(PlayerSave_FatherPointMultiplier, m_iFatherPointMultiplier, defaultFatherPointMultiplier);
 	writer.Write(PlayerSave_MissionaryRateModifier, m_iMissionaryRateModifier, defaultMissionaryRateModifier);

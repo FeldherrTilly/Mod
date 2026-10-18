@@ -267,11 +267,11 @@ void CvGameTextMgr::setGoldStr(CvWString& szString, PlayerTypes ePlayer)
 	{
 		szString.Format(L"%d", GET_PLAYER(ePlayer).getGold());
 	}
-	// WTP: army upkeep per turn
-	const int iUpkeep = GET_PLAYER(ePlayer).getArmyUpkeep();
+	// WTP: military upkeep per turn
+	const int iUpkeep = GET_PLAYER(ePlayer).getMilitaryUpkeep();
 	if (iUpkeep > 0)
 	{
-		szString += gDLL->getText("TXT_KEY_ARMY_UPKEEP_GOLD_STR", iUpkeep);
+		szString += gDLL->getText("TXT_KEY_MILITARY_UPKEEP_GOLD_STR", iUpkeep);
 	}
 }
 
