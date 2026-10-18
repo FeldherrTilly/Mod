@@ -20,6 +20,7 @@ const int defaultNativeTradeBuyTurn = -1;
 const int defaultNativeTradeArriveTurn = -1;
 const int defaultNativeTradeSlotsFullTurn = -1;
 const int defaultNativeTradeHomeCityID = -1;
+const int defaultTravelShipID = -1;
 
 enum SavegameVariableTypes
 {
@@ -43,6 +44,7 @@ enum SavegameVariableTypes
 	UnitSaveAI_NativeTradeArriveTurn,
 	UnitSaveAI_NativeTradeSlotsFullTurn,
 	UnitSaveAI_NativeTradeHomeCityID,
+	UnitSaveAI_TravelShipID,
 	NUM_SAVE_ENUM_VALUES,
 };
 
@@ -70,6 +72,7 @@ const char* getSavedEnumNameUnitAi(SavegameVariableTypes eType)
 	case UnitSaveAI_NativeTradeArriveTurn: return "UnitSaveAI_NativeTradeArriveTurn";
 	case UnitSaveAI_NativeTradeSlotsFullTurn: return "UnitSaveAI_NativeTradeSlotsFullTurn";
 	case UnitSaveAI_NativeTradeHomeCityID: return "UnitSaveAI_NativeTradeHomeCityID";
+	case UnitSaveAI_TravelShipID: return "UnitSaveAI_TravelShipID";
 
 }
 	FAssertMsg(0, "Missing case");
@@ -103,6 +106,7 @@ void CvUnitAI::AI_resetSavedData()
 	m_iNativeTradeArriveTurn = defaultNativeTradeArriveTurn;
 	m_iNativeTradeSlotsFullTurn = defaultNativeTradeSlotsFullTurn;
 	m_iNativeTradeHomeCityID = defaultNativeTradeHomeCityID;
+	m_iTravelShipID = defaultTravelShipID;
 }
 
 void CvUnitAI::read(CvSavegameReader reader)
@@ -145,6 +149,7 @@ void CvUnitAI::read(CvSavegameReader reader)
 		case UnitSaveAI_NativeTradeArriveTurn: reader.Read(m_iNativeTradeArriveTurn); break;
 		case UnitSaveAI_NativeTradeSlotsFullTurn: reader.Read(m_iNativeTradeSlotsFullTurn); break;
 		case UnitSaveAI_NativeTradeHomeCityID: reader.Read(m_iNativeTradeHomeCityID); break;
+		case UnitSaveAI_TravelShipID: reader.Read(m_iTravelShipID); break;
 		}
 	}
 	
@@ -184,5 +189,6 @@ void CvUnitAI::write(CvSavegameWriter writer)
 	writer.Write(UnitSaveAI_NativeTradeArriveTurn, m_iNativeTradeArriveTurn, defaultNativeTradeArriveTurn);
 	writer.Write(UnitSaveAI_NativeTradeSlotsFullTurn, m_iNativeTradeSlotsFullTurn, defaultNativeTradeSlotsFullTurn);
 	writer.Write(UnitSaveAI_NativeTradeHomeCityID, m_iNativeTradeHomeCityID, defaultNativeTradeHomeCityID);
+	writer.Write(UnitSaveAI_TravelShipID, m_iTravelShipID, defaultTravelShipID);
 	writer.Write(UnitSaveAI_END);
 }

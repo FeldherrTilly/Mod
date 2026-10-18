@@ -2399,6 +2399,160 @@
 		<Hungarian>semmi</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_COMMAND_TRANSPORT_TO_CITY</Tag>
+		<English>Transport to City</English>
+		<Portuguese>Transportar para cidade</Portuguese>
+		<French>Transport vers une ville</French>
+		<German>Transport zur Stadt</German>
+		<Italian>Trasporto verso una città</Italian>
+		<Spanish>Transporte a una ciudad</Spanish>
+		<Russian>Перевезти в город</Russian>
+		<Hungarian>Szállítás városba</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_TRANSPORT_TO_CITY_HELP</Tag>
+		<English>The unit travels to one of your colonies: on foot, or to a port (a coastal colony or a coastal native village at peace), there aboard a ship with [COLOR_HIGHLIGHT_TEXT]Automate Transport[COLOR_REVERT], ashore near the destination and on foot for the rest. Long voyages are made by the fastest ship, never by a coastal ship. On arrival the unit waits for orders.</English>
+		<Portuguese>A unidade viaja para uma de suas colônias: a pé, ou até um porto (uma colônia costeira ou uma aldeia nativa costeira em paz), lá embarca num navio com [COLOR_HIGHLIGHT_TEXT]Automatizar transporte[COLOR_REVERT], desembarca perto do destino e segue a pé. Viagens longas são feitas pelo navio mais rápido, nunca por um navio costeiro. Ao chegar, a unidade aguarda ordens.</Portuguese>
+		<French>L'unité se rend dans l'une de vos colonies : à pied, ou jusqu'à un port (une colonie côtière ou un village indigène côtier en paix), où elle embarque sur un navire en [COLOR_HIGHLIGHT_TEXT]Automatiser le transport[COLOR_REVERT], débarque près de la destination et finit à pied. Les longs voyages sont faits par le navire le plus rapide, jamais par un navire côtier. À l'arrivée, l'unité attend des ordres.</French>
+		<German>Die Einheit reist in eine deiner Kolonien: zu Fuß, oder zu einem Hafen (Küstenkolonie oder Ureinwohnerdorf an der Küste, mit dem Frieden herrscht), dort an Bord eines Schiffs mit [COLOR_HIGHLIGHT_TEXT]Transporteinheit komplett automatisieren[COLOR_REVERT], an Land nahe dem Ziel und den Rest zu Fuß. Lange Fahrten übernimmt das schnellste Schiff, nie ein Küstenschiff. Am Ziel wartet die Einheit auf Befehle.</German>
+		<Italian>L'unità si reca in una delle tue colonie: a piedi, oppure fino a un porto (una colonia costiera o un villaggio nativo costiero in pace), dove si imbarca su una nave con [COLOR_HIGHLIGHT_TEXT]Automatizza i trasporti[COLOR_REVERT], sbarca vicino alla destinazione e prosegue a piedi. I viaggi lunghi li fa la nave più veloce, mai una nave costiera. All'arrivo l'unità attende ordini.</Italian>
+		<Spanish>La unidad viaja a una de tus colonias: a pie, o hasta un puerto (una colonia costera o una aldea nativa costera en paz), allí embarca en un barco con [COLOR_HIGHLIGHT_TEXT]Automatizar transporte[COLOR_REVERT], desembarca cerca del destino y sigue a pie. Los viajes largos los hace el barco más rápido, nunca un barco costero. Al llegar, la unidad espera órdenes.</Spanish>
+		<Russian>Отряд отправляется в одну из ваших колоний: пешком или до порта (прибрежной колонии или прибрежной деревни туземцев, с которыми мир), там садится на корабль с режимом [COLOR_HIGHLIGHT_TEXT]Автоматизировать транспорт[COLOR_REVERT], высаживается рядом с целью и идёт дальше пешком. Дальние рейсы выполняет самый быстрый корабль, но никогда не каботажный. По прибытии отряд ждёт приказов.</Russian>
+		<Hungarian>Az egység az egyik kolóniádba utazik: gyalog, vagy egy kikötőig (part menti kolónia vagy békés part menti bennszülött falu), ott felszáll egy [COLOR_HIGHLIGHT_TEXT]Szállítás Automatizálása[COLOR_REVERT] módú hajóra, a cél közelében partra száll, és gyalog megy tovább. Hosszú utakat a leggyorsabb hajó tesz meg, parti hajó soha. Megérkezés után az egység parancsra vár.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_INTERFACEMODE_TRANSPORT_TO</Tag>
+		<English>Transport to Plot</English>
+		<Portuguese>Transportar para casa</Portuguese>
+		<French>Transport vers une case</French>
+		<German>Transport zum Feld</German>
+		<Italian>Trasporto verso una casella</Italian>
+		<Spanish>Transporte a una casilla</Spanish>
+		<Russian>Перевезти на клетку</Russian>
+		<Hungarian>Szállítás mezőre</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_INTERFACEMODE_TRANSPORT_TO_HELP</Tag>
+		<English>Choose a plot on the map: the unit travels there on foot, or to a port (a coastal colony or a coastal native village at peace), there aboard a ship with [COLOR_HIGHLIGHT_TEXT]Automate Transport[COLOR_REVERT], ashore near the destination and on foot for the rest. Long voyages are made by the fastest ship, never by a coastal ship. On arrival the unit waits for orders.</English>
+		<Portuguese>Escolha uma casa no mapa: a unidade vai até lá a pé, ou até um porto (uma colônia costeira ou uma aldeia nativa costeira em paz), lá embarca num navio com [COLOR_HIGHLIGHT_TEXT]Automatizar transporte[COLOR_REVERT], desembarca perto do destino e segue a pé. Viagens longas são feitas pelo navio mais rápido, nunca por um navio costeiro. Ao chegar, a unidade aguarda ordens.</Portuguese>
+		<French>Choisissez une case sur la carte : l'unité s'y rend à pied, ou jusqu'à un port (une colonie côtière ou un village indigène côtier en paix), où elle embarque sur un navire en [COLOR_HIGHLIGHT_TEXT]Automatiser le transport[COLOR_REVERT], débarque près de la destination et finit à pied. Les longs voyages sont faits par le navire le plus rapide, jamais par un navire côtier. À l'arrivée, l'unité attend des ordres.</French>
+		<German>Wähle ein Feld auf der Karte: die Einheit reist dorthin zu Fuß, oder zu einem Hafen (Küstenkolonie oder Ureinwohnerdorf an der Küste, mit dem Frieden herrscht), dort an Bord eines Schiffs mit [COLOR_HIGHLIGHT_TEXT]Transporteinheit komplett automatisieren[COLOR_REVERT], an Land nahe dem Ziel und den Rest zu Fuß. Lange Fahrten übernimmt das schnellste Schiff, nie ein Küstenschiff. Am Ziel wartet die Einheit auf Befehle.</German>
+		<Italian>Scegli una casella sulla mappa: l'unità ci va a piedi, oppure fino a un porto (una colonia costiera o un villaggio nativo costiero in pace), dove si imbarca su una nave con [COLOR_HIGHLIGHT_TEXT]Automatizza i trasporti[COLOR_REVERT], sbarca vicino alla destinazione e prosegue a piedi. I viaggi lunghi li fa la nave più veloce, mai una nave costiera. All'arrivo l'unità attende ordini.</Italian>
+		<Spanish>Elige una casilla del mapa: la unidad va allí a pie, o hasta un puerto (una colonia costera o una aldea nativa costera en paz), allí embarca en un barco con [COLOR_HIGHLIGHT_TEXT]Automatizar transporte[COLOR_REVERT], desembarca cerca del destino y sigue a pie. Los viajes largos los hace el barco más rápido, nunca un barco costero. Al llegar, la unidad espera órdenes.</Spanish>
+		<Russian>Выберите клетку на карте: отряд идёт туда пешком или до порта (прибрежной колонии или прибрежной деревни туземцев, с которыми мир), там садится на корабль с режимом [COLOR_HIGHLIGHT_TEXT]Автоматизировать транспорт[COLOR_REVERT], высаживается рядом с целью и идёт дальше пешком. Дальние рейсы выполняет самый быстрый корабль, но никогда не каботажный. По прибытии отряд ждёт приказов.</Russian>
+		<Hungarian>Válassz egy mezőt a térképen: az egység gyalog megy oda, vagy egy kikötőig (part menti kolónia vagy békés part menti bennszülött falu), ott felszáll egy [COLOR_HIGHLIGHT_TEXT]Szállítás Automatizálása[COLOR_REVERT] módú hajóra, a cél közelében partra száll, és gyalog megy tovább. Hosszú utakat a leggyorsabb hajó tesz meg, parti hajó soha. Megérkezés után az egység parancsra vár.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISSION_TRANSPORT_TO</Tag>
+		<English>Transport to Plot</English>
+		<Portuguese>Transportar para casa</Portuguese>
+		<French>Transport vers une case</French>
+		<German>Transport zum Feld</German>
+		<Italian>Trasporto verso una casella</Italian>
+		<Spanish>Transporte a una casilla</Spanish>
+		<Russian>Перевезти на клетку</Russian>
+		<Hungarian>Szállítás mezőre</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISSION_TRANSPORT_TO_HELP</Tag>
+		<English>Choose a plot on the map: the unit travels there on foot, or to a port (a coastal colony or a coastal native village at peace), there aboard a ship with [COLOR_HIGHLIGHT_TEXT]Automate Transport[COLOR_REVERT], ashore near the destination and on foot for the rest. Long voyages are made by the fastest ship, never by a coastal ship. On arrival the unit waits for orders.</English>
+		<Portuguese>Escolha uma casa no mapa: a unidade vai até lá a pé, ou até um porto (uma colônia costeira ou uma aldeia nativa costeira em paz), lá embarca num navio com [COLOR_HIGHLIGHT_TEXT]Automatizar transporte[COLOR_REVERT], desembarca perto do destino e segue a pé. Viagens longas são feitas pelo navio mais rápido, nunca por um navio costeiro. Ao chegar, a unidade aguarda ordens.</Portuguese>
+		<French>Choisissez une case sur la carte : l'unité s'y rend à pied, ou jusqu'à un port (une colonie côtière ou un village indigène côtier en paix), où elle embarque sur un navire en [COLOR_HIGHLIGHT_TEXT]Automatiser le transport[COLOR_REVERT], débarque près de la destination et finit à pied. Les longs voyages sont faits par le navire le plus rapide, jamais par un navire côtier. À l'arrivée, l'unité attend des ordres.</French>
+		<German>Wähle ein Feld auf der Karte: die Einheit reist dorthin zu Fuß, oder zu einem Hafen (Küstenkolonie oder Ureinwohnerdorf an der Küste, mit dem Frieden herrscht), dort an Bord eines Schiffs mit [COLOR_HIGHLIGHT_TEXT]Transporteinheit komplett automatisieren[COLOR_REVERT], an Land nahe dem Ziel und den Rest zu Fuß. Lange Fahrten übernimmt das schnellste Schiff, nie ein Küstenschiff. Am Ziel wartet die Einheit auf Befehle.</German>
+		<Italian>Scegli una casella sulla mappa: l'unità ci va a piedi, oppure fino a un porto (una colonia costiera o un villaggio nativo costiero in pace), dove si imbarca su una nave con [COLOR_HIGHLIGHT_TEXT]Automatizza i trasporti[COLOR_REVERT], sbarca vicino alla destinazione e prosegue a piedi. I viaggi lunghi li fa la nave più veloce, mai una nave costiera. All'arrivo l'unità attende ordini.</Italian>
+		<Spanish>Elige una casilla del mapa: la unidad va allí a pie, o hasta un puerto (una colonia costera o una aldea nativa costera en paz), allí embarca en un barco con [COLOR_HIGHLIGHT_TEXT]Automatizar transporte[COLOR_REVERT], desembarca cerca del destino y sigue a pie. Los viajes largos los hace el barco más rápido, nunca un barco costero. Al llegar, la unidad espera órdenes.</Spanish>
+		<Russian>Выберите клетку на карте: отряд идёт туда пешком или до порта (прибрежной колонии или прибрежной деревни туземцев, с которыми мир), там садится на корабль с режимом [COLOR_HIGHLIGHT_TEXT]Автоматизировать транспорт[COLOR_REVERT], высаживается рядом с целью и идёт дальше пешком. Дальние рейсы выполняет самый быстрый корабль, но никогда не каботажный. По прибытии отряд ждёт приказов.</Russian>
+		<Hungarian>Válassz egy mezőt a térképen: az egység gyalog megy oda, vagy egy kikötőig (part menti kolónia vagy békés part menti bennszülött falu), ott felszáll egy [COLOR_HIGHLIGHT_TEXT]Szállítás Automatizálása[COLOR_REVERT] módú hajóra, a cél közelében partra száll, és gyalog megy tovább. Hosszú utakat a leggyorsabb hajó tesz meg, parti hajó soha. Megérkezés után az egység parancsra vár.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_TRAVEL</Tag>
+		<English>Transport to Destination</English>
+		<Portuguese>Transporte ao destino</Portuguese>
+		<French>Transport vers la destination</French>
+		<German>Transport zum Ziel</German>
+		<Italian>Trasporto alla destinazione</Italian>
+		<Spanish>Transporte al destino</Spanish>
+		<Russian>Перевозка к цели</Russian>
+		<Hungarian>Szállítás a célhoz</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_TRAVEL_HELP</Tag>
+		<English>Choose a plot on the map: the unit travels there on foot, or to a port (a coastal colony or a coastal native village at peace), there aboard a ship with [COLOR_HIGHLIGHT_TEXT]Automate Transport[COLOR_REVERT], ashore near the destination and on foot for the rest. Long voyages are made by the fastest ship, never by a coastal ship. On arrival the unit waits for orders.</English>
+		<Portuguese>Escolha uma casa no mapa: a unidade vai até lá a pé, ou até um porto (uma colônia costeira ou uma aldeia nativa costeira em paz), lá embarca num navio com [COLOR_HIGHLIGHT_TEXT]Automatizar transporte[COLOR_REVERT], desembarca perto do destino e segue a pé. Viagens longas são feitas pelo navio mais rápido, nunca por um navio costeiro. Ao chegar, a unidade aguarda ordens.</Portuguese>
+		<French>Choisissez une case sur la carte : l'unité s'y rend à pied, ou jusqu'à un port (une colonie côtière ou un village indigène côtier en paix), où elle embarque sur un navire en [COLOR_HIGHLIGHT_TEXT]Automatiser le transport[COLOR_REVERT], débarque près de la destination et finit à pied. Les longs voyages sont faits par le navire le plus rapide, jamais par un navire côtier. À l'arrivée, l'unité attend des ordres.</French>
+		<German>Wähle ein Feld auf der Karte: die Einheit reist dorthin zu Fuß, oder zu einem Hafen (Küstenkolonie oder Ureinwohnerdorf an der Küste, mit dem Frieden herrscht), dort an Bord eines Schiffs mit [COLOR_HIGHLIGHT_TEXT]Transporteinheit komplett automatisieren[COLOR_REVERT], an Land nahe dem Ziel und den Rest zu Fuß. Lange Fahrten übernimmt das schnellste Schiff, nie ein Küstenschiff. Am Ziel wartet die Einheit auf Befehle.</German>
+		<Italian>Scegli una casella sulla mappa: l'unità ci va a piedi, oppure fino a un porto (una colonia costiera o un villaggio nativo costiero in pace), dove si imbarca su una nave con [COLOR_HIGHLIGHT_TEXT]Automatizza i trasporti[COLOR_REVERT], sbarca vicino alla destinazione e prosegue a piedi. I viaggi lunghi li fa la nave più veloce, mai una nave costiera. All'arrivo l'unità attende ordini.</Italian>
+		<Spanish>Elige una casilla del mapa: la unidad va allí a pie, o hasta un puerto (una colonia costera o una aldea nativa costera en paz), allí embarca en un barco con [COLOR_HIGHLIGHT_TEXT]Automatizar transporte[COLOR_REVERT], desembarca cerca del destino y sigue a pie. Los viajes largos los hace el barco más rápido, nunca un barco costero. Al llegar, la unidad espera órdenes.</Spanish>
+		<Russian>Выберите клетку на карте: отряд идёт туда пешком или до порта (прибрежной колонии или прибрежной деревни туземцев, с которыми мир), там садится на корабль с режимом [COLOR_HIGHLIGHT_TEXT]Автоматизировать транспорт[COLOR_REVERT], высаживается рядом с целью и идёт дальше пешком. Дальние рейсы выполняет самый быстрый корабль, но никогда не каботажный. По прибытии отряд ждёт приказов.</Russian>
+		<Hungarian>Válassz egy mezőt a térképen: az egység gyalog megy oda, vagy egy kikötőig (part menti kolónia vagy békés part menti bennszülött falu), ott felszáll egy [COLOR_HIGHLIGHT_TEXT]Szállítás Automatizálása[COLOR_REVERT] módú hajóra, a cél közelében partra száll, és gyalog megy tovább. Hosszú utakat a leggyorsabb hajó tesz meg, parti hajó soha. Megérkezés után az egység parancsra vár.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_TRANSPORT_TO_MENU_TITLE</Tag>
+		<English>Transport to which colony?</English>
+		<Portuguese>Transportar para qual colônia?</Portuguese>
+		<French>Transporter vers quelle colonie ?</French>
+		<German>In welche Kolonie transportieren?</German>
+		<Italian>Trasportare in quale colonia?</Italian>
+		<Spanish>¿Transportar a qué colonia?</Spanish>
+		<Russian>В какую колонию перевезти?</Russian>
+		<Hungarian>Melyik kolóniába szállítsuk?</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_TRANSPORT_TO_MENU_SELECTION</Tag>
+		<English>%s1 (%d2)</English>
+		<Portuguese>%s1 (%d2)</Portuguese>
+		<French>%s1 (%d2)</French>
+		<German>%s1 (%d2)</German>
+		<Italian>%s1 (%d2)</Italian>
+		<Spanish>%s1 (%d2)</Spanish>
+		<Russian>%s1 (%d2)</Russian>
+		<Hungarian>%s1 (%d2)</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRAVEL_WALK</Tag>
+		<English>%s1 walks to its destination (about %d2 turns).</English>
+		<Portuguese>%s1 vai a pé até o destino (cerca de %d2 turnos).</Portuguese>
+		<French>%s1 se rend à pied à sa destination (environ %d2 tours).</French>
+		<German>%s1 geht zu Fuß zum Ziel (etwa %d2 Runden).</German>
+		<Italian>%s1 va a piedi alla destinazione (circa %d2 turni).</Italian>
+		<Spanish>%s1 va a pie a su destino (unos %d2 turnos).</Spanish>
+		<Russian>%s1 идёт к цели пешком (около %d2 ходов).</Russian>
+		<Hungarian>%s1 gyalog megy a célhoz (kb. %d2 kör).</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRAVEL_SHIP</Tag>
+		<English>%s1 travels with %s2, boarding in %s3 (about %d4 turns).</English>
+		<Portuguese>%s1 viaja com %s2, embarcando em %s3 (cerca de %d4 turnos).</Portuguese>
+		<French>%s1 voyage avec %s2, embarquement à %s3 (environ %d4 tours).</French>
+		<German>%s1 reist mit %s2, Einstieg in %s3 (etwa %d4 Runden).</German>
+		<Italian>%s1 viaggia con %s2, imbarco a %s3 (circa %d4 turni).</Italian>
+		<Spanish>%s1 viaja con %s2, embarca en %s3 (unos %d4 turnos).</Spanish>
+		<Russian>%s1 плывёт на %s2, посадка в %s3 (около %d4 ходов).</Russian>
+		<Hungarian>%s1 a(z) %s2 hajóval utazik, beszállás: %s3 (kb. %d4 kör).</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRAVEL_ARRIVED</Tag>
+		<English>%s1 has reached its destination.</English>
+		<Portuguese>%s1 chegou ao destino.</Portuguese>
+		<French>%s1 est arrivé à destination.</French>
+		<German>%s1 hat sein Ziel erreicht.</German>
+		<Italian>%s1 ha raggiunto la destinazione.</Italian>
+		<Spanish>%s1 ha llegado a su destino.</Spanish>
+		<Russian>%s1 прибыл к цели.</Russian>
+		<Hungarian>%s1 elérte a célját.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRAVEL_NO_WAY</Tag>
+		<English>%s1 finds no way to its destination, neither on foot nor with an automated transport.</English>
+		<Portuguese>%s1 não encontra caminho até o destino, nem a pé nem com um transporte automatizado.</Portuguese>
+		<French>%s1 ne trouve aucun chemin vers sa destination, ni à pied ni avec un transport automatique.</French>
+		<German>%s1 findet keinen Weg zum Ziel, weder zu Fuß noch mit einem automatisierten Transport.</German>
+		<Italian>%s1 non trova una via per la destinazione, né a piedi né con un trasporto automatico.</Italian>
+		<Spanish>%s1 no encuentra camino a su destino, ni a pie ni con un transporte automatizado.</Spanish>
+		<Russian>%s1 не находит пути к цели ни пешком, ни на автоматическом транспорте.</Russian>
+		<Hungarian>%s1 nem talál utat a céljához, sem gyalog, sem automatikus szállítással.</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_ACTION_AUTOMATE_FULL_HELP</Tag>
 		<English>Automate this unit</English>
 		<Portuguese>Automatizar unidade</Portuguese>

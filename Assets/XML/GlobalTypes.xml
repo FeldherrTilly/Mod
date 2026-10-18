@@ -222,6 +222,7 @@
 		<ButtonPopupType>BUTTONPOPUP_DESYNC_LOG_COMPLETE</ButtonPopupType>
 		<ButtonPopupType>BUTTONPOPUP_NETWORK_OOS_MENU</ButtonPopupType>
 		<!-- OOS hunting tools END -->
+		<ButtonPopupType>BUTTONPOPUP_TRANSPORT_TO_MENU</ButtonPopupType> <!-- WTP: transport to a city -->
 	</ButtonPopupTypes>
 	<WidgetTypes>
 		<!-- vanilla widgets are script inserted to ensure exe compatibility -->

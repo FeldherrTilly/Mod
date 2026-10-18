@@ -440,6 +440,30 @@ void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2
 
 	FAssert(getOwnerINLINE() != NO_PLAYER);
 
+	// WTP: transport to a city or plot: no mission in the queue; each unit of the group sets out alone with the travel
+	// automation (it walks or takes an automated transport)
+	if (eMission == MISSION_TRANSPORT_TO)
+	{
+		if (isBusy())
+		{
+			return;
+		}
+		std::vector<CvUnitAI*> apUnits;
+		for (CLLNode<IDInfo>* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode))
+		{
+			CvUnit* const pLoopUnit = ::getUnit(pUnitNode->m_data);
+			if (pLoopUnit != NULL && pLoopUnit->canTransportTo())
+			{
+				apUnits.push_back(static_cast<CvUnitAI*>(pLoopUnit));
+			}
+		}
+		for (uint i = 0; i < apUnits.size(); ++i)
+		{
+			apUnits[i]->AI_startTravel(iData1, iData2);
+		}
+		return;
+	}
+
 	if (!bAppend)
 	{
 		if (isBusy())
@@ -687,6 +711,17 @@ bool CvSelectionGroup::canStartMission(int iMission, int iData1, int iData2, CvP
 		case MISSION_ROUTE_TO_COUNTRY_ROAD:
 			{
 				if (!(pPlot->at(iData1, iData2)) || canBuildRoute(pPlot, ROUTE_COUNTRY_ROAD))
+				{
+					return true;
+				}
+				break;
+			}
+
+		// WTP: transport to a plot: a land plot other than the unit's own
+		case MISSION_TRANSPORT_TO:
+			{
+				const CvPlot* const pTarget = GC.getMap().plotINLINE(iData1, iData2);
+				if (pTarget != NULL && !pTarget->isWater() && !pPlot->at(iData1, iData2) && pLoopUnit->canTransportTo())
 				{
 					return true;
 				}
@@ -1663,6 +1698,14 @@ bool CvSelectionGroup::canDoInterfaceMode(InterfaceModeTypes eInterfaceMode) con
 				{
 					return true;
 				}
+			}
+			break;
+
+		// WTP: transport to a plot (walks or takes an automated transport)
+		case INTERFACEMODE_TRANSPORT_TO:
+			if (pLoopUnit->canTransportTo())
+			{
+				return true;
 			}
 			break;
 		}
@@ -3561,7 +3604,14 @@ void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue, bool bImplicit)
 				m_eAutomateType = NO_AUTOMATE;
 			}
 		}
-		else if (eOldValue == AUTOMATE_ASSIGN_JOB && !bImplicit && getHeadUnit() != NULL)
+		else if (eOldValue == AUTOMATE_ASSIGN_JOB && !bImplicit && getHeadUnit() != NULL
+			&& static_cast<CvUnitAI*>(getHeadUnit())->AI_getWfTask() == CvUnitAI::WF_ASSIGN)
+		{
+			static_cast<CvUnitAI*>(getHeadUnit())->AI_clearWfTask();
+		}
+		// WTP: transport to a city or plot: switched off, the unit drops its journey
+		if (eOldValue == AUTOMATE_TRAVEL && !bImplicit && getHeadUnit() != NULL
+			&& static_cast<CvUnitAI*>(getHeadUnit())->AI_getWfTask() == CvUnitAI::WF_TRAVEL)
 		{
 			static_cast<CvUnitAI*>(getHeadUnit())->AI_clearWfTask();
 		}

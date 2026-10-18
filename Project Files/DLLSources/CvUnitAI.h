@@ -111,6 +111,7 @@ public:
 		WF_FOOD_LEARN = 5, // learn a food expert in the village at VillageX/Y, then work the food job in the city (kept)
 		WF_WAIT = 6,       // no job: go to the city and wait on its plot (the workforce plan seats it when a job is free)
 		WF_ASSIGN = 7,     // human player's colonist (AUTOMATE_ASSIGN_JOB): go to the city and join it in the job (VillageX: the unit it replaces)
+		WF_TRAVEL = 8,     // human player's land unit (AUTOMATE_TRAVEL): go to plot X/Y (city: CityID), by ship to VillageX/Y if set
 	};
 	int AI_getWfTask() const { return m_iWfTask; }
 	int AI_getWfCityID() const { return m_iWfCityID; }
@@ -124,6 +125,12 @@ public:
 	void AI_copyWfTask(const CvUnitAI& kOther);
 	bool AI_isWfJob(const CvCity& kCity, ProfessionTypes eProfession, const CvPlot* pPlot) const;
 	bool AI_doWfTask();
+
+	// WTP: transport to a city or plot (human player's land unit): it walks or takes an automated transport
+	void AI_startTravel(int iX, int iY);
+	bool AI_doTravel();
+	bool AI_travelPlan(const CvPlot& kTarget, CvPlot*& pPickup, CvPlot*& pDrop, int& iShipID, int& iTurns);
+	int AI_getTravelShipID() const { return m_iTravelShipID; }
 
 	// WTP: native trade automation of a human player's ship: it trades with the villages around its home colony (the nearest
 	// colony when the automation was switched on) and comes back there from Europe
@@ -161,6 +168,7 @@ protected:
 	int m_iWfPlotY;
 	int m_iWfVillageX;
 	int m_iWfVillageY;
+	int m_iTravelShipID; // WTP: transport to a city or plot: the ship that takes the unit (-1: it walks)
 	int m_iNativeTradeBuyTurn; // WTP: native trade ship: turn of its last purchase at a village
 	int m_iNativeTradeArriveTurn; // WTP: native trade ship: turn of its first move on the map after Europe (-1: not yet)
 	int m_iNativeTradeSlotsFullTurn; // WTP: native trade ship: turn all its cargo slots were taken (-1: not yet)

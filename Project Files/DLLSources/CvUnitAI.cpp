@@ -203,6 +203,13 @@ bool CvUnitAI::AI_update()
 					getGroup()->setAutomateType(NO_AUTOMATE);
 				}
 				break;
+			// WTP: transport to a city or plot of a human player's land unit
+			case AUTOMATE_TRAVEL:
+				if (!AI_doTravel() && getGroup() != NULL)
+				{
+					getGroup()->setAutomateType(NO_AUTOMATE);
+				}
+				break;
 			case AUTOMATE_FULL:
 				FAssert(false);
 				break;
@@ -11094,9 +11101,10 @@ bool CvUnitAI::AI_breakAutomation()
 			{
 				if (pLoopUnit->getTransportUnit()->getGroup() == getGroup())
 				{
-					// WTP: colonists with the job automation are brought to their colony by the transport (not a reason to stop)
+					// WTP: colonists with the job automation and units transported to a city or plot are brought there by the
+					// transport (not a reason to stop)
 					if (((pLoopUnit->getYield() == NO_YIELD) || (pLoopUnit->AI_getUnitAIState() == UNITAI_STATE_PURCHASED))
-						&& static_cast<CvUnitAI*>(pLoopUnit)->AI_getWfTask() != WF_ASSIGN)
+						&& static_cast<CvUnitAI*>(pLoopUnit)->AI_getWfTask() != WF_ASSIGN && static_cast<CvUnitAI*>(pLoopUnit)->AI_getWfTask() != WF_TRAVEL)
 					{
 						bBreak = true;
 					}
@@ -22309,10 +22317,375 @@ bool CvUnitAI::AI_isWfJob(const CvCity& kCity, ProfessionTypes eProfession, cons
 	return pPlot != NULL && pPlot->getX_INLINE() == m_iWfPlotX && pPlot->getY_INLINE() == m_iWfPlotY;
 }
 
+// WTP: transport to a city or plot (human player's land units, AUTOMATE_TRAVEL)
+namespace
+{
+	const int TRAVEL_LONG_VOYAGE = 20; // plots: longer voyages count the time at sea twice and are not made by coastal transports
+	const int TRAVEL_MAX_SHIP_WAIT = 6;
+
+	// a place where a ship picks up a traveller: an own coastal colony or a coastal native village we are at peace with
+	bool travelIsPickup(const CvPlot& kPlot, PlayerTypes ePlayer)
+	{
+		const CvCity* const pCity = kPlot.getPlotCity();
+		if (pCity == NULL || !pCity->isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN()))
+		{
+			return false;
+		}
+		if (pCity->getOwnerINLINE() == ePlayer)
+		{
+			return true;
+		}
+		return pCity->isNative() && !GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isAtWar(pCity->getTeam());
+	}
+
+	// an automated transport on the map with room for the traveller
+	bool travelShipCanTake(const CvUnit& kShip, const CvUnit& kUnit)
+	{
+		return kShip.getDomainType() == DOMAIN_SEA && kShip.isOnMap_() && !kShip.isCargo() && CvPlayerAI::AI_isWfShip(kShip)
+			&& kShip.cargoSpaceAvailable(kUnit.getSpecialUnitType(), kUnit.getDomainType()) >= kUnit.getUnitInfo().getBerthSize();
+	}
+
+	// the ship may enter the plot to put a traveller ashore there (a colony, a native village)
+	bool travelShipEnters(const CvUnit& kShip, const CvPlot& kDrop)
+	{
+		return kDrop.isCity() && kShip.canMoveInto(kDrop);
+	}
+
+	// the plot the ship sails to from kFrom to put a traveller ashore on kDrop: kDrop itself if the ship may enter it, else
+	// an adjacent water plot it reaches; NULL if none
+	CvPlot* travelShipPlot(const CvUnit& kShip, const CvPlot& kFrom, CvPlot& kDrop, int& iTurns)
+	{
+		iTurns = MAX_INT;
+		if (travelShipEnters(kShip, kDrop))
+		{
+			if (&kFrom == &kDrop)
+			{
+				iTurns = 0;
+				return &kDrop;
+			}
+			return kShip.getGroup()->generatePath(&kFrom, &kDrop, MOVE_IGNORE_DANGER, false, &iTurns, -1, true) ? &kDrop : NULL;
+		}
+		for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+		{
+			CvPlot* const pAdjacent = plotDirection(kDrop.getX_INLINE(), kDrop.getY_INLINE(), (DirectionTypes)iI);
+			if (pAdjacent == NULL || !pAdjacent->isWater())
+			{
+				continue;
+			}
+			if (pAdjacent == &kFrom)
+			{
+				iTurns = 0;
+				return pAdjacent;
+			}
+			if (kShip.canMoveInto(*pAdjacent) && kShip.getGroup()->generatePath(&kFrom, pAdjacent, MOVE_IGNORE_DANGER, false, &iTurns, -1, true))
+			{
+				return pAdjacent;
+			}
+		}
+		iTurns = MAX_INT;
+		return NULL;
+	}
+}
+
+// WTP: transport to a city or plot: the fastest way to kTarget. On foot, or on foot to a port (an own coastal colony or the
+// nearest coastal native village at peace), there aboard an automated transport, ashore on the target or the coastal land
+// plot near it the ship reaches (a colony, a village or any coastal plot) and on foot from there. Voyages of more than 20
+// plots count the time at sea twice (the fastest ship is preferred) and are not made by coastal transports; the ship is
+// taken if it saves 2 turns. pDrop and iShipID are NULL/-1 for the way on foot. Returns false if there is no way
+bool CvUnitAI::AI_travelPlan(const CvPlot& kTarget, CvPlot*& pPickup, CvPlot*& pDrop, int& iShipID, int& iTurns)
+{
+	static const int TRAVEL_MAX_DROPS = 3;
+	static const int TRAVEL_MAX_PORTS = 3;
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const int iMinOcean = GC.getMIN_WATER_SIZE_FOR_OCEAN();
+	CvPlot* const pTarget = GC.getMap().plotINLINE(kTarget.getX_INLINE(), kTarget.getY_INLINE());
+	pPickup = NULL;
+	pDrop = NULL;
+	iShipID = -1;
+	iTurns = MAX_INT;
+	int iWalk = MAX_INT;
+	getGroup()->generatePath(plot(), pTarget, 0, false, &iWalk, -1, true);
+
+	// (a land transport with cargo may not board a ship)
+	if (getCargo() == 0)
+	{
+		// where the ship may put us ashore: the target if it is coastal, else the nearest coastal plots around it (turns on foot from there)
+		std::vector<std::pair<int, CvPlot*> > aDrops;
+		if (pTarget->isCoastalLand(iMinOcean))
+		{
+			aDrops.push_back(std::make_pair(0, pTarget));
+		}
+		else
+		{
+			static const int TRAVEL_DROP_RANGE = 8;
+			std::vector<std::pair<int, CvPlot*> > aNear;
+			for (int iDX = -TRAVEL_DROP_RANGE; iDX <= TRAVEL_DROP_RANGE; ++iDX)
+			{
+				for (int iDY = -TRAVEL_DROP_RANGE; iDY <= TRAVEL_DROP_RANGE; ++iDY)
+				{
+					CvPlot* const pLoopPlot = plotXY(pTarget->getX_INLINE(), pTarget->getY_INLINE(), iDX, iDY);
+					if (pLoopPlot != NULL && pLoopPlot->area() == pTarget->area() && pLoopPlot->isCoastalLand(iMinOcean) && pLoopPlot->isRevealed(getTeam(), false))
+					{
+						aNear.push_back(std::make_pair(plotDistance(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), pTarget->getX_INLINE(), pTarget->getY_INLINE()), pLoopPlot));
+					}
+				}
+			}
+			std::sort(aNear.begin(), aNear.end());
+			for (uint i = 0; i < aNear.size() && i < 8 && (int)aDrops.size() < TRAVEL_MAX_DROPS; ++i)
+			{
+				int iFoot;
+				if (getGroup()->generatePath(aNear[i].second, pTarget, 0, false, &iFoot, -1, true))
+				{
+					aDrops.push_back(std::make_pair(iFoot, aNear[i].second));
+				}
+			}
+		}
+
+		// where the ship may pick us up: the nearest own coastal colonies and the nearest coastal native village at peace (turns on foot)
+		std::vector<std::pair<int, CvPlot*> > aPorts;
+		if (!aDrops.empty())
+		{
+			std::vector<std::pair<int, CvPlot*> > aOwn;
+			std::pair<int, CvPlot*> kVillage(MAX_INT, (CvPlot*)NULL);
+			for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
+			{
+				CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
+				if (!kLoopPlayer.isAlive() || (iPlayer != getOwnerINLINE() && !kLoopPlayer.isNative()))
+				{
+					continue;
+				}
+				int iLoop;
+				for (CvCity* pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kLoopPlayer.nextCity(&iLoop))
+				{
+					if (pLoopCity->area() != area() || !travelIsPickup(*pLoopCity->plot(), getOwnerINLINE()))
+					{
+						continue;
+					}
+					const int iDistance = plotDistance(getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+					if (iPlayer == getOwnerINLINE())
+					{
+						aOwn.push_back(std::make_pair(iDistance, pLoopCity->plot()));
+					}
+					else if (iDistance < kVillage.first)
+					{
+						kVillage = std::make_pair(iDistance, pLoopCity->plot());
+					}
+				}
+			}
+			std::sort(aOwn.begin(), aOwn.end());
+			if (kVillage.second != NULL)
+			{
+				aOwn.insert(std::upper_bound(aOwn.begin(), aOwn.end(), kVillage), kVillage);
+			}
+			int iPorts = 0;
+			for (uint i = 0; i < aOwn.size() && iPorts < TRAVEL_MAX_PORTS + 1; ++i)
+			{
+				int iFoot = 0;
+				if (atPlot(aOwn[i].second) || getGroup()->generatePath(plot(), aOwn[i].second, 0, false, &iFoot, -1, true))
+				{
+					aPorts.push_back(std::make_pair(iFoot, aOwn[i].second));
+					++iPorts;
+				}
+			}
+		}
+
+		// the ship: the fastest whole journey
+		int iBestScore = MAX_INT;
+		int iBestTotal = MAX_INT;
+		int iLoop;
+		for (CvUnit* pShip = kOwner.firstUnit(&iLoop); pShip != NULL && !aPorts.empty(); pShip = kOwner.nextUnit(&iLoop))
+		{
+			if (!travelShipCanTake(*pShip, *this))
+			{
+				continue;
+			}
+			const bool bCoastal = pShip->AI_getUnitAIType() == UNITAI_TRANSPORT_COAST;
+			for (uint p = 0; p < aPorts.size(); ++p)
+			{
+				CvPlot* const pPort = aPorts[p].second;
+				int iApproach = 0;
+				if (!pShip->atPlot(pPort) && !pShip->getGroup()->generatePath(pShip->plot(), pPort, MOVE_IGNORE_DANGER, false, &iApproach, -1, true))
+				{
+					continue;
+				}
+				for (uint d = 0; d < aDrops.size(); ++d)
+				{
+					CvPlot* const pLoopDrop = aDrops[d].second;
+					const bool bLong = plotDistance(pPort->getX_INLINE(), pPort->getY_INLINE(), pLoopDrop->getX_INLINE(), pLoopDrop->getY_INLINE()) > TRAVEL_LONG_VOYAGE;
+					int iSail;
+					if ((bLong && bCoastal) || travelShipPlot(*pShip, *pPort, *pLoopDrop, iSail) == NULL)
+					{
+						continue;
+					}
+					const int iTotal = std::max(aPorts[p].first, iApproach) + iSail + 1 + aDrops[d].first;
+					const int iScore = iTotal + (bLong ? iSail : 0);
+					if (iScore < iBestScore)
+					{
+						iBestScore = iScore;
+						iBestTotal = iTotal;
+						pPickup = pPort;
+						pDrop = pLoopDrop;
+						iShipID = pShip->getID();
+					}
+				}
+			}
+		}
+		if (iShipID >= 0 && (iWalk == MAX_INT || iBestTotal + 2 <= iWalk))
+		{
+			iTurns = iBestTotal;
+			return true;
+		}
+		pPickup = NULL;
+		pDrop = NULL;
+		iShipID = -1;
+	}
+	if (iWalk == MAX_INT)
+	{
+		return false;
+	}
+	iTurns = iWalk;
+	return true;
+}
+
+// WTP: transport to a city or plot: the unit sets out alone (a colony of the player as target is remembered as such)
+void CvUnitAI::AI_startTravel(int iX, int iY)
+{
+	CvPlot* const pTarget = GC.getMap().plotINLINE(iX, iY);
+	if (pTarget == NULL || pTarget->isWater() || atPlot(pTarget) || !canTransportTo())
+	{
+		return;
+	}
+	const CvCity* const pCity = pTarget->getPlotCity();
+	const int iCityID = (pCity != NULL && pCity->getOwnerINLINE() == getOwnerINLINE()) ? pCity->getID() : -1;
+	AI_setWfTask(WF_TRAVEL, iCityID, NO_PROFESSION, iX, iY, -1, -1);
+	m_iTravelShipID = -1;
+	if (getGroup()->getNumUnits() > 1)
+	{
+		joinGroup(NULL);
+	}
+	getGroup()->clearMissionQueue();
+	getGroup()->setAutomateType(AUTOMATE_TRAVEL);
+}
+
+// WTP: transport to a city or plot: on its way (on foot, waiting in a port for its ship, aboard, ashore again). A new plan
+// when it sets out, after the ship put it ashore and when its ship did not come for 6 turns. Returns false when the journey
+// ends (arrived: the unit is awake; no way: a message)
+bool CvUnitAI::AI_doTravel()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	CvPlot* const pTarget = GC.getMap().plotINLINE(m_iWfPlotX, m_iWfPlotY);
+	if (m_iWfTask != WF_TRAVEL || pTarget == NULL || (m_iWfCityID >= 0 && kOwner.getCity(m_iWfCityID) == NULL))
+	{
+		AI_clearWfTask();
+		m_iTravelShipID = -1;
+		return false;
+	}
+	if (atPlot(pTarget))
+	{
+		AI_clearWfTask();
+		m_iTravelShipID = -1;
+		CvWString szBuffer = gDLL->getText("TXT_KEY_TRAVEL_ARRIVED", getName().GetCString());
+		gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE, getX_INLINE(), getY_INLINE());
+		return false;
+	}
+	CvPlot* const pDrop = GC.getMap().plotINLINE(m_iWfVillageX, m_iWfVillageY);
+	if (isCargo())
+	{
+		// ashore where the ship stops for us: in a colony or village, or onto the land plot next to the ship
+		if (pDrop != NULL && canMove() && atPlot(pDrop))
+		{
+			unload();
+		}
+		else if (pDrop != NULL && canMove() && stepDistance(getX_INLINE(), getY_INLINE(), pDrop->getX_INLINE(), pDrop->getY_INLINE()) == 1 && canMoveInto(*pDrop))
+		{
+			getGroup()->pushMission(MISSION_MOVE_TO, pDrop->getX_INLINE(), pDrop->getY_INLINE());
+			return true;
+		}
+		if (isCargo())
+		{
+			getGroup()->pushMission(MISSION_SKIP);
+			return true;
+		}
+	}
+
+	// ashore from the ship: on from here
+	if (pDrop != NULL && atPlot(pDrop))
+	{
+		m_iWfVillageX = -1;
+		m_iWfVillageY = -1;
+		m_iTravelShipID = -1;
+	}
+	// in a port: aboard our ship if it is here, else wait for it (6 turns at most, then a new plan)
+	CvUnit* const pShip = (m_iTravelShipID >= 0) ? kOwner.getUnit(m_iTravelShipID) : NULL;
+	const bool bShipValid = pShip != NULL && m_iWfVillageX >= 0 && pShip->isOnMap_() && CvPlayerAI::AI_isWfShip(*pShip);
+	if (bShipValid && travelIsPickup(*plot(), getOwnerINLINE()))
+	{
+		if (pShip->atPlot(plot()) && canLoadUnit(pShip, plot(), true))
+		{
+			kOwner.AI_clearWfLearnWait(getID());
+			loadUnit(pShip);
+			getGroup()->pushMission(MISSION_SKIP);
+			return true;
+		}
+		if (kOwner.AI_wfLearnWaitTurns(getID(), true) < TRAVEL_MAX_SHIP_WAIT)
+		{
+			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_AWAIT_PICKUP, plot());
+			return true;
+		}
+	}
+	kOwner.AI_clearWfLearnWait(getID());
+
+	// a (new) plan
+	CvPlot* pPickup;
+	CvPlot* pNewDrop;
+	int iShipID;
+	int iTurns;
+	if (!AI_travelPlan(*pTarget, pPickup, pNewDrop, iShipID, iTurns))
+	{
+		CvWString szBuffer = gDLL->getText("TXT_KEY_TRAVEL_NO_WAY", getName().GetCString());
+		gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, getButton(), COLOR_WARNING_TEXT, getX_INLINE(), getY_INLINE());
+		AI_clearWfTask();
+		m_iTravelShipID = -1;
+		return false;
+	}
+	m_iWfVillageX = (pNewDrop != NULL) ? pNewDrop->getX_INLINE() : -1;
+	m_iWfVillageY = (pNewDrop != NULL) ? pNewDrop->getY_INLINE() : -1;
+	m_iTravelShipID = iShipID;
+	CvUnit* const pNewShip = (iShipID >= 0) ? kOwner.getUnit(iShipID) : NULL;
+	if (pNewShip == NULL)
+	{
+		CvWString szBuffer = gDLL->getText("TXT_KEY_TRAVEL_WALK", getName().GetCString(), iTurns);
+		gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE, pTarget->getX_INLINE(), pTarget->getY_INLINE());
+		getGroup()->pushMission(MISSION_MOVE_TO, pTarget->getX_INLINE(), pTarget->getY_INLINE());
+		return true;
+	}
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S travels with %S from %d,%d to %d,%d, ashore at %d,%d (%d turns)", getOwnerINLINE(),
+		kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pNewShip->getName().GetCString(), pPickup->getX_INLINE(), pPickup->getY_INLINE(),
+		pTarget->getX_INLINE(), pTarget->getY_INLINE(), pNewDrop->getX_INLINE(), pNewDrop->getY_INLINE(), iTurns);
+	CvWString szBuffer = gDLL->getText("TXT_KEY_TRAVEL_SHIP", getName().GetCString(), pNewShip->getName().GetCString(), pPickup->getPlotCity()->getNameKey(), iTurns);
+	gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE, pPickup->getX_INLINE(), pPickup->getY_INLINE());
+	if (!atPlot(pPickup))
+	{
+		getGroup()->pushMission(MISSION_MOVE_TO, pPickup->getX_INLINE(), pPickup->getY_INLINE(), 0, false, false, MISSIONAI_AWAIT_PICKUP, pPickup);
+		return true;
+	}
+	if (pNewShip->atPlot(plot()) && canLoadUnit(pNewShip, plot(), true))
+	{
+		loadUnit(pNewShip);
+		getGroup()->pushMission(MISSION_SKIP);
+		return true;
+	}
+	kOwner.AI_wfLearnWaitTurns(getID(), true);
+	getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_AWAIT_PICKUP, plot());
+	return true;
+}
+
 // carry out the task; returns true if a mission was pushed or the unit was replaced
-// WTP: an automated transport (AUTOMATE_TRANSPORT_FULL) of a human player and the colonists with the job automation: colonists
-// aboard are brought to their colony (the nearest of their colonies first) and put ashore there; colonists waiting in a port
-// for a ship to their colony are fetched if the ship gets there within 6 turns. Returns true if the ship has a move for them
+// WTP: an automated transport (AUTOMATE_TRANSPORT_FULL) of a human player, the colonists with the job automation and the units
+// transported to a city or plot: colonists aboard are brought to their colony and put ashore there, travellers to the plot
+// where they go ashore (the ship enters a colony or village, else stops next to the plot); the nearest destination first.
+// Colonists waiting in a port for a ship to their colony are fetched if the ship gets there within 6 turns, travellers by
+// the ship of their plan (it waits in the port for them). Returns true if the ship has a move for them
 bool CvUnitAI::AI_transportAutoAssignColonists()
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
@@ -22321,48 +22694,95 @@ bool CvUnitAI::AI_transportAutoAssignColonists()
 		return false;
 	}
 
-	// 1. colonists aboard: put ashore those at their colony, sail to the nearest colony of the others
+	// 1. units aboard: put ashore those at their colony or landing plot, sail to the nearest destination of the others
 	std::vector<CvUnit*> apAboard;
 	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
 	while (pUnitNode != NULL)
 	{
 		CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
-		if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && static_cast<CvUnitAI*>(pLoopUnit)->AI_getWfTask() == WF_ASSIGN)
+		const int iTask = (pLoopUnit != NULL) ? static_cast<CvUnitAI*>(pLoopUnit)->AI_getWfTask() : WF_NONE;
+		if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && (iTask == WF_ASSIGN || iTask == WF_TRAVEL))
 		{
 			apAboard.push_back(pLoopUnit);
 		}
 	}
-	CvCity* pDeliver = NULL;
+	CvPlot* pDeliver = NULL;
 	int iDeliverTurns = MAX_INT;
+	bool bLanding = false;
 	for (uint i = 0; i < apAboard.size(); ++i)
 	{
-		CvCity* const pTarget = kOwner.getCity(static_cast<CvUnitAI*>(apAboard[i])->AI_getWfCityID());
+		CvUnitAI* const pPassenger = static_cast<CvUnitAI*>(apAboard[i]);
+		if (pPassenger->AI_getWfTask() == WF_TRAVEL)
+		{
+			CvPlot* pLanding = GC.getMap().plotINLINE(pPassenger->AI_getWfVillageX(), pPassenger->AI_getWfVillageY());
+			if (pLanding == NULL)
+			{
+				pLanding = GC.getMap().plotINLINE(pPassenger->AI_getWfPlotX(), pPassenger->AI_getWfPlotY());
+			}
+			if (pLanding == NULL)
+			{
+				continue;
+			}
+			if (atPlot(pLanding))
+			{
+				pPassenger->unload();
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S puts %S ashore in %d,%d",
+					getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pPassenger->getName().GetCString(), getX_INLINE(), getY_INLINE());
+				continue;
+			}
+			// next to the landing plot: the passenger steps ashore (the ship waits until it has)
+			if (!travelShipEnters(*this, *pLanding) && stepDistance(getX_INLINE(), getY_INLINE(), pLanding->getX_INLINE(), pLanding->getY_INLINE()) == 1)
+			{
+				if (pPassenger->canMove() && pPassenger->canMoveInto(*pLanding))
+				{
+					if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S puts %S ashore on %d,%d",
+						getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pPassenger->getName().GetCString(), pLanding->getX_INLINE(), pLanding->getY_INLINE());
+					pPassenger->getGroup()->pushMission(MISSION_MOVE_TO, pLanding->getX_INLINE(), pLanding->getY_INLINE());
+				}
+				bLanding = bLanding || pPassenger->getTransportUnit() == this;
+				continue;
+			}
+			int iPathTurns;
+			CvPlot* const pShipPlot = travelShipPlot(*this, *plot(), *pLanding, iPathTurns);
+			if (pShipPlot != NULL && iPathTurns < iDeliverTurns)
+			{
+				iDeliverTurns = iPathTurns;
+				pDeliver = pShipPlot;
+			}
+			continue;
+		}
+		CvCity* const pTarget = kOwner.getCity(pPassenger->AI_getWfCityID());
 		if (pTarget == NULL)
 		{
 			continue;
 		}
 		if (atPlot(pTarget->plot()))
 		{
-			apAboard[i]->unload();
+			pPassenger->unload();
 			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S puts %S ashore in %S for its job",
-				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), apAboard[i]->getName().GetCString(), pTarget->getName().GetCString());
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pPassenger->getName().GetCString(), pTarget->getName().GetCString());
 			continue;
 		}
 		int iPathTurns;
 		if (CvPlayerAI::AI_shipCanReachCity(getUnitType(), *pTarget) && generatePath(pTarget->plot(), MOVE_IGNORE_DANGER, true, &iPathTurns) && iPathTurns < iDeliverTurns)
 		{
 			iDeliverTurns = iPathTurns;
-			pDeliver = pTarget;
+			pDeliver = pTarget->plot();
 		}
+	}
+	if (bLanding)
+	{
+		getGroup()->pushMission(MISSION_SKIP);
+		return true;
 	}
 	if (pDeliver != NULL)
 	{
-		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S sails to %S with colonists for their jobs (%d turns)",
-			getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pDeliver->getName().GetCString(), iDeliverTurns);
-		getGroup()->pushMission(MISSION_MOVE_TO, pDeliver->getX_INLINE(), pDeliver->getY_INLINE(), MOVE_IGNORE_DANGER, false, false, MISSIONAI_TRANSPORT_SEA, pDeliver->plot());
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S sails to %d,%d with passengers (%d turns)",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pDeliver->getX_INLINE(), pDeliver->getY_INLINE(), iDeliverTurns);
+		getGroup()->pushMission(MISSION_MOVE_TO, pDeliver->getX_INLINE(), pDeliver->getY_INLINE(), MOVE_IGNORE_DANGER, false, false, MISSIONAI_TRANSPORT_SEA, pDeliver);
 		return true;
 	}
-	// no way to their colonies (storms, the colony out of reach): in an own colony they go ashore and plan again from there
+	// no way to their destinations (storms, out of reach): in an own colony they go ashore and plan again from there
 	CvCity* const pHere = plot()->getPlotCity();
 	if (pHere != NULL && pHere->getOwnerINLINE() == getOwnerINLINE())
 	{
@@ -22371,27 +22791,63 @@ bool CvUnitAI::AI_transportAutoAssignColonists()
 			if (apAboard[i]->getTransportUnit() == this)
 			{
 				apAboard[i]->unload();
-				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S cannot reach the colony of %S and puts it ashore in %S",
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S cannot reach the destination of %S and puts it ashore in %S",
 					getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), apAboard[i]->getName().GetCString(), pHere->getName().GetCString());
 			}
 		}
 	}
 
-	// 2. colonists waiting in a port for a ship to their colony
+	// 2. colonists waiting in a port for a ship to their colony, travellers waiting for this ship
 	if (getCargo() >= cargoSpace())
 	{
 		return false;
 	}
 	CvPlot* pPickup = NULL;
 	int iPickupTurns = 7; // within 6 turns
+	CvPlot* pTravelPickup = NULL;
+	int iTravelPickupTurns = MAX_INT;
 	bool bLoaded = false;
+	bool bAwait = false;
 	int iLoop;
 	for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
 	{
 		CvUnitAI* const pColonist = static_cast<CvUnitAI*>(pLoopUnit);
-		if (pLoopUnit->getDomainType() != DOMAIN_LAND || !pLoopUnit->isOnMap_() || pLoopUnit->isCargo() || pColonist->AI_getWfTask() != WF_ASSIGN
+		if (pLoopUnit->getDomainType() != DOMAIN_LAND || !pLoopUnit->isOnMap_() || pLoopUnit->isCargo() || (pColonist->AI_getWfTask() != WF_ASSIGN && pColonist->AI_getWfTask() != WF_TRAVEL)
 			|| pLoopUnit->getGroup() == NULL || pLoopUnit->getGroup()->AI_getMissionAIType() != MISSIONAI_AWAIT_PICKUP)
 		{
+			continue;
+		}
+		// a traveller: by the ship of its plan, in the port it walks to or waits in (the ship waits there for it)
+		if (pColonist->AI_getWfTask() == WF_TRAVEL)
+		{
+			CvPlot* const pPort = pLoopUnit->getGroup()->AI_getMissionAIPlot();
+			if (pColonist->AI_getTravelShipID() != getID() || pPort == NULL)
+			{
+				continue;
+			}
+			if (atPlot(pPort))
+			{
+				if (pLoopUnit->atPlot(pPort) && pLoopUnit->canLoadUnit(this, plot(), true))
+				{
+					kOwner.AI_clearWfLearnWait(pLoopUnit->getID());
+					pLoopUnit->loadUnit(this);
+					pLoopUnit->getGroup()->pushMission(MISSION_SKIP);
+					if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S takes %S aboard at %d,%d",
+						getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pLoopUnit->getName().GetCString(), getX_INLINE(), getY_INLINE());
+					bLoaded = true;
+				}
+				else if (!pLoopUnit->atPlot(pPort))
+				{
+					bAwait = true;
+				}
+				continue;
+			}
+			int iPathTurns;
+			if (generatePath(pPort, 0, true, &iPathTurns) && iPathTurns < iTravelPickupTurns)
+			{
+				iTravelPickupTurns = iPathTurns;
+				pTravelPickup = pPort;
+			}
 			continue;
 		}
 		CvCity* const pPort = pLoopUnit->plot()->getPlotCity();
@@ -22431,9 +22887,19 @@ bool CvUnitAI::AI_transportAutoAssignColonists()
 	{
 		return AI_transportAutoAssignColonists();
 	}
+	if (pTravelPickup != NULL && (pPickup == NULL || iTravelPickupTurns <= iPickupTurns))
+	{
+		pPickup = pTravelPickup;
+	}
 	if (pPickup != NULL)
 	{
 		getGroup()->pushMission(MISSION_MOVE_TO, pPickup->getX_INLINE(), pPickup->getY_INLINE(), 0, false, false, MISSIONAI_PICKUP, pPickup);
+		return true;
+	}
+	if (bAwait)
+	{
+		// a traveller is on its way to us
+		getGroup()->pushMission(MISSION_SKIP);
 		return true;
 	}
 	return false;

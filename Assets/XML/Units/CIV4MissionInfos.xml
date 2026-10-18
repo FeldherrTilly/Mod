@@ -440,5 +440,15 @@
 			<bBuild>0</bBuild>
 			<bSound>1</bSound>
 		</MissionInfo>
+		<MissionInfo>
+			<Type>MISSION_TRANSPORT_TO</Type>
+			<Description>TXT_KEY_MISSION_TRANSPORT_TO</Description>
+			<Help>TXT_KEY_MISSION_TRANSPORT_TO_HELP</Help>
+			<Waypoint>EFFECT_FOOTSTEP_ON</Waypoint>
+			<iTime>4</iTime>
+			<bTarget>1</bTarget>
+			<bBuild>0</bBuild>
+			<bSound>1</bSound>
+		</MissionInfo>
 	</MissionInfos>
 </Civ4MissionInfos>

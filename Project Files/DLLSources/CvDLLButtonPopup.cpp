@@ -1401,6 +1401,18 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 		}
 		break;
 
+	// WTP: transport to a city
+	case BUTTONPOPUP_TRANSPORT_TO_MENU:
+		if (pPopupReturn->getButtonClicked() >= 0)
+		{
+			CvCity* pCity = GET_PLAYER(GC.getGameINLINE().getActivePlayer()).getCity(pPopupReturn->getButtonClicked());
+			if (pCity != NULL)
+			{
+				gDLL->sendPushMission(info.getData1(), MISSION_TRANSPORT_TO, pCity->getX(), pCity->getY(), 0, false);
+			}
+		}
+		break;
+
 	// TAC - Goto Menu - koma13 - START
 	case BUTTONPOPUP_GOTO_MENU:
 		if (pPopupReturn->getButtonClicked() >= 0)
@@ -1762,6 +1774,9 @@ bool CvDLLButtonPopup::launchButtonPopup(CvPopup* pPopup, CvPopupInfo &info)
 	// TAC - Goto Menu - koma13 - START
 	case BUTTONPOPUP_GOTO_MENU:
 		bLaunched = launchGotoMenuPopup(pPopup, info);
+		break;
+	case BUTTONPOPUP_TRANSPORT_TO_MENU: // WTP
+		bLaunched = launchTransportToMenuPopup(pPopup, info);
 		break;
 	// TAC - Goto Menu - koma13 - END
 	case BUTTONPOPUP_CHOOSE_CITY_PLOT_YIELD:
@@ -4176,6 +4191,41 @@ bool CvDLLButtonPopup::launchGotoMenuPopup(CvPopup* pPopup, CvPopupInfo &info)
 	return true;
 }
 // TAC - Goto Menu - koma13 - END
+
+// WTP: transport to a city: the player's colonies (the unit walks or takes an automated transport)
+bool CvDLLButtonPopup::launchTransportToMenuPopup(CvPopup* pPopup, CvPopupInfo &info)
+{
+	const PlayerTypes ePlayer = GC.getGameINLINE().getActivePlayer();
+	if (ePlayer == NO_PLAYER)
+	{
+		return false;
+	}
+	const CvPlayer& kPlayer = GET_PLAYER(ePlayer);
+	CvUnit* const pUnit = kPlayer.getUnit(info.getData1());
+	if (pUnit == NULL || !pUnit->canTransportTo())
+	{
+		return false;
+	}
+	gDLL->getInterfaceIFace()->popupSetHeaderString(pPopup, gDLL->getText("TXT_KEY_COMMAND_TRANSPORT_TO_MENU_TITLE"));
+	bool bValid = false;
+	int iLoop;
+	for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
+	{
+		if (pUnit->plot() != pLoopCity->plot())
+		{
+			gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, L"  " + gDLL->getText("TXT_KEY_COMMAND_TRANSPORT_TO_MENU_SELECTION", pLoopCity->getNameKey(), pLoopCity->getPopulation()),
+				ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION")->getPath(), pLoopCity->getID(), WIDGET_GENERAL, pUnit->getID(), -1);
+			bValid = true;
+		}
+	}
+	if (!bValid)
+	{
+		return false;
+	}
+	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, L"  " + gDLL->getText("TXT_KEY_NEVER_MIND"), ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CANCEL")->getPath(), -1, WIDGET_GENERAL);
+	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, POPUPSTATE_IMMEDIATE);
+	return true;
+}
 
 /*** TRIANGLETRADE 10/24/08 by DPII ***/
 bool CvDLLButtonPopup::launchPurchaseAfricaUnitPopup(CvPopup* pPopup, CvPopupInfo &info)
