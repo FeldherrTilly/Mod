@@ -23236,7 +23236,30 @@ namespace
 			{
 				// (prostitutes) 15 gold in a colony with less than 1 happiness above its unhappiness, rising to 20 gold with more
 				// than 3 unhappiness above its happiness; 8 gold with more than 10 happiness above its unhappiness
-				const int iBalance = kCity.getCityHappiness() - kCity.getCityUnHappiness();
+				// (with the colonists of the job automation on their way there: their population, the happiness of those who will
+				// make it)
+				int iNewCitizens = 0;
+				int iHappinessOnWay = 0;
+				const CvPlayerAI& kOwner = GET_PLAYER(kCity.getOwnerINLINE());
+				int iLoop;
+				for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
+				{
+					const CvUnitAI& kOther = static_cast<const CvUnitAI&>(*pLoopUnit);
+					const ProfessionTypes eOtherJob = kOther.AI_getWfProfession();
+					if (&kOther == &kUnit || kOther.AI_getWfTask() != CvUnitAI::WF_ASSIGN || kOther.AI_getWfCityID() != kCity.getID() || eOtherJob == NO_PROFESSION)
+					{
+						continue;
+					}
+					if (kOther.AI_getWfVillageX() < 0)
+					{
+						++iNewCitizens;
+					}
+					if ((YieldTypes)GC.getProfessionInfo(eOtherJob).getYieldsProduced(0) == YIELD_HAPPINESS)
+					{
+						iHappinessOnWay += wfOutput(kCity, eOtherJob, pLoopUnit->getUnitType(), NULL);
+					}
+				}
+				const int iBalance = iHappinessOnWay - wfUnhappinessWith(kCity, iNewCitizens);
 				if (iBalance < 1)
 				{
 					return iAmount * std::min(2000, 1500 + 125 * -iBalance);
