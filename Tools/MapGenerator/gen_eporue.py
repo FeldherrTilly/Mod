@@ -388,7 +388,7 @@ RANGES = [   # polyline lon/lat, half width in tiles
     ('Sierra Nevada', [(-5.0, 36.9), (-3.5, 37.1), (-2.2, 37.2)], 1.3),
     ('Central System', [(-6.2, 40.3), (-4.5, 40.6), (-3.5, 40.9)], 1.2),
     ('Apennines', [(8.6, 44.5), (9.8, 44.5), (11.5, 44.0), (13.2, 42.5), (14.5, 41.7), (15.8, 40.0), (16.2, 38.6)], 1.7),
-    ('Dinaric', [(14.0, 45.5), (16.5, 44.0), (18.5, 43.0), (20.0, 41.5), (21.0, 40.0), (22.0, 38.6)], 2.0),
+    ('Dinaric', [(15.2, 45.6), (17.8, 44.2), (19.8, 43.0), (21.2, 41.6), (22.2, 40.0), (23.0, 38.8)], 1.6),
     ('Carpathians', [(17.5, 49.0), (19.5, 49.4), (22.5, 49.0), (24.5, 48.2), (25.5, 47.2), (25.8, 46.0), (24.5, 45.5), (22.5, 45.2)], 2.2),
     ('Balkan', [(22.5, 43.4), (25.0, 42.8), (27.5, 42.8)], 1.6),
     ('Caucasus', [(38.5, 44.2), (41.0, 43.3), (44.5, 42.6)], 2.4),
@@ -454,7 +454,7 @@ LOWXY = [([to_xy(lo, la) for lo, la in pts], w, h) for pts, w, h in LOW_CHAINS]
 PLATEAUS = [(34.5, 38.8, 4.5, 0.38), (-3.5, 40.0, 4.5, 0.30), (28.0, 61.0, 6.0, 0.18), (53.0, 47.0, 6.0, 0.12), (53.0, 33.0, 6.0, 0.30), (3.0, 25.0, 6.0, 0.20)]   # lon, lat, radius, elevation
 ridge = [0.0] * (W * H)
 elev = [0.0] * (W * H)
-RXY = [(n, [to_xy(lo, la) for lo, la in pts], w * (1.25 if 36 < sum(q[1] for q in pts) / len(pts) < 58 and -10 < sum(q[0] for q in pts) / len(pts) < 26 else 1.0))
+RXY = [(n, [to_xy(lo, la) for lo, la in pts], w * 0.8 * (1.1 if 36 < sum(q[1] for q in pts) / len(pts) < 58 and -10 < sum(q[0] for q in pts) / len(pts) < 26 else 1.0))
        for n, pts, w in RANGES]
 for x, y in ALL:
     i = I(x, y)
@@ -497,17 +497,64 @@ for x, y in ALL:
     i = I(x, y)
     if land[i] and plot_type[i] == 1 and ridge[i] > 0.4 and rrng.random() < 0.10 and any(plot_type[I(nx, ny)] == 0 for nx, ny in nbrs(x, y)):
         plot_type[i] = 0
+dc0 = bfs_dist([i for i in range(W * H) if ocean[i]], lambda j: True)
+for x, y in ALL:                       # no wide wall of peaks: thin out the thick parts of the chains
+    i = I(x, y)
+    if land[i] and plot_type[i] == 0:
+        n8 = sum(1 for nx, ny in nbrs(x, y) if plot_type[I(nx, ny)] == 0)
+        if (n8 >= 5 and rrng.random() < 0.8) or (n8 >= 4 and rrng.random() < 0.55) or (n8 == 3 and rrng.random() < 0.25):
+            plot_type[i] = 1 if rrng.random() < 0.45 else 2
+    lon, la = from_xy(x + 0.5, y + 0.5)
+    if land[i] and plot_type[i] == 0 and 13.0 <= lon <= 24.0 and 38.0 <= la <= 46.5 and dc0[i] <= 3:
+        plot_type[i] = 1               # the Dinaric Alps keep away from the sea
 # lone hills in the open lowlands (resources that need hills), spaced at least three tiles apart
 hill_spots = [I(x, y) for x, y in ALL if land[I(x, y)] and plot_type[I(x, y)] == 2 and ridge[I(x, y)] < 0.2]
 rrng.shuffle(hill_spots)
 LONE = []
 for i in hill_spots:
-    if len(LONE) >= 230:
+    if len(LONE) >= 170:
         break
     x, y = i % W, i // W
     if all(math.hypot(x - j % W, y - j // W) >= 3 for j in LONE) and not any(plot_type[I(nx, ny)] != 2 for nx, ny in nbrs(x, y) if land[I(nx, ny)]):
         LONE.append(i)
         plot_type[i] = 1
+
+# scattered knolls and single peaks in the flat lands: the mountain density of the real chains is lower than the fantasy maps'
+kn_rng = random.Random(SEED * 7 + 89)
+kn_spots = [I(x, y) for x, y in ALL if land[I(x, y)] and plot_type[I(x, y)] == 2 and ridge[I(x, y)] < 0.15 and dc0[I(x, y)] >= 2]
+kn_rng.shuffle(kn_spots)
+KNOLLS = []
+for i in kn_spots:
+    if len(KNOLLS) >= 70:
+        break
+    x, y = i % W, i // W
+    if plot_type[i] != 2 or any(max(abs(x - j % W), abs(y - j // W)) < 6 for j in KNOLLS):
+        continue
+    if any(plot_type[I(nx, ny)] == 0 for nx in range(x - 3, x + 4) for ny in range(y - 3, y + 4) if inb(nx, ny)):
+        continue
+    KNOLLS.append(i)
+    r = kn_rng.random()
+    plot_type[i] = 0 if r < 0.55 else 1
+    for nx, ny in nbrs(x, y, N4):
+        j = I(nx, ny)
+        if land[j] and plot_type[j] == 2 and kn_rng.random() < (0.55 if r < 0.55 else 0.35):
+            plot_type[j] = 1
+    if r < 0.2:                        # an occasional twin peak
+        dx, dy = kn_rng.choice(((1, 1), (-1, 1), (1, -1), (-1, -1)))
+        if inb(x + dx, y + dy) and land[I(x + dx, y + dy)] and plot_type[I(x + dx, y + dy)] == 2:
+            plot_type[I(x + dx, y + dy)] = 0
+HILL_PATCHES = []
+for i in kn_spots:
+    if len(HILL_PATCHES) >= 40:
+        break
+    x, y = i % W, i // W
+    if plot_type[i] != 2 or any(max(abs(x - j % W), abs(y - j // W)) < 4 for j in HILL_PATCHES + KNOLLS):
+        continue
+    HILL_PATCHES.append(i)
+    for dx, dy in ((0, 0), (1, 0), (0, 1), (-1, 0), (0, -1), (1, 1)):
+        j = I(x + dx, y + dy) if inb(x + dx, y + dy) else None
+        if j is not None and land[j] and plot_type[j] == 2 and kn_rng.random() < 0.55:
+            plot_type[j] = 1
 
 # hidden valley: a ring of peaks around a green plain, with a pass on the side facing the Atlantic
 HV = to_xy(24.5, 46.3)
@@ -1306,7 +1353,7 @@ for i in salt:
 
 # volcanoes: Etna, Vesuvius, a volcanic Aegean island and the Teide (FEATURE_VOLCANO sits on flat land, hills around the cone)
 VOLCANOES = []
-for lo, la in ((15.0, 37.75), (14.4, 40.9), (25.5, 36.45), (-16.6, 28.3)) + ((VOLC_LONLAT,) if VOLC_LONLAT else ()):
+for lo, la in ((15.0, 37.75), (14.4, 40.9), (25.5, 36.45), (-16.6, 28.3), (2.9, 45.8), (44.3, 39.7)) + ((VOLC_LONLAT,) if VOLC_LONLAT else ()):
     bx, by = to_xy(lo, la)
     cands = sorted([I(x, y) for x, y in ALL if land[I(x, y)] and plot_type[I(x, y)] in (1, 2) and not near_large(x, y)],
                    key=lambda k: math.hypot(k % W + 0.5 - bx, k // W + 0.5 - by))
@@ -1629,6 +1676,8 @@ for x, y in ALL:                       # features that may not touch the coast, 
         feature[i] = 'FOREST'
     elif land[i] and feature[i] and feature[i].startswith('ROCK_FORMATIONS') and coastal_land(x, y):
         feature[i] = None
+    elif land[i] and plot_type[i] != 2 and feature[i] in ('CACTUS_TREES', 'FLOOD_PLAINS', 'LUSHGRASS', 'MEADOW', 'WILD_FLOWERS', 'BOG', 'SWAMP', 'SALT_PAN'):
+        feature[i] = None
 
 # hardwood: clusters of dense old-growth forest in the temperate and boreal woods
 SET_PIECES = DELTA | VALLEY_GREEN | LAKE_GREEN | HIDDEN | BASIN | CANYON_WALL | MESA | MESA_BASE | GORGE | GORGE_FLOOR | set(CLAY_SCATTER) | set(SALT_PANS) | set(VOLCANOES) | set(i for i in range(W * H) if is_clay(i))
@@ -1669,6 +1718,64 @@ for c in seeds:
     for j in cluster:
         feature[j] = hardwood_kind(j)
         HARDWOOD.add(j)
+
+# more features: meteor crater (Nordlinger Ries), tar pits, ruins of ancient cities, large summit models on the peaks
+xf_rng = random.Random(SEED * 7 + 101)
+IMPROVEMENT = {}
+
+
+def flat_site(lon, la, rad=4, wet=False):
+    cx, cy = to_xy(lon, la)
+    best = None
+    for x, y in ALL:
+        i = I(x, y)
+        if not land[i] or plot_type[i] != 2 or large[i] or i in SET_PIECES or feature[i] in ('VOLCANO', 'CRATER', 'TAR_PIT', 'SALT_PAN'):
+            continue
+        d = math.hypot(x + 0.5 - cx, y + 0.5 - cy)
+        if d > rad or (wet and (coastal_land(x, y) or has_river(x, y) or any(not land[I(nx, ny)] or plot_type[I(nx, ny)] == 0 for nx, ny in nbrs(x, y)))):
+            continue
+        if best is None or d < best[0]:
+            best = (d, i)
+    return best[1] if best else None
+
+
+CRATER_AT = flat_site(10.6, 48.9, 5, True)
+if CRATER_AT is not None:
+    terrain[CRATER_AT], feature[CRATER_AT] = 'WETLAND', 'CRATER'
+    for nx, ny in nbrs(CRATER_AT % W, CRATER_AT // W):
+        j = I(nx, ny)
+        if feature[j] is None and plot_type[j] == 2 and xf_rng.random() < 0.6:
+            feature[j] = 'FOREST' if terrain[j] in FEATURE_TERRAINS['FOREST'] else None
+TAR_PITS = []
+tar_cands = [I(x, y) for x, y in ALL if land[I(x, y)] and plot_type[I(x, y)] == 2 and terrain[I(x, y)] in ('MARSH', 'WETLAND') and feature[I(x, y)] is None
+             and not coastal_land(x, y) and not has_river(x, y) and I(x, y) not in SET_PIECES and not any(lake[I(nx, ny)] or large[I(nx, ny)] for nx, ny in nbrs(x, y))]
+xf_rng.shuffle(tar_cands)
+for i in tar_cands:
+    if len(TAR_PITS) >= 4:
+        break
+    if all(math.hypot(i % W - j % W, i // W - j // W) >= 14 for j in TAR_PITS):
+        TAR_PITS.append(i)
+        feature[i] = 'TAR_PIT'
+RUIN_SITES = []
+for lo, la, nm in ((10.3, 36.85, 'Ruins of Carthage'), (14.3, 32.6, 'Ruins of Leptis Magna'), (26.2, 39.95, 'Ruins of Troy'), (38.3, 34.55, 'Ruins of Palmyra'),
+                   (35.4, 30.4, 'Ruins of Petra'), (13.0, 41.8, 'Ruins of Ostia'), (23.7, 37.9, 'Ruins of Eleusis'), (-6.2, 37.3, 'Ruins of Italica')):
+    i = flat_site(lo, la, 5)
+    if i is not None and feature[i] in (None, 'SHRUB', 'LIGHT_FOREST') and all(math.hypot(i % W - j % W, i // W - j // W) >= 4 for j, _ in RUIN_SITES):
+        RUIN_SITES.append((i, nm))
+        IMPROVEMENT[i] = 'IMPROVEMENT_CITY_RUINS'
+        feature[i] = None
+# large summit models on peaks (same rules as CvMapGenerator::addImpassableMountains)
+MTN_TERRAINS = {'GRASS', 'WETLAND', 'SAVANNAH', 'PLAINS', 'SHRUBLAND', 'PLAINS_FERTILE', 'TUNDRA', 'TAIGA', 'SNOW'}
+for x, y in ALL:
+    i = I(x, y)
+    if not land[i] or plot_type[i] != 0 or terrain[i] not in MTN_TERRAINS or coastal_land(x, y) or feature[i]:
+        continue
+    if any((feature[I(nx, ny)] or '').startswith('REMARKABLE') for nx, ny in nbrs(x, y)) and xf_rng.random() >= 0.05:
+        continue
+    n = sum(1 for nx, ny in nbrs(x, y) if plot_type[I(nx, ny)] == 0)
+    chance = {0: 5, 1: 10, 2: 20}.get(n, 30 if n <= 4 else (45 if n <= 6 else 55))
+    if xf_rng.random() * 100 < chance:
+        feature[i] = 'REMARKABLE_MOUNTAIN%d' % xf_rng.randint(1, 3)
 
 # coastal water: deep coast along the shore, shallow coast in the sheltered or flat seas (North Sea, Baltic, Adriatic, Persian Gulf, ...)
 SHALLOW_BOXES = [(-4.0, 9.5, 51.0, 58.0), (-6.5, 2.5, 49.0, 51.2), (-6.5, -2.5, 52.0, 55.5), (11.0, 19.5, 42.5, 46.0), (33.0, 41.0, 44.5, 47.5),
@@ -1868,13 +1975,17 @@ def land_near(lon, la, rad=4):
 
 
 # set pieces first, they own their spot
+if CRATER_AT is not None:
+    add_sign([CRATER_AT], 'Nordlinger Ries', 4)
+for i, nm in RUIN_SITES:
+    add_sign([i], nm, 4)
 if canyon:
     add_sign(canyon[len(canyon) // 2:] + canyon, CANYON_NAME + ' Canyon', 4)
 if gorge is not None:
     add_sign([gorge] + [j for j in GORGE_FLOOR], GORGE_NAME + ' Gorge', 4)
 if mesa_centres:
     add_sign([I(x, y) for x, y in mesa_centres], 'Painted Mesas', 4)
-VOLCANO_NAMES = [((15.0, 37.75), 'Mount Etna'), ((14.4, 40.9), 'Mount Vesuvius'), ((25.5, 36.45), 'Santorini'), ((-16.6, 28.3), 'Teide')] + ([(VOLC_LONLAT, ISLE_NAMES[0])] if VOLC_LONLAT else [])
+VOLCANO_NAMES = [((15.0, 37.75), 'Mount Etna'), ((14.4, 40.9), 'Mount Vesuvius'), ((25.5, 36.45), 'Santorini'), ((-16.6, 28.3), 'Teide'), ((2.9, 45.8), 'Chaine des Puys'), ((44.3, 39.7), 'Mount Ararat')] + ([(VOLC_LONLAT, ISLE_NAMES[0])] if VOLC_LONLAT else [])
 for i in VOLCANOES:
     lo, la = from_xy(i % W + 0.5, i // W + 0.5)
     add_sign([i], min(VOLCANO_NAMES, key=lambda v: math.hypot(v[0][0] - lo, v[0][1] - la))[1], 3)
@@ -2058,6 +2169,8 @@ def write_wbsave(path):
                     f.write('\tEuropeType=EUROPE_EAST\n')
                 elif PACIFIC[i]:
                     f.write('\tEuropeType=EUROPE_WEST\n')
+                if i in IMPROVEMENT:
+                    f.write('\tImprovementType=%s\n' % IMPROVEMENT[i])
                 if feature[i]:
                     f.write('\tFeatureType=FEATURE_%s, FeatureVariety=0\n' % feature[i])
                 f.write('\tTerrainType=TERRAIN_%s\n\tPlotType=%d\nEndPlot\n' % (terrain[i], plot_type[i]))
