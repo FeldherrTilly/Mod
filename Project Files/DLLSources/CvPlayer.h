@@ -852,7 +852,6 @@ public:
 	bool isEurope() const;
 	bool isInRevolution() const;
 	bool checkIndependence() const;
-	void logIndependenceBlockers(const CvPlayer& kParent, const char* szWhy) const; // WTP
 
 	void applyMissionaryPoints(CvCity* pCity);
 	int getMissionaryPoints(PlayerTypes ePlayer) const;
