@@ -1,6 +1,7 @@
 // unitAI.cpp
 
 #include "CvGameCoreDLL.h"
+#include "CombatOdds.h"
 #include "CvUnitAI.h"
 #include "CvMap.h"
 #include "CvArea.h"
@@ -199,6 +200,13 @@ bool CvUnitAI::AI_update()
 			// WTP: automatic job assignment of a human player's colonist
 			case AUTOMATE_ASSIGN_JOB:
 				if (!AI_doAutoAssign() && getGroup() != NULL)
+				{
+					getGroup()->setAutomateType(NO_AUTOMATE);
+				}
+				break;
+			// WTP: patrol of a human player's military unit or warship
+			case AUTOMATE_PATROL:
+				if (!AI_doPatrol() && getGroup() != NULL)
 				{
 					getGroup()->setAutomateType(NO_AUTOMATE);
 				}
@@ -23096,6 +23104,130 @@ bool CvUnitAI::AI_transportAutoAssignColonists()
 		return true;
 	}
 	return false;
+}
+
+// WTP: patrol of a human player's military unit or warship (AUTOMATE_PATROL) within 10 plots of the plot where it was
+// switched on: it attacks runaway and revolting slaves, criminals and hostile natives (barbarians, no animals), pirates and
+// enemies at war outside their borders, only with less than 5% risk of being destroyed; below 95% strength it heals first
+// (in the nearest own colony it gets to, else where it is); with nothing to attack it patrols the area (a move of one turn
+// to a random plot). The moves end with the turn, so each turn it looks again
+namespace
+{
+	const int PATROL_RANGE = 10;
+	const int PATROL_MAX_LOSS_ODDS = 50; // of 1000: the risk of being destroyed
+}
+
+void CvUnitAI::AI_setPatrolCenter(const CvPlot* pPlot)
+{
+	m_iPatrolCenter = (pPlot != NULL) ? GC.getMap().plotNumINLINE(pPlot->getX_INLINE(), pPlot->getY_INLINE()) : -1;
+}
+
+bool CvUnitAI::AI_isPatrolTarget(const CvUnit& kTarget, const CvPlot& kPlot) const
+{
+	if (kTarget.getUnitInfo().isAnimal() || !isEnemy(kTarget.getCombatTeam(getTeam(), &kPlot), &kPlot))
+	{
+		return false;
+	}
+	// runaway and revolting slaves, criminals, hostile natives; pirates
+	if (kTarget.isBarbarian() || kTarget.isAlwaysHostile(&kPlot))
+	{
+		return true;
+	}
+	// enemies at war outside their borders
+	return kPlot.getOwnerINLINE() != kTarget.getOwnerINLINE() && GET_TEAM(getTeam()).isAtWar(kTarget.getTeam());
+}
+
+bool CvUnitAI::AI_doPatrol()
+{
+	const CvMap& kMap = GC.getMap();
+	CvPlot* pCenter = (m_iPatrolCenter >= 0) ? kMap.plotByIndexINLINE(m_iPatrolCenter) : NULL;
+	if (pCenter == NULL)
+	{
+		AI_setPatrolCenter(plot());
+		pCenter = plot();
+	}
+	const bool bSea = getDomainType() == DOMAIN_SEA;
+
+	// below 95% strength: heal (in the nearest own colony it gets to)
+	if (currHitPoints() * 100 < maxHitPoints() * 95)
+	{
+		const CvCity* const pHere = plot()->getPlotCity();
+		if (pHere != NULL && pHere->getOwnerINLINE() == getOwnerINLINE())
+		{
+			getGroup()->pushMission(MISSION_HEAL);
+			return true;
+		}
+		std::vector<std::pair<int, CvCity*> > aCities;
+		int iLoop;
+		for (CvCity* pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
+		{
+			if (bSea ? pLoopCity->isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN()) : pLoopCity->area() == area())
+			{
+				aCities.push_back(std::make_pair(plotDistance(getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE()), pLoopCity));
+			}
+		}
+		std::sort(aCities.begin(), aCities.end());
+		for (uint i = 0; i < aCities.size() && i < 5; ++i)
+		{
+			if (generatePath(aCities[i].second->plot(), 0, true))
+			{
+				getGroup()->pushMission(MISSION_MOVE_TO, aCities[i].second->getX_INLINE(), aCities[i].second->getY_INLINE());
+				return true;
+			}
+		}
+		getGroup()->pushMission(canHeal(plot()) ? MISSION_HEAL : MISSION_SKIP);
+		return true;
+	}
+
+	// a target in the area: the safest attack (least risk of being destroyed), a move of this turn towards it
+	CvPlot* pBestPlot = NULL;
+	int iBestLoss = MAX_INT;
+	for (int iDX = -PATROL_RANGE; iDX <= PATROL_RANGE; ++iDX)
+	{
+		for (int iDY = -PATROL_RANGE; iDY <= PATROL_RANGE; ++iDY)
+		{
+			CvPlot* const pLoopPlot = plotXY(pCenter->getX_INLINE(), pCenter->getY_INLINE(), iDX, iDY);
+			if (pLoopPlot == NULL || atPlot(pLoopPlot) || pLoopPlot->isWater() != bSea || pLoopPlot->isCity(true) || !pLoopPlot->isVisible(getTeam(), false)
+				|| !pLoopPlot->isVisibleEnemyUnit(this))
+			{
+				continue;
+			}
+			CvUnit* const pDefender = pLoopPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
+			if (pDefender == NULL || !AI_isPatrolTarget(*pDefender, *pLoopPlot))
+			{
+				continue;
+			}
+			const CombatPreviewOdds kOdds = getCombatPreviewOdds(this, pDefender, pLoopPlot);
+			if (kOdds.iDefenderWin >= PATROL_MAX_LOSS_ODDS || kOdds.iDefenderWin >= iBestLoss || !generatePath(pLoopPlot, 0, true))
+			{
+				continue;
+			}
+			iBestLoss = kOdds.iDefenderWin;
+			pBestPlot = getPathEndTurnPlot();
+		}
+	}
+	if (pBestPlot != NULL && !atPlot(pBestPlot))
+	{
+		getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
+		return true;
+	}
+
+	// nothing to attack: a move of one turn to a random plot of the area
+	for (int iTry = 0; iTry < 12; ++iTry)
+	{
+		const int iDX = GC.getGameINLINE().getSorenRandNum(2 * PATROL_RANGE + 1, "Patrol X") - PATROL_RANGE;
+		const int iDY = GC.getGameINLINE().getSorenRandNum(2 * PATROL_RANGE + 1, "Patrol Y") - PATROL_RANGE;
+		CvPlot* const pLoopPlot = plotXY(pCenter->getX_INLINE(), pCenter->getY_INLINE(), iDX, iDY);
+		int iPathTurns;
+		if (pLoopPlot != NULL && !atPlot(pLoopPlot) && pLoopPlot->isWater() == bSea && pLoopPlot->isRevealed(getTeam(), false) && !pLoopPlot->isVisibleEnemyUnit(this)
+			&& generatePath(pLoopPlot, 0, true, &iPathTurns) && iPathTurns <= 1)
+		{
+			getGroup()->pushMission(MISSION_MOVE_TO, pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+			return true;
+		}
+	}
+	getGroup()->pushMission(MISSION_SKIP);
+	return true;
 }
 
 // WTP: automatic job assignment of a human player's colonist: the best job (see CvPlayerAI::AI_humanFindJobs), or the one the

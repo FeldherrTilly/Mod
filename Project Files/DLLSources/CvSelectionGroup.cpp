@@ -3609,6 +3609,11 @@ void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue, bool bImplicit)
 		{
 			static_cast<CvUnitAI*>(getHeadUnit())->AI_clearWfTask();
 		}
+		// WTP: patrol around the plot where it is switched on
+		if (eNewValue == AUTOMATE_PATROL && getHeadUnit() != NULL)
+		{
+			static_cast<CvUnitAI*>(getHeadUnit())->AI_setPatrolCenter(getHeadUnit()->plot());
+		}
 		// WTP: transport to a city or plot: switched off, the unit drops its journey
 		if (eOldValue == AUTOMATE_TRAVEL && !bImplicit && getHeadUnit() != NULL
 			&& static_cast<CvUnitAI*>(getHeadUnit())->AI_getWfTask() == CvUnitAI::WF_TRAVEL)
