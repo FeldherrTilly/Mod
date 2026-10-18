@@ -2234,6 +2234,17 @@
 		<Hungarian>A szállítás teljes automatizálása</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_CITY_BARRACKS_DEFENSE_REDUCED</Tag>
+		<English>Too many military units: city defense bonus at %d1%%</English>
+		<Portuguese>Unidades militares demais: bônus de defesa da cidade em %d1%%</Portuguese>
+		<French>Trop d'unités militaires : bonus de défense de la ville à %d1%%</French>
+		<German>Zu viele Militäreinheiten: Verteidigungsbonus der Stadt bei %d1%%</German>
+		<Italian>Troppe unità militari: bonus di difesa della città al %d1%%</Italian>
+		<Spanish>Demasiadas unidades militares: bonificación de defensa de la ciudad al %d1%%</Spanish>
+		<Russian>Слишком много военных отрядов: бонус защиты города %d1%%</Russian>
+		<Hungarian>Túl sok katonai egység: a város védelmi bónusza %d1%%</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_ACTION_AUTOMATE_FULL_HELP</Tag>
 		<English>Automate this unit</English>
 		<Portuguese>Automatizar unidade</Portuguese>
