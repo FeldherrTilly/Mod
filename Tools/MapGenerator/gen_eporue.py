@@ -442,7 +442,7 @@ LOW_CHAINS = [   # (polyline lon/lat, half width in tiles, height): low, broken 
     ([(-1.0, 27.0), (2.0, 28.4), (4.5, 27.6)], 1.2, 0.62), ([(8.0, 26.8), (12.0, 27.8), (16.0, 27.2)], 1.2, 0.6), ([(20.0, 27.5), (23.5, 28.5)], 1.2, 0.6),
     ([(-6.0, 25.8), (-4.0, 27.4)], 1.1, 0.6), ([(26.0, 26.2), (29.0, 27.5)], 1.1, 0.58), ([(36.0, 26.0), (39.0, 27.5), (42.0, 26.5)], 1.2, 0.6),
 ]
-MASSIFS = [(10.6, 51.7, 2.6), (13.2, 49.1, 2.4), (19.9, 49.2, 2.2), (5.5, 50.1, 2.2), (7.1, 48.3, 2.4), (2.8, 45.3, 3.2), (8.2, 48.0, 2.2),
+MASSIFS = [(-6.0, 31.0, 2.0), (-1.5, 32.3, 2.0), (5.5, 32.0, 2.0), (10.0, 32.8, 2.0), (21.0, 31.2, 2.0), (-9.0, 29.6, 1.6), (-1.0, 30.0, 1.4), (6.0, 30.0, 1.4), (9.8, 31.0, 1.4), (22.0, 29.5, 1.4), (10.6, 51.7, 2.6), (13.2, 49.1, 2.4), (19.9, 49.2, 2.2), (5.5, 50.1, 2.2), (7.1, 48.3, 2.4), (2.8, 45.3, 3.2), (8.2, 48.0, 2.2),
            (16.2, 50.7, 2.2), (24.5, 41.8, 3.0), (21.2, 39.7, 2.6), (-5.2, 40.3, 2.2), (-3.8, 52.4, 2.0), (4.0, 47.0, 1.8), (20.9, 50.9, 1.8),
            (27.0, 54.0, 1.8), (28.0, 48.8, 2.0), (25.5, 56.8, 1.6), (5.5, 24.0, 3.5), (17.0, 23.5, 3.0), (9.0, 25.5, 2.2), (-1.5, 47.7, 1.8),
            (-6.8, 42.4, 2.0), (1.5, 43.0, 2.0), (12.0, 43.8, 1.8), (16.0, 40.5, 2.0), (18.0, 44.0, 2.4), (22.0, 47.0, 2.2), (25.5, 46.5, 2.2),
@@ -894,10 +894,11 @@ for name, path in RIVER_PATHS.items():
                 terrain[i] = 'MARSH' if T[i] >= 0.55 else 'WETLAND'
                 DELTA.add(i)
 VALLEY_GREEN = set()
+green_rng = random.Random(SEED * 7 + 97)        # now and then a desert plot stays on the river bank
 for i in [j for nm in ('Nile', 'Draa', 'Saoura', 'Igharghar', 'Mya', 'Zousfana') for j in RIVER_PATHS.get(nm, [])]:      # green ribbon through the desert
     for nx, ny in nbrs(i % W, i // W):
         j = I(nx, ny)
-        if land[j] and plot_type[j] == 2 and j not in DELTA and terrain[j] in ('DESERT', 'ROCK_STEPPES', 'SHRUBLAND'):
+        if land[j] and plot_type[j] == 2 and j not in DELTA and terrain[j] in ('DESERT', 'ROCK_STEPPES', 'SHRUBLAND') and green_rng.random() > 0.2:
             terrain[j] = 'SAVANNAH' if T[j] >= 0.8 else 'PLAINS'
             VALLEY_GREEN.add(j)
 
@@ -1595,19 +1596,26 @@ for i in BARRIER:
             SHALLOW_WATER.add(j)
 dland = bfs_dist([i for i in range(W * H) if not ocean[i]], lambda j: True)
 EUROPE = [ocean[i] and i % W >= W - 22 and dland[i] >= 8 for i in range(W * H)]
-# a narrow strip of Europe plots in the North Sea (five plots, deep water, at least three tiles from land)
+# a narrow strip of Europe plots in the northern North Sea (five plots, deep water), joined to the Atlantic zone by a corridor of open sea
 ns_best = None
 for x, y in ALL:
-    lon, la = from_xy(x + 0.5, y + 0.5)
-    if -1.0 <= lon <= 7.0 and 55.0 <= la <= 60.5 and y + 4 < H:
+    if 56 <= x <= 82 and 3 <= y <= 14:
         cells = [I(x, y + k) for k in range(5)]
-        if all(ocean[c] and dland[c] >= 3 for c in cells):
-            sc = min(dland[c] for c in cells)
+        if all(ocean[c] and dland[c] >= 4 for c in cells):
+            sc = (-x, -y)                      # the left-most spot that is still open sea
             if ns_best is None or sc > ns_best[0]:
                 ns_best = (sc, cells)
 NORTH_SEA_EUROPE = ns_best[1] if ns_best else []
 for c in NORTH_SEA_EUROPE:
     EUROPE[c] = True
+if NORTH_SEA_EUROPE:
+    sx0, sy1 = NORTH_SEA_EUROPE[0] % W, NORTH_SEA_EUROPE[-1] // W
+    for i in range(W * H):             # the open ocean to the south of Norway belongs to Europe as far as the strip
+        if ocean[i] and dland[i] >= 4 and i % W >= sx0 and i // W <= sy1 + 3:
+            EUROPE[i] = True
+for i in range(W * H):                 # above the Sahara the zone reaches further to the centre
+    if ocean[i] and dland[i] >= 3 and i % W >= 58 and i // W >= H - 7:
+        EUROPE[i] = True
 for comp in components(ocean, N8):     # sea regions below 50 plots would turn into lakes when the game loads the map
     if len(comp) < 50 and not any(EUROPE[I(x, y)] or PACIFIC[I(x, y)] for x, y in comp):
         for x, y in comp:
