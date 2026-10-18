@@ -3574,6 +3574,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=4,y=58
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -3664,6 +3665,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=4,y=76
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -3744,11 +3746,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=4,y=92
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=4,y=93
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -4100,7 +4104,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=5,y=31
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -4111,6 +4114,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=5,y=33
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -4206,6 +4210,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=5,y=52
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -4226,6 +4231,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=5,y=56
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -4242,7 +4248,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=5,y=59
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -4258,13 +4263,11 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=5,y=62
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=5,y=63
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -4275,13 +4278,11 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=5,y=65
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=5,y=66
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -4327,7 +4328,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=5,y=75
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -4379,6 +4379,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=5,y=85
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -4444,6 +4445,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=5,y=98
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -4698,6 +4700,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=6,y=17
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -4713,7 +4716,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=6,y=20
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -4729,7 +4731,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=6,y=23
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -4771,7 +4772,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=6,y=31
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -4802,6 +4802,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=6,y=37
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -4852,18 +4853,17 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=6,y=47
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=6,y=48
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=6,y=49
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -4889,7 +4889,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=6,y=54
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -4967,6 +4966,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=6,y=67
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -5027,7 +5027,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=6,y=79
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -5065,6 +5064,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=6,y=86
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -5130,6 +5130,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=6,y=99
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -5511,6 +5512,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=7,y=43
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -5531,6 +5533,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=7,y=47
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -5547,6 +5550,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=7,y=50
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -5793,6 +5797,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=7,y=96
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -6049,7 +6054,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=8,y=16
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -6082,7 +6086,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=8,y=22
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -6482,11 +6485,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=8,y=95
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=8,y=96
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -6811,7 +6816,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=9,y=29
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -6845,6 +6849,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=9,y=35
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -6885,6 +6890,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=9,y=43
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -7069,6 +7075,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=9,y=72
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -7143,7 +7150,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=9,y=85
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -7239,7 +7245,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=9,y=103
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -7461,7 +7466,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=10,y=16
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -7849,7 +7853,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=10,y=85
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -7920,7 +7923,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=10,y=98
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -7941,6 +7943,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=10,y=102
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -8223,7 +8226,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=11,y=27
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -8234,7 +8236,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=11,y=29
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -8245,12 +8246,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=11,y=31
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=11,y=32
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -8267,13 +8268,11 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=11,y=35
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=11,y=36
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -8450,7 +8449,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=11,y=69
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -8827,7 +8825,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=12,y=12
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -8913,12 +8910,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=12,y=29
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=12,y=30
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -8934,7 +8932,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=12,y=33
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -8991,6 +8988,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=12,y=44
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -9018,6 +9016,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=12,y=49
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -9028,12 +9027,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=12,y=51
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=12,y=52
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -9119,12 +9118,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=12,y=67
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=12,y=68
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -9195,7 +9194,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=12,y=82
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -9548,7 +9546,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=13,y=20
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -9612,29 +9609,28 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=13,y=32
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=13,y=33
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=13,y=34
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=13,y=35
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=13,y=36
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -9665,7 +9661,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=13,y=42
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -9687,13 +9682,11 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=13,y=46
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=13,y=47
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -10203,6 +10196,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=14,y=14
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -10213,6 +10207,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=14,y=16
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -10234,12 +10229,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=14,y=20
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=14,y=21
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -10280,12 +10275,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=14,y=29
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=14,y=30
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -10307,19 +10302,17 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=14,y=34
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=14,y=35
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=14,y=36
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -10330,6 +10323,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=14,y=38
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -10355,7 +10349,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=14,y=43
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -10396,7 +10389,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=14,y=51
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -10664,7 +10656,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=14,y=102
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -10949,13 +10940,11 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=15,y=27
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=15,y=28
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -10988,7 +10977,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=15,y=34
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -11000,7 +10989,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=15,y=36
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -11051,6 +11039,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=15,y=46
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -11096,6 +11085,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=15,y=55
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -11150,7 +11140,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=15,y=65
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -11227,7 +11216,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=15,y=80
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -11342,7 +11330,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=15,y=100
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -11601,7 +11588,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=16,y=21
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -11632,6 +11618,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=16,y=27
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -11642,7 +11629,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=16,y=29
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -11671,6 +11657,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=16,y=34
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -11780,6 +11767,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=16,y=55
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -12036,7 +12024,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=16,y=102
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -12047,6 +12034,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=16,y=104
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -12282,6 +12270,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=17,y=22
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -12348,7 +12337,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=17,y=34
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -12459,6 +12448,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=17,y=55
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -12523,6 +12513,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=17,y=67
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -12719,7 +12710,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=17,y=102
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -12750,6 +12740,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=17,y=108
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -12874,7 +12865,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=18,y=7
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -12915,7 +12905,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=18,y=15
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -12994,7 +12983,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=18,y=30
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -13014,6 +13003,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=18,y=33
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -13024,11 +13014,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=18,y=35
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=18,y=36
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -13074,7 +13066,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=18,y=45
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -13113,6 +13104,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=18,y=52
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -13128,7 +13120,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=18,y=55
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -13390,7 +13381,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=18,y=101
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -13541,12 +13531,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=19,y=6
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=19,y=7
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -13597,7 +13587,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=19,y=17
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -13608,6 +13597,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=19,y=19
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -13651,7 +13641,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=19,y=27
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -13668,16 +13657,19 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=19,y=30
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=19,y=31
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=19,y=32
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -13694,11 +13686,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=19,y=35
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=19,y=36
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -13767,6 +13761,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=19,y=49
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -13777,7 +13772,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=19,y=51
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -14054,6 +14048,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=19,y=101
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -14074,7 +14069,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=19,y=105
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -14125,7 +14119,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=19,y=115
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -14181,7 +14174,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=20,y=1
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -14327,17 +14319,18 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=20,y=29
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=20,y=30
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=20,y=31
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -14348,7 +14341,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=20,y=33
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -14364,7 +14357,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=20,y=36
-	FeatureType=FEATURE_REEF, FeatureVariety=0
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -14385,6 +14378,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=20,y=40
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -14443,6 +14437,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=20,y=51
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -14458,7 +14453,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=20,y=54
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -14945,6 +14939,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=21,y=21
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -14983,7 +14978,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=21,y=28
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -14999,6 +14993,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=21,y=31
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -15009,7 +15004,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=21,y=33
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -15027,7 +15021,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=21,y=36
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -15073,7 +15066,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=21,y=45
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -15095,12 +15087,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=21,y=49
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=21,y=50
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -15485,7 +15477,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=21,y=119
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -15591,6 +15582,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=22,y=15
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -15662,7 +15654,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=22,y=29
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -15749,6 +15740,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=22,y=46
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -15769,7 +15761,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=22,y=50
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -15785,6 +15776,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=22,y=53
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -16133,7 +16125,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=22,y=116
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -16149,6 +16140,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=22,y=119
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -16363,6 +16355,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=23,y=36
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -16403,7 +16396,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=23,y=44
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -16554,7 +16546,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=23,y=71
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -16581,6 +16572,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=23,y=76
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -16596,6 +16588,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=23,y=79
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -16814,6 +16807,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=23,y=119
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -16889,7 +16883,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=24,y=9
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -16935,6 +16928,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=24,y=18
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -16985,6 +16979,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=24,y=28
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -17217,6 +17212,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=24,y=71
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -17455,11 +17451,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=24,y=116
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=24,y=117
+	FeatureType=FEATURE_PEARL_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -17525,17 +17523,18 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=25,y=5
-	TerrainType=TERRAIN_OCEAN
-	PlotType=3
-EndPlot
-BeginPlot
-	x=25,y=6
 	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
+	x=25,y=6
+	TerrainType=TERRAIN_OCEAN
+	PlotType=3
+EndPlot
+BeginPlot
 	x=25,y=7
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -17757,7 +17756,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=25,y=51
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -17773,7 +17771,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=25,y=54
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -17804,7 +17801,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=25,y=60
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -18095,7 +18091,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=25,y=114
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -18206,6 +18202,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=26,y=11
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -18216,6 +18213,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=26,y=13
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -18329,6 +18327,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=26,y=35
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -18379,6 +18378,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=26,y=45
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -18389,6 +18389,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=26,y=47
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -18479,6 +18480,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=26,y=65
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -18494,12 +18496,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=26,y=68
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=26,y=69
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -18713,6 +18715,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=26,y=109
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -18728,7 +18731,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=26,y=112
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -18754,7 +18756,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=26,y=117
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -18805,17 +18806,18 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=27,y=2
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=27,y=3
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=27,y=4
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -18950,6 +18952,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=27,y=30
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -18970,19 +18973,16 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=27,y=34
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=27,y=35
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=27,y=36
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -19003,6 +19003,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=27,y=40
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -19162,6 +19163,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=27,y=71
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -19172,7 +19174,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=27,y=73
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -19419,6 +19420,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=27,y=120
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -19678,7 +19680,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=28,y=46
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -19926,7 +19927,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=28,y=94
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -20077,12 +20077,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=28,y=123
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=28,y=124
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -20113,7 +20113,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=29,y=5
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -20159,13 +20158,11 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=29,y=14
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=29,y=15
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -20309,6 +20306,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=29,y=43
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -20449,6 +20447,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=29,y=69
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -20597,6 +20596,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=29,y=98
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -20612,7 +20612,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=29,y=101
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -20692,6 +20691,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=29,y=116
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -20782,7 +20782,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=30,y=9
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -20829,6 +20828,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=30,y=18
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -21011,7 +21011,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=30,y=53
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -21090,7 +21089,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=30,y=68
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -21146,6 +21144,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=30,y=79
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -21345,7 +21344,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=30,y=117
-	FeatureType=FEATURE_PEARL_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -21456,6 +21454,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=31,y=14
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -21476,13 +21475,11 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=31,y=18
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=31,y=19
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -21593,6 +21590,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=31,y=40
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -21733,6 +21731,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=31,y=66
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -21753,7 +21752,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=31,y=70
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -21881,7 +21879,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=31,y=92
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -22230,11 +22227,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=32,y=35
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=32,y=36
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -22420,6 +22419,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=32,y=71
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -22430,11 +22430,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=32,y=73
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=32,y=74
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -22535,6 +22537,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=32,y=92
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -22550,7 +22553,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=32,y=95
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -22744,7 +22746,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=33,y=8
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -23132,11 +23133,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=33,y=77
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=33,y=78
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -23177,6 +23180,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=33,y=85
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -23194,7 +23198,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=33,y=88
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -23205,7 +23208,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=33,y=90
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -23261,7 +23263,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=33,y=101
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
+	FeatureType=FEATURE_PEARL_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -23330,6 +23332,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=33,y=114
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -23852,6 +23855,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=34,y=82
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -23863,13 +23867,11 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=34,y=84
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=34,y=85
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -23908,7 +23910,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=34,y=92
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -23924,6 +23925,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=34,y=95
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -24042,6 +24044,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=34,y=118
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -24067,6 +24070,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=34,y=123
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -24152,6 +24156,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=35,y=15
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -24162,7 +24167,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=35,y=17
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -24197,6 +24201,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=35,y=23
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -24255,7 +24260,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=35,y=33
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -24609,6 +24613,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=35,y=96
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -24624,6 +24629,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=35,y=99
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -24705,12 +24711,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=35,y=114
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=35,y=115
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -24751,12 +24757,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=35,y=123
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=35,y=124
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -25241,7 +25247,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=36,y=84
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -25298,7 +25303,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=36,y=94
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -25487,12 +25491,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=37,y=6
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=37,y=7
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -25534,7 +25538,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=37,y=15
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -25911,6 +25914,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=37,y=82
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -26129,6 +26133,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=37,y=124
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -26619,6 +26624,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=38,y=88
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -26786,7 +26792,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=38,y=120
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -26884,6 +26889,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=39,y=14
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -27302,6 +27308,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=39,y=87
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -27353,12 +27360,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=39,y=97
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=39,y=98
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -27597,6 +27604,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=40,y=19
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -27958,6 +27966,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=40,y=83
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -27984,6 +27993,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=40,y=88
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -27999,7 +28009,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=40,y=91
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -28254,11 +28263,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=41,y=15
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=41,y=16
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -28326,6 +28337,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=41,y=29
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -28671,7 +28683,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=41,y=91
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -28692,7 +28703,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=41,y=95
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -28790,7 +28800,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=41,y=113
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -28816,7 +28825,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=41,y=118
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -28837,13 +28845,11 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=41,y=122
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=41,y=123
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -28947,6 +28953,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=42,y=17
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -28977,6 +28984,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=42,y=23
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -29012,6 +29020,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=42,y=30
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -29044,6 +29053,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=42,y=36
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -29369,7 +29379,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=42,y=96
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -29484,7 +29493,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=42,y=118
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -29505,7 +29513,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=42,y=122
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -29671,6 +29678,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=43,y=28
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -29696,7 +29704,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=43,y=33
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -30011,6 +30018,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=43,y=89
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -30036,7 +30044,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=43,y=94
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -30221,6 +30228,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=44,y=5
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -30236,6 +30244,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=44,y=8
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -30355,6 +30364,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=44,y=30
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -30365,7 +30375,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=44,y=32
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -30799,7 +30808,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=44,y=113
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
+	FeatureType=FEATURE_PEARL_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -30845,6 +30854,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=44,y=122
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -30870,6 +30880,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=45,y=2
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -30890,6 +30901,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=45,y=6
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -31281,6 +31293,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=45,y=77
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -31316,6 +31329,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=45,y=84
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -31386,7 +31400,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=45,y=98
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -31495,7 +31508,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=45,y=119
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -31511,6 +31523,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=45,y=122
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -31637,7 +31650,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=46,y=21
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -31967,7 +31979,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=46,y=81
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -31983,7 +31994,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=46,y=84
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -32054,7 +32064,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=46,y=98
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -32200,7 +32209,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=47,y=2
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -32236,7 +32244,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=47,y=9
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -32330,6 +32337,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=47,y=26
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -32381,12 +32389,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=47,y=36
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=47,y=37
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -32621,7 +32629,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=47,y=78
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -32665,7 +32672,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=47,y=86
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -32821,6 +32827,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=47,y=116
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -33027,6 +33034,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=48,y=30
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -33047,7 +33055,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=48,y=34
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -33063,6 +33070,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=48,y=37
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -33270,7 +33278,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=48,y=73
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -33406,6 +33413,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=48,y=99
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -33486,6 +33494,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=48,y=115
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -33938,7 +33947,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=49,y=72
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -33959,6 +33967,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=49,y=76
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -33992,7 +34001,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=49,y=82
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -34038,7 +34046,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=49,y=91
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -34154,7 +34161,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=49,y=114
-	FeatureType=FEATURE_PEARL_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -34620,6 +34626,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=50,y=73
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -34700,6 +34707,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=50,y=88
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -35106,7 +35114,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=51,y=38
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -35283,7 +35290,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=51,y=70
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -35341,7 +35347,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=51,y=81
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -35352,7 +35357,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=51,y=83
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -35387,7 +35391,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=51,y=89
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -35941,12 +35944,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=52,y=69
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=52,y=70
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -36187,6 +36190,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=52,y=116
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -36227,7 +36231,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=52,y=124
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -36293,6 +36296,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=53,y=12
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -36455,7 +36459,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=53,y=40
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -36598,6 +36601,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=53,y=66
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -36682,12 +36686,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=53,y=82
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=53,y=83
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -37105,7 +37109,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=54,y=36
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -37526,6 +37529,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=54,y=115
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -37546,6 +37550,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=54,y=119
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -37571,7 +37576,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=54,y=124
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -37597,6 +37601,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=55,y=4
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -37788,6 +37793,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=55,y=40
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -37993,7 +37999,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=55,y=77
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -38064,6 +38069,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=55,y=91
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -38084,6 +38090,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=55,y=95
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -38238,67 +38245,57 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=56,y=0
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=56,y=1
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=56,y=2
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=56,y=3
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=56,y=4
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=56,y=5
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=56,y=6
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=56,y=7
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=56,y=8
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=56,y=9
-	EuropeType=EUROPE_EAST
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=56,y=10
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -38913,67 +38910,56 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=57,y=0
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=57,y=1
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=57,y=2
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=57,y=3
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=57,y=4
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=57,y=5
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=57,y=6
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=57,y=7
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=57,y=8
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=57,y=9
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=57,y=10
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -38999,6 +38985,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=57,y=15
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -39074,7 +39061,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=57,y=29
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -39301,7 +39287,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=57,y=70
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -39390,7 +39375,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=57,y=87
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -39411,6 +39395,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=57,y=91
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -39585,67 +39570,57 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=58,y=0
-	EuropeType=EUROPE_EAST
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=58,y=1
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=58,y=2
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=58,y=3
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=58,y=4
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=58,y=5
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=58,y=6
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=58,y=7
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=58,y=8
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=58,y=9
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=58,y=10
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -39749,7 +39724,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=58,y=29
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -40093,6 +40067,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=58,y=91
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -40241,103 +40216,86 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=58,y=119
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=58,y=120
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=58,y=121
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=58,y=122
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=58,y=123
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=58,y=124
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=59,y=0
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=59,y=1
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=59,y=2
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=59,y=3
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=59,y=4
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=59,y=5
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=59,y=6
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=59,y=7
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=59,y=8
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=59,y=9
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=59,y=10
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -40427,6 +40385,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=59,y=26
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -40783,7 +40742,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=59,y=87
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -40957,103 +40915,86 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=59,y=119
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=59,y=120
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=59,y=121
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=59,y=122
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=59,y=123
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=59,y=124
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=60,y=0
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=60,y=1
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=60,y=2
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=60,y=3
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=60,y=4
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=60,y=5
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=60,y=6
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=60,y=7
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=60,y=8
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=60,y=9
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=60,y=10
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -41201,7 +41142,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=60,y=37
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -41394,7 +41334,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=60,y=71
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -41654,103 +41593,87 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=60,y=119
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=60,y=120
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=60,y=121
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=60,y=122
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=60,y=123
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=60,y=124
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=61,y=0
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=61,y=1
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=61,y=2
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=61,y=3
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=61,y=4
-	EuropeType=EUROPE_EAST
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=61,y=5
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=61,y=6
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=61,y=7
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=61,y=8
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=61,y=9
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=61,y=10
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -41861,7 +41784,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=61,y=29
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -41898,6 +41820,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=61,y=36
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -41913,7 +41836,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=61,y=39
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -42096,7 +42018,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=61,y=72
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -42117,7 +42038,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=61,y=76
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -42176,6 +42096,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=61,y=87
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -42345,109 +42266,93 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=61,y=118
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=61,y=119
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=61,y=120
-	EuropeType=EUROPE_EAST
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=61,y=121
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=61,y=122
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=61,y=123
-	EuropeType=EUROPE_EAST
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=61,y=124
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=62,y=0
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=62,y=1
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=62,y=2
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=62,y=3
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=62,y=4
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=62,y=5
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=62,y=6
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=62,y=7
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=62,y=8
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=62,y=9
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=62,y=10
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -42572,6 +42477,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=62,y=33
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -42836,7 +42742,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=62,y=82
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -43034,109 +42939,92 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=62,y=118
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=62,y=119
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=62,y=120
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=62,y=121
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=62,y=122
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=62,y=123
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=62,y=124
-	EuropeType=EUROPE_EAST
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=63,y=0
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=63,y=1
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=63,y=2
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=63,y=3
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=63,y=4
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=63,y=5
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=63,y=6
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=63,y=7
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=63,y=8
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=63,y=9
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=63,y=10
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -43239,7 +43127,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=63,y=29
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -43712,109 +43599,91 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=63,y=118
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=63,y=119
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=63,y=120
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=63,y=121
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=63,y=122
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=63,y=123
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=63,y=124
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=0
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=1
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=2
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=3
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=4
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=5
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=6
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=7
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=8
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=9
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=10
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -43905,7 +43774,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=64,y=27
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -43951,6 +43819,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=64,y=36
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -44158,6 +44027,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=64,y=73
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -44386,109 +44256,91 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=64,y=118
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=119
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=120
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=121
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=122
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=123
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=64,y=124
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=0
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=1
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=2
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=3
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=4
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=5
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=6
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=7
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=8
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=9
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=10
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -44608,7 +44460,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=65,y=33
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -44820,6 +44671,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=65,y=71
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -44870,7 +44722,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=65,y=81
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -44911,6 +44762,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=65,y=89
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -45033,6 +44885,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=65,y=113
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -45048,6 +44901,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=65,y=116
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -45058,43 +44912,36 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=65,y=118
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=119
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=120
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=121
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=122
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=123
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=65,y=124
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -45166,36 +45013,43 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=66,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=66,y=12
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=66,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=66,y=14
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=66,y=15
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=66,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=66,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -45337,12 +45191,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=66,y=45
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=66,y=46
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -45497,7 +45351,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=66,y=72
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -45573,7 +45426,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=66,y=87
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -45737,43 +45589,36 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=66,y=118
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=66,y=119
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=66,y=120
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=66,y=121
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=66,y=122
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=66,y=123
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=66,y=124
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -45845,36 +45690,43 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=67,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=67,y=12
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=67,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=67,y=14
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=67,y=15
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=67,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=67,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -45955,6 +45807,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=67,y=33
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -45965,7 +45818,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=67,y=35
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -46001,6 +45853,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=67,y=42
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -46011,7 +45864,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=67,y=44
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -46173,7 +46025,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=67,y=73
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -46379,6 +46230,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=67,y=113
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -46404,43 +46256,36 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=67,y=118
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=67,y=119
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=67,y=120
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=67,y=121
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=67,y=122
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=67,y=123
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=67,y=124
-	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -46512,41 +46357,49 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=68,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=68,y=12
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=68,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=68,y=14
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=68,y=15
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=68,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=68,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=68,y=18
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -46602,6 +46455,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=68,y=29
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -46642,6 +46496,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=68,y=37
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -46667,7 +46522,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=68,y=42
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -46678,7 +46532,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=68,y=44
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -46891,7 +46744,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=68,y=82
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -46912,7 +46764,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=68,y=86
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -47184,41 +47035,49 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=69,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=69,y=12
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=69,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=69,y=14
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=69,y=15
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=69,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=69,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=69,y=18
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -47294,6 +47153,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=69,y=33
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -47344,6 +47204,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=69,y=43
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -47354,6 +47215,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=69,y=45
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -47555,6 +47417,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=69,y=81
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -47585,12 +47448,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=69,y=87
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=69,y=88
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -47853,41 +47716,49 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=70,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=70,y=12
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=70,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=70,y=14
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=70,y=15
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=70,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=70,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=70,y=18
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -47918,6 +47789,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=70,y=24
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -47933,6 +47805,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=70,y=27
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -47973,7 +47846,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=70,y=35
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -48024,6 +47896,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=70,y=45
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -48244,6 +48117,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=70,y=83
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -48402,7 +48276,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=70,y=114
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -48531,41 +48404,49 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=71,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=71,y=12
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=71,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=71,y=14
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=71,y=15
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=71,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=71,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=71,y=18
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -48621,6 +48502,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=71,y=29
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -48646,7 +48528,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=71,y=34
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -48736,7 +48617,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=71,y=51
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -48954,6 +48834,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=71,y=89
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -49077,6 +48958,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=71,y=113
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -49211,41 +49093,49 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=72,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=72,y=12
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=72,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=72,y=14
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=72,y=15
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=72,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=72,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=72,y=18
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -49266,6 +49156,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=72,y=22
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -49336,6 +49227,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=72,y=36
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -49351,7 +49243,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=72,y=39
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -49429,7 +49320,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=72,y=53
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -49641,6 +49531,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=72,y=91
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -49888,42 +49779,49 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=73,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=73,y=12
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=73,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=73,y=14
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=73,y=15
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=73,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=73,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=73,y=18
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -49934,6 +49832,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=73,y=20
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -49979,7 +49878,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=73,y=29
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -50025,7 +49923,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=73,y=38
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -50581,41 +50478,49 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=74,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=74,y=12
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=74,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=74,y=14
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=74,y=15
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=74,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=74,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=74,y=18
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -50641,6 +50546,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=74,y=23
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -50661,12 +50567,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=74,y=27
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=74,y=28
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -50677,6 +50583,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=74,y=30
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -51120,12 +51027,11 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=74,y=111
-	TerrainType=TERRAIN_DESERT
+	TerrainType=TERRAIN_PLAINS
 	PlotType=2
 EndPlot
 BeginPlot
 	x=74,y=112
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -51151,7 +51057,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=74,y=117
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -51265,41 +51170,49 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=75,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=75,y=12
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=75,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=75,y=14
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=75,y=15
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=75,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=75,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=75,y=18
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -51396,7 +51309,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=75,y=37
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -51482,6 +51394,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=75,y=52
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -51539,6 +51452,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=75,y=62
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -51554,7 +51468,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=75,y=65
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -51944,41 +51857,49 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=76,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=76,y=12
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=76,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=76,y=14
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=76,y=15
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=76,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=76,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=76,y=18
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -51999,7 +51920,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=76,y=22
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -52177,6 +52097,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=76,y=55
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -52229,7 +52150,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=76,y=65
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -52474,7 +52394,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=76,y=110
-	FeatureType=FEATURE_PEARL_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -52623,42 +52542,49 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=77,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=77,y=12
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=77,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=77,y=14
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=77,y=15
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=77,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=77,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=77,y=18
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -52743,7 +52669,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=77,y=34
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -52852,6 +52777,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=77,y=54
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -52899,6 +52825,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=77,y=63
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -53146,6 +53073,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=77,y=110
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -53294,41 +53222,49 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=78,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=78,y=12
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=78,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=78,y=14
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=78,y=15
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=78,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=78,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=78,y=18
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -53438,6 +53374,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=78,y=37
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -53593,6 +53530,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=78,y=66
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -53832,7 +53770,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=78,y=112
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -53971,41 +53908,49 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=79,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=79,y=12
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=79,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=79,y=14
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=79,y=15
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=79,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=79,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=79,y=18
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -54051,7 +53996,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=79,y=27
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -54122,12 +54066,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=79,y=39
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=79,y=40
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -54144,12 +54088,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=79,y=43
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=79,y=44
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -54198,11 +54142,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=79,y=53
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=79,y=54
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -54265,6 +54211,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=79,y=66
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -54644,41 +54591,49 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=80,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=80,y=12
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=80,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=80,y=14
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=80,y=15
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=80,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=80,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=80,y=18
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -55179,12 +55134,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=80,y=113
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=80,y=114
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -55312,41 +55267,49 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=81,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=81,y=12
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=81,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=81,y=14
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=81,y=15
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=81,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=81,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=81,y=18
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -55468,7 +55431,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=81,y=41
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -55489,6 +55451,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=81,y=45
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -55585,6 +55548,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=81,y=64
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -55728,7 +55692,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=81,y=90
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -55868,7 +55831,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=81,y=117
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -55981,42 +55943,49 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=82,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=82,y=12
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=82,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=82,y=14
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=82,y=15
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=82,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=82,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=82,y=18
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -56052,7 +56021,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=82,y=25
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -56098,6 +56066,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=82,y=34
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -56144,7 +56113,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=82,y=42
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -56195,6 +56163,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=82,y=52
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -56416,12 +56385,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=82,y=93
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
 BeginPlot
 	x=82,y=94
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -56653,42 +56622,49 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=83,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=83,y=12
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=83,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=83,y=14
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=83,y=15
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=83,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=83,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=83,y=18
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -56749,6 +56725,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=83,y=30
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -56838,7 +56815,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=83,y=46
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -56864,7 +56840,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=83,y=51
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -56950,7 +56925,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=83,y=68
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -57062,6 +57036,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=83,y=88
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -57210,6 +57185,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=83,y=117
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -57322,41 +57298,49 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=84,y=11
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=84,y=12
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=84,y=13
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=84,y=14
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=84,y=15
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=84,y=16
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=84,y=17
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=84,y=18
+	EuropeType=EUROPE_EAST
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -57442,7 +57426,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=84,y=35
-	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -57510,6 +57493,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=84,y=47
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -57540,6 +57524,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=84,y=53
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -57620,6 +57605,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=84,y=69
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -57669,6 +57655,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=84,y=78
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -58125,6 +58112,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=85,y=36
+	FeatureType=FEATURE_KELP, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -58192,7 +58180,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=85,y=48
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -58288,12 +58275,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=85,y=67
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=85,y=68
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -58304,7 +58291,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=85,y=70
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -58434,6 +58420,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=85,y=94
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -58796,6 +58783,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=86,y=35
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -58873,6 +58861,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=86,y=49
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -59107,6 +59096,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=86,y=94
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -59407,7 +59397,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=87,y=23
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -59438,6 +59427,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=87,y=29
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -59571,6 +59561,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=87,y=55
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -59671,6 +59662,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=87,y=75
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -59696,7 +59688,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=87,y=80
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -60194,7 +60185,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=88,y=47
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -60220,7 +60210,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=88,y=52
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -60334,7 +60323,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=88,y=74
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -60360,6 +60348,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=88,y=79
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -60395,7 +60384,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=88,y=86
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -60446,7 +60434,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=88,y=96
-	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -60525,6 +60512,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=88,y=111
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_SHALLOW_COAST
 	PlotType=3
 EndPlot
@@ -60896,7 +60884,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=89,y=53
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -60955,7 +60942,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=89,y=63
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -61001,7 +60987,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=89,y=72
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -61152,6 +61137,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=89,y=102
+	FeatureType=FEATURE_SEAGRASS, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -61469,6 +61455,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=90,y=33
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -61544,7 +61531,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=90,y=48
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -61570,7 +61556,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=90,y=53
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -61665,6 +61650,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=90,y=70
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -61740,6 +61726,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=90,y=85
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -61755,7 +61742,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=90,y=88
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -61801,7 +61787,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=90,y=97
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -61837,6 +61822,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=90,y=104
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -61852,6 +61838,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=90,y=107
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -61883,6 +61870,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=90,y=113
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -62145,6 +62133,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=91,y=33
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -62160,7 +62149,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=91,y=36
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -62221,11 +62209,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=91,y=48
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
 BeginPlot
 	x=91,y=49
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -62356,6 +62346,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=91,y=73
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -62431,7 +62422,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=91,y=88
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -62502,6 +62492,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=91,y=102
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -62836,7 +62827,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=92,y=36
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -63052,7 +63042,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=92,y=77
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -63128,6 +63117,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=92,y=92
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -63153,6 +63143,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=92,y=97
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -63183,6 +63174,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=92,y=103
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -63688,7 +63680,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=93,y=69
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -63809,7 +63800,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=93,y=93
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -63825,7 +63815,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=93,y=96
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -63861,6 +63850,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=93,y=103
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -63876,6 +63866,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=93,y=106
+	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -63916,7 +63907,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=93,y=114
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -64493,6 +64483,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=94,y=91
+	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -64503,7 +64494,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=94,y=93
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -64534,6 +64524,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=94,y=99
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -64600,7 +64591,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=94,y=112
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -65281,7 +65271,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=95,y=106
-	FeatureType=FEATURE_STONE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -66792,7 +66781,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=97,y=115
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -67511,7 +67499,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=98,y=112
-	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -68255,6 +68242,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=99,y=114
+	FeatureType=FEATURE_REEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -68928,7 +68916,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=100,y=102
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -68944,7 +68931,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=100,y=105
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -68960,7 +68946,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=100,y=108
-	FeatureType=FEATURE_VENT_DEF, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -69689,7 +69674,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=101,y=107
-	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -69700,6 +69684,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=101,y=109
+	FeatureType=FEATURE_VENT_FAV, FeatureVariety=0
 	TerrainType=TERRAIN_OCEAN
 	PlotType=3
 EndPlot
@@ -74013,8 +73998,8 @@ BeginSign
 	caption=Red Sea
 EndSign
 BeginSign
-	plotX=68
-	plotY=17
+	plotX=67
+	plotY=18
 	playerType=-1
 	caption=Norwegian Sea
 EndSign
