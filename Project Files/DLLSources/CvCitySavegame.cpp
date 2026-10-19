@@ -51,6 +51,7 @@
 	const bool defaultWallOverride = false;
 	const bool defaultPopulationRankValid = false;
 	const bool defaultHasHurried = false;
+	const bool defaultBesieged = false; // WTP
 
 	const PlayerTypes defaultOwner = NO_PLAYER;
 	const PlayerTypes defaultPreviousOwner = NO_PLAYER;
@@ -186,6 +187,8 @@ enum SavegameVariableTypes
 	CitySave_SlaveEmancipationPendingUnrest, // WTP, Slave Emancipation
 	CitySave_ForeignBuildingBurnTimer,
 
+	CitySave_Besieged, // WTP: siege
+
 	NUM_CITYSAVE_ENUM_VALUES,
 };
 
@@ -312,6 +315,7 @@ const char* getSavedEnumNameCity(SavegameVariableTypes eType)
 		case CitySave_OppressometerGrowthModifier: return "CitySave_OppressometerGrowthModifier";
 		case CitySave_SlaveEmancipationPendingUnrest: return "CitySave_SlaveEmancipationPendingUnrest";
 		case CitySave_ForeignBuildingBurnTimer: return "CitySave_ForeignBuildingBurnTimer";
+		case CitySave_Besieged: return "CitySave_Besieged";
 	}
 	FAssertMsg(0, "Missing case");
 	return "";
@@ -390,6 +394,7 @@ void CvCity::resetSavedData(int iID, PlayerTypes eOwner, Coordinates resetCoord,
 	m_bWallOverride = defaultWallOverride;
 	m_bPopulationRankValid = defaultPopulationRankValid;
 	m_bHasHurried = defaultHasHurried;
+	m_bBesieged = defaultBesieged;
 
 	m_eOwner = eOwner;
 	m_ePreviousOwner = defaultPreviousOwner;
@@ -502,6 +507,7 @@ void CvCity::read(CvSavegameReader reader)
 		case CitySave_OccupationTimer                            : reader.Read(m_iOccupationTimer)                          ; break;
 		case CitySave_SlaveEmancipationPendingUnrest             : reader.Read(m_iSlaveEmancipationPendingUnrest)           ; break; // WTP, Slave Emancipation
 		case CitySave_ForeignBuildingBurnTimer                   : reader.Read(m_iForeignBuildingBurnTimer)                 ; break;
+		case CitySave_Besieged                                   : reader.Read(m_bBesieged)                                 ; break;
 		case CitySave_CultureUpdateTimer                         : reader.Read(m_iCultureUpdateTimer)                       ; break;
 		case CitySave_CitySizeBoost                              : reader.Read(m_iCitySizeBoost)                            ; break;
 		case CitySave_Hammers                                    : reader.Read(m_iHammers)                                  ; break;
@@ -661,6 +667,7 @@ void CvCity::write(CvSavegameWriter writer)
 	writer.Write(CitySave_OccupationTimer, m_iOccupationTimer, defaultOccupationTimer);
 	writer.Write(CitySave_SlaveEmancipationPendingUnrest, m_iSlaveEmancipationPendingUnrest, defaultSlaveEmancipationPendingUnrest); // WTP, Slave Emancipation
 	writer.Write(CitySave_ForeignBuildingBurnTimer, m_iForeignBuildingBurnTimer, defaultForeignBuildingBurnTimer);
+	writer.Write(CitySave_Besieged, m_bBesieged, defaultBesieged);
 	writer.Write(CitySave_CultureUpdateTimer, m_iCultureUpdateTimer, defaultCultureUpdateTimer);
 	writer.Write(CitySave_CitySizeBoost, m_iCitySizeBoost, defaultCitySizeBoost);
 	writer.Write(CitySave_Hammers, m_iHammers, defaultHammers);
