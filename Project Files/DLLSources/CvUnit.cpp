@@ -3545,15 +3545,8 @@ void CvUnit::doCommand(CommandTypes eCommand, int iData1, int iData2)
 
 		// WTP: reload the black powder of land artillery
 		case COMMAND_RELOAD_POWDER:
-		{
-			const int iLoaded = reloadPowder();
-			if (iLoaded > 0)
-			{
-				const CvWString szBuffer = gDLL->getText("TXT_KEY_POWDER_RELOADED", getNameOrProfessionKey(), iLoaded, getPowderStored() / 100, getPowderCapacity() / 100);
-				gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, GC.getYieldInfo(YIELD_BLACK_POWDER).getButton(), COLOR_GREEN, getX_INLINE(), getY_INLINE());
-			}
+			reloadPowderGroup();
 			break;
-		}
 
 		// WTP: transport to a city: the player picks the colony
 		case COMMAND_TRANSPORT_TO_CITY:
@@ -8046,23 +8039,19 @@ int CvUnit::getBombardDamagePercent(int iAttackStrength, int iDefenseStrength, b
 
 bool CvUnit::canReloadPowder() const
 {
-	return const_cast<CvUnit*>(this)->reloadPowder(true) > 0;
+	return isPowderArtillery() && !isPowderExempt() && isOnMap_() && !isCargo() && getPowderShortfall() > 0 && getPowderSupply() > 0;
 }
 
-// reload black powder: from the own colony on this plot, then from a ship on this or an adjacent plot, then from a
-// land transport (wagon train) on this plot; returns the black powder loaded (or that could be loaded)
-int CvUnit::reloadPowder(bool bTestOnly)
+// black powder this artillery can reload here
+int CvUnit::getPowderSupply() const
 {
-	if (!isPowderArtillery() || isPowderExempt() || !isOnMap_() || isCargo())
-	{
-		return 0;
-	}
-	const int iWanted = getPowderShortfall();
-	if (iWanted <= 0)
-	{
-		return 0;
-	}
+	return const_cast<CvUnit*>(this)->takePowder(MAX_INT, false);
+}
 
+// takes (or with bTake false only counts) up to iWanted black powder: from the own colony on this plot, then from a
+// ship on this or an adjacent plot, then from a land transport (wagon train) on this plot
+int CvUnit::takePowder(int iWanted, bool bTake)
+{
 	int iLoaded = 0;
 	CvCity* pCity = plot()->getPlotCity();
 	if (pCity != NULL && pCity->getOwnerINLINE() == getOwnerINLINE())
@@ -8070,7 +8059,7 @@ int CvUnit::reloadPowder(bool bTestOnly)
 		const int iTake = std::min(iWanted, pCity->getYieldStored(YIELD_BLACK_POWDER));
 		if (iTake > 0)
 		{
-			if (!bTestOnly)
+			if (bTake)
 			{
 				pCity->changeYieldStored(YIELD_BLACK_POWDER, -iTake);
 			}
@@ -8105,7 +8094,7 @@ int CvUnit::reloadPowder(bool bTestOnly)
 				const int iTake = std::min(iWanted - iLoaded, apPowder[i]->getYieldStored());
 				if (iTake > 0)
 				{
-					if (!bTestOnly)
+					if (bTake)
 					{
 						apPowder[i]->setYieldStored(apPowder[i]->getYieldStored() - iTake);
 					}
@@ -8114,12 +8103,95 @@ int CvUnit::reloadPowder(bool bTestOnly)
 			}
 		}
 	}
+	return iLoaded;
+}
 
-	if (!bTestOnly && iLoaded > 0)
+// reloads up to iMaxAmount black powder (-1: all that is missing); returns the black powder loaded
+int CvUnit::reloadPowder(int iMaxAmount)
+{
+	if (!isPowderArtillery() || isPowderExempt() || !isOnMap_() || isCargo())
+	{
+		return 0;
+	}
+	const int iWanted = (iMaxAmount < 0) ? getPowderShortfall() : std::min(getPowderShortfall(), iMaxAmount);
+	if (iWanted <= 0)
+	{
+		return 0;
+	}
+	const int iLoaded = takePowder(iWanted, true);
+	if (iLoaded > 0)
 	{
 		changePowderUsed(-iLoaded * 100);
 	}
 	return iLoaded;
+}
+
+// the reload button: all artillery of the group (the selected units) reloads the same amount, as much as the black
+// powder here allows (an artillery that misses less takes only what it misses)
+void CvUnit::reloadPowderGroup()
+{
+	std::vector<CvUnit*> apUnits;
+	CvSelectionGroup* pGroup = getGroup();
+	if (pGroup != NULL)
+	{
+		CLLNode<IDInfo>* pUnitNode = pGroup->headUnitNode();
+		while (pUnitNode != NULL)
+		{
+			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+			pUnitNode = pGroup->nextUnitNode(pUnitNode);
+			if (pLoopUnit != NULL && pLoopUnit->canReloadPowder())
+			{
+				apUnits.push_back(pLoopUnit);
+			}
+		}
+	}
+	if (apUnits.empty() && canReloadPowder())
+	{
+		apUnits.push_back(this);
+	}
+	if (apUnits.empty())
+	{
+		return;
+	}
+
+	// the largest equal share the black powder here is enough for (all units of a group are on the same plot)
+	const int iSupply = apUnits[0]->getPowderSupply();
+	int iMaxShortfall = 0;
+	for (uint i = 0; i < apUnits.size(); ++i)
+	{
+		iMaxShortfall = std::max(iMaxShortfall, apUnits[i]->getPowderShortfall());
+	}
+	int iShare = 0;
+	for (int iTry = 1; iTry <= iMaxShortfall; ++iTry)
+	{
+		int iTotal = 0;
+		for (uint i = 0; i < apUnits.size(); ++i)
+		{
+			iTotal += std::min(iTry, apUnits[i]->getPowderShortfall());
+		}
+		if (iTotal > iSupply)
+		{
+			break;
+		}
+		iShare = iTry;
+	}
+
+	if (iShare <= 0)
+	{
+		const CvWString szBuffer = gDLL->getText("TXT_KEY_POWDER_NOT_ENOUGH_TO_SHARE", iSupply, (int)apUnits.size());
+		gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_ERROR", MESSAGE_TYPE_INFO, GC.getYieldInfo(YIELD_BLACK_POWDER).getButton(), COLOR_RED, getX_INLINE(), getY_INLINE());
+		return;
+	}
+
+	for (uint i = 0; i < apUnits.size(); ++i)
+	{
+		const int iLoaded = apUnits[i]->reloadPowder(iShare);
+		if (iLoaded > 0)
+		{
+			const CvWString szBuffer = gDLL->getText("TXT_KEY_POWDER_RELOADED", apUnits[i]->getNameOrProfessionKey(), iLoaded, apUnits[i]->getPowderStored() / 100, apUnits[i]->getPowderCapacity() / 100);
+			gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, GC.getYieldInfo(YIELD_BLACK_POWDER).getButton(), COLOR_GREEN, apUnits[i]->getX_INLINE(), apUnits[i]->getY_INLINE());
+		}
+	}
 }
 
 bool CvUnit::canPillage(const CvPlot* pPlot) const

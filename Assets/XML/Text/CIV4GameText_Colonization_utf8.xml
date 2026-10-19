@@ -5316,14 +5316,14 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_COMMAND_RELOAD_POWDER_HELP</Tag>
-		<English>Refills the artillery's [COLOR_HIGHLIGHT_TEXT]Gunpowder[COLOR_REVERT]. Each bombardment uses 3, an artillery carries at most 15. The Gunpowder comes from the colony on this plot first, then from a ship on this or an adjacent plot, then from a Wagon Train on this plot.</English>
-		<Portuguese>Reabastece a [COLOR_HIGHLIGHT_TEXT]pólvora[COLOR_REVERT] da artilharia. Cada bombardeio gasta 3, uma artilharia leva no máximo 15. A pólvora vem primeiro da colônia neste quadrado, depois de um navio neste quadrado ou num adjacente, depois de uma carroça neste quadrado.</Portuguese>
-		<French>Remplit la [COLOR_HIGHLIGHT_TEXT]poudre à canon[COLOR_REVERT] de l'artillerie. Chaque bombardement en consomme 3, une artillerie en porte 15 au plus. La poudre vient d'abord de la colonie sur cette case, puis d'un navire sur cette case ou une case voisine, puis d'un chariot sur cette case.</French>
-		<German>Füllt das [COLOR_HIGHLIGHT_TEXT]Schwarzpulver[COLOR_REVERT] der Artillerie auf. Jedes Bombardement verbraucht 3, eine Artillerie trägt höchstens 15. Das Pulver kommt zuerst aus der Kolonie auf diesem Feld, dann von einem Schiff auf diesem oder einem Nachbarfeld, dann von einem Planwagen auf diesem Feld.</German>
-		<Italian>Rifornisce la [COLOR_HIGHLIGHT_TEXT]polvere da sparo[COLOR_REVERT] dell'artiglieria. Ogni bombardamento ne consuma 3, un'artiglieria ne porta al massimo 15. La polvere viene prima dalla colonia su questa casella, poi da una nave su questa casella o su una adiacente, poi da una colonna di carovane su questa casella.</Italian>
-		<Spanish>Repone la [COLOR_HIGHLIGHT_TEXT]pólvora[COLOR_REVERT] de la artillería. Cada bombardeo gasta 3, una artillería lleva como máximo 15. La pólvora sale primero de la colonia en esta casilla, después de un barco en esta casilla o en una adyacente, después de una caravana de carromatos en esta casilla.</Spanish>
-		<Russian>Пополняет [COLOR_HIGHLIGHT_TEXT]порох[COLOR_REVERT] артиллерии. Каждая бомбардировка расходует 3, артиллерия несёт не больше 15. Порох берётся сначала из колонии на этой клетке, затем с корабля на этой или соседней клетке, затем из обоза на этой клетке.</Russian>
-		<Hungarian>Feltölti a tüzérség [COLOR_HIGHLIGHT_TEXT]puskaporát[COLOR_REVERT]. Minden bombázás 3-at használ el, egy tüzérség legfeljebb 15-öt visz. A puskapor először az ezen a mezőn lévő kolóniából jön, aztán egy hajóról ezen vagy egy szomszédos mezőn, aztán egy szekérről ezen a mezőn.</Hungarian>
+		<English>Refills the artillery's [COLOR_HIGHLIGHT_TEXT]Gunpowder[COLOR_REVERT]. Each bombardment uses 3, an artillery carries at most 15. The Gunpowder comes from the colony on this plot first, then from a ship on this or an adjacent plot, then from a Wagon Train on this plot. Several selected artillery units all reload the same amount, as much as the Gunpowder allows.</English>
+		<Portuguese>Reabastece a [COLOR_HIGHLIGHT_TEXT]pólvora[COLOR_REVERT] da artilharia. Cada bombardeio gasta 3, uma artilharia leva no máximo 15. A pólvora vem primeiro da colônia neste quadrado, depois de um navio neste quadrado ou num adjacente, depois de uma carroça neste quadrado. Várias artilharias selecionadas recarregam todas a mesma quantidade, tanto quanto a pólvora permitir.</Portuguese>
+		<French>Remplit la [COLOR_HIGHLIGHT_TEXT]poudre à canon[COLOR_REVERT] de l'artillerie. Chaque bombardement en consomme 3, une artillerie en porte 15 au plus. La poudre vient d'abord de la colonie sur cette case, puis d'un navire sur cette case ou une case voisine, puis d'un chariot sur cette case. Plusieurs artilleries sélectionnées rechargent toutes la même quantité, autant que la poudre le permet.</French>
+		<German>Füllt das [COLOR_HIGHLIGHT_TEXT]Schwarzpulver[COLOR_REVERT] der Artillerie auf. Jedes Bombardement verbraucht 3, eine Artillerie trägt höchstens 15. Das Pulver kommt zuerst aus der Kolonie auf diesem Feld, dann von einem Schiff auf diesem oder einem Nachbarfeld, dann von einem Planwagen auf diesem Feld. Mehrere ausgewählte Artillerien laden alle dieselbe Menge nach, so viel das Pulver erlaubt.</German>
+		<Italian>Rifornisce la [COLOR_HIGHLIGHT_TEXT]polvere da sparo[COLOR_REVERT] dell'artiglieria. Ogni bombardamento ne consuma 3, un'artiglieria ne porta al massimo 15. La polvere viene prima dalla colonia su questa casella, poi da una nave su questa casella o su una adiacente, poi da una colonna di carovane su questa casella. Più artiglierie selezionate ricaricano tutte la stessa quantità, quanto la polvere consente.</Italian>
+		<Spanish>Repone la [COLOR_HIGHLIGHT_TEXT]pólvora[COLOR_REVERT] de la artillería. Cada bombardeo gasta 3, una artillería lleva como máximo 15. La pólvora sale primero de la colonia en esta casilla, después de un barco en esta casilla o en una adyacente, después de una caravana de carromatos en esta casilla. Varias artillerías seleccionadas recargan todas la misma cantidad, tanto como permita la pólvora.</Spanish>
+		<Russian>Пополняет [COLOR_HIGHLIGHT_TEXT]порох[COLOR_REVERT] артиллерии. Каждая бомбардировка расходует 3, артиллерия несёт не больше 15. Порох берётся сначала из колонии на этой клетке, затем с корабля на этой или соседней клетке, затем из обоза на этой клетке. Несколько выбранных артиллерий пополняют порох поровну, насколько его хватает.</Russian>
+		<Hungarian>Feltölti a tüzérség [COLOR_HIGHLIGHT_TEXT]puskaporát[COLOR_REVERT]. Minden bombázás 3-at használ el, egy tüzérség legfeljebb 15-öt visz. A puskapor először az ezen a mezőn lévő kolóniából jön, aztán egy hajóról ezen vagy egy szomszédos mezőn, aztán egy szekérről ezen a mezőn. Több kijelölt tüzérség mind ugyanannyit tölt utána, amennyit a puskapor enged.</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_PROMOTION_POWDER_SUPPLY</Tag>
@@ -5401,5 +5401,16 @@
 		<Spanish>Duelo de artillería en %s1: fuerza de artillería %d2 contra %d3, efecto del bombardeo %d4%%.</Spanish>
 		<Russian>Артиллерийская дуэль у %s1: сила артиллерии %d2 против %d3, эффект бомбардировки %d4%%.</Russian>
 		<Hungarian>Tüzérségi párbaj itt: %s1: tüzérségi erő %d2 a %d3 ellen, a bombázás hatása %d4%%.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POWDER_NOT_ENOUGH_TO_SHARE</Tag>
+		<English>Not enough Gunpowder here (%d1) to reload the %d2 selected artillery units by the same amount.</English>
+		<Portuguese>Não há pólvora suficiente aqui (%d1) para recarregar as %d2 artilharias selecionadas com a mesma quantidade.</Portuguese>
+		<French>Pas assez de poudre à canon ici (%d1) pour recharger les %d2 artilleries sélectionnées de la même quantité.</French>
+		<German>Hier ist nicht genug Schwarzpulver (%d1), um die %d2 ausgewählten Artillerien um dieselbe Menge nachzuladen.</German>
+		<Italian>Non c'è abbastanza polvere da sparo qui (%d1) per ricaricare le %d2 artiglierie selezionate della stessa quantità.</Italian>
+		<Spanish>No hay pólvora suficiente aquí (%d1) para recargar las %d2 artillerías seleccionadas con la misma cantidad.</Spanish>
+		<Russian>Здесь недостаточно пороха (%d1), чтобы поровну пополнить %d2 выбранных артиллерий.</Russian>
+		<Hungarian>Itt nincs elég puskapor (%d1) ahhoz, hogy a %d2 kijelölt tüzérség ugyanannyit töltsön utána.</Hungarian>
 	</TEXT>
 </Civ4GameText>

@@ -2321,6 +2321,28 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 					gDLL->getInterfaceIFace()->selectUnit(pHeadSelectedUnit, true);
 				}
 			}
+			// WTP: reloading black powder shares it equally among the selected artillery: one command for the whole group
+			else if (eMessage == GAMEMESSAGE_DO_COMMAND && ((CommandTypes)iData2) == COMMAND_RELOAD_POWDER)
+			{
+				if (!(gDLL->getInterfaceIFace()->mirrorsSelectionGroup()))
+				{
+					selectionListGameNetMessage(GAMEMESSAGE_JOIN_GROUP);
+				}
+
+				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+
+				while (pSelectedUnitNode != NULL)
+				{
+					pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+
+					if (pSelectedUnit != NULL && pSelectedUnit->canDoCommand(COMMAND_RELOAD_POWDER, iData3, iData4))
+					{
+						gDLL->sendDoCommand(pSelectedUnit->getID(), COMMAND_RELOAD_POWDER, iData3, iData4, bAlt);
+						break;
+					}
+				}
+			}
 			else if (eMessage == GAMEMESSAGE_DO_COMMAND)
 			{
 				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();

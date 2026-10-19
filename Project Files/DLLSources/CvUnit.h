@@ -269,7 +269,12 @@ public:
 	void updatePowderPromotions();
 	int getArtilleryDuelStrength() const;
 	bool canReloadPowder() const;
-	int reloadPowder(bool bTestOnly = false);
+	int reloadPowder(int iMaxAmount = -1); // -1: all that is missing
+	void reloadPowderGroup();
+	int getPowderSupply() const;
+protected:
+	int takePowder(int iWanted, bool bTake);
+public:
 	static int getBombardDamagePercent(int iAttackStrength, int iDefenseStrength, bool bRandom);
 	bool canPillage(const CvPlot* pPlot) const;
 	bool pillage();
