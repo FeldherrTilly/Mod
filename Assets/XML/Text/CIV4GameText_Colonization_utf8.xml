@@ -5303,4 +5303,103 @@
 		<German>Produziert %d1 %s2</German>
 		<Russian>Произвести %d1 %s2</Russian>
 	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_RELOAD_POWDER</Tag>
+		<English>Reload Gunpowder</English>
+		<Portuguese>Recarregar pólvora</Portuguese>
+		<French>Recharger la poudre à canon</French>
+		<German>Schwarzpulver nachladen</German>
+		<Italian>Ricarica polvere da sparo</Italian>
+		<Spanish>Recargar pólvora</Spanish>
+		<Russian>Пополнить порох</Russian>
+		<Hungarian>Puskapor utántöltése</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_RELOAD_POWDER_HELP</Tag>
+		<English>Refills the artillery's [COLOR_HIGHLIGHT_TEXT]Gunpowder[COLOR_REVERT]. Each bombardment uses 3, an artillery carries at most 15. The Gunpowder comes from the colony on this plot first, then from a ship on this or an adjacent plot, then from a Wagon Train on this plot.</English>
+		<Portuguese>Reabastece a [COLOR_HIGHLIGHT_TEXT]pólvora[COLOR_REVERT] da artilharia. Cada bombardeio gasta 3, uma artilharia leva no máximo 15. A pólvora vem primeiro da colônia neste quadrado, depois de um navio neste quadrado ou num adjacente, depois de uma carroça neste quadrado.</Portuguese>
+		<French>Remplit la [COLOR_HIGHLIGHT_TEXT]poudre à canon[COLOR_REVERT] de l'artillerie. Chaque bombardement en consomme 3, une artillerie en porte 15 au plus. La poudre vient d'abord de la colonie sur cette case, puis d'un navire sur cette case ou une case voisine, puis d'un chariot sur cette case.</French>
+		<German>Füllt das [COLOR_HIGHLIGHT_TEXT]Schwarzpulver[COLOR_REVERT] der Artillerie auf. Jedes Bombardement verbraucht 3, eine Artillerie trägt höchstens 15. Das Pulver kommt zuerst aus der Kolonie auf diesem Feld, dann von einem Schiff auf diesem oder einem Nachbarfeld, dann von einem Planwagen auf diesem Feld.</German>
+		<Italian>Rifornisce la [COLOR_HIGHLIGHT_TEXT]polvere da sparo[COLOR_REVERT] dell'artiglieria. Ogni bombardamento ne consuma 3, un'artiglieria ne porta al massimo 15. La polvere viene prima dalla colonia su questa casella, poi da una nave su questa casella o su una adiacente, poi da una colonna di carovane su questa casella.</Italian>
+		<Spanish>Repone la [COLOR_HIGHLIGHT_TEXT]pólvora[COLOR_REVERT] de la artillería. Cada bombardeo gasta 3, una artillería lleva como máximo 15. La pólvora sale primero de la colonia en esta casilla, después de un barco en esta casilla o en una adyacente, después de una caravana de carromatos en esta casilla.</Spanish>
+		<Russian>Пополняет [COLOR_HIGHLIGHT_TEXT]порох[COLOR_REVERT] артиллерии. Каждая бомбардировка расходует 3, артиллерия несёт не больше 15. Порох берётся сначала из колонии на этой клетке, затем с корабля на этой или соседней клетке, затем из обоза на этой клетке.</Russian>
+		<Hungarian>Feltölti a tüzérség [COLOR_HIGHLIGHT_TEXT]puskaporát[COLOR_REVERT]. Minden bombázás 3-at használ el, egy tüzérség legfeljebb 15-öt visz. A puskapor először az ezen a mezőn lévő kolóniából jön, aztán egy hajóról ezen vagy egy szomszédos mezőn, aztán egy szekérről ezen a mezőn.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PROMOTION_POWDER_SUPPLY</Tag>
+		<English>Powder Supply</English>
+		<Portuguese>Reserva de pólvora</Portuguese>
+		<French>Réserve de poudre</French>
+		<German>Pulvervorrat</German>
+		<Italian>Scorta di polvere</Italian>
+		<Spanish>Reserva de pólvora</Spanish>
+		<Russian>Запас пороха</Russian>
+		<Hungarian>Lőporkészlet</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PROMOTION_POWDER_SUPPLY_HELP</Tag>
+		<English>[ICON_BULLET]Has Gunpowder for at least one bombardment (3 Gunpowder each)</English>
+		<Portuguese>[ICON_BULLET]Tem pólvora para pelo menos um bombardeio (3 de pólvora cada)</Portuguese>
+		<French>[ICON_BULLET]A de la poudre à canon pour au moins un bombardement (3 chacun)</French>
+		<German>[ICON_BULLET]Hat Schwarzpulver für mindestens ein Bombardement (je 3 Schwarzpulver)</German>
+		<Italian>[ICON_BULLET]Ha polvere da sparo per almeno un bombardamento (3 ciascuno)</Italian>
+		<Spanish>[ICON_BULLET]Tiene pólvora para al menos un bombardeo (3 cada uno)</Spanish>
+		<Russian>[ICON_BULLET]Есть порох хотя бы на одну бомбардировку (по 3 пороха)</Russian>
+		<Hungarian>[ICON_BULLET]Van puskapora legalább egy bombázásra (bombázásonként 3)</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PROMOTION_POWDER_EMPTY</Tag>
+		<English>Out of Powder</English>
+		<Portuguese>Sem pólvora</Portuguese>
+		<French>Poudre épuisée</French>
+		<German>Pulver erschöpft</German>
+		<Italian>Polvere esaurita</Italian>
+		<Spanish>Sin pólvora</Spanish>
+		<Russian>Порох кончился</Russian>
+		<Hungarian>Kifogyott a lőpor</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PROMOTION_POWDER_EMPTY_HELP</Tag>
+		<English>[ICON_BULLET]-90% strength in attack and defense[NEWLINE][ICON_BULLET]Cannot bombard and does not count in artillery duels until it reloads Gunpowder</English>
+		<Portuguese>[ICON_BULLET]-90% de força no ataque e na defesa[NEWLINE][ICON_BULLET]Não pode bombardear nem conta em duelos de artilharia até recarregar pólvora</Portuguese>
+		<French>[ICON_BULLET]-90% de force en attaque et en défense[NEWLINE][ICON_BULLET]Ne peut pas bombarder et ne compte pas dans les duels d'artillerie avant d'avoir rechargé de la poudre</French>
+		<German>[ICON_BULLET]-90% Stärke in Angriff und Verteidigung[NEWLINE][ICON_BULLET]Kann nicht bombardieren und zählt nicht im Artillerieduell, bis Schwarzpulver nachgeladen ist</German>
+		<Italian>[ICON_BULLET]-90% di forza in attacco e in difesa[NEWLINE][ICON_BULLET]Non può bombardare e non conta nei duelli di artiglieria finché non ricarica la polvere</Italian>
+		<Spanish>[ICON_BULLET]-90% de fuerza en ataque y en defensa[NEWLINE][ICON_BULLET]No puede bombardear ni cuenta en duelos de artillería hasta que recargue pólvora</Spanish>
+		<Russian>[ICON_BULLET]-90% силы в атаке и обороне[NEWLINE][ICON_BULLET]Не может бомбардировать и не учитывается в артиллерийской дуэли, пока не пополнит порох</Russian>
+		<Hungarian>[ICON_BULLET]-90% erő támadásban és védekezésben[NEWLINE][ICON_BULLET]Nem tud bombázni, és nem számít a tüzérségi párbajban, amíg nem tölt utána puskaport</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_POWDER_STORED</Tag>
+		<English>[ICON_BULLET]Gunpowder: %d1/%d2</English>
+		<Portuguese>[ICON_BULLET]Pólvora: %d1/%d2</Portuguese>
+		<French>[ICON_BULLET]Poudre à canon : %d1/%d2</French>
+		<German>[ICON_BULLET]Schwarzpulver: %d1/%d2</German>
+		<Italian>[ICON_BULLET]Polvere da sparo: %d1/%d2</Italian>
+		<Spanish>[ICON_BULLET]Pólvora: %d1/%d2</Spanish>
+		<Russian>[ICON_BULLET]Порох: %d1/%d2</Russian>
+		<Hungarian>[ICON_BULLET]Puskapor: %d1/%d2</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POWDER_RELOADED</Tag>
+		<English>%s1 reloads %d2 Gunpowder (now %d3/%d4).</English>
+		<Portuguese>%s1 recarrega %d2 de pólvora (agora %d3/%d4).</Portuguese>
+		<French>%s1 recharge %d2 de poudre à canon (maintenant %d3/%d4).</French>
+		<German>%s1 lädt %d2 Schwarzpulver nach (jetzt %d3/%d4).</German>
+		<Italian>%s1 ricarica %d2 di polvere da sparo (ora %d3/%d4).</Italian>
+		<Spanish>%s1 recarga %d2 de pólvora (ahora %d3/%d4).</Spanish>
+		<Russian>%s1 пополняет порох на %d2 (теперь %d3/%d4).</Russian>
+		<Hungarian>%s1 %d2 puskaport tölt utána (most %d3/%d4).</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BOMBARD_ARTILLERY_DUEL</Tag>
+		<English>Artillery duel at %s1: artillery strength %d2 against %d3, effect of the bombardment %d4%%.</English>
+		<Portuguese>Duelo de artilharia em %s1: força da artilharia %d2 contra %d3, efeito do bombardeio %d4%%.</Portuguese>
+		<French>Duel d'artillerie à %s1 : force d'artillerie %d2 contre %d3, effet du bombardement %d4%%.</French>
+		<German>Artillerieduell bei %s1: Artilleriestärke %d2 gegen %d3, Wirkung des Bombardements %d4%%.</German>
+		<Italian>Duello di artiglieria a %s1: forza dell'artiglieria %d2 contro %d3, effetto del bombardamento %d4%%.</Italian>
+		<Spanish>Duelo de artillería en %s1: fuerza de artillería %d2 contra %d3, efecto del bombardeo %d4%%.</Spanish>
+		<Russian>Артиллерийская дуэль у %s1: сила артиллерии %d2 против %d3, эффект бомбардировки %d4%%.</Russian>
+		<Hungarian>Tüzérségi párbaj itt: %s1: tüzérségi erő %d2 a %d3 ellen, a bombázás hatása %d4%%.</Hungarian>
+	</TEXT>
 </Civ4GameText>

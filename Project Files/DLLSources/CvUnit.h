@@ -255,6 +255,22 @@ public:
 	// Super Forts end
 	bool canBombard(const CvPlot* pPlot) const;
 	bool bombard();
+
+	// WTP: black powder of land artillery: each bombardment uses some, a button reloads it; the king's artillery needs none
+	bool isPowderArtillery() const;
+	bool isPowderExempt() const;
+	int getPowderCapacity() const; // in hundredths of black powder
+	int getPowderStored() const; // in hundredths of black powder
+	int getPowderShortfall() const; // whole black powder missing
+	bool hasPowderForShot() const;
+	bool isOutOfPowder() const;
+	void changePowderUsed(int iChange); // in hundredths of black powder
+	void resetPowder();
+	void updatePowderPromotions();
+	int getArtilleryDuelStrength() const;
+	bool canReloadPowder() const;
+	int reloadPowder(bool bTestOnly = false);
+	static int getBombardDamagePercent(int iAttackStrength, int iDefenseStrength, bool bRandom);
 	bool canPillage(const CvPlot* pPlot) const;
 	bool pillage();
 	bool canSack(const CvPlot* pPlot);
@@ -1021,6 +1037,8 @@ protected:
 
 	bool m_bAllowDangerousPath;
 	bool m_bAllowDirectPath;
+
+	int m_iPowderUsed; // WTP: black powder the artillery has fired, in hundredths
 
 	UnitTravelStates m_eUnitTravelState;
 

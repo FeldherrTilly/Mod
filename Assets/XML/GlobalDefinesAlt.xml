@@ -1834,4 +1834,44 @@
 		<DefineName>TRADE_DECAY_PRICE_CHANGE</DefineName>
 		<iDefineIntVal>512</iDefineIntVal>
 	</Define>
+	<Define>
+		<!-- WTP: black powder a land artillery carries -->
+		<DefineName>ARTILLERY_POWDER_CAPACITY</DefineName>
+		<iDefineIntVal>15</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- WTP: black powder a bombardment uses -->
+		<DefineName>ARTILLERY_POWDER_PER_SHOT</DefineName>
+		<iDefineIntVal>3</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- WTP: strength malus in percent of artillery without black powder for a bombardment -->
+		<DefineName>ARTILLERY_NO_POWDER_COMBAT_MALUS</DefineName>
+		<iDefineIntVal>90</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- WTP: artillery duel: strength bonus in percent of artillery on hills -->
+		<DefineName>BOMBARD_ARTILLERY_HILLS_BONUS</DefineName>
+		<iDefineIntVal>25</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- WTP: artillery duel: chance in percent of a full bombardment against enemy artillery as strong or stronger -->
+		<DefineName>BOMBARD_ARTILLERY_EQUAL_CHANCE</DefineName>
+		<iDefineIntVal>5</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- WTP: artillery duel: bombardment effect in percent with twice the enemy artillery strength -->
+		<DefineName>BOMBARD_ARTILLERY_PERCENT_2X</DefineName>
+		<iDefineIntVal>30</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- WTP: artillery duel: bombardment effect in percent with four times the enemy artillery strength -->
+		<DefineName>BOMBARD_ARTILLERY_PERCENT_4X</DefineName>
+		<iDefineIntVal>50</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- WTP: artillery duel: bombardment effect in percent with eight times (or more) the enemy artillery strength -->
+		<DefineName>BOMBARD_ARTILLERY_PERCENT_8X</DefineName>
+		<iDefineIntVal>75</iDefineIntVal>
+	</Define>
 </Civ4Defines>

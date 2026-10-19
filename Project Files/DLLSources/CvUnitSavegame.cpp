@@ -47,6 +47,7 @@ const bool defaultIgnoreDanger = false;
 const bool defaultAllowDangerousPath = false;
 const bool defaultBarbarian = false;
 const bool defaultAllowDirectPath = false;
+const int defaultPowderUsed = 0; // WTP
 
 const ProfessionTypes defaultProfession = NO_PROFESSION;
 const ProfessionTypes defaultLastProfession = NO_PROFESSION;
@@ -149,6 +150,9 @@ enum SavegameVariableTypes
 	// WTP, Attached Land Leader - Ready Turn
 	UnitSave_LeaderReadyTurn,
 
+	// WTP: black powder of land artillery
+	UnitSave_PowderUsed,
+
 	NUM_SAVE_ENUM_VALUES,
 };
 
@@ -227,6 +231,7 @@ const char* getSavedEnumNameUnit(SavegameVariableTypes eType)
 	case UnitSave_LeaderInitialBonusGranted: return "UnitSave_LeaderInitialBonusGranted";
 	case UnitSave_AttachedLeaderInitialBonusGranted: return "UnitSave_AttachedLeaderInitialBonusGranted";
 	case UnitSave_LeaderReadyTurn: return "UnitSave_LeaderReadyTurn";
+	case UnitSave_PowderUsed: return "UnitSave_PowderUsed";
 	}
 	FAssertMsg(0, "Missing case");
 	return "";
@@ -286,6 +291,7 @@ void CvUnit::resetSavedData(int iID, UnitTypes eUnit, PlayerTypes eOwner, bool b
 	m_bIgnoreDanger = defaultIgnoreDanger;
 	m_bAllowDangerousPath = defaultAllowDangerousPath;
 	m_bAllowDirectPath = defaultAllowDirectPath;
+	m_iPowderUsed = defaultPowderUsed;
 
 	m_bBarbarian = defaultBarbarian;
 
@@ -418,6 +424,7 @@ void CvUnit::read(CvSavegameReader reader)
 
 		case UnitSave_AllowDangerousPath: reader.Read(m_bAllowDangerousPath); break;
 		case UnitSave_AllowDirectPath: reader.Read(m_bAllowDirectPath); break;
+		case UnitSave_PowderUsed: reader.Read(m_iPowderUsed); break;
 		}
 	}
 
@@ -527,6 +534,7 @@ void CvUnit::write(CvSavegameWriter writer)
 	writer.Write(UnitSave_FreePromotionCount, m_ja_iFreePromotionCount);
 	writer.Write(UnitSave_AllowDangerousPath, m_bAllowDangerousPath, defaultAllowDangerousPath);
 	writer.Write(UnitSave_AllowDirectPath, m_bAllowDirectPath, defaultAllowDirectPath);
+	writer.Write(UnitSave_PowderUsed, m_iPowderUsed, defaultPowderUsed);
 
 	writer.Write(UnitSave_END);
 }

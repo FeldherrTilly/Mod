@@ -1253,6 +1253,13 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, 
 				szString.append(NEWLINE);
 				szString.append(gDLL->getText("TXT_KEY_UNIT_BOMBARD_RATE", ((pUnit->bombardRate() * 100) / GC.getMAX_CITY_DEFENSE_DAMAGE()), GC.getSymbolID(BOMBARD_CHAR)));
 			}
+
+			// WTP: black powder of land artillery
+			if (pUnit->isPowderArtillery() && !pUnit->isPowderExempt())
+			{
+				szString.append(NEWLINE);
+				szString.append(gDLL->getText("TXT_KEY_UNIT_POWDER_STORED", pUnit->getPowderStored() / 100, pUnit->getPowderCapacity() / 100));
+			}
 		}
 
 		if (pUnit->getUnitInfo().isTreasure())
