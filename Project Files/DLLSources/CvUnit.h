@@ -1070,6 +1070,7 @@ protected:
 	UnitVariableMovementAbility m_movementAbility;
 
 	bool canAdvance(const CvPlot* pPlot, int iThreshold) const;
+	bool isBesieging(const CvPlot* pPlot) const; // WTP: siege
 
 	int planBattle( CvBattleDefinition & kBattleDefinition ) const;
 	int computeUnitsToDie( const CvBattleDefinition & kDefinition, bool bRanged, BattleUnitTypes iUnit ) const;

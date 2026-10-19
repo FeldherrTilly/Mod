@@ -3433,6 +3433,18 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity)
 
 	szString.append(pCity->getName());
 
+	// WTP: siege
+	if (pCity->isBesieged())
+	{
+		szString.append(NEWLINE);
+		szString.append(gDLL->getText("TXT_KEY_CITY_BAR_BESIEGED"));
+		if (pCity->isNavalBlockade())
+		{
+			szString.append(NEWLINE);
+			szString.append(gDLL->getText("TXT_KEY_CITY_BAR_NAVAL_BLOCKADE"));
+		}
+	}
+
 	bool bFirst = true;
 	CvWStringBuffer szTempBuffer;
 	for (int iYield = 0; iYield < NUM_YIELD_TYPES; ++iYield)

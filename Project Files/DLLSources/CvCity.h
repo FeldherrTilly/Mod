@@ -325,6 +325,12 @@ public:
 	void setNeverLost(bool bNewValue);
 
 	bool isBombarded() const;
+
+	// WTP: siege: at least 2 enemy soldiers on each of two opposite, or three or four, of the four plots beside the city
+	static bool isSiegeUnit(const CvUnit& kUnit, TeamTypes eCityTeam);
+	int getSiegeBlockedPlots() const; // bit mask of the blocked cardinal directions
+	bool isBesieged() const;
+	bool isNavalBlockade() const; // at least 2 enemy warships on the water plots beside the city
 	void setBombarded(bool bNewValue);
 
 	void setAllCitizensAutomated(bool bAutomated);
@@ -932,6 +938,7 @@ protected:
 	mutable EnumMap<YieldTypes,int,-1> m_em_iYieldRank;
 	mutable EnumMap<YieldTypes,bool> m_em_bYieldRankValid;
 
+	bool m_bBesieged; // WTP: besieged at the last city turn (for the messages)
 	bool m_bHasHurried; // Needed to remember (cache) if a hurry was conducted and we should complete the current build
 	int m_iSlaveWorkerProductionBonus;
 

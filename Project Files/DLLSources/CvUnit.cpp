@@ -3828,6 +3828,48 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 		return false;
 	}
 
+	// WTP: siege: land units can not leave a besieged city (they may only attack the enemies beside it) and no other land
+	// units can enter it; ships can, unless enemy warships blockade it (then they can not carry units out either)
+	{
+		const CvCity* const pFromCity = (plot() != NULL) ? plot()->getPlotCity() : NULL;
+		const CvCity* const pToCity = kPlot.getPlotCity();
+		if (getDomainType() == DOMAIN_LAND)
+		{
+			if (pFromCity != NULL && !GET_TEAM(getTeam()).isAtWar(pFromCity->getTeam()) && pFromCity->isBesieged())
+			{
+				if (!bAttack || !kPlot.isVisibleEnemyDefender(this))
+				{
+					return false;
+				}
+			}
+			if (pToCity != NULL && !GET_TEAM(getTeam()).isAtWar(pToCity->getTeam()) && pToCity->isBesieged())
+			{
+				return false;
+			}
+		}
+		else if (getDomainType() == DOMAIN_SEA)
+		{
+			if (pToCity != NULL && !GET_TEAM(getTeam()).isAtWar(pToCity->getTeam()) && pToCity->isBesieged() && pToCity->isNavalBlockade())
+			{
+				return false;
+			}
+			if (pFromCity != NULL && !GET_TEAM(getTeam()).isAtWar(pFromCity->getTeam()) && hasCargo() && pFromCity->isBesieged())
+			{
+				bool bLandCargo = false;
+				CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+				while (pUnitNode != NULL && !bLandCargo)
+				{
+					const CvUnit* pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+					bLandCargo = (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && !pLoopUnit->isGoods());
+				}
+				if (bLandCargo && pFromCity->isNavalBlockade())
+				{
+					return false;
+				}
+			}
+		}
+	}
+
 	// R&R, ray, changes to Wild Animals - START
 	// we now just check that the Animals can not enter City Radius of "Non-Natives" anymore
 	if (getUnitInfo().isAnimal())
@@ -10555,6 +10597,11 @@ int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDet
 		if (!noDefensiveBonus())
 		{
 			iExtraModifier = pPlot->defenseModifier(getTeam());
+			// WTP: siege: besieging soldiers get only half the defense bonus of the plot
+			if (iExtraModifier > 0 && isBesieging(pPlot))
+			{
+				iExtraModifier /= 2;
+			}
 			iModifier += iExtraModifier;
 			if (pCombatDetails != NULL)
 			{
@@ -15338,10 +15385,37 @@ bool CvUnit::potentialWarAction(const CvPlot* pPlot) const
 
 // Protected Functions...
 
+// WTP: siege: this unit on pPlot is one of the besiegers of a city beside it
+bool CvUnit::isBesieging(const CvPlot* pPlot) const
+{
+	if (pPlot == NULL || getDomainType() != DOMAIN_LAND)
+	{
+		return false;
+	}
+	for (int iI = 0; iI < NUM_CARDINALDIRECTION_TYPES; ++iI)
+	{
+		const CvPlot* pCityPlot = plotCardinalDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), (CardinalDirectionTypes)iI);
+		const CvCity* pCity = (pCityPlot != NULL) ? pCityPlot->getPlotCity() : NULL;
+		if (pCity != NULL && CvCity::isSiegeUnit(*this, pCity->getTeam()) && pCity->isBesieged()
+			&& (pCity->getSiegeBlockedPlots() & (1 << ((iI + 2) % NUM_CARDINALDIRECTION_TYPES)))) // the city sees pPlot in the opposite direction
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 bool CvUnit::canAdvance(const CvPlot* pPlot, int iThreshold) const
 {
 	FAssert(canFight());
 	FAssert(getDomainType() != DOMAIN_IMMOBILE);
+
+	// WTP: siege: the defenders of a besieged city attack without leaving it
+	const CvCity* const pCity = plot()->getPlotCity();
+	if (pCity != NULL && !GET_TEAM(getTeam()).isAtWar(pCity->getTeam()) && pCity->isBesieged())
+	{
+		return false;
+	}
 
 	if (pPlot->getNumVisibleEnemyDefenders(this) > iThreshold)
 	{

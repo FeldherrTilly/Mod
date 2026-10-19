@@ -9609,6 +9609,10 @@ int CvPlayer::getYieldRate(YieldTypes eIndex) const
 	int iLoop;
 	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
+		if (pLoopCity->isBesieged())
+		{
+			continue; // WTP: a besieged city is frozen
+		}
 		iTotalRate += pLoopCity->calculateNetYield(eIndex);
 	}
 

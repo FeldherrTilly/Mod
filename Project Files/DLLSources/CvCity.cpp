@@ -516,13 +516,55 @@ void CvCity::doTurn()
 	setLastDefenseDamage(getDefenseDamage());
 	setBombarded(false);
 
+	// WTP: a besieged city is frozen: no production, growth or consumption (checked at the end of the owner's turn, so
+	// besiegers he killed in his turn do not count any more)
+	const bool bBesieged = isBesieged();
+	if (bBesieged != m_bBesieged)
+	{
+		m_bBesieged = bBesieged;
+		const CvWString szBuffer = gDLL->getText(bBesieged ? "TXT_KEY_CITY_BESIEGED" : "TXT_KEY_CITY_SIEGE_ENDED", getNameKey());
+		gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, bBesieged ? "AS2D_CITY_REVOLT" : "AS2D_POSITIVE_DINK", MESSAGE_TYPE_MAJOR_EVENT, NULL, bBesieged ? COLOR_RED : COLOR_GREEN, getX_INLINE(), getY_INLINE(), true, true);
+		if (bBesieged)
+		{
+			bool abBesieger[MAX_PLAYERS] = { false };
+			for (int iI = 0; iI < NUM_CARDINALDIRECTION_TYPES; ++iI)
+			{
+				CvPlot* pLoopPlot = plotCardinalDirection(getX_INLINE(), getY_INLINE(), (CardinalDirectionTypes)iI);
+				if (pLoopPlot == NULL)
+				{
+					continue;
+				}
+				CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
+				while (pUnitNode != NULL)
+				{
+					CvUnit* pLoopUnit = pLoopPlot->getUnitNodeLoop(pUnitNode);
+					if (pLoopUnit != NULL && isSiegeUnit(*pLoopUnit, getTeam()))
+					{
+						abBesieger[pLoopUnit->getOwnerINLINE()] = true;
+					}
+				}
+			}
+			const CvWString szEnemyBuffer = gDLL->getText("TXT_KEY_CITY_BESIEGED_ENEMY", getNameKey());
+			for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
+			{
+				if (abBesieger[iPlayer])
+				{
+					gDLL->UI().addPlayerMessage((PlayerTypes)iPlayer, false, GC.getEVENT_MESSAGE_TIME(), szEnemyBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_MAJOR_EVENT, NULL, COLOR_GREEN, getX_INLINE(), getY_INLINE(), true, true);
+				}
+			}
+		}
+	}
+
 	AI_doTurn();
 
 	const bool bAllowNoProduction = !doCheckProduction();
 
-	doSpecialists();
+	if (!bBesieged)
+	{
+		doSpecialists();
+	}
 
-	if (!isDisorder())
+	if (!isDisorder() && !bBesieged)
 	{
 		if (!isNative())
 		{
@@ -535,14 +577,14 @@ void CvCity::doTurn()
 	}
 
 
-	if (!m_bHasHurried && !isHuman() && !isNative())
+	if (!m_bHasHurried && !isHuman() && !isNative() && !bBesieged)
 	{
 		// Hurry needs to happen just before the production processing to avoid
 		// the hurried yields from being used for other purposes
 		static_cast<CvCityAI*>(this)->AI_doHurry();
 	}
 
-	if (!isDisorder())
+	if (!isDisorder() && !bBesieged)
 	{
 		doProduction(bAllowNoProduction);
 	}
@@ -554,6 +596,9 @@ void CvCity::doTurn()
 		if (!isDisorder())
 		{
 			doExtraCityDefenseAttacks(); // R&R, ray, Extra City Defense Attacks
+		}
+		if (!isDisorder() && !bBesieged) // WTP: a besieged city is frozen
+		{
 			doEntertainmentBuildings(); // R&R, ray, Entertainment Buildings
 			doLbD(); // TAC - LBD - Ray - START
 			doCityHealth(); // R&R, ray, Health
@@ -575,20 +620,26 @@ void CvCity::doTurn()
 		}
 	}
 
-	doDecay();
+	if (!bBesieged)
+	{
+		doDecay();
+	}
 
 	doMissionaries();
 
 	// WTP, ray, Native Trade Posts - START
-	if (isNative())
+	if (isNative() && !bBesieged)
 	{
 		doNativeTradePost();
 	}
 	// WTP, ray, Native Trade Posts - END
 
-	doRebelSentiment();
+	if (!bBesieged)
+	{
+		doRebelSentiment();
+	}
 
-	if (!isDisorder())
+	if (!isDisorder() && !bBesieged)
 	{
 		FOREACH(CityPlot)
 		{
@@ -3977,6 +4028,94 @@ void CvCity::setLastDefenseDamage(int iNewValue)
 	m_iLastDefenseDamage = iNewValue;
 }
 
+
+// WTP: siege
+// a unit that besieges a city of this team: an enemy land unit that can attack (no animal)
+bool CvCity::isSiegeUnit(const CvUnit& kUnit, TeamTypes eCityTeam)
+{
+	return kUnit.getDomainType() == DOMAIN_LAND && !kUnit.isCargo() && !kUnit.getUnitInfo().isAnimal() && kUnit.canAttack() && GET_TEAM(kUnit.getTeam()).isAtWar(eCityTeam);
+}
+
+// the plots north, east, south and west of the city with at least 2 besieging units each (bit 0 north ... bit 3 west);
+// native villages only with a wall
+int CvCity::getSiegeBlockedPlots() const
+{
+	if (isNative() && getBuildingDefense() <= 0)
+	{
+		return 0;
+	}
+	int iMask = 0;
+	for (int iI = 0; iI < NUM_CARDINALDIRECTION_TYPES; ++iI)
+	{
+		CvPlot* pLoopPlot = plotCardinalDirection(getX_INLINE(), getY_INLINE(), (CardinalDirectionTypes)iI);
+		if (pLoopPlot == NULL || pLoopPlot->isWater())
+		{
+			continue;
+		}
+		int iCount = 0;
+		CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
+		while (pUnitNode != NULL && iCount < 2)
+		{
+			const CvUnit* pLoopUnit = pLoopPlot->getUnitNodeLoop(pUnitNode);
+			if (pLoopUnit != NULL && isSiegeUnit(*pLoopUnit, getTeam()))
+			{
+				++iCount;
+			}
+		}
+		if (iCount >= 2)
+		{
+			iMask |= (1 << iI);
+		}
+	}
+	return iMask;
+}
+
+// besieged: three or four blocked plots, or two opposite ones (two neighbouring sides leave the city too open)
+bool CvCity::isBesieged() const
+{
+	const int iMask = getSiegeBlockedPlots();
+	int iBlocked = 0;
+	for (int iI = 0; iI < NUM_CARDINALDIRECTION_TYPES; ++iI)
+	{
+		if (iMask & (1 << iI))
+		{
+			++iBlocked;
+		}
+	}
+	if (iBlocked >= 3)
+	{
+		return true;
+	}
+	return iMask == ((1 << CARDINALDIRECTION_NORTH) | (1 << CARDINALDIRECTION_SOUTH)) || iMask == ((1 << CARDINALDIRECTION_EAST) | (1 << CARDINALDIRECTION_WEST));
+}
+
+// naval blockade: at least 2 enemy warships on the water plots beside the city
+bool CvCity::isNavalBlockade() const
+{
+	int iShips = 0;
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		CvPlot* pLoopPlot = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
+		if (pLoopPlot == NULL || !pLoopPlot->isWater())
+		{
+			continue;
+		}
+		CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
+		while (pUnitNode != NULL)
+		{
+			const CvUnit* pLoopUnit = pLoopPlot->getUnitNodeLoop(pUnitNode);
+			if (pLoopUnit != NULL && pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->canAttack() && pLoopUnit->getTeam() != getTeam()
+				&& (GET_TEAM(pLoopUnit->getTeam()).isAtWar(getTeam()) || pLoopUnit->getUnitInfo().isHiddenNationality()))
+			{
+				if (++iShips >= 2)
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
 
 bool CvCity::isBombardable(const CvUnit* pUnit) const
 {

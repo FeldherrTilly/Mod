@@ -5413,4 +5413,70 @@
 		<Russian>Здесь недостаточно пороха (%d1), чтобы поровну пополнить %d2 выбранных артиллерий.</Russian>
 		<Hungarian>Itt nincs elég puskapor (%d1) ahhoz, hogy a %d2 kijelölt tüzérség ugyanannyit töltsön utána.</Hungarian>
 	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BESIEGED</Tag>
+		<English>%s1 is besieged! It produces, grows and consumes nothing, and land units can neither leave nor enter it.</English>
+		<Portuguese>%s1 está sitiada! Não produz, não cresce e não consome nada, e unidades terrestres não podem sair nem entrar.</Portuguese>
+		<French>%s1 est assiégée ! Elle ne produit, ne croît et ne consomme plus rien, et les unités terrestres ne peuvent ni en sortir ni y entrer.</French>
+		<German>%s1 wird belagert! Die Stadt produziert, wächst und verbraucht nichts, und Landeinheiten können sie weder verlassen noch betreten.</German>
+		<Italian>%s1 è assediata! Non produce, non cresce e non consuma nulla, e le unità terrestri non possono né uscire né entrare.</Italian>
+		<Spanish>¡%s1 está sitiada! No produce, no crece y no consume nada, y las unidades terrestres no pueden salir ni entrar.</Spanish>
+		<Russian>%s1 в осаде! Город ничего не производит, не растёт и не потребляет, а сухопутные войска не могут ни выйти, ни войти.</Russian>
+		<Hungarian>%s1 ostrom alatt áll! Semmit sem termel, nem növekszik és nem fogyaszt, a szárazföldi egységek pedig nem hagyhatják el és nem léphetnek be.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BESIEGED_ENEMY</Tag>
+		<English>Your soldiers besiege %s1: it produces nothing any more.</English>
+		<Portuguese>Seus soldados sitiam %s1: ela não produz mais nada.</Portuguese>
+		<French>Vos soldats assiègent %s1 : elle ne produit plus rien.</French>
+		<German>Deine Soldaten belagern %s1: die Stadt produziert nichts mehr.</German>
+		<Italian>I tuoi soldati assediano %s1: non produce più nulla.</Italian>
+		<Spanish>Tus soldados sitian %s1: ya no produce nada.</Spanish>
+		<Russian>Ваши солдаты осаждают %s1: город больше ничего не производит.</Russian>
+		<Hungarian>Katonáid ostromolják %s1 városát: már semmit sem termel.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CITY_SIEGE_ENDED</Tag>
+		<English>The siege of %s1 has ended.</English>
+		<Portuguese>O cerco de %s1 terminou.</Portuguese>
+		<French>Le siège de %s1 est terminé.</French>
+		<German>Die Belagerung von %s1 ist beendet.</German>
+		<Italian>L'assedio di %s1 è terminato.</Italian>
+		<Spanish>El asedio de %s1 ha terminado.</Spanish>
+		<Russian>Осада %s1 окончена.</Russian>
+		<Hungarian>%s1 ostroma véget ért.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_BESIEGED</Tag>
+		<English>[COLOR_WARNING_TEXT]Besieged:[COLOR_REVERT] no production, growth or consumption; land units can neither leave nor enter</English>
+		<Portuguese>[COLOR_WARNING_TEXT]Sitiada:[COLOR_REVERT] sem produção, crescimento ou consumo; unidades terrestres não podem sair nem entrar</Portuguese>
+		<French>[COLOR_WARNING_TEXT]Assiégée :[COLOR_REVERT] ni production, ni croissance, ni consommation ; les unités terrestres ne peuvent ni sortir ni entrer</French>
+		<German>[COLOR_WARNING_TEXT]Belagert:[COLOR_REVERT] keine Produktion, kein Wachstum, kein Verbrauch; Landeinheiten können weder hinaus noch hinein</German>
+		<Italian>[COLOR_WARNING_TEXT]Assediata:[COLOR_REVERT] nessuna produzione, crescita o consumo; le unità terrestri non possono né uscire né entrare</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]Sitiada:[COLOR_REVERT] sin producción, crecimiento ni consumo; las unidades terrestres no pueden salir ni entrar</Spanish>
+		<Russian>[COLOR_WARNING_TEXT]В осаде:[COLOR_REVERT] нет производства, роста и потребления; сухопутные войска не могут ни выйти, ни войти</Russian>
+		<Hungarian>[COLOR_WARNING_TEXT]Ostrom alatt:[COLOR_REVERT] nincs termelés, növekedés és fogyasztás; szárazföldi egységek nem mehetnek ki és be</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_NAVAL_BLOCKADE</Tag>
+		<English>[COLOR_WARNING_TEXT]Naval blockade:[COLOR_REVERT] ships can neither enter the port nor carry units out</English>
+		<Portuguese>[COLOR_WARNING_TEXT]Bloqueio naval:[COLOR_REVERT] navios não podem entrar no porto nem levar unidades para fora</Portuguese>
+		<French>[COLOR_WARNING_TEXT]Blocus naval :[COLOR_REVERT] les navires ne peuvent ni entrer au port ni emmener des unités</French>
+		<German>[COLOR_WARNING_TEXT]Seeblockade:[COLOR_REVERT] Schiffe können weder in den Hafen einlaufen noch Einheiten hinausbringen</German>
+		<Italian>[COLOR_WARNING_TEXT]Blocco navale:[COLOR_REVERT] le navi non possono né entrare in porto né portare fuori unità</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]Bloqueo naval:[COLOR_REVERT] los barcos no pueden entrar en el puerto ni sacar unidades</Spanish>
+		<Russian>[COLOR_WARNING_TEXT]Морская блокада:[COLOR_REVERT] корабли не могут ни войти в порт, ни вывезти войска</Russian>
+		<Hungarian>[COLOR_WARNING_TEXT]Tengeri blokád:[COLOR_REVERT] hajók nem futhatnak be a kikötőbe és nem vihetnek ki egységeket</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BESIEGED_SHORT</Tag>
+		<English> (Besieged)</English>
+		<Portuguese> (Sitiada)</Portuguese>
+		<French> (Assiégée)</French>
+		<German> (Belagert)</German>
+		<Italian> (Assediata)</Italian>
+		<Spanish> (Sitiada)</Spanish>
+		<Russian> (В осаде)</Russian>
+		<Hungarian> (Ostrom alatt)</Hungarian>
+	</TEXT>
 </Civ4GameText>
