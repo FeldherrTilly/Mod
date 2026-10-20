@@ -3864,9 +3864,9 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 	}
 	iMovementCost += fortZoneMovementCost(pUnit);
 
-	// WTP: siege: entering a plot beside a besieged city costs only SIEGE_MOVE_COST_PERCENT of the movement, so a unit can still
-	// attack after it
-	if (isBesiegedCityRing())
+	// WTP: siege: for the besieged team entering a plot beside its besieged city costs only SIEGE_MOVE_COST_PERCENT of the
+	// movement, so a relief force can still attack after it
+	if (isBesiegedCityRing(pUnit->getTeam()))
 	{
 		iMovementCost = std::max(1, iMovementCost * GLOBAL_DEFINE_SIEGE_MOVE_COST_PERCENT / 100);
 	}
@@ -3874,14 +3874,15 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 	return iMovementCost;
 }
 
-// WTP: siege: a plot beside a city under siege (the siege as started; a broken one counts until the owner's turn ends)
-bool CvPlot::isBesiegedCityRing() const
+// WTP: siege: a plot beside a city of team eTeam under siege (the siege as started; a broken one counts until the owner's turn
+// ends)
+bool CvPlot::isBesiegedCityRing(TeamTypes eTeam) const
 {
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 	{
 		const CvPlot* pLoopPlot = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
 		const CvCity* pCity = (pLoopPlot != NULL) ? pLoopPlot->getPlotCity() : NULL;
-		if (pCity != NULL && pCity->getBesieger() != NO_PLAYER)
+		if (pCity != NULL && pCity->getTeam() == eTeam && pCity->getBesieger() != NO_PLAYER)
 		{
 			return true;
 		}

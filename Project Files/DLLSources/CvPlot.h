@@ -112,7 +112,7 @@ public:
 	bool shareAdjacentArea( const CvPlot* pPlot) const;
 	bool isAdjacentToLand() const;
 	bool isCoastalLand(int iMinWaterSize = -1) const;
-	bool isBesiegedCityRing() const; // WTP: siege
+	bool isBesiegedCityRing(TeamTypes eTeam) const; // WTP: siege
 	bool hasDeepWaterCoast() const;
 	bool isNextTo(TerrainTypes eTerrain) const;
 	bool hasOtherAdjacentOceanOrDeepWaterCoast() const; //WTP, ray, Safety Check for Deep Water Coast if there is Ocean or Deep Coast adjacent - START

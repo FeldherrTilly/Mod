@@ -1822,7 +1822,8 @@
 		siege (button, no movement needed); it lasts while the enemy soldiers beside the city are at least as strong as the land
 		soldiers in it (unmodified strength). Each turn the city defense drops by SIEGE_DEFENSE_DAMAGE_PER_TURN percent and does
 		not recover. A coastal city is only half besieged unless SIEGE_BLOCKADE_SHIPS enemy ships that can attack are within
-		SIEGE_BLOCKADE_RANGE plots. Entering a plot beside a besieged city costs SIEGE_MOVE_COST_PERCENT of the movement -->
+		SIEGE_BLOCKADE_RANGE plots. For the besieged team entering a plot beside its besieged city costs SIEGE_MOVE_COST_PERCENT of the
+		movement; a unit that has moved can not leave those plots again in the same turn -->
 	<Define>
 		<DefineName>SIEGE_MIN_STACK_SIZE</DefineName>
 		<iDefineIntVal>4</iDefineIntVal>
