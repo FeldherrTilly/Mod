@@ -729,9 +729,9 @@ int CvPlayerAI::AI_siegeArtilleryNeeded(int iGroupSize) const
 	return range(iGroupSize / std::max(1, GLOBAL_DEFINE_SIEGE_AI_UNITS_PER_ARTILLERY), GLOBAL_DEFINE_SIEGE_AI_MIN_ARTILLERY, GLOBAL_DEFINE_SIEGE_AI_MAX_ARTILLERY);
 }
 
-// WTP: siege: strong enemies near a stack beside kCity: the enemy units within 2 plots of the stack, without those in the city,
-// have at least SIEGE_AI_ABORT_ENEMY_PERCENT of the strength of the own units on the stack's plot
-bool CvPlayerAI::AI_isSiegeThreatened(const CvPlot& kStackPlot, const CvCity& kCity) const
+// WTP: siege: strong enemies near a stack beside kCity: the enemy units within 2 plots of the stack, those in the city
+// included, have at least SIEGE_AI_ABORT_ENEMY_PERCENT of the strength of the own units on the stack's plot
+bool CvPlayerAI::AI_isSiegeThreatened(const CvPlot& kStackPlot, const CvCity& /*kCity*/) const
 {
 	CvPlayerAI& kThis = const_cast<CvPlayerAI&>(*this);
 	CvPlot* const pStackPlot = const_cast<CvPlot*>(&kStackPlot);
@@ -740,16 +740,16 @@ bool CvPlayerAI::AI_isSiegeThreatened(const CvPlot& kStackPlot, const CvCity& kC
 	{
 		return true;
 	}
-	const int iEnemy = kThis.AI_getEnemyPlotStrength(pStackPlot, 2, false, false) - kThis.AI_getEnemyPlotStrength(kCity.plot(), 0, false, false);
+	const int iEnemy = kThis.AI_getEnemyPlotStrength(pStackPlot, 2, false, false);
 	return 100 * iEnemy >= GLOBAL_DEFINE_SIEGE_AI_ABORT_ENEMY_PERCENT * iOurs;
 }
 
 // WTP: siege: black powder for the wagon train of a stack can be bought into a coastal colony at the Europe price (keeping
-// 300 gold)
+// 300 gold), unless enemy warships blockade its port
 bool CvPlayerAI::AI_canBuySiegePowder(const CvCity& kCity, int iAmount) const
 {
 	if (iAmount <= 0 || getParent() == NO_PLAYER || !canTradeWithEurope() || !isYieldEuropeTradable(YIELD_BLACK_POWDER)
-		|| !kCity.isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN()))
+		|| !kCity.isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN()) || kCity.isNavalBlockade())
 	{
 		return false;
 	}
