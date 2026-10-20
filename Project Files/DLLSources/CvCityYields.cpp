@@ -87,12 +87,18 @@ int CvCityYields::getBaseRawYieldProducedPlots(YieldTypes eYieldType) const
 		return 0;
 	}
 
+	// WTP: siege: the plots outside a besieged city produce nothing, the sea plots of a half besieged one still do
+	const int iSiegeLevel = m_city.getSiegeLevel();
 	int iPlotYieldProduction = 0;
 	FOREACH(CityPlot)
 	{
 		CvPlot* pPlot = m_city.getCityIndexPlot(eLoopCityPlot);
 		if (pPlot != NULL)
 		{
+			if (iSiegeLevel > 0 && eLoopCityPlot != CITY_HOME_PLOT && (iSiegeLevel == 2 || !pPlot->isWater()))
+			{
+				continue;
+			}
 			if (m_city.isPlotProducingYields(eLoopCityPlot))
 			{
 				//WTP, ray, Slave Hunter and Slave Master - START

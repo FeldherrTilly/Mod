@@ -1818,6 +1818,31 @@
 		<DefineName>BASE_TERRAINS_WITHOUT_FEATURE_PERCENTAGE</DefineName>
 		<iDefineIntVal>20</iDefineIntVal>
 	</Define>
+	<!-- WTP: siege: a stack of at least SIEGE_MIN_STACK_SIZE enemy soldiers (units that can attack) beside a city can put it under
+		siege (button, no movement needed); it lasts while the enemy soldiers beside the city are at least as strong as the land
+		soldiers in it (unmodified strength). Each turn the city defense drops by SIEGE_DEFENSE_DAMAGE_PER_TURN percent and does
+		not recover. A coastal city is only half besieged unless SIEGE_BLOCKADE_SHIPS enemy ships that can attack are within
+		SIEGE_BLOCKADE_RANGE plots. Entering a plot beside a besieged city costs SIEGE_MOVE_COST_PERCENT of the movement -->
+	<Define>
+		<DefineName>SIEGE_MIN_STACK_SIZE</DefineName>
+		<iDefineIntVal>4</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SIEGE_DEFENSE_DAMAGE_PER_TURN</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SIEGE_BLOCKADE_SHIPS</DefineName>
+		<iDefineIntVal>2</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SIEGE_BLOCKADE_RANGE</DefineName>
+		<iDefineIntVal>2</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SIEGE_MOVE_COST_PERCENT</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
 	<!-- WTP: automatic market imports (trade route preset in the import/export dialog): every AUTO_MARKET_IMPORT_INTERVAL turns
 		the goods the domestic market asks for are imported with the feeder, maintain level AUTO_MARKET_IMPORT_MAINTAIN_TURNS and
 		import limit AUTO_MARKET_IMPORT_LIMIT_TURNS times the demand, both at least AUTO_MARKET_IMPORT_MIN_LEVEL -->

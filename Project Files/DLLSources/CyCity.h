@@ -163,7 +163,7 @@ public:
 	void setNeverLost(int iNewValue);
 	bool isBombarded();
 	bool isBesieged(); // WTP
-	bool isNavalBlockade(); // WTP
+	int getSiegeLevel(); // WTP
 	void setBombarded(int iNewValue);
 	void setAllCitizensAutomated(bool bAutomated);
 	bool isProductionAutomated();

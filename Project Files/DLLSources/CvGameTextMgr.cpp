@@ -3434,15 +3434,11 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity)
 	szString.append(pCity->getName());
 
 	// WTP: siege
-	if (pCity->isBesieged())
+	const int iSiegeLevel = pCity->getSiegeLevel();
+	if (iSiegeLevel > 0)
 	{
 		szString.append(NEWLINE);
-		szString.append(gDLL->getText("TXT_KEY_CITY_BAR_BESIEGED"));
-		if (pCity->isNavalBlockade())
-		{
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_CITY_BAR_NAVAL_BLOCKADE"));
-		}
+		szString.append(gDLL->getText(iSiegeLevel == 2 ? "TXT_KEY_CITY_BAR_BESIEGED" : "TXT_KEY_CITY_BAR_HALF_BESIEGED", GLOBAL_DEFINE_SIEGE_DEFENSE_DAMAGE_PER_TURN));
 	}
 
 	bool bFirst = true;

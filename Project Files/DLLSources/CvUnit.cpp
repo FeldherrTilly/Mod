@@ -3084,6 +3084,21 @@ bool CvUnit::canDoCommand(CommandTypes eCommand, int iData1, int iData2, bool bT
 		}
 		break;
 
+	// WTP: siege
+	case COMMAND_SIEGE:
+		if (getSiegeTargetCity() != NULL)
+		{
+			return true;
+		}
+		break;
+
+	case COMMAND_LIFT_SIEGE:
+		if (getLiftSiegeCity() != NULL)
+		{
+			return true;
+		}
+		break;
+
 	// TAC - Goto Menu - koma13 - START
 	case COMMAND_GOTO_MENU:
 		if (getTransportUnit() == NULL || plot()->isValidDomainForAction(getUnitType()))
@@ -3548,6 +3563,15 @@ void CvUnit::doCommand(CommandTypes eCommand, int iData1, int iData2)
 			reloadPowderGroup();
 			break;
 
+		// WTP: siege
+		case COMMAND_SIEGE:
+			getSiegeTargetCity()->startSiege(getOwnerINLINE());
+			break;
+
+		case COMMAND_LIFT_SIEGE:
+			getLiftSiegeCity()->endSiege();
+			break;
+
 		// WTP: transport to a city: the player picks the colony
 		case COMMAND_TRANSPORT_TO_CITY:
 			if (getOwnerINLINE() == GC.getGameINLINE().getActivePlayer() && gDLL->getInterfaceIFace()->getHeadSelectedUnit() == this)
@@ -3829,7 +3853,7 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 	}
 
 	// WTP: siege: land units can not leave a besieged city (they may only attack the enemies beside it) and no other land
-	// units can enter it; ships can, unless enemy warships blockade it (then they can not carry units out either)
+	// units can enter it; ships and their cargo can come and go while the city is only half besieged
 	{
 		const CvCity* const pFromCity = (plot() != NULL) ? plot()->getPlotCity() : NULL;
 		const CvCity* const pToCity = kPlot.getPlotCity();
@@ -3842,18 +3866,18 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 					return false;
 				}
 			}
-			if (pToCity != NULL && !GET_TEAM(getTeam()).isAtWar(pToCity->getTeam()) && pToCity->isBesieged())
+			if (pToCity != NULL && !GET_TEAM(getTeam()).isAtWar(pToCity->getTeam()) && pToCity->isBesieged() && !(isCargo() && !pToCity->isFullSiege()))
 			{
 				return false;
 			}
 		}
 		else if (getDomainType() == DOMAIN_SEA)
 		{
-			if (pToCity != NULL && !GET_TEAM(getTeam()).isAtWar(pToCity->getTeam()) && pToCity->isBesieged() && pToCity->isNavalBlockade())
+			if (pToCity != NULL && !GET_TEAM(getTeam()).isAtWar(pToCity->getTeam()) && pToCity->isFullSiege())
 			{
 				return false;
 			}
-			if (pFromCity != NULL && !GET_TEAM(getTeam()).isAtWar(pFromCity->getTeam()) && hasCargo() && pFromCity->isBesieged())
+			if (pFromCity != NULL && !GET_TEAM(getTeam()).isAtWar(pFromCity->getTeam()) && hasCargo() && pFromCity->isFullSiege())
 			{
 				bool bLandCargo = false;
 				CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
@@ -3862,7 +3886,7 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 					const CvUnit* pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
 					bLandCargo = (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && !pLoopUnit->isGoods());
 				}
-				if (bLandCargo && pFromCity->isNavalBlockade())
+				if (bLandCargo)
 				{
 					return false;
 				}
@@ -15392,17 +15416,59 @@ bool CvUnit::isBesieging(const CvPlot* pPlot) const
 	{
 		return false;
 	}
-	for (int iI = 0; iI < NUM_CARDINALDIRECTION_TYPES; ++iI)
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 	{
-		const CvPlot* pCityPlot = plotCardinalDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), (CardinalDirectionTypes)iI);
+		const CvPlot* pCityPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), (DirectionTypes)iI);
 		const CvCity* pCity = (pCityPlot != NULL) ? pCityPlot->getPlotCity() : NULL;
-		if (pCity != NULL && CvCity::isSiegeUnit(*this, pCity->getTeam()) && pCity->isBesieged()
-			&& (pCity->getSiegeBlockedPlots() & (1 << ((iI + 2) % NUM_CARDINALDIRECTION_TYPES)))) // the city sees pPlot in the opposite direction
+		if (pCity != NULL && CvCity::isSiegeUnit(*this, pCity->getTeam()) && pCity->isBesieged())
 		{
 			return true;
 		}
 	}
 	return false;
+}
+
+// WTP: siege: the city beside this unit it can put under siege (COMMAND_SIEGE): at least SIEGE_MIN_STACK_SIZE soldiers of its
+// team on its plot, no movement needed
+CvCity* CvUnit::getSiegeTargetCity() const
+{
+	if (getDomainType() != DOMAIN_LAND || isCargo() || plot() == NULL || plot()->isWater())
+	{
+		return NULL;
+	}
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		CvPlot* pCityPlot = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
+		CvCity* pCity = (pCityPlot != NULL) ? pCityPlot->getPlotCity() : NULL;
+		if (pCity == NULL || !CvCity::isSiegeUnit(*this, pCity->getTeam()) || pCity->isBesieged())
+		{
+			continue;
+		}
+		if (CvCity::getSiegeStackSize(*plot(), getTeam(), pCity->getTeam()) >= GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE && pCity->canBeBesiegedBy(getTeam()))
+		{
+			return pCity;
+		}
+	}
+	return NULL;
+}
+
+// WTP: siege: the city beside this unit its owner besieges (COMMAND_LIFT_SIEGE)
+CvCity* CvUnit::getLiftSiegeCity() const
+{
+	if (getDomainType() != DOMAIN_LAND || plot() == NULL)
+	{
+		return NULL;
+	}
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		CvPlot* pCityPlot = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
+		CvCity* pCity = (pCityPlot != NULL) ? pCityPlot->getPlotCity() : NULL;
+		if (pCity != NULL && pCity->getBesieger() == getOwnerINLINE())
+		{
+			return pCity;
+		}
+	}
+	return NULL;
 }
 
 bool CvUnit::canAdvance(const CvPlot* pPlot, int iThreshold) const

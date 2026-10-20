@@ -636,6 +636,7 @@ void CvPlayerAI::AI_doTurnUnitsPre()
 	{
 		AI_doMilitaryStrategy();
 		AI_doSuppressRevolution();
+		AI_doSieges(); // WTP: siege
 	}
 
 	if (isHuman())
@@ -644,6 +645,24 @@ void CvPlayerAI::AI_doTurnUnitsPre()
 	}
 }
 // WTP, Schmiddie, AI Fleet Modernization END
+
+// WTP: siege: the AI puts every city under siege it can, before and after its units move
+void CvPlayerAI::AI_doSieges()
+{
+	if (isHuman())
+	{
+		return;
+	}
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		CvCity* pCity = pLoopUnit->getSiegeTargetCity();
+		if (pCity != NULL)
+		{
+			pCity->startSiege(getID());
+		}
+	}
+}
 
 void CvPlayerAI::AI_doTurnUnitsPost()
 {
@@ -1221,6 +1240,7 @@ void CvPlayerAI::AI_unitUpdate()
 		//units are moved else it's unfair on the AI.
 		if (!isHuman())
 		{
+			AI_doSieges(); // WTP: siege: before the units attack
 			int iLoop;
 			CvCity* pLoopCity;
 			for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))

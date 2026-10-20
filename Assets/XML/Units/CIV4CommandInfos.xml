@@ -712,5 +712,39 @@
 			<bVisible>1</bVisible>
 			<Button>Art/interface/buttons/New_Yields_Buttons/Blackpowder_Goods_Button.dds</Button>
 		</CommandInfo>
+		<CommandInfo>
+			<Type>COMMAND_SIEGE</Type>
+			<Description>TXT_KEY_COMMAND_SIEGE</Description>
+			<Help>TXT_KEY_COMMAND_SIEGE_HELP</Help>
+			<HotKey/>
+			<bAltDown>0</bAltDown>
+			<bShiftDown>0</bShiftDown>
+			<bCtrlDown>0</bCtrlDown>
+			<iHotKeyPriority>0</iHotKeyPriority>
+			<HotKeyAlt/>
+			<bAltDownAlt>0</bAltDownAlt>
+			<bShiftDownAlt>0</bShiftDownAlt>
+			<bCtrlDownAlt>0</bCtrlDownAlt>
+			<iHotKeyPriorityAlt>0</iHotKeyPriorityAlt>
+			<bVisible>1</bVisible>
+			<Button>,Art/Interface/Game Hud/Actions/bombard_high_res.dds</Button>
+		</CommandInfo>
+		<CommandInfo>
+			<Type>COMMAND_LIFT_SIEGE</Type>
+			<Description>TXT_KEY_COMMAND_LIFT_SIEGE</Description>
+			<Help>TXT_KEY_COMMAND_LIFT_SIEGE_HELP</Help>
+			<HotKey/>
+			<bAltDown>0</bAltDown>
+			<bShiftDown>0</bShiftDown>
+			<bCtrlDown>0</bCtrlDown>
+			<iHotKeyPriority>0</iHotKeyPriority>
+			<HotKeyAlt/>
+			<bAltDownAlt>0</bAltDownAlt>
+			<bShiftDownAlt>0</bShiftDownAlt>
+			<bCtrlDownAlt>0</bCtrlDownAlt>
+			<iHotKeyPriorityAlt>0</iHotKeyPriorityAlt>
+			<bVisible>1</bVisible>
+			<Button>Art/Interface/Game Hud/Actions/cancel_high_res.dds</Button>
+		</CommandInfo>
 	</CommandInfos>
 </Civ4CommandInfos>

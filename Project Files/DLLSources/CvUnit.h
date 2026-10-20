@@ -1071,6 +1071,10 @@ protected:
 
 	bool canAdvance(const CvPlot* pPlot, int iThreshold) const;
 	bool isBesieging(const CvPlot* pPlot) const; // WTP: siege
+public:
+	CvCity* getSiegeTargetCity() const; // WTP: siege
+	CvCity* getLiftSiegeCity() const; // WTP: siege
+protected:
 
 	int planBattle( CvBattleDefinition & kBattleDefinition ) const;
 	int computeUnitsToDie( const CvBattleDefinition & kDefinition, bool bRanged, BattleUnitTypes iUnit ) const;

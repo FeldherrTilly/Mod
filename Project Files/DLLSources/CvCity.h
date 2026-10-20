@@ -326,11 +326,17 @@ public:
 
 	bool isBombarded() const;
 
-	// WTP: siege: at least 2 enemy soldiers on each of two opposite, or three or four, of the four plots beside the city
+	// WTP: siege: started by a stack of enemy soldiers beside the city (COMMAND_SIEGE), it lasts while they are at least as
+	// strong as the soldiers in the city
 	static bool isSiegeUnit(const CvUnit& kUnit, TeamTypes eCityTeam);
-	int getSiegeBlockedPlots() const; // bit mask of the blocked cardinal directions
+	static int getSiegeStackSize(const CvPlot& kPlot, TeamTypes eTeam, TeamTypes eCityTeam);
+	bool canBeBesiegedBy(TeamTypes eTeam) const;
+	int getSiegeLevel() const; // 0: none, 1: half besieged (sea side open), 2: besieged
 	bool isBesieged() const;
-	bool isNavalBlockade() const; // at least 2 enemy warships on the water plots beside the city
+	bool isFullSiege() const;
+	PlayerTypes getBesieger() const; // the player who started the siege, also while it is broken until the owner's turn ends
+	void startSiege(PlayerTypes eBesieger);
+	void endSiege();
 	void setBombarded(bool bNewValue);
 
 	void setAllCitizensAutomated(bool bAutomated);
@@ -940,7 +946,7 @@ protected:
 	mutable EnumMap<YieldTypes,int,-1> m_em_iYieldRank;
 	mutable EnumMap<YieldTypes,bool> m_em_bYieldRankValid;
 
-	bool m_bBesieged; // WTP: besieged at the last city turn (for the messages)
+	PlayerTypes m_eBesieger; // WTP: siege: the player who started it, NO_PLAYER: none
 	bool m_bAutoMarketImport; // WTP: trade route preset 1, the market goods imports are updated every few turns
 	bool m_bHasHurried; // Needed to remember (cache) if a hurry was conducted and we should complete the current build
 	int m_iSlaveWorkerProductionBonus;

@@ -5415,25 +5415,25 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_CITY_BESIEGED</Tag>
-		<English>%s1 is besieged! It produces, grows and consumes nothing, and land units can neither leave nor enter it.</English>
-		<Portuguese>%s1 está sitiada! Não produz, não cresce e não consome nada, e unidades terrestres não podem sair nem entrar.</Portuguese>
-		<French>%s1 est assiégée ! Elle ne produit, ne croît et ne consomme plus rien, et les unités terrestres ne peuvent ni en sortir ni y entrer.</French>
-		<German>%s1 wird belagert! Die Stadt produziert, wächst und verbraucht nichts, und Landeinheiten können sie weder verlassen noch betreten.</German>
-		<Italian>%s1 è assediata! Non produce, non cresce e non consuma nulla, e le unità terrestri non possono né uscire né entrare.</Italian>
-		<Spanish>¡%s1 está sitiada! No produce, no crece y no consume nada, y las unidades terrestres no pueden salir ni entrar.</Spanish>
-		<Russian>%s1 в осаде! Город ничего не производит, не растёт и не потребляет, а сухопутные войска не могут ни выйти, ни войти.</Russian>
-		<Hungarian>%s1 ostrom alatt áll! Semmit sem termel, nem növekszik és nem fogyaszt, a szárazföldi egységek pedig nem hagyhatják el és nem léphetnek be.</Hungarian>
+		<English>%s1 is besieged! The land outside the city produces nothing, its defense drops each turn, and land units can neither leave nor enter it.</English>
+		<Portuguese>%s1 está sitiada! As terras fora da cidade não produzem nada, sua defesa cai a cada turno, e unidades terrestres não podem sair nem entrar.</Portuguese>
+		<French>%s1 est assiégée ! Les terres hors de la ville ne produisent plus rien, sa défense baisse à chaque tour, et les unités terrestres ne peuvent ni en sortir ni y entrer.</French>
+		<German>%s1 wird belagert! Das Land außerhalb der Stadt bringt nichts mehr, ihre Verteidigung sinkt jede Runde, und Landeinheiten können sie weder verlassen noch betreten.</German>
+		<Italian>%s1 è assediata! Le terre fuori dalla città non producono nulla, la sua difesa cala ogni turno, e le unità terrestri non possono né uscire né entrare.</Italian>
+		<Spanish>¡%s1 está sitiada! Las tierras fuera de la ciudad no producen nada, su defensa baja cada turno, y las unidades terrestres no pueden salir ni entrar.</Spanish>
+		<Russian>%s1 в осаде! Земли за пределами города ничего не дают, его оборона падает каждый ход, а сухопутные войска не могут ни выйти, ни войти.</Russian>
+		<Hungarian>%s1 ostrom alatt áll! A városon kívüli földek semmit sem teremnek, védelme minden körben csökken, a szárazföldi egységek pedig nem hagyhatják el és nem léphetnek be.</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_CITY_BESIEGED_ENEMY</Tag>
-		<English>Your soldiers besiege %s1: it produces nothing any more.</English>
-		<Portuguese>Seus soldados sitiam %s1: ela não produz mais nada.</Portuguese>
-		<French>Vos soldats assiègent %s1 : elle ne produit plus rien.</French>
-		<German>Deine Soldaten belagern %s1: die Stadt produziert nichts mehr.</German>
-		<Italian>I tuoi soldati assediano %s1: non produce più nulla.</Italian>
-		<Spanish>Tus soldados sitian %s1: ya no produce nada.</Spanish>
-		<Russian>Ваши солдаты осаждают %s1: город больше ничего не производит.</Russian>
-		<Hungarian>Katonáid ostromolják %s1 városát: már semmit sem termel.</Hungarian>
+		<English>Your soldiers besiege %s1: the land outside the city produces nothing any more and its defense drops each turn.</English>
+		<Portuguese>Seus soldados sitiam %s1: as terras fora da cidade não produzem mais nada e sua defesa cai a cada turno.</Portuguese>
+		<French>Vos soldats assiègent %s1 : les terres hors de la ville ne produisent plus rien et sa défense baisse à chaque tour.</French>
+		<German>Deine Soldaten belagern %s1: das Land außerhalb der Stadt bringt nichts mehr, und ihre Verteidigung sinkt jede Runde.</German>
+		<Italian>I tuoi soldati assediano %s1: le terre fuori dalla città non producono più nulla e la sua difesa cala ogni turno.</Italian>
+		<Spanish>Tus soldados sitian %s1: las tierras fuera de la ciudad ya no producen nada y su defensa baja cada turno.</Spanish>
+		<Russian>Ваши солдаты осаждают %s1: земли за пределами города больше ничего не дают, а его оборона падает каждый ход.</Russian>
+		<Hungarian>Katonáid ostromolják %s1 városát: a városon kívüli földek már semmit sem teremnek, védelme pedig minden körben csökken.</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_CITY_SIEGE_ENDED</Tag>
@@ -5448,25 +5448,25 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_CITY_BAR_BESIEGED</Tag>
-		<English>[COLOR_WARNING_TEXT]Besieged:[COLOR_REVERT] no production, growth or consumption; land units can neither leave nor enter</English>
-		<Portuguese>[COLOR_WARNING_TEXT]Sitiada:[COLOR_REVERT] sem produção, crescimento ou consumo; unidades terrestres não podem sair nem entrar</Portuguese>
-		<French>[COLOR_WARNING_TEXT]Assiégée :[COLOR_REVERT] ni production, ni croissance, ni consommation ; les unités terrestres ne peuvent ni sortir ni entrer</French>
-		<German>[COLOR_WARNING_TEXT]Belagert:[COLOR_REVERT] keine Produktion, kein Wachstum, kein Verbrauch; Landeinheiten können weder hinaus noch hinein</German>
-		<Italian>[COLOR_WARNING_TEXT]Assediata:[COLOR_REVERT] nessuna produzione, crescita o consumo; le unità terrestri non possono né uscire né entrare</Italian>
-		<Spanish>[COLOR_WARNING_TEXT]Sitiada:[COLOR_REVERT] sin producción, crecimiento ni consumo; las unidades terrestres no pueden salir ni entrar</Spanish>
-		<Russian>[COLOR_WARNING_TEXT]В осаде:[COLOR_REVERT] нет производства, роста и потребления; сухопутные войска не могут ни выйти, ни войти</Russian>
-		<Hungarian>[COLOR_WARNING_TEXT]Ostrom alatt:[COLOR_REVERT] nincs termelés, növekedés és fogyasztás; szárazföldi egységek nem mehetnek ki és be</Hungarian>
+		<English>[COLOR_WARNING_TEXT]Besieged:[COLOR_REVERT] the plots outside the city produce nothing, defense -%d1%% per turn, no units in or out</English>
+		<Portuguese>[COLOR_WARNING_TEXT]Sitiada:[COLOR_REVERT] os campos fora da cidade não produzem nada, defesa -%d1%% por turno, nenhuma unidade entra ou sai</Portuguese>
+		<French>[COLOR_WARNING_TEXT]Assiégée :[COLOR_REVERT] les cases hors de la ville ne produisent rien, défense -%d1%% par tour, aucune unité n'entre ni ne sort</French>
+		<German>[COLOR_WARNING_TEXT]Belagert:[COLOR_REVERT] die Felder außerhalb der Stadt bringen nichts, Verteidigung -%d1%% pro Runde, keine Einheiten hinein oder hinaus</German>
+		<Italian>[COLOR_WARNING_TEXT]Assediata:[COLOR_REVERT] le caselle fuori dalla città non producono nulla, difesa -%d1%% per turno, nessuna unità entra o esce</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]Sitiada:[COLOR_REVERT] las casillas fuera de la ciudad no producen nada, defensa -%d1%% por turno, ninguna unidad entra ni sale</Spanish>
+		<Russian>[COLOR_WARNING_TEXT]В осаде:[COLOR_REVERT] клетки за пределами города ничего не дают, оборона -%d1%% за ход, войска не входят и не выходят</Russian>
+		<Hungarian>[COLOR_WARNING_TEXT]Ostrom alatt:[COLOR_REVERT] a városon kívüli mezők semmit sem teremnek, védelem -%d1%% körönként, egységek nem mehetnek ki és be</Hungarian>
 	</TEXT>
 	<TEXT>
-		<Tag>TXT_KEY_CITY_BAR_NAVAL_BLOCKADE</Tag>
-		<English>[COLOR_WARNING_TEXT]Naval blockade:[COLOR_REVERT] ships can neither enter the port nor carry units out</English>
-		<Portuguese>[COLOR_WARNING_TEXT]Bloqueio naval:[COLOR_REVERT] navios não podem entrar no porto nem levar unidades para fora</Portuguese>
-		<French>[COLOR_WARNING_TEXT]Blocus naval :[COLOR_REVERT] les navires ne peuvent ni entrer au port ni emmener des unités</French>
-		<German>[COLOR_WARNING_TEXT]Seeblockade:[COLOR_REVERT] Schiffe können weder in den Hafen einlaufen noch Einheiten hinausbringen</German>
-		<Italian>[COLOR_WARNING_TEXT]Blocco navale:[COLOR_REVERT] le navi non possono né entrare in porto né portare fuori unità</Italian>
-		<Spanish>[COLOR_WARNING_TEXT]Bloqueo naval:[COLOR_REVERT] los barcos no pueden entrar en el puerto ni sacar unidades</Spanish>
-		<Russian>[COLOR_WARNING_TEXT]Морская блокада:[COLOR_REVERT] корабли не могут ни войти в порт, ни вывезти войска</Russian>
-		<Hungarian>[COLOR_WARNING_TEXT]Tengeri blokád:[COLOR_REVERT] hajók nem futhatnak be a kikötőbe és nem vihetnek ki egységeket</Hungarian>
+		<Tag>TXT_KEY_CITY_BAR_HALF_BESIEGED</Tag>
+		<English>[COLOR_WARNING_TEXT]Half besieged:[COLOR_REVERT] the land plots outside the city produce nothing, defense -%d1%% per turn, no land units in or out; ships and their cargo can still come and go, the sea plots produce</English>
+		<Portuguese>[COLOR_WARNING_TEXT]Meio sitiada:[COLOR_REVERT] os campos de terra fora da cidade não produzem nada, defesa -%d1%% por turno, nenhuma unidade terrestre entra ou sai; navios e sua carga ainda podem ir e vir, os campos de mar produzem</Portuguese>
+		<French>[COLOR_WARNING_TEXT]À demi assiégée :[COLOR_REVERT] les cases de terre hors de la ville ne produisent rien, défense -%d1%% par tour, aucune unité terrestre n'entre ni ne sort ; les navires et leur cargaison peuvent encore aller et venir, les cases de mer produisent</French>
+		<German>[COLOR_WARNING_TEXT]Halb belagert:[COLOR_REVERT] die Landfelder außerhalb der Stadt bringen nichts, Verteidigung -%d1%% pro Runde, keine Landeinheiten hinein oder hinaus; Schiffe und ihre Fracht können noch kommen und gehen, die Seefelder bringen Ertrag</German>
+		<Italian>[COLOR_WARNING_TEXT]Semi-assediata:[COLOR_REVERT] le caselle di terra fuori dalla città non producono nulla, difesa -%d1%% per turno, nessuna unità terrestre entra o esce; le navi e il loro carico possono ancora andare e venire, le caselle di mare producono</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]Medio sitiada:[COLOR_REVERT] las casillas de tierra fuera de la ciudad no producen nada, defensa -%d1%% por turno, ninguna unidad terrestre entra ni sale; los barcos y su carga aún pueden ir y venir, las casillas de mar producen</Spanish>
+		<Russian>[COLOR_WARNING_TEXT]В полуосаде:[COLOR_REVERT] сухопутные клетки за пределами города ничего не дают, оборона -%d1%% за ход, сухопутные войска не входят и не выходят; корабли и их груз ещё могут приходить и уходить, морские клетки дают доход</Russian>
+		<Hungarian>[COLOR_WARNING_TEXT]Félig ostromolva:[COLOR_REVERT] a városon kívüli szárazföldi mezők semmit sem teremnek, védelem -%d1%% körönként, szárazföldi egységek nem mehetnek ki és be; a hajók és rakományuk még jöhetnek-mehetnek, a tengeri mezők teremnek</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_CITY_BESIEGED_SHORT</Tag>
@@ -5478,5 +5478,49 @@
 		<Spanish> (Sitiada)</Spanish>
 		<Russian> (В осаде)</Russian>
 		<Hungarian> (Ostrom alatt)</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_SIEGE</Tag>
+		<English>Besiege</English>
+		<Portuguese>Sitiar</Portuguese>
+		<French>Assiéger</French>
+		<German>Belagern</German>
+		<Italian>Assediare</Italian>
+		<Spanish>Sitiar</Spanish>
+		<Russian>Осадить</Russian>
+		<Hungarian>Ostrom</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_SIEGE_HELP</Tag>
+		<English>Puts the colony beside this stack under siege. Needs at least 4 soldiers on this plot, and the soldiers beside the colony must be at least as strong as those in it (unmodified strength). Needs no movement. The plots outside the colony then produce nothing and its defense drops by 10% each turn. A coastal colony is only half besieged unless 2 of your ships that can attack are within 2 plots of it.</English>
+		<Portuguese>Coloca a colônia ao lado desta pilha sob cerco. Exige pelo menos 4 soldados neste campo, e os soldados ao lado da colônia devem ser pelo menos tão fortes quanto os dela (força sem modificadores). Não gasta movimento. Os campos fora da colônia deixam de produzir e sua defesa cai 10% por turno. Uma colônia costeira fica só meio sitiada, a menos que 2 navios seus capazes de atacar estejam a até 2 campos dela.</Portuguese>
+		<French>Met la colonie voisine de cette pile en état de siège. Il faut au moins 4 soldats sur cette case, et les soldats autour de la colonie doivent être au moins aussi forts que ceux qui s'y trouvent (force sans modificateurs). Ne coûte aucun mouvement. Les cases hors de la colonie ne produisent alors plus rien et sa défense baisse de 10% par tour. Une colonie côtière n'est qu'à demi assiégée, sauf si 2 de vos navires capables d'attaquer sont à 2 cases ou moins.</French>
+		<German>Stellt die Kolonie neben diesem Stapel unter Belagerung. Dafür braucht es mindestens 4 Soldaten auf diesem Feld, und die Soldaten um die Kolonie müssen mindestens so stark sein wie die darin (unmodifizierte Stärke). Kostet keine Bewegung. Die Felder außerhalb der Kolonie bringen dann nichts mehr, und ihre Verteidigung sinkt um 10% pro Runde. Eine Küstenkolonie ist nur halb belagert, außer 2 deiner Schiffe, die angreifen können, stehen höchstens 2 Felder entfernt.</German>
+		<Italian>Pone sotto assedio la colonia accanto a questa pila. Servono almeno 4 soldati su questa casella, e i soldati attorno alla colonia devono essere forti almeno quanto quelli al suo interno (forza senza modificatori). Non costa movimento. Le caselle fuori dalla colonia non producono più nulla e la sua difesa cala del 10% a turno. Una colonia costiera è solo semi-assediata, a meno che 2 tue navi in grado di attaccare siano entro 2 caselle.</Italian>
+		<Spanish>Pone bajo asedio la colonia junto a esta pila. Requiere al menos 4 soldados en esta casilla, y los soldados junto a la colonia deben ser al menos tan fuertes como los de dentro (fuerza sin modificadores). No gasta movimiento. Las casillas fuera de la colonia dejan de producir y su defensa baja un 10% por turno. Una colonia costera solo queda medio sitiada, salvo que 2 barcos tuyos capaces de atacar estén a 2 casillas o menos.</Spanish>
+		<Russian>Ставит колонию рядом с этим отрядом в осаду. Нужно не меньше 4 солдат на этой клетке, и солдаты вокруг колонии должны быть не слабее тех, что внутри (сила без модификаторов). Не тратит движение. Клетки за пределами колонии перестают давать доход, а её оборона падает на 10% за ход. Прибрежная колония только в полуосаде, если в пределах 2 клеток нет 2 ваших кораблей, способных атаковать.</Russian>
+		<Hungarian>Ostrom alá veszi a csapat melletti kolóniát. Legalább 4 katona kell ezen a mezőn, és a kolónia körüli katonáknak legalább olyan erősnek kell lenniük, mint a bentieknek (módosítók nélküli erő). Nem kerül mozgásba. A kolónián kívüli mezők ezután semmit sem teremnek, védelme pedig körönként 10%-kal csökken. Egy tengerparti kolónia csak félig ostromolt, hacsak nincs 2 támadni képes hajód legfeljebb 2 mezőnyire tőle.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_LIFT_SIEGE</Tag>
+		<English>Lift siege</English>
+		<Portuguese>Levantar cerco</Portuguese>
+		<French>Lever le siège</French>
+		<German>Belagerung aufheben</German>
+		<Italian>Togliere l'assedio</Italian>
+		<Spanish>Levantar el asedio</Spanish>
+		<Russian>Снять осаду</Russian>
+		<Hungarian>Ostrom feloldása</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_LIFT_SIEGE_HELP</Tag>
+		<English>Ends the siege of the colony beside this stack.</English>
+		<Portuguese>Encerra o cerco da colônia ao lado desta pilha.</Portuguese>
+		<French>Met fin au siège de la colonie voisine de cette pile.</French>
+		<German>Beendet die Belagerung der Kolonie neben diesem Stapel.</German>
+		<Italian>Pone fine all'assedio della colonia accanto a questa pila.</Italian>
+		<Spanish>Termina el asedio de la colonia junto a esta pila.</Spanish>
+		<Russian>Прекращает осаду колонии рядом с этим отрядом.</Russian>
+		<Hungarian>Befejezi a csapat melletti kolónia ostromát.</Hungarian>
 	</TEXT>
 </Civ4GameText>
