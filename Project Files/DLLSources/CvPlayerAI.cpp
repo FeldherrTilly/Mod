@@ -637,6 +637,7 @@ void CvPlayerAI::AI_doTurnUnitsPre()
 		AI_doMilitaryStrategy();
 		AI_doSuppressRevolution();
 		AI_doSieges(); // WTP: siege
+		AI_doWarDefense(); // WTP: siege
 	}
 
 	if (isHuman())
@@ -719,6 +720,264 @@ void CvPlayerAI::AI_doSieges()
 				pCity->endSiege();
 			}
 		}
+	}
+}
+
+// WTP: siege: an enemy siege stack near an own colony (AI_doWarDefense)
+struct SiegeThreat
+{
+	CvCity* pCity;
+	const CvPlot* pPlot;
+	int iStrength;
+	int iDistance;
+};
+
+// WTP: siege: war defense of the colonial AI against colonial powers or the king, every turn:
+// (1) colonies more than SIEGE_AI_FAR_DISTANCE plots from an enemy colony give one needed defender each to the colonies within
+//     SIEGE_AI_NEAR_DISTANCE plots of one (the nearest first; the king attacks the coastal colonies);
+// (2) visible enemy soldiers within SIEGE_AI_THREAT_RANGE plots of a colony, on land or aboard ships, add one needed defender per
+//     two;
+// (3) against a visible enemy siege stack (at least SIEGE_MIN_STACK_SIZE units that can attack with artillery, also aboard
+//     ships) within SIEGE_AI_COUNTER_RANGE plots of a colony, units of the own offensive stacks within SIEGE_AI_COUNTER_GATHER_RANGE
+//     plots become counter units (soldiers before artillery, nearest first) until the counter units near the colony have
+//     SIEGE_AI_COUNTER_PERCENT of the stack's strength; the rest goes on attacking. They go back to the offensive when no such
+//     stack threatens any more.
+void CvPlayerAI::AI_doWarDefense()
+{
+	if (isHuman() || isNative() || isEurope() || getNumCities() == 0)
+	{
+		return;
+	}
+	int iLoop;
+	std::vector<CvCity*> apCities;
+	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+	{
+		static_cast<CvCityAI*>(pCity)->AI_setWarDefenseShift(0);
+		apCities.push_back(pCity);
+	}
+	const int iNumCities = (int)apCities.size();
+
+	std::vector<PlayerTypes> aeEnemies;
+	bool bKing = false;
+	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
+	{
+		const CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
+		if (kPlayer.isAlive() && !kPlayer.isNative() && GET_TEAM(getTeam()).isAtWar(kPlayer.getTeam()))
+		{
+			aeEnemies.push_back((PlayerTypes)iPlayer);
+			bKing = bKing || kPlayer.isEurope();
+		}
+	}
+
+	// (3) first: the enemy siege stacks
+	std::vector<SiegeThreat> aThreats;
+	{
+		std::set<const CvPlot*> setSeen;
+		for (uint e = 0; e < aeEnemies.size(); ++e)
+		{
+			CvPlayer& kEnemy = GET_PLAYER(aeEnemies[e]);
+			int iUnitLoop;
+			for (CvUnit* pLoopUnit = kEnemy.firstUnit(&iUnitLoop); pLoopUnit != NULL; pLoopUnit = kEnemy.nextUnit(&iUnitLoop))
+			{
+				const CvPlot* const pPlot = pLoopUnit->plot();
+				if (pPlot == NULL || !pLoopUnit->isOnMap() || pLoopUnit->getDomainType() != DOMAIN_LAND || setSeen.count(pPlot) > 0)
+				{
+					continue;
+				}
+				setSeen.insert(pPlot);
+				if (!pPlot->isVisible(getTeam(), false))
+				{
+					continue;
+				}
+				int iUnits = 0;
+				int iArtillery = 0;
+				int iStrength = 0;
+				CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
+				while (pUnitNode != NULL)
+				{
+					const CvUnit* const pPlotUnit = pPlot->getUnitNodeLoop(pUnitNode);
+					if (pPlotUnit != NULL && pPlotUnit->getOwnerINLINE() == aeEnemies[e] && pPlotUnit->getDomainType() == DOMAIN_LAND && pPlotUnit->canAttack())
+					{
+						++iUnits;
+						iStrength += pPlotUnit->currEffectiveStr(NULL, NULL);
+						if (pPlotUnit->isPowderArtillery())
+						{
+							++iArtillery;
+						}
+					}
+				}
+				if (iUnits < GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE || iArtillery == 0)
+				{
+					continue;
+				}
+				CvCity* pNearest = NULL;
+				int iNearest = GLOBAL_DEFINE_SIEGE_AI_COUNTER_RANGE + 1;
+				for (int c = 0; c < iNumCities; ++c)
+				{
+					const int iDistance = plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), apCities[c]->getX_INLINE(), apCities[c]->getY_INLINE());
+					if (iDistance < iNearest)
+					{
+						iNearest = iDistance;
+						pNearest = apCities[c];
+					}
+				}
+				if (pNearest != NULL)
+				{
+					SiegeThreat kThreat;
+					kThreat.pCity = pNearest;
+					kThreat.pPlot = pPlot;
+					kThreat.iStrength = iStrength;
+					kThreat.iDistance = iNearest;
+					aThreats.push_back(kThreat);
+				}
+			}
+		}
+	}
+
+	if (aThreats.empty())
+	{
+		// no siege stack threatens: the counter units go back to the offensive
+		for (std::set<int>::const_iterator it = m_setSiegeCounterIDs.begin(); it != m_setSiegeCounterIDs.end(); ++it)
+		{
+			CvUnit* const pUnit = getUnit(*it);
+			if (pUnit != NULL && pUnit->AI_getUnitAIType() == UNITAI_COUNTER)
+			{
+				pUnit->AI_setUnitAIType(UNITAI_OFFENSIVE);
+			}
+		}
+		m_setSiegeCounterIDs.clear();
+	}
+	else
+	{
+		for (uint t = 0; t < aThreats.size(); ++t)
+		{
+			const SiegeThreat& kThreat = aThreats[t];
+			const int iNeeded = kThreat.iStrength * GLOBAL_DEFINE_SIEGE_AI_COUNTER_PERCENT / 100;
+			int iHave = 0;
+			std::vector<std::pair<int, CvUnit*> > aCandidates;
+			for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+			{
+				if (!pLoopUnit->isOnMap() || pLoopUnit->getDomainType() != DOMAIN_LAND || !pLoopUnit->canAttack() || pLoopUnit->area() != kThreat.pCity->area())
+				{
+					continue;
+				}
+				const int iDistance = plotDistance(pLoopUnit->getX_INLINE(), pLoopUnit->getY_INLINE(), kThreat.pCity->getX_INLINE(), kThreat.pCity->getY_INLINE());
+				if (pLoopUnit->AI_getUnitAIType() == UNITAI_COUNTER && iDistance <= GLOBAL_DEFINE_SIEGE_AI_COUNTER_RANGE + 2)
+				{
+					iHave += pLoopUnit->currEffectiveStr(NULL, NULL);
+				}
+				else if (pLoopUnit->AI_getUnitAIType() == UNITAI_OFFENSIVE && !pLoopUnit->isCargo() && iDistance <= GLOBAL_DEFINE_SIEGE_AI_COUNTER_GATHER_RANGE)
+				{
+					aCandidates.push_back(std::make_pair((pLoopUnit->isPowderArtillery() ? 1000 : 0) + iDistance, pLoopUnit));
+				}
+			}
+			std::sort(aCandidates.begin(), aCandidates.end());
+			int iMade = 0;
+			for (uint i = 0; i < aCandidates.size() && iHave < iNeeded; ++i)
+			{
+				CvUnit* const pUnit = aCandidates[i].second;
+				pUnit->joinGroup(NULL);
+				pUnit->AI_setUnitAIType(UNITAI_COUNTER);
+				m_setSiegeCounterIDs.insert(pUnit->getID());
+				iHave += pUnit->currEffectiveStr(NULL, NULL);
+				++iMade;
+			}
+			if (iMade > 0 && gPlayerLogLevel >= 1)
+			{
+				logWTP(WTP_LOG_MILITARY, getID(), "WTP siege: Player %d (%S) turn %d: siege stack (strength %d) %d plots from %S, %d offensive units become counter units (counter strength %d, wanted %d)",
+					getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), kThreat.iStrength, kThreat.iDistance, kThreat.pCity->getName().GetCString(), iMade, iHave, iNeeded);
+			}
+		}
+	}
+
+	if (aeEnemies.empty())
+	{
+		return;
+	}
+
+	// (1) the needed defenders move from the colonies far from the enemy to those near it
+	std::vector<int> aiDistance(iNumCities, MAX_INT);
+	std::vector<int> aiShift(iNumCities, 0);
+	for (int c = 0; c < iNumCities; ++c)
+	{
+		const CvCity* const pCity = apCities[c];
+		for (uint e = 0; e < aeEnemies.size(); ++e)
+		{
+			CvPlayer& kEnemy = GET_PLAYER(aeEnemies[e]);
+			int iCityLoop;
+			for (CvCity* pEnemyCity = kEnemy.firstCity(&iCityLoop); pEnemyCity != NULL; pEnemyCity = kEnemy.nextCity(&iCityLoop))
+			{
+				aiDistance[c] = std::min(aiDistance[c], plotDistance(pCity->getX_INLINE(), pCity->getY_INLINE(), pEnemyCity->getX_INLINE(), pEnemyCity->getY_INLINE()));
+			}
+		}
+		if (bKing && pCity->isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN()))
+		{
+			aiDistance[c] = std::min(aiDistance[c], GLOBAL_DEFINE_SIEGE_AI_NEAR_DISTANCE);
+		}
+	}
+	int iPool = 0;
+	std::vector<std::pair<int, int> > aNear;
+	for (int c = 0; c < iNumCities; ++c)
+	{
+		if (aiDistance[c] > GLOBAL_DEFINE_SIEGE_AI_FAR_DISTANCE)
+		{
+			if (apCities[c]->AI_neededDefenders() > 1)
+			{
+				aiShift[c] = -1;
+				++iPool;
+			}
+		}
+		else if (aiDistance[c] <= GLOBAL_DEFINE_SIEGE_AI_NEAR_DISTANCE)
+		{
+			aNear.push_back(std::make_pair(aiDistance[c], c));
+		}
+	}
+	if (aNear.empty())
+	{
+		// nobody near: the given defenders stay where they are
+		for (int c = 0; c < iNumCities; ++c)
+		{
+			aiShift[c] = 0;
+		}
+	}
+	else
+	{
+		std::sort(aNear.begin(), aNear.end());
+		for (int i = 0; iPool > 0; i = (i + 1) % (int)aNear.size(), --iPool)
+		{
+			++aiShift[aNear[i].second];
+		}
+	}
+
+	// (2) enemy soldiers close by, on land or aboard ships
+	const int iRange = GLOBAL_DEFINE_SIEGE_AI_THREAT_RANGE;
+	for (int c = 0; c < iNumCities; ++c)
+	{
+		const CvCity* const pCity = apCities[c];
+		int iEnemies = 0;
+		for (int iDX = -iRange; iDX <= iRange; ++iDX)
+		{
+			for (int iDY = -iRange; iDY <= iRange; ++iDY)
+			{
+				const CvPlot* const pLoopPlot = plotXY(pCity->getX_INLINE(), pCity->getY_INLINE(), iDX, iDY);
+				if (pLoopPlot == NULL || !pLoopPlot->isVisible(getTeam(), false))
+				{
+					continue;
+				}
+				CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
+				while (pUnitNode != NULL)
+				{
+					const CvUnit* const pLoopUnit = pLoopPlot->getUnitNodeLoop(pUnitNode);
+					if (pLoopUnit != NULL && pLoopUnit->getDomainType() == DOMAIN_LAND && pLoopUnit->canAttack() && atWar(pLoopUnit->getTeam(), getTeam())
+						&& !GET_PLAYER(pLoopUnit->getOwnerINLINE()).isNative())
+					{
+						++iEnemies;
+					}
+				}
+			}
+		}
+		aiShift[c] += (iEnemies + 1) / 2;
+		static_cast<CvCityAI*>(apCities[c])->AI_setWarDefenseShift(aiShift[c]);
 	}
 }
 
@@ -1347,6 +1606,7 @@ void CvPlayerAI::AI_unitUpdate()
 		if (!isHuman())
 		{
 			AI_doSieges(); // WTP: siege: before the units attack
+			AI_doWarDefense(); // WTP: siege
 			int iLoop;
 			CvCity* pLoopCity;
 			for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))

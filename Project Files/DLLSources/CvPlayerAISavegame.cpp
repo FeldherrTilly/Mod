@@ -245,6 +245,7 @@ void CvPlayerAI::AI_resetSavedData()
 	m_iSavingGoldTurn = -1;
 	m_iSiegeArtilleryCount = 0;
 	m_iSiegeWagonShortfall = 0;
+	m_setSiegeCounterIDs.clear();
 	m_mapWfLearnWait.clear();
 	m_mapWfRecentBuy.clear();
 	m_mapWfUnreachable.clear();

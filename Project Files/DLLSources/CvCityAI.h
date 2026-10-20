@@ -50,6 +50,8 @@ public:
 	bool AI_isDanger() const;
 
 	int AI_neededDefenders() const;
+	void AI_setWarDefenseShift(int iShift) { m_iWarDefenseShift = iShift; } // WTP: war defense (CvPlayerAI::AI_doWarDefense)
+	int AI_getWarDefenseShift() const { return m_iWarDefenseShift; }
 	int AI_numDefenders(bool bDefenseOnly = true, bool bIncludePotential = true) const;
 	int AI_numPotentialDefenders() const;
 	int AI_minDefenders() const;
@@ -263,6 +265,7 @@ protected:
 	int m_iNativeAssignPopulation;
 	int m_iNativeAssignIdle; // WTP: villagers without a job (or plot) when the village last reassigned (not saved)
 	// WTP: extra defenders against angry natives nearby, refreshed every turn, not saved
+	int m_iWarDefenseShift; // WTP: defenders moved here (or away) by the war defense of the owner, every turn, not saved
 	mutable int m_iCacheAngryNativeTurn;
 	mutable int m_iCacheAngryNativeDefenders;
 	// WTP: last turn colonists were put on food plots because of a food shortage, not saved

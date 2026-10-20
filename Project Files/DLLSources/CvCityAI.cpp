@@ -89,6 +89,7 @@ void CvCityAI::AI_reset()
 	m_iNativeAssignPopulation = -1;
 	m_iNativeAssignIdle = -1;
 	m_iCacheAngryNativeTurn = -1;
+	m_iWarDefenseShift = 0;
 	m_iCacheAngryNativeDefenders = 0;
 	m_iFoodShortageTurn = -100;
 	m_iWfFoodRequestTurn = -100;
@@ -2032,7 +2033,8 @@ int CvCityAI::AI_neededDefenders() const
 		}
 	}
 	iDefenders += m_iCacheAngryNativeDefenders;
-	return iDefenders;
+	// WTP: war defense: defenders moved from colonies far from the enemy to those near it, and more against enemies close by
+	return std::max(1, iDefenders + m_iWarDefenseShift);
 }
 
 int CvCityAI::AI_numDefenders(bool bDefenseOnly, bool bIncludePotential) const

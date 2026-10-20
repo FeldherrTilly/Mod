@@ -1848,6 +1848,35 @@
 		SIEGE_AI_MIN_ARTILLERY to SIEGE_AI_MAX_ARTILLERY); with bad odds it besieges and bombards first. It gives up a siege when
 		enemies within 2 plots of the stack (those in the city included) have SIEGE_AI_ABORT_ENEMY_PERCENT of its strength. A wagon train
 		follows it with SIEGE_AI_WAGON_POWDER black powder (fetched again below SIEGE_AI_WAGON_MIN_POWDER) -->
+	<!-- WTP: war defense of the colonial AI against colonial powers or the king: colonies more than SIEGE_AI_FAR_DISTANCE plots
+		from an enemy colony give one needed defender each to those within SIEGE_AI_NEAR_DISTANCE plots (the king attacks the coast);
+		visible enemy soldiers within SIEGE_AI_THREAT_RANGE plots (also aboard ships) add one needed defender per two. Against an enemy
+		siege stack within SIEGE_AI_COUNTER_RANGE plots of a colony offensive units within SIEGE_AI_COUNTER_GATHER_RANGE plots become
+		counter units until they have SIEGE_AI_COUNTER_PERCENT of its strength -->
+	<Define>
+		<DefineName>SIEGE_AI_NEAR_DISTANCE</DefineName>
+		<iDefineIntVal>6</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SIEGE_AI_FAR_DISTANCE</DefineName>
+		<iDefineIntVal>12</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SIEGE_AI_THREAT_RANGE</DefineName>
+		<iDefineIntVal>3</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SIEGE_AI_COUNTER_RANGE</DefineName>
+		<iDefineIntVal>6</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SIEGE_AI_COUNTER_GATHER_RANGE</DefineName>
+		<iDefineIntVal>12</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SIEGE_AI_COUNTER_PERCENT</DefineName>
+		<iDefineIntVal>150</iDefineIntVal>
+	</Define>
 	<Define>
 		<DefineName>SIEGE_AI_UNITS_PER_ARTILLERY</DefineName>
 		<iDefineIntVal>4</iDefineIntVal>
