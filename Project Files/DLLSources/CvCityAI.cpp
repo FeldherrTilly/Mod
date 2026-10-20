@@ -591,6 +591,14 @@ void CvCityAI::AI_chooseProduction()
 
 	if (!isNative())
 	{
+		// WTP: siege: the capital builds a wagon train (black powder supply) for an attacking stack with artillery that has none
+		if (isCapital() && GET_PLAYER(getOwnerINLINE()).AI_getSiegeWagonShortfall() > 0)
+		{
+			if (AI_chooseUnit(UNITAI_WAGON))
+			{
+				return;
+			}
+		}
 		if ((GC.getGame().getGameTurn() - getGameTurnAcquired()) > 5)	// TAC - AI Training - koma13
 		{
 			int iAreaCities = pArea->getCitiesPerPlayer(getOwnerINLINE());
