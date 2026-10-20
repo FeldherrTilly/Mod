@@ -3852,9 +3852,9 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 		return false;
 	}
 
-	// WTP: siege: a unit of the besieged team that has moved this turn (cheaply, on the plots beside its besieged city) can not
-	// leave those plots again in the same turn; it may still attack and enter the city
-	if (getMoves() > 0 && plot() != NULL && plot()->isBesiegedCityRing(getTeam()) && !kPlot.isBesiegedCityRing(getTeam())
+	// WTP: siege: a military unit of the besieged team that has moved this turn (cheaply, on the plots beside its besieged
+	// city) can not leave those plots again in the same turn; it may still attack and enter the city
+	if (getMoves() > 0 && canAttack() && plot() != NULL && plot()->isBesiegedCityRing(getTeam()) && !kPlot.isBesiegedCityRing(getTeam())
 		&& !(kPlot.isCity() && kPlot.getTeam() == getTeam()) && !(bAttack && kPlot.isVisibleEnemyDefender(this)))
 	{
 		return false;

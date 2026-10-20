@@ -4144,8 +4144,8 @@ void CvCity::startSiege(PlayerTypes eBesieger)
 	m_eBesieger = eBesieger;
 	setYieldRateDirty();
 	setBillboardDirty(true);
-	gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_CITY_BESIEGED", getNameKey()), "AS2D_CITY_REVOLT", MESSAGE_TYPE_MAJOR_EVENT, NULL, COLOR_RED, getX_INLINE(), getY_INLINE(), true, true);
-	gDLL->UI().addPlayerMessage(eBesieger, false, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_CITY_BESIEGED_ENEMY", getNameKey()), "AS2D_POSITIVE_DINK", MESSAGE_TYPE_MAJOR_EVENT, NULL, COLOR_GREEN, getX_INLINE(), getY_INLINE(), true, true);
+	gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_CITY_BESIEGED", getNameKey()), "AS2D_CITYCAPTURED", MESSAGE_TYPE_MAJOR_EVENT, NULL, COLOR_RED, getX_INLINE(), getY_INLINE(), true, true);
+	gDLL->UI().addPlayerMessage(eBesieger, false, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_CITY_BESIEGED_ENEMY", getNameKey()), "AS2D_CITYCAPTURED", MESSAGE_TYPE_MAJOR_EVENT, NULL, COLOR_GREEN, getX_INLINE(), getY_INLINE(), true, true);
 }
 
 void CvCity::endSiege()
