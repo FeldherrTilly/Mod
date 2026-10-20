@@ -4096,10 +4096,17 @@ int CvCity::getSiegeLevel() const
 	{
 		return 0;
 	}
-	if (!plot()->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN()))
+	if (!plot()->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN()) || isNavalBlockade())
 	{
 		return 2;
 	}
+	return 1;
+}
+
+// naval blockade: at least SIEGE_BLOCKADE_SHIPS enemy ships that can attack within SIEGE_BLOCKADE_RANGE plots of the city (with
+// or without a siege on land)
+bool CvCity::isNavalBlockade() const
+{
 	const int iRange = GLOBAL_DEFINE_SIEGE_BLOCKADE_RANGE;
 	int iShips = 0;
 	for (int iDX = -iRange; iDX <= iRange; ++iDX)
@@ -4120,13 +4127,13 @@ int CvCity::getSiegeLevel() const
 				{
 					if (++iShips >= GLOBAL_DEFINE_SIEGE_BLOCKADE_SHIPS)
 					{
-						return 2;
+						return true;
 					}
 				}
 			}
 		}
 	}
-	return 1;
+	return false;
 }
 
 bool CvCity::isBesieged() const

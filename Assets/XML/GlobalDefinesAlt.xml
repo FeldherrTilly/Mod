@@ -1846,7 +1846,7 @@
 	</Define>
 	<!-- WTP: siege AI: a stack attacking a city takes one artillery unit per SIEGE_AI_UNITS_PER_ARTILLERY units along (from
 		SIEGE_AI_MIN_ARTILLERY to SIEGE_AI_MAX_ARTILLERY); with bad odds it besieges and bombards first. It gives up a siege when
-		enemies within 2 plots of the stack (not those in the city) have SIEGE_AI_ABORT_ENEMY_PERCENT of its strength. A wagon train
+		enemies within 2 plots of the stack (those in the city included) have SIEGE_AI_ABORT_ENEMY_PERCENT of its strength. A wagon train
 		follows it with SIEGE_AI_WAGON_POWDER black powder (fetched again below SIEGE_AI_WAGON_MIN_POWDER) -->
 	<Define>
 		<DefineName>SIEGE_AI_UNITS_PER_ARTILLERY</DefineName>

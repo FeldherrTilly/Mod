@@ -15196,16 +15196,14 @@ bool CvUnitAI::AI_canBesiege(const CvCity* pCity) const
 	return iCount >= GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE && iStrength >= pCity->getSiegeDefenderStrength();
 }
 
-// WTP: siege: a warship blockades a coastal city its owner besieges and that is not yet besieged on the sea side: it stays
-// within SIEGE_BLOCKADE_RANGE plots of the city, or sails there (up to 8 turns) while fewer than SIEGE_BLOCKADE_SHIPS own ships
-// are there or on their way
+// WTP: siege: warships blockade a coastal city their owner besieges: each warship within 8 turns sails there (at least
+// SIEGE_BLOCKADE_SHIPS are needed for the naval blockade, more may join) and stays within SIEGE_BLOCKADE_RANGE plots of it
 bool CvUnitAI::AI_siegeBlockade()
 {
 	if (!canAttack() || getDomainType() != DOMAIN_SEA || isCargo())
 	{
 		return false;
 	}
-	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	const int iRange = GLOBAL_DEFINE_SIEGE_BLOCKADE_RANGE;
 	CvPlot* pBestPlot = NULL;
 	CvCity* pBestCity = NULL;
@@ -15229,10 +15227,6 @@ bool CvUnitAI::AI_siegeBlockade()
 				// on blockade: stay
 				getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_BOMBARD, pCity->plot());
 				return true;
-			}
-			if (pCity->isFullSiege() || kOwner.AI_plotTargetMissionAIs(pCity->plot(), MISSIONAI_BOMBARD, getGroup(), iRange) >= GLOBAL_DEFINE_SIEGE_BLOCKADE_SHIPS)
-			{
-				continue;
 			}
 			for (int iDX = -iRange; iDX <= iRange; ++iDX)
 			{

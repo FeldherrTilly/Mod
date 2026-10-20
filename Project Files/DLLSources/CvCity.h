@@ -335,6 +335,7 @@ public:
 	int getSiegeLevel() const; // 0: none, 1: half besieged (sea side open), 2: besieged
 	bool isBesieged() const;
 	bool isFullSiege() const;
+	bool isNavalBlockade() const; // enemy warships before the port, also without a siege on land
 	PlayerTypes getBesieger() const; // the player who started the siege, also while it is broken until the owner's turn ends
 	void startSiege(PlayerTypes eBesieger);
 	void endSiege();
