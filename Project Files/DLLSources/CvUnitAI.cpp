@@ -290,7 +290,10 @@ bool CvUnitAI::AI_update()
 				break;
 
 			case UNITAI_WAGON:
-				AI_transportMoveFull();
+				if (!AI_siegeSupply()) // WTP: siege: black powder after an attacking stack
+				{
+					AI_transportMoveFull();
+				}
 				break;
 
 			case UNITAI_TREASURE:
@@ -3153,6 +3156,28 @@ void CvUnitAI::AI_attackCityMove()
 			iAttackRatio = 80;
 		}
 
+		// WTP: siege: a stack attacking a city takes AI_siegeArtilleryNeeded artillery units along; it waits for them, merging
+		// with other offensive stacks, before it marches (not the natives and the king's troops; nor a player who cannot buy
+		// artillery and does not have enough)
+		const int iArtilleryNeeded = kOwner.AI_siegeArtilleryNeeded(getGroup()->getNumUnits());
+		if (!isNative() && !kOwner.isEurope() && iStepDistToTarget > 2 && AI_siegeArtilleryCount() < iArtilleryNeeded
+			&& (kOwner.canTradeWithEurope() || kOwner.AI_getSiegeArtilleryCount() >= iArtilleryNeeded))
+		{
+			if (AI_groupMergeRange(UNITAI_OFFENSIVE, 8, false, true, bIgnoreFaster))
+			{
+				return;
+			}
+			if (plot()->isCity() && plot()->getOwnerINLINE() == getOwnerINLINE())
+			{
+				getGroup()->pushMission(MISSION_SKIP);
+				return;
+			}
+			if (AI_retreatToCity())
+			{
+				return;
+			}
+		}
+
 		int iComparePostBombard = 0;
 		// AI gets a 1-tile sneak peak to compensate for lack of memory
 		if( iStepDistToTarget <= 2 || pTargetCity->isVisible(getTeam(),false) )
@@ -3169,6 +3194,15 @@ void CvUnitAI::AI_attackCityMove()
 
 		if( iStepDistToTarget <= 2 )
 		{
+			// WTP: siege: with bad odds a stack that can besiege the city goes next to it to besiege and bombard it
+			if (iStepDistToTarget == 2 && iComparePostBombard < iAttackRatio && AI_canBesiege(pTargetCity) && !kOwner.AI_isSiegeThreatened(*plot(), *pTargetCity))
+			{
+				if (AI_goToTargetCity(0, 2, pTargetCity))
+				{
+					return;
+				}
+			}
+
 			if( iComparePostBombard < iAttackRatio )
 			{
 				if (AI_groupMergeRange(UNITAI_OFFENSIVE, 2, true, true, bIgnoreFaster))
@@ -3184,6 +3218,39 @@ void CvUnitAI::AI_attackCityMove()
 				{
 					if( AI_choke(1) )
 					{
+						return;
+					}
+				}
+			}
+
+			// WTP: siege: beside the city with bad odds the stack besieges it and bombards it down before it attacks; it gives up the
+			// siege and withdraws when strong enemies come near
+			if (iStepDistToTarget == 1 && getGroup()->AI_compareStacks(pTargetCity->plot(), true, true, true) < iAttackRatio)
+			{
+				if (kOwner.AI_isSiegeThreatened(*plot(), *pTargetCity))
+				{
+					if (pTargetCity->getBesieger() == getOwnerINLINE())
+					{
+						pTargetCity->endSiege();
+					}
+					if (AI_retreatToCity(false, 6))
+					{
+						return;
+					}
+				}
+				else
+				{
+					if (getSiegeTargetCity() == pTargetCity)
+					{
+						pTargetCity->startSiege(getOwnerINLINE());
+					}
+					if (pTargetCity->getBesieger() == getOwnerINLINE() && pTargetCity->isBesieged())
+					{
+						if (AI_bombardCity())
+						{
+							return;
+						}
+						getGroup()->pushMission(MISSION_SKIP);
 						return;
 					}
 				}
@@ -6775,6 +6842,12 @@ void CvUnitAI::AI_combatSeaMove()
 	//if (AI_anyAttack(2, 49))
 	if (AI_anyAttack(1, 49))
 	// TAC - AI Improved Naval AI - koma13 - END
+	{
+		return;
+	}
+
+	// WTP: siege: warships blockade a coastal city the owner besieges
+	if (AI_siegeBlockade())
 	{
 		return;
 	}
@@ -15076,6 +15149,234 @@ bool CvUnitAI::AI_pillageAroundCity(CvCity* pTargetCity, int iBonusValueThreshol
 }
 
 // Returns true if a mission was pushed...
+// WTP: siege: the artillery units in this unit's group
+int CvUnitAI::AI_siegeArtilleryCount() const
+{
+	int iCount = 0;
+	CvSelectionGroup* const pGroup = getGroup();
+	if (pGroup == NULL)
+	{
+		return isPowderArtillery() ? 1 : 0;
+	}
+	CLLNode<IDInfo>* pUnitNode = pGroup->headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		const CvUnit* const pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = pGroup->nextUnitNode(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit->isPowderArtillery())
+		{
+			++iCount;
+		}
+	}
+	return iCount;
+}
+
+// WTP: siege: this stack could besiege pCity from beside it: enough units that can besiege, at least as strong (unmodified
+// strength) as the soldiers in the city
+bool CvUnitAI::AI_canBesiege(const CvCity* pCity) const
+{
+	if (pCity == NULL || (pCity->isNative() && pCity->getBuildingDefense() <= 0))
+	{
+		return false;
+	}
+	int iCount = 0;
+	int iStrength = 0;
+	CvSelectionGroup* const pGroup = getGroup();
+	CLLNode<IDInfo>* pUnitNode = pGroup->headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		const CvUnit* const pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = pGroup->nextUnitNode(pUnitNode);
+		if (pLoopUnit != NULL && CvCity::isSiegeUnit(*pLoopUnit, pCity->getTeam()))
+		{
+			++iCount;
+			iStrength += pLoopUnit->baseCombatStr();
+		}
+	}
+	return iCount >= GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE && iStrength >= pCity->getSiegeDefenderStrength();
+}
+
+// WTP: siege: a warship blockades a coastal city its owner besieges and that is not yet besieged on the sea side: it stays
+// within SIEGE_BLOCKADE_RANGE plots of the city, or sails there (up to 8 turns) while fewer than SIEGE_BLOCKADE_SHIPS own ships
+// are there or on their way
+bool CvUnitAI::AI_siegeBlockade()
+{
+	if (!canAttack() || getDomainType() != DOMAIN_SEA || isCargo())
+	{
+		return false;
+	}
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const int iRange = GLOBAL_DEFINE_SIEGE_BLOCKADE_RANGE;
+	CvPlot* pBestPlot = NULL;
+	CvCity* pBestCity = NULL;
+	int iBestTurns = 9;
+	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
+	{
+		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
+		if (!kPlayer.isAlive() || !GET_TEAM(getTeam()).isAtWar(kPlayer.getTeam()))
+		{
+			continue;
+		}
+		int iCityLoop;
+		for (CvCity* pCity = kPlayer.firstCity(&iCityLoop); pCity != NULL; pCity = kPlayer.nextCity(&iCityLoop))
+		{
+			if (pCity->getBesieger() != getOwnerINLINE() || !pCity->plot()->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN()))
+			{
+				continue;
+			}
+			if (plotDistance(getX_INLINE(), getY_INLINE(), pCity->getX_INLINE(), pCity->getY_INLINE()) <= iRange)
+			{
+				// on blockade: stay
+				getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_BOMBARD, pCity->plot());
+				return true;
+			}
+			if (pCity->isFullSiege() || kOwner.AI_plotTargetMissionAIs(pCity->plot(), MISSIONAI_BOMBARD, getGroup(), iRange) >= GLOBAL_DEFINE_SIEGE_BLOCKADE_SHIPS)
+			{
+				continue;
+			}
+			for (int iDX = -iRange; iDX <= iRange; ++iDX)
+			{
+				for (int iDY = -iRange; iDY <= iRange; ++iDY)
+				{
+					CvPlot* pLoopPlot = plotXY(pCity->getX_INLINE(), pCity->getY_INLINE(), iDX, iDY);
+					int iTurns;
+					if (pLoopPlot != NULL && pLoopPlot->isWater() && !pLoopPlot->isVisibleEnemyUnit(this)
+						&& generatePath(pLoopPlot, 0, true, &iTurns) && iTurns < iBestTurns)
+					{
+						iBestTurns = iTurns;
+						pBestPlot = pLoopPlot;
+						pBestCity = pCity;
+					}
+				}
+			}
+		}
+	}
+	if (pBestPlot == NULL)
+	{
+		return false;
+	}
+	getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_BOMBARD, pBestCity->plot());
+	return true;
+}
+
+// a stack a wagon train with black powder follows: an attacking (offensive) stack of at least SIEGE_MIN_STACK_SIZE units with
+// artillery
+static bool isSiegeSupplyStack(const CvUnit& kUnit)
+{
+	return kUnit.isGroupHead() && kUnit.isOnMap() && !kUnit.isCargo() && kUnit.AI_getUnitAIType() == UNITAI_OFFENSIVE
+		&& kUnit.getGroup()->getNumUnits() >= GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE && static_cast<const CvUnitAI&>(kUnit).AI_siegeArtilleryCount() > 0;
+}
+
+// WTP: siege: during a war a wagon train carries black powder after an attacking stack with artillery (one wagon train per
+// stack), so that the artillery can reload on the stack's plot. It fetches SIEGE_AI_WAGON_POWDER in an own colony, which buys
+// it in Europe if need be (coastal colony, Europe price). Only an empty wagon train or one with black powder
+bool CvUnitAI::AI_siegeSupply()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	if (isHuman() || kOwner.isNative() || kOwner.isEurope() || isCargo() || !isOnMap() || GET_TEAM(getTeam()).getAnyWarPlanCount() == 0)
+	{
+		return false;
+	}
+	int iPowder = 0;
+	{
+		CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+		while (pUnitNode != NULL)
+		{
+			const CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+			if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this)
+			{
+				if (pLoopUnit->getYield() != YIELD_BLACK_POWDER)
+				{
+					return false;
+				}
+				iPowder += pLoopUnit->getYieldStored();
+			}
+		}
+	}
+
+	// the stack: the one it follows, else the nearest one without a wagon train
+	CvUnit* pStack = NULL;
+	if (getGroup()->AI_getMissionAIType() == MISSIONAI_SHADOW)
+	{
+		CvUnit* const pOld = getGroup()->AI_getMissionAIUnit();
+		if (pOld != NULL && pOld->getOwnerINLINE() == getOwnerINLINE() && isSiegeSupplyStack(*pOld))
+		{
+			pStack = pOld;
+		}
+	}
+	if (pStack == NULL)
+	{
+		int iBestTurns = MAX_INT;
+		int iLoop;
+		for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
+		{
+			int iTurns;
+			if (isSiegeSupplyStack(*pLoopUnit) && kOwner.AI_unitTargetMissionAIs(pLoopUnit, MISSIONAI_SHADOW, getGroup()) == 0
+				&& generatePath(pLoopUnit->plot(), 0, true, &iTurns) && iTurns < iBestTurns)
+			{
+				iBestTurns = iTurns;
+				pStack = pLoopUnit;
+			}
+		}
+	}
+	if (pStack == NULL)
+	{
+		return false;
+	}
+
+	// black powder: loaded (or bought) here, else fetched in the nearest colony that has or can buy it
+	if (iPowder < GLOBAL_DEFINE_SIEGE_AI_WAGON_MIN_POWDER)
+	{
+		CvCity* const pHere = plot()->getPlotCity();
+		if (pHere != NULL && pHere->getOwnerINLINE() == getOwnerINLINE())
+		{
+			const int iRoom = std::min(GLOBAL_DEFINE_SIEGE_AI_WAGON_POWDER - iPowder, getMaxLoadYieldAmount(YIELD_BLACK_POWDER));
+			if (pHere->getYieldStored(YIELD_BLACK_POWDER) < iRoom)
+			{
+				kOwner.AI_buySiegePowder(*pHere, iRoom - pHere->getYieldStored(YIELD_BLACK_POWDER));
+			}
+			const int iLoad = std::min(iRoom, pHere->getYieldStored(YIELD_BLACK_POWDER));
+			if (iLoad > 0 && loadYieldAmount(YIELD_BLACK_POWDER, iLoad, false) > 0)
+			{
+				iPowder += iLoad;
+			}
+		}
+		if (iPowder < GLOBAL_DEFINE_SIEGE_AI_WAGON_MIN_POWDER)
+		{
+			CvCity* pBestCity = NULL;
+			int iBestTurns = MAX_INT;
+			int iLoop;
+			for (CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kOwner.nextCity(&iLoop))
+			{
+				int iTurns;
+				if (pLoopCity != pHere && (pLoopCity->getYieldStored(YIELD_BLACK_POWDER) >= GLOBAL_DEFINE_SIEGE_AI_WAGON_MIN_POWDER
+						|| kOwner.AI_canBuySiegePowder(*pLoopCity, GLOBAL_DEFINE_SIEGE_AI_WAGON_POWDER))
+					&& generatePath(pLoopCity->plot(), 0, true, &iTurns) && iTurns < iBestTurns)
+				{
+					iBestTurns = iTurns;
+					pBestCity = pLoopCity;
+				}
+			}
+			if (pBestCity == NULL)
+			{
+				return false;
+			}
+			getGroup()->pushMission(MISSION_MOVE_TO, pBestCity->getX_INLINE(), pBestCity->getY_INLINE(), 0, false, false, MISSIONAI_TRANSPORT, pBestCity->plot());
+			return true;
+		}
+	}
+
+	if (atPlot(pStack->plot()))
+	{
+		getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_SHADOW, NULL, pStack);
+	}
+	else
+	{
+		getGroup()->pushMission(MISSION_MOVE_TO_UNIT, pStack->getOwnerINLINE(), pStack->getID(), 0, false, false, MISSIONAI_SHADOW, NULL, pStack);
+	}
+	return true;
+}
+
 bool CvUnitAI::AI_bombardCity()
 {
 	PROFILE_FUNC();

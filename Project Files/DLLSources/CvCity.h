@@ -331,6 +331,7 @@ public:
 	static bool isSiegeUnit(const CvUnit& kUnit, TeamTypes eCityTeam);
 	static int getSiegeStackSize(const CvPlot& kPlot, TeamTypes eTeam, TeamTypes eCityTeam);
 	bool canBeBesiegedBy(TeamTypes eTeam) const;
+	int getSiegeDefenderStrength() const;
 	int getSiegeLevel() const; // 0: none, 1: half besieged (sea side open), 2: besieged
 	bool isBesieged() const;
 	bool isFullSiege() const;

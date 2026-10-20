@@ -757,6 +757,8 @@ protected:
 	};
 	std::vector<WfOpenOpportunity> m_aWfOpenOpportunities;
 	int m_iWfIdleCount; // WTP: colonists without a job in the last plan (not saved)
+	int m_iSiegeArtilleryCount; // WTP: siege: own land artillery units, counted every turn (not saved)
+	int m_iSiegeWagonShortfall; // WTP: siege: attacking stacks with artillery minus wagon trains (not saved)
 	int m_iWfFoodCityID; // WTP: the colony that needs a food provider most (not saved), -1
 	bool m_bWfFoodWater; // WTP: ... a fisherman (else a farmer or an African slave)
 	bool AI_buyExpertForOpportunity();
@@ -785,6 +787,15 @@ protected:
 	void AI_doMilitaryStrategy();
 	void AI_doSuppressRevolution();
 	void AI_doSieges(); // WTP: siege
+public:
+	// WTP: siege
+	int AI_siegeArtilleryNeeded(int iGroupSize) const;
+	bool AI_isSiegeThreatened(const CvPlot& kStackPlot, const CvCity& kCity) const;
+	int AI_getSiegeArtilleryCount() const { return m_iSiegeArtilleryCount; }
+	int AI_getSiegeWagonShortfall() const { return m_iSiegeWagonShortfall; }
+	bool AI_canBuySiegePowder(const CvCity& kCity, int iAmount) const;
+	void AI_buySiegePowder(CvCity& kCity, int iAmount);
+protected:
 	void AI_doUnitAIWeights();
 	void AI_doEmotions();
 	void AI_doStrategy();

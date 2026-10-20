@@ -403,6 +403,13 @@ protected:
 	// TAC - AI Attack City - koma13, jdog5000(BBAI) - END
 
 	bool AI_bombardCity();
+	// WTP: siege
+	bool AI_canBesiege(const CvCity* pCity) const;
+	bool AI_siegeBlockade();
+	bool AI_siegeSupply();
+public:
+	int AI_siegeArtilleryCount() const;
+protected:
 	bool AI_cityAttack(int iRange, int iOddsThreshold, bool bFollow = false);
 	// TAC - AI Attack City - koma13 - START
 	//bool AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack = 0, bool bFollow = false);

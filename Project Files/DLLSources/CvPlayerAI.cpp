@@ -646,22 +646,128 @@ void CvPlayerAI::AI_doTurnUnitsPre()
 }
 // WTP, Schmiddie, AI Fleet Modernization END
 
-// WTP: siege: the AI puts every city under siege it can, before and after its units move
+// WTP: siege: the AI puts every city under siege it can, before and after its units move, unless strong enemies are near the
+// stack; it gives up a siege when they come. It also counts its artillery and the attacking stacks without a wagon train
 void CvPlayerAI::AI_doSieges()
 {
+	m_iSiegeArtilleryCount = 0;
+	m_iSiegeWagonShortfall = 0;
 	if (isHuman())
 	{
 		return;
 	}
+	int iStacks = 0;
+	int iWagons = 0;
 	int iLoop;
 	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 	{
+		if (pLoopUnit->isPowderArtillery())
+		{
+			++m_iSiegeArtilleryCount;
+		}
+		if (pLoopUnit->AI_getUnitAIType() == UNITAI_WAGON)
+		{
+			++iWagons;
+		}
+		if (pLoopUnit->isGroupHead() && pLoopUnit->isOnMap() && !pLoopUnit->isCargo() && pLoopUnit->AI_getUnitAIType() == UNITAI_OFFENSIVE
+			&& pLoopUnit->getGroup()->getNumUnits() >= GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE && static_cast<CvUnitAI*>(pLoopUnit)->AI_siegeArtilleryCount() > 0)
+		{
+			++iStacks;
+		}
 		CvCity* pCity = pLoopUnit->getSiegeTargetCity();
-		if (pCity != NULL)
+		if (pCity != NULL && !AI_isSiegeThreatened(*pLoopUnit->plot(), *pCity))
 		{
 			pCity->startSiege(getID());
 		}
 	}
+	if (!isNative() && !isEurope() && GET_TEAM(getTeam()).getAnyWarPlanCount() > 0)
+	{
+		m_iSiegeWagonShortfall = std::max(0, iStacks - iWagons);
+	}
+
+	// strong enemies near the largest own stack beside a city it besieges: the siege is given up
+	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
+	{
+		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
+		if (!kPlayer.isAlive() || !GET_TEAM(getTeam()).isAtWar(kPlayer.getTeam()))
+		{
+			continue;
+		}
+		int iCityLoop;
+		for (CvCity* pCity = kPlayer.firstCity(&iCityLoop); pCity != NULL; pCity = kPlayer.nextCity(&iCityLoop))
+		{
+			if (pCity->getBesieger() != getID())
+			{
+				continue;
+			}
+			const CvPlot* pStackPlot = NULL;
+			int iBestStack = 0;
+			for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+			{
+				const CvPlot* pLoopPlot = plotDirection(pCity->getX_INLINE(), pCity->getY_INLINE(), (DirectionTypes)iI);
+				const int iStack = (pLoopPlot != NULL) ? CvCity::getSiegeStackSize(*pLoopPlot, getTeam(), pCity->getTeam()) : 0;
+				if (iStack > iBestStack)
+				{
+					iBestStack = iStack;
+					pStackPlot = pLoopPlot;
+				}
+			}
+			if (pStackPlot != NULL && AI_isSiegeThreatened(*pStackPlot, *pCity))
+			{
+				if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_MILITARY, getID(), "WTP siege: Player %d (%S) turn %d gives up the siege of %S: strong enemies near",
+					getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pCity->getName().GetCString());
+				pCity->endSiege();
+			}
+		}
+	}
+}
+
+// WTP: siege: the artillery units a stack attacking a city takes along: one per SIEGE_AI_UNITS_PER_ARTILLERY units, from
+// SIEGE_AI_MIN_ARTILLERY to SIEGE_AI_MAX_ARTILLERY
+int CvPlayerAI::AI_siegeArtilleryNeeded(int iGroupSize) const
+{
+	return range(iGroupSize / std::max(1, GLOBAL_DEFINE_SIEGE_AI_UNITS_PER_ARTILLERY), GLOBAL_DEFINE_SIEGE_AI_MIN_ARTILLERY, GLOBAL_DEFINE_SIEGE_AI_MAX_ARTILLERY);
+}
+
+// WTP: siege: strong enemies near a stack beside kCity: the enemy units within 2 plots of the stack, without those in the city,
+// have at least SIEGE_AI_ABORT_ENEMY_PERCENT of the strength of the own units on the stack's plot
+bool CvPlayerAI::AI_isSiegeThreatened(const CvPlot& kStackPlot, const CvCity& kCity) const
+{
+	CvPlayerAI& kThis = const_cast<CvPlayerAI&>(*this);
+	CvPlot* const pStackPlot = const_cast<CvPlot*>(&kStackPlot);
+	const int iOurs = GET_TEAM(getTeam()).AI_getOurPlotStrength(pStackPlot, 0, false, false);
+	if (iOurs <= 0)
+	{
+		return true;
+	}
+	const int iEnemy = kThis.AI_getEnemyPlotStrength(pStackPlot, 2, false, false) - kThis.AI_getEnemyPlotStrength(kCity.plot(), 0, false, false);
+	return 100 * iEnemy >= GLOBAL_DEFINE_SIEGE_AI_ABORT_ENEMY_PERCENT * iOurs;
+}
+
+// WTP: siege: black powder for the wagon train of a stack can be bought into a coastal colony at the Europe price (keeping
+// 300 gold)
+bool CvPlayerAI::AI_canBuySiegePowder(const CvCity& kCity, int iAmount) const
+{
+	if (iAmount <= 0 || getParent() == NO_PLAYER || !canTradeWithEurope() || !isYieldEuropeTradable(YIELD_BLACK_POWDER)
+		|| !kCity.isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN()))
+	{
+		return false;
+	}
+	return getGold() >= GET_PLAYER(getParent()).getYieldSellPrice(YIELD_BLACK_POWDER) * iAmount + 300;
+}
+
+void CvPlayerAI::AI_buySiegePowder(CvCity& kCity, int iAmount)
+{
+	if (!AI_canBuySiegePowder(kCity, iAmount))
+	{
+		return;
+	}
+	const int iPrice = GET_PLAYER(getParent()).getYieldSellPrice(YIELD_BLACK_POWDER) * iAmount;
+	changeGold(-iPrice);
+	kCity.changeYieldStored(YIELD_BLACK_POWDER, iAmount);
+	m_iWarMilitarySpent += iPrice;
+	if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) war: buys %d black powder for a wagon train in %S for %d gold",
+		getID(), getCivilizationDescription(0), iAmount, kCity.getName().GetCString(), iPrice);
 }
 
 void CvPlayerAI::AI_doTurnUnitsPost()
@@ -22261,6 +22367,24 @@ bool CvPlayerAI::AI_doWarMilitaryPurchase()
 		}
 	}
 
+	// WTP: siege: the attacking stacks need artillery (AI_siegeArtilleryNeeded): while the offensive units have less than one
+	// artillery unit per SIEGE_AI_UNITS_PER_ARTILLERY (at least SIEGE_AI_MIN_ARTILLERY), artillery is bought first, for attacking
+	int iOffensive = 0;
+	int iOffensiveArtillery = 0;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->getDomainType() == DOMAIN_LAND && pLoopUnit->AI_getUnitAIType() == UNITAI_OFFENSIVE)
+		{
+			++iOffensive;
+			if (pLoopUnit->isPowderArtillery())
+			{
+				++iOffensiveArtillery;
+			}
+		}
+	}
+	const bool bSiegeArtillery = iOffensive >= GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE
+		&& iOffensiveArtillery < std::max(GLOBAL_DEFINE_SIEGE_AI_MIN_ARTILLERY, iOffensive / std::max(1, GLOBAL_DEFINE_SIEGE_AI_UNITS_PER_ARTILLERY));
+
 	int iBest = -1;
 	int iBestPrice = 0;
 	for (int i = 0; i < NUM_WAR_TYPES; ++i)
@@ -22282,6 +22406,23 @@ bool CvPlayerAI::AI_doWarMilitaryPurchase()
 		{
 			iBest = i;
 			iBestPrice = iPrice;
+		}
+	}
+	if (bSiegeArtillery)
+	{
+		// heavy artillery if it can be paid, else light artillery
+		for (int k = 0; k < 2; ++k)
+		{
+			const int i = (k == 0) ? 4 : 0;
+			if (aeUnit[i] == NO_UNIT || aeProfession[i] == NO_PROFESSION || !isProfessionValid(aeProfession[i], aeUnit[i]))
+				continue;
+			const int iPrice = getEuropeUnitBuyPrice(aeUnit[i]);
+			if (iPrice <= 0)
+				continue;
+			iBest = i;
+			iBestPrice = iPrice;
+			if (getGold() >= iPrice)
+				break;
 		}
 	}
 	if (iBest < 0)
@@ -22306,8 +22447,8 @@ bool CvPlayerAI::AI_doWarMilitaryPurchase()
 	{
 		changeProfessionEurope(pUnit->getID(), aeProfession[iBest]);
 	}
-	// artillery and militia defend, line infantry and dragoons attack
-	pUnit->AI_setUnitAIType((iBest == 0 || iBest == 1 || iBest == 5) ? UNITAI_DEFENSIVE : UNITAI_OFFENSIVE);
+	// artillery and militia defend, line infantry and dragoons attack; artillery for the attacking stacks attacks
+	pUnit->AI_setUnitAIType((bSiegeArtillery && (iBest == 0 || iBest == 4)) ? UNITAI_OFFENSIVE : (iBest == 0 || iBest == 1 || iBest == 5) ? UNITAI_DEFENSIVE : UNITAI_OFFENSIVE);
 	m_iWarMilitarySpent += std::max(0, iGoldBefore - getGold());
 	if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) war: buys %S for %d gold, mix before (light art./vet. militia/line inf./dragoon/heavy art./colonist militia/colonist line inf.) %d/%d/%d/%d/%d/%d/%d, war spending military %d, civilian %d",
 		getID(), getCivilizationDescription(0), pUnit->getNameAndProfession().GetCString(), iGoldBefore - getGold(),

@@ -1844,6 +1844,34 @@
 		<DefineName>SIEGE_MOVE_COST_PERCENT</DefineName>
 		<iDefineIntVal>10</iDefineIntVal>
 	</Define>
+	<!-- WTP: siege AI: a stack attacking a city takes one artillery unit per SIEGE_AI_UNITS_PER_ARTILLERY units along (from
+		SIEGE_AI_MIN_ARTILLERY to SIEGE_AI_MAX_ARTILLERY); with bad odds it besieges and bombards first. It gives up a siege when
+		enemies within 2 plots of the stack (not those in the city) have SIEGE_AI_ABORT_ENEMY_PERCENT of its strength. A wagon train
+		follows it with SIEGE_AI_WAGON_POWDER black powder (fetched again below SIEGE_AI_WAGON_MIN_POWDER) -->
+	<Define>
+		<DefineName>SIEGE_AI_UNITS_PER_ARTILLERY</DefineName>
+		<iDefineIntVal>4</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SIEGE_AI_MIN_ARTILLERY</DefineName>
+		<iDefineIntVal>2</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SIEGE_AI_MAX_ARTILLERY</DefineName>
+		<iDefineIntVal>4</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SIEGE_AI_ABORT_ENEMY_PERCENT</DefineName>
+		<iDefineIntVal>90</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SIEGE_AI_WAGON_POWDER</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SIEGE_AI_WAGON_MIN_POWDER</DefineName>
+		<iDefineIntVal>30</iDefineIntVal>
+	</Define>
 	<!-- WTP: automatic market imports (trade route preset in the import/export dialog): every AUTO_MARKET_IMPORT_INTERVAL turns
 		the goods the domestic market asks for are imported with the feeder, maintain level AUTO_MARKET_IMPORT_MAINTAIN_TURNS and
 		import limit AUTO_MARKET_IMPORT_LIMIT_TURNS times the demand, both at least AUTO_MARKET_IMPORT_MIN_LEVEL -->

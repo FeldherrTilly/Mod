@@ -4068,6 +4068,12 @@ bool CvCity::canBeBesiegedBy(TeamTypes eTeam) const
 	{
 		return false;
 	}
+	return getSiegeDefenderStrength() <= iBesiegerStrength;
+}
+
+// the unmodified strength of the land soldiers in the city (compared with the besiegers)
+int CvCity::getSiegeDefenderStrength() const
+{
 	int iDefenderStrength = 0;
 	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
 	while (pUnitNode != NULL)
@@ -4078,7 +4084,7 @@ bool CvCity::canBeBesiegedBy(TeamTypes eTeam) const
 			iDefenderStrength += pLoopUnit->baseCombatStr();
 		}
 	}
-	return iDefenderStrength <= iBesiegerStrength;
+	return iDefenderStrength;
 }
 
 // 0: not besieged; 1: half besieged (a coastal city, its sea side open: ships and their cargo can come and go, the sea plots
