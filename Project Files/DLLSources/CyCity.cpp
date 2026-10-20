@@ -656,9 +656,9 @@ bool CyCity::isBesieged()
 	return m_pCity ? m_pCity->isBesieged() : false;
 }
 
-bool CyCity::isNavalBlockade()
+int CyCity::getSiegeLevel()
 {
-	return m_pCity ? m_pCity->isNavalBlockade() : false;
+	return m_pCity ? m_pCity->getSiegeLevel() : 0;
 }
 
 void CyCity::setBombarded(int iNewValue)

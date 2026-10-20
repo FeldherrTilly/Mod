@@ -777,6 +777,7 @@ protected:
 	void AI_doMilitaryStrategy();
 	void AI_doSuppressRevolution();
 	int AI_siegePowderGold(int iAmount) const;
+	void AI_doSieges(); // WTP: siege
 	void AI_doUnitAIWeights();
 	void AI_doEmotions();
 	void AI_doStrategy();

@@ -862,6 +862,8 @@ void CyEnumsPythonInterface()
 		.value("COMMAND_ESTABLISH_TRADE_POST", COMMAND_ESTABLISH_TRADE_POST) // WTP, ray, Native Trade Posts - START
 		.value("COMMAND_USE_CONSTRUCTION_SUPPLIES", COMMAND_USE_CONSTRUCTION_SUPPLIES) // WTP, ray, Construction Supplies - START
 		.value("COMMAND_RELOAD_POWDER", COMMAND_RELOAD_POWDER) // WTP
+		.value("COMMAND_SIEGE", COMMAND_SIEGE) // WTP
+		.value("COMMAND_LIFT_SIEGE", COMMAND_LIFT_SIEGE) // WTP
 		.value("NUM_COMMAND_TYPES", NUM_COMMAND_TYPES)
 		;
 	python::enum_<ControlTypes>("ControlTypes")
