@@ -18716,6 +18716,10 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		std::vector<CvUnit*> apToClear;
 		for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
 		{
+			if (pCity->isBesieged())
+			{
+				continue; // WTP: siege: the plan ignores a besieged colony
+			}
 			for (int i = 0; i < pCity->getPopulation(); ++i)
 			{
 				CvUnitAI* const pCitizen = static_cast<CvUnitAI*>(pCity->getPopulationUnitByIndex(i));
@@ -18737,10 +18741,14 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		}
 	}
 
-	// colonies
+	// colonies (a besieged colony is ignored: its citizens stay as they are, nobody is sent there)
 	std::vector<WfCity> aCities;
 	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
 	{
+		if (pCity->isBesieged())
+		{
+			continue;
+		}
 		WfCity kCity;
 		kCity.pCity = pCity;
 		kCity.aiRaw.assign(NUM_YIELD_TYPES, 0);
@@ -18954,6 +18962,10 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		std::vector<CvUnit*> apUnits;
 		for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
 		{
+			if (pCity->isBesieged())
+			{
+				continue; // WTP: siege: the citizens of a besieged colony stay where they are
+			}
 			for (int i = 0; i < pCity->getPopulation(); ++i)
 			{
 				CvUnit* const pCitizen = pCity->getPopulationUnitByIndex(i);
@@ -18985,6 +18997,11 @@ void CvPlayerAI::AI_doWorkforcePlan()
 					}
 					static_cast<CvUnitAI*>(pLoopUnit)->AI_clearWfTask();
 				}
+				continue;
+			}
+			// WTP: siege: colonists in a besieged colony can not leave it
+			if (!pLoopUnit->isCargo() && pLoopUnit->plot() != NULL && pLoopUnit->plot()->isCity() && pLoopUnit->plot()->getPlotCity()->isBesieged())
+			{
 				continue;
 			}
 			apUnits.push_back(pLoopUnit);

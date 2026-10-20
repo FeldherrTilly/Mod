@@ -196,6 +196,22 @@ void CvCityAI::AI_assignWorkingPlots()
 		return;
 	}
 
+	// WTP: siege: the citizens of a besieged city keep their jobs (no reassignment, nobody is put out of the city); only a
+	// citizen without a job gets the best free one
+	if (isBesieged())
+	{
+		for (uint i = 0; i < m_aPopulationUnits.size(); ++i)
+		{
+			CvUnit* const pCitizen = m_aPopulationUnits[i];
+			if (pCitizen != NULL && pCitizen->getProfession() == NO_PROFESSION)
+			{
+				AI_assignFreeJob(*pCitizen);
+			}
+		}
+		AI_setAssignWorkDirty(false);
+		return;
+	}
+
 	// WTP: a full job assignment of a native village is very expensive (it was most of the AI turn time) and
 	// called several times per turn. Natives reassign at most every 3 turns, unless the population changed
 	// or more villagers have no job (or have lost their plot) than at the last reassignment: villages with
