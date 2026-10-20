@@ -1818,6 +1818,25 @@
 		<DefineName>BASE_TERRAINS_WITHOUT_FEATURE_PERCENTAGE</DefineName>
 		<iDefineIntVal>20</iDefineIntVal>
 	</Define>
+	<!-- WTP: automatic market imports (trade route preset in the import/export dialog): every AUTO_MARKET_IMPORT_INTERVAL turns
+		the goods the domestic market asks for are imported with the feeder, maintain level AUTO_MARKET_IMPORT_MAINTAIN_TURNS and
+		import limit AUTO_MARKET_IMPORT_LIMIT_TURNS times the demand, both at least AUTO_MARKET_IMPORT_MIN_LEVEL -->
+	<Define>
+		<DefineName>AUTO_MARKET_IMPORT_INTERVAL</DefineName>
+		<iDefineIntVal>5</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>AUTO_MARKET_IMPORT_MAINTAIN_TURNS</DefineName>
+		<iDefineIntVal>5</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>AUTO_MARKET_IMPORT_LIMIT_TURNS</DefineName>
+		<iDefineIntVal>7</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>AUTO_MARKET_IMPORT_MIN_LEVEL</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
 	<Define>
 		<!--
 			trade counter. The higher it is, the more likely a negative price change (drops for exports and increase for imports.

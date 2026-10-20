@@ -1219,7 +1219,7 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 			}
 
 			// auto traderoute - start - Nightinggale
-			if (pPopupReturn->getButtonClicked() >= 3 && pPopupReturn->getButtonClicked() <= 5)
+			if (pPopupReturn->getButtonClicked() >= 3 && pPopupReturn->getButtonClicked() <= 4)
 			{
 				// WTP: trade route presets
 				gDLL->sendDoTask(info.getData1(), TASK_TRADEROUTE_PRESET, pPopupReturn->getButtonClicked() - 3, 0, false, false, false, false);
@@ -3663,10 +3663,9 @@ bool CvDLLButtonPopup::launchYieldImportExportPopup(CvPopup* pPopup, CvPopupInfo
 	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_IMPORT_ALL").c_str(), NULL, 1);
 	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_IMPORT_EXPORT_ALL").c_str(), NULL, 2);
 	// auto traderoute - end - Nightinggale
-	// WTP: trade route presets (TASK_TRADEROUTE_PRESET): building material, market goods 20/20 and 40/40
+	// WTP: trade route presets (TASK_TRADEROUTE_PRESET): building material, automatic market goods on/off
 	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_TRADEROUTE_PRESET_BUILD").c_str(), NULL, 3);
-	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_TRADEROUTE_PRESET_MARKET_20").c_str(), NULL, 4);
-	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_TRADEROUTE_PRESET_MARKET_40").c_str(), NULL, 5);
+	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText(pCity->isAutoMarketImport() ? "TXT_KEY_TRADEROUTE_PRESET_MARKET_AUTO_OFF" : "TXT_KEY_TRADEROUTE_PRESET_MARKET_AUTO").c_str(), NULL, 4);
 
 
 	for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_YIELD_TYPES; ++eYield)

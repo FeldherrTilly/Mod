@@ -798,6 +798,8 @@ public:
 	// WTP: trade route presets of the city screen
 	void applyTradeRoutePreset(int iPreset);
 	void setImportFeeder(YieldTypes eYield, int iMaintainLevel, int iImportLimit);
+	bool isAutoMarketImport() const { return m_bAutoMarketImport; }
+	void updateAutoMarketImport();
 	int getImportsLimit(YieldTypes eYield) const;
 	// R&R mod, vetiarvind, max yield import limit - End
 	// R&R, ray, finishing Custom House Screen START
@@ -939,6 +941,7 @@ protected:
 	mutable EnumMap<YieldTypes,bool> m_em_bYieldRankValid;
 
 	bool m_bBesieged; // WTP: besieged at the last city turn (for the messages)
+	bool m_bAutoMarketImport; // WTP: trade route preset 1, the market goods imports are updated every few turns
 	bool m_bHasHurried; // Needed to remember (cache) if a hurry was conducted and we should complete the current build
 	int m_iSlaveWorkerProductionBonus;
 

@@ -618,6 +618,11 @@ void CvCity::doTurn()
 			checkForDomesticDemandEvent(); // WTP, ray Domestic Market Events - START
 			OOS_LOG("checkForDomesticDemandEvent end", getID());
 		}
+		// WTP: trade route preset 1 keeps the market goods imports up to date with the demand
+		if (m_bAutoMarketImport && GC.getGameINLINE().getGameTurn() % std::max(1, GLOBAL_DEFINE_AUTO_MARKET_IMPORT_INTERVAL) == 0)
+		{
+			updateAutoMarketImport();
+		}
 	}
 
 	if (!bBesieged)
@@ -14243,6 +14248,7 @@ void CvCity::handleAutoTraderouteSetup(bool bReset, bool bImportAll, bool bAutoE
 
 	if (bReset)
 	{
+		m_bAutoMarketImport = false; // WTP
 		for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_YIELD_TYPES; ++eYield)
 		{
 			if (GC.getYieldInfo(eYield).isCargo())
@@ -15934,8 +15940,7 @@ int CvCity::getExportAvailable(YieldTypes eYield) const
 
 // WTP: trade route presets of the city screen (TASK_TRADEROUTE_PRESET). 0: building material: clay, stone and tools imported
 // with the feeder (at least 100, at most 150); horses, sailcloth, hardwood and rope imported with the feeder, their levels
-// unchanged; 1 and 2: the goods the domestic market of the colony asks for, imported with the feeder (20/20 or 40/40). Export
-// settings stay as they are
+// unchanged; 1: switches the automatic market imports on or off (see updateAutoMarketImport). Export settings stay as they are
 void CvCity::applyTradeRoutePreset(int iPreset)
 {
 	if (iPreset == 0)
@@ -15951,17 +15956,45 @@ void CvCity::applyTradeRoutePreset(int iPreset)
 			setImportFeeder(aeOther[i], getMaintainLevel(aeOther[i]), getImportsLimit(aeOther[i]));
 		}
 	}
-	else if (iPreset == 1 || iPreset == 2)
+	else if (iPreset == 1)
 	{
-		const int iLevel = (iPreset == 1) ? 20 : 40;
-		YieldCargoArray<int> aiDemand;
-		getYieldDemands(aiDemand);
-		for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
+		m_bAutoMarketImport = !m_bAutoMarketImport;
+		if (m_bAutoMarketImport)
 		{
-			if (aiDemand.get(eYield) > 0)
-			{
-				setImportFeeder(eYield, iLevel, iLevel);
-			}
+			updateAutoMarketImport();
+		}
+	}
+}
+
+// WTP: automatic market imports (trade route preset 1, also every AUTO_MARKET_IMPORT_INTERVAL turns): every good the domestic
+// market asks for is imported with the feeder, keeping AUTO_MARKET_IMPORT_MAINTAIN_TURNS turns of the demand in the colony and
+// bringing at most AUTO_MARKET_IMPORT_LIMIT_TURNS turns of it (both at least AUTO_MARKET_IMPORT_MIN_LEVEL). Levels only go up, so a
+// higher level set by hand stays.
+// Goods set to export are left alone
+void CvCity::updateAutoMarketImport()
+{
+	YieldCargoArray<int> aiDemand;
+	getYieldDemands(aiDemand);
+	const InfoArray<YieldTypes>& kYieldArray = GC.getDomesticDemandYieldTypes();
+	for (int i = 0; i < kYieldArray.getLength(); ++i)
+	{
+		const YieldTypes eYield = kYieldArray.get(i);
+		const int iDemand = aiDemand.get(eYield);
+		if (iDemand <= 0 || isExport(eYield) || !GC.getYieldInfo(eYield).isCargo())
+		{
+			continue;
+		}
+		int iMaintainLevel = std::max(iDemand * GLOBAL_DEFINE_AUTO_MARKET_IMPORT_MAINTAIN_TURNS, GLOBAL_DEFINE_AUTO_MARKET_IMPORT_MIN_LEVEL);
+		int iImportLimit = std::max(iDemand * GLOBAL_DEFINE_AUTO_MARKET_IMPORT_LIMIT_TURNS, GLOBAL_DEFINE_AUTO_MARKET_IMPORT_MIN_LEVEL);
+		if (isImport(eYield) && getImportsMaintain(eYield))
+		{
+			iMaintainLevel = std::max(iMaintainLevel, getMaintainLevel(eYield));
+			iImportLimit = std::max(iImportLimit, getImportsLimit(eYield));
+		}
+		iImportLimit = std::max(iImportLimit, iMaintainLevel);
+		if (!isImport(eYield) || !getImportsMaintain(eYield) || iMaintainLevel != getMaintainLevel(eYield) || iImportLimit != getImportsLimit(eYield))
+		{
+			setImportFeeder(eYield, iMaintainLevel, iImportLimit);
 		}
 	}
 }
