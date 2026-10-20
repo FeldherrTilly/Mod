@@ -8065,8 +8065,8 @@ void CvUnit::updatePowderPromotions()
 	setHasRealPromotion(ePowderEmpty, bEmpty);
 }
 
-// strength in the artillery duel (in hundredths): base strength with the strength modifiers, the modifier against
-// artillery and a bonus on hills; no terrain, city or fortification bonuses
+// strength in the artillery duel (in hundredths): bombard rate times base strength, with the strength modifiers, the modifier
+// against artillery and a bonus on hills; no terrain, city or fortification bonuses
 int CvUnit::getArtilleryDuelStrength() const
 {
 	int iModifier = getExtraCombatPercent();
@@ -8078,7 +8078,7 @@ int CvUnit::getArtilleryDuelStrength() const
 	{
 		iModifier += GC.getDefineINT("BOMBARD_ARTILLERY_HILLS_BONUS");
 	}
-	return std::max(1, baseCombatStr() * std::max(10, 100 + iModifier));
+	return std::max(1, bombardRate() * baseCombatStr() * std::max(10, 100 + iModifier));
 }
 
 // percent of the normal bombardment effect: no enemy artillery 100%; enemy artillery as strong or stronger: a small
