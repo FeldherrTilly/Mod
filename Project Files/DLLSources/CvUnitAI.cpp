@@ -16114,6 +16114,7 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack, bool 
 	if (pBestPlot != NULL)
 	{
 		FAssert(!atPlot(pBestPlot));
+		AI_logAttackDecision("AI_anyAttack", *pBestPlot, iBestValue); // WTP
 		getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), ((bFollow) ? MOVE_DIRECT_ATTACK : 0));
 		return true;
 	}
@@ -16361,6 +16362,7 @@ bool CvUnitAI::AI_leaveAttack(int iRange, int iOddsThreshold, int iStrengthThres
 	if (pBestPlot != NULL)
 	{
 		FAssert(!atPlot(pBestPlot));
+		AI_logAttackDecision("AI_leaveAttack", *pBestPlot, iBestValue); // WTP
 		getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0);
 		return true;
 	}
@@ -16452,7 +16454,7 @@ bool CvUnitAI::AI_defendTeritory(int iThreshold, int iFlags, int iMaxPathTurns, 
 	if (pEndTurnPlot != NULL)
 	{
 		FAssert(!atPlot(pEndTurnPlot));
-		if (gUnitLogLevel >= 2)
+		if (gUnitLogLevel >= 1)
 		{
 			logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP defend territory: Player %d (%S) turn %d group of %d (%S) at %d,%d attacks the enemy at %d,%d (value %d)",
 				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getGroup()->getNumUnits(), getName().GetCString(),
@@ -16530,7 +16532,7 @@ bool CvUnitAI::AI_stackVsStack(int iSearchRange, int iAttackThreshold, int iRisk
 	if (pBestPlot != NULL)
 	{
 		FAssert(!atPlot(pBestPlot));
-		if (gUnitLogLevel >= 2)
+		if (gUnitLogLevel >= 1)
 		{
 			logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP stack vs stack: Player %d (%S) turn %d group of %d (%S) at %d,%d attacks the stack at %d,%d (value %d)",
 				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getGroup()->getNumUnits(), getName().GetCString(),
@@ -16561,9 +16563,10 @@ bool CvUnitAI::AI_siegeMuster()
 	}
 
 	// strong enough: attack the siege stack
-	if (!pThreatPlot->isWater() && pThreatPlot->isVisibleEnemyUnit(this))
+	const bool bThreatReachable = !pThreatPlot->isWater() && pThreatPlot->isVisibleEnemyUnit(this);
+	const int iRatio = bThreatReachable ? getGroup()->AI_compareStacks(pThreatPlot, true) : -1;
+	if (bThreatReachable)
 	{
-		const int iRatio = getGroup()->AI_compareStacks(pThreatPlot, true);
 		if (iRatio >= GLOBAL_DEFINE_SIEGE_AI_MUSTER_ATTACK_PERCENT && generatePath(pThreatPlot, 0, true))
 		{
 			if (gUnitLogLevel >= 1)
@@ -16584,14 +16587,33 @@ bool CvUnitAI::AI_siegeMuster()
 		{
 			return true;
 		}
+		if (gUnitLogLevel >= 1)
+		{
+			logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP siege: Player %d (%S) turn %d: %d counter units wait at %d,%d near %S (ratio %d against the siege stack at %d,%d, attack at %d)",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getGroup()->getNumUnits(), getX_INLINE(), getY_INLINE(),
+				pCity->getName().GetCString(), iRatio, pThreatPlot->getX_INLINE(), pThreatPlot->getY_INLINE(), GLOBAL_DEFINE_SIEGE_AI_MUSTER_ATTACK_PERCENT);
+		}
 		getGroup()->pushMission(isHurt() ? MISSION_HEAL : MISSION_FORTIFY);
 		return true;
 	}
 
-	if (generatePath(pMusterPlot, 0, true))
+	int iPathTurns;
+	if (generatePath(pMusterPlot, 0, true, &iPathTurns))
 	{
+		if (gUnitLogLevel >= 2)
+		{
+			logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP siege: Player %d (%S) turn %d: %d counter units (%S) at %d,%d go to the gathering plot %d,%d (%d turns)",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getGroup()->getNumUnits(), getName().GetCString(),
+				getX_INLINE(), getY_INLINE(), pMusterPlot->getX_INLINE(), pMusterPlot->getY_INLINE(), iPathTurns);
+		}
 		getGroup()->pushMission(MISSION_MOVE_TO, pMusterPlot->getX_INLINE(), pMusterPlot->getY_INLINE());
 		return true;
+	}
+	if (gUnitLogLevel >= 1)
+	{
+		logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP siege: Player %d (%S) turn %d: %d counter units (%S) at %d,%d can not reach the gathering plot %d,%d (the old counter AI goes on)",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getGroup()->getNumUnits(), getName().GetCString(),
+			getX_INLINE(), getY_INLINE(), pMusterPlot->getX_INLINE(), pMusterPlot->getY_INLINE());
 	}
 	return false;
 }
@@ -22738,6 +22760,18 @@ int CvUnitAI::AI_combatWorth(const CvUnit& kUnit) const
 bool CvUnitAI::AI_isWeightedOdds() const
 {
 	return getDomainType() == DOMAIN_LAND && GET_PLAYER(getOwnerINLINE()).isColonialNation();
+}
+
+// WTP: war AI log: an attack decision of a land unit of an AI colonial nation (which function, from where to where)
+void CvUnitAI::AI_logAttackDecision(const char* szFunction, const CvPlot& kTarget, int iOdds) const
+{
+	if (gUnitLogLevel < 1 || isHuman() || !AI_isWeightedOdds())
+	{
+		return;
+	}
+	logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP attack: Player %d (%S) turn %d: %s group of %d (%S, unitAI %s) at %d,%d goes for %d,%d (odds %d)",
+		getOwnerINLINE(), GET_PLAYER(getOwnerINLINE()).getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), szFunction, getGroup()->getNumUnits(),
+		getName().GetCString(), GC.getUnitAIInfo(AI_getUnitAIType()).getType(), getX_INLINE(), getY_INLINE(), kTarget.getX_INLINE(), kTarget.getY_INLINE(), iOdds);
 }
 
 // WTP: the odds AI_anyAttack and AI_leaveAttack compare with AI_finalOddsThreshold
