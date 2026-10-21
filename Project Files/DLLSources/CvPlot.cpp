@@ -3842,6 +3842,13 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 		}
 	}
 
+	// WTP: a road in enemy territory (not usable by the unit) still makes the move cost at most one movement point (e.g. 1
+	// instead of 2 in a forest), but gives no further road bonus
+	if (pFromPlot->isRoute() && isRoute() && !(pFromPlot->isValidRoute(pUnit) && isValidRoute(pUnit)))
+	{
+		iRegularCost = std::min(iRegularCost, (int)GLOBAL_DEFINE_MOVE_DENOMINATOR);
+	}
+
 	if (pFromPlot->isValidRoute(pUnit) && isValidRoute(pUnit))
 	{
 		iRouteCost = std::max((GC.getRouteInfo(pFromPlot->getRouteType()).getMovementCost()),
