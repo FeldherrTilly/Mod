@@ -742,9 +742,11 @@ struct SiegeThreat
 //     plots become counter units (soldiers before artillery, nearest first) until the counter units near the colony have
 //     SIEGE_AI_COUNTER_PERCENT of the stack's strength; the rest goes on attacking. They go back to the offensive when no such
 //     stack threatens any more. The counter units gather against the stack threatening the most valuable colony (population,
-//     the capital +3; the nearest stack) on the plot beside it farthest from the stack (CvUnitAI::AI_siegeMuster).
+//     the capital +3; the nearest stack) beside it (AI_setSiegeMuster, CvUnitAI::AI_siegeMuster).
 void CvPlayerAI::AI_doWarDefense()
 {
+	const int iOldMusterCityID = m_iSiegeMusterCityID;
+	const int iOldMusterPlot = m_iSiegeMusterPlot;
 	m_iSiegeMusterCityID = -1;
 	m_iSiegeMusterPlot = -1;
 	m_iSiegeMusterThreatPlot = -1;
@@ -892,7 +894,7 @@ void CvPlayerAI::AI_doWarDefense()
 					getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), kThreat.iStrength, kThreat.iDistance, kThreat.pCity->getName().GetCString(), iMade, iHave, iNeeded);
 			}
 		}
-		AI_setSiegeMuster(aThreats);
+		AI_setSiegeMuster(aThreats, iOldMusterCityID, iOldMusterPlot);
 	}
 
 	if (aeEnemies.empty())
@@ -987,10 +989,9 @@ void CvPlayerAI::AI_doWarDefense()
 }
 
 // WTP: siege: the counter units gather against the siege stack threatening the most valuable colony (population, the capital
-// +3; for the same colony the nearest stack), on the plot beside it farthest from the stack (the besieged colony can not be
-// entered or left), the one with the best defense among those; the colony itself only if no such plot exists and it is not
-// besieged
-void CvPlayerAI::AI_setSiegeMuster(const std::vector<SiegeThreat>& aThreats)
+// +3; for the same colony the nearest stack). The gathering plot stays while the stack is not beside it or the counter units on
+// it are at least as strong as the stack; else (and at first) AI_findSiegeMusterPlot picks one
+void CvPlayerAI::AI_setSiegeMuster(const std::vector<SiegeThreat>& aThreats, int iOldCityID, int iOldPlot)
 {
 	const SiegeThreat* pBest = NULL;
 	int iBestValue = -1;
@@ -1008,44 +1009,121 @@ void CvPlayerAI::AI_setSiegeMuster(const std::vector<SiegeThreat>& aThreats)
 	{
 		return;
 	}
-	const CvCity* const pCity = pBest->pCity;
-	const CvPlot* const pThreatPlot = pBest->pPlot;
+	const CvCity& kCity = *pBest->pCity;
+	const CvPlot& kThreatPlot = *pBest->pPlot;
+	const CvMap& kMap = GC.getMap();
+
 	CvPlot* pMusterPlot = NULL;
-	int iBestPlotValue = -1;
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	bool bMoved = false;
+	if (iOldCityID == kCity.getID() && iOldPlot >= 0)
 	{
-		CvPlot* const pLoopPlot = plotDirection(pCity->getX_INLINE(), pCity->getY_INLINE(), (DirectionTypes)iI);
-		if (pLoopPlot == NULL || pLoopPlot->isWater() || pLoopPlot->isImpassable() || pLoopPlot->isCity(true) || pLoopPlot->area() != pCity->area()
-			|| pLoopPlot->isVisibleEnemyUnit(getID()))
+		CvPlot* const pOldPlot = kMap.plotByIndexINLINE(iOldPlot);
+		if (pOldPlot->isCity() ? !kCity.isBesieged() : AI_isSiegeMusterPlotValid(*pOldPlot, kCity))
 		{
-			continue;
-		}
-		const int iValue = 1000 * plotDistance(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), pThreatPlot->getX_INLINE(), pThreatPlot->getY_INLINE())
-			+ std::max(0, pLoopPlot->defenseModifier(getTeam(), false));
-		if (iValue > iBestPlotValue)
-		{
-			iBestPlotValue = iValue;
-			pMusterPlot = pLoopPlot;
+			if (plotDistance(pOldPlot->getX_INLINE(), pOldPlot->getY_INLINE(), kThreatPlot.getX_INLINE(), kThreatPlot.getY_INLINE()) >= 2
+				|| AI_siegeMusterStrengthPercent(*pOldPlot, kThreatPlot) >= 100)
+			{
+				pMusterPlot = pOldPlot;
+			}
+			else
+			{
+				bMoved = true; // the stack came near and the units gathered there are weaker
+			}
 		}
 	}
-	if (pMusterPlot == NULL && !pCity->isBesieged())
+	if (pMusterPlot == NULL)
 	{
-		pMusterPlot = pCity->plot();
+		pMusterPlot = AI_findSiegeMusterPlot(kCity, kThreatPlot);
 	}
 	if (pMusterPlot == NULL)
 	{
 		return;
 	}
-	const CvMap& kMap = GC.getMap();
-	m_iSiegeMusterCityID = pCity->getID();
+	m_iSiegeMusterCityID = kCity.getID();
 	m_iSiegeMusterPlot = kMap.plotNumINLINE(pMusterPlot->getX_INLINE(), pMusterPlot->getY_INLINE());
-	m_iSiegeMusterThreatPlot = kMap.plotNumINLINE(pThreatPlot->getX_INLINE(), pThreatPlot->getY_INLINE());
-	if (gPlayerLogLevel >= 1)
+	m_iSiegeMusterThreatPlot = kMap.plotNumINLINE(kThreatPlot.getX_INLINE(), kThreatPlot.getY_INLINE());
+	if (gPlayerLogLevel >= 1 && m_iSiegeMusterPlot != iOldPlot)
 	{
-		logWTP(WTP_LOG_MILITARY, getID(), "WTP siege: Player %d (%S) turn %d: counter units gather at %d,%d beside %S against the siege stack at %d,%d (strength %d)",
+		logWTP(WTP_LOG_MILITARY, getID(), "WTP siege: Player %d (%S) turn %d: counter units gather at %d,%d near %S against the siege stack at %d,%d (strength %d)%s",
 			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pMusterPlot->getX_INLINE(), pMusterPlot->getY_INLINE(),
-			pCity->getName().GetCString(), pThreatPlot->getX_INLINE(), pThreatPlot->getY_INLINE(), pBest->iStrength);
+			kCity.getName().GetCString(), kThreatPlot.getX_INLINE(), kThreatPlot.getY_INLINE(), pBest->iStrength, bMoved ? ", moved away from the stack" : "");
 	}
+}
+
+// WTP: siege: a gathering plot: land of the colony's area, passable, no city or fort, no visible enemy
+bool CvPlayerAI::AI_isSiegeMusterPlotValid(const CvPlot& kPlot, const CvCity& kCity) const
+{
+	return !kPlot.isWater() && !kPlot.isImpassable() && !kPlot.isCity(true) && kPlot.area() == kCity.area() && !kPlot.isVisibleEnemyUnit(getID());
+}
+
+// WTP: siege: the gathering plot beside the colony with the best defense that is not beside the siege stack (the farther the
+// better among equal ones); none beside the colony: the same within 2 plots of it; none such: the plot beside the colony
+// farthest from the stack; none at all: the colony unless it is besieged (a besieged colony can not be entered or left)
+CvPlot* CvPlayerAI::AI_findSiegeMusterPlot(const CvCity& kCity, const CvPlot& kThreatPlot) const
+{
+	CvPlot* pBestSafe = NULL;
+	int iBestSafeValue = -1;
+	CvPlot* pBestNear = NULL;
+	int iBestNearDistance = -1;
+	for (int iRing = 1; iRing <= 2 && pBestSafe == NULL; ++iRing)
+	{
+		for (int iDX = -iRing; iDX <= iRing; ++iDX)
+		{
+			for (int iDY = -iRing; iDY <= iRing; ++iDY)
+			{
+				if (std::max(std::abs(iDX), std::abs(iDY)) != iRing)
+				{
+					continue;
+				}
+				CvPlot* const pLoopPlot = plotXY(kCity.getX_INLINE(), kCity.getY_INLINE(), iDX, iDY);
+				if (pLoopPlot == NULL || !AI_isSiegeMusterPlotValid(*pLoopPlot, kCity))
+				{
+					continue;
+				}
+				const int iDistance = plotDistance(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), kThreatPlot.getX_INLINE(), kThreatPlot.getY_INLINE());
+				if (iDistance >= 2)
+				{
+					const int iValue = 100 * std::max(0, pLoopPlot->defenseModifier(getTeam(), false)) + iDistance;
+					if (iValue > iBestSafeValue)
+					{
+						iBestSafeValue = iValue;
+						pBestSafe = pLoopPlot;
+					}
+				}
+				else if (iRing == 1 && iDistance > iBestNearDistance)
+				{
+					iBestNearDistance = iDistance;
+					pBestNear = pLoopPlot;
+				}
+			}
+		}
+	}
+	if (pBestSafe != NULL)
+	{
+		return pBestSafe;
+	}
+	if (pBestNear != NULL)
+	{
+		return pBestNear;
+	}
+	return kCity.isBesieged() ? NULL : kCity.plot();
+}
+
+// WTP: siege: the attack strength of our counter units on the gathering plot against the siege stack, in percent of its defense
+int CvPlayerAI::AI_siegeMusterStrengthPercent(const CvPlot& kMusterPlot, const CvPlot& kThreatPlot) const
+{
+	int iOurs = 0;
+	CLLNode<IDInfo>* pUnitNode = kMusterPlot.headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		const CvUnit* const pLoopUnit = kMusterPlot.getUnitNodeLoop(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit->getOwnerINLINE() == getID() && pLoopUnit->AI_getUnitAIType() == UNITAI_COUNTER && pLoopUnit->canAttack())
+		{
+			iOurs += pLoopUnit->currEffectiveStr(&kThreatPlot, pLoopUnit);
+		}
+	}
+	const int iTheirs = AI_localDefenceStrength(&kThreatPlot, NO_TEAM, DOMAIN_LAND, 0);
+	return 100 * iOurs / std::max(1, iTheirs);
 }
 
 CvCity* CvPlayerAI::AI_getSiegeMusterCity() const

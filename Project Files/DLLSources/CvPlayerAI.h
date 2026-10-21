@@ -797,7 +797,10 @@ protected:
 	void AI_doSuppressRevolution();
 	void AI_doSieges(); // WTP: siege
 	void AI_doWarDefense(); // WTP: siege
-	void AI_setSiegeMuster(const std::vector<struct SiegeThreat>& aThreats); // WTP: siege
+	void AI_setSiegeMuster(const std::vector<struct SiegeThreat>& aThreats, int iOldCityID, int iOldPlot); // WTP: siege
+	bool AI_isSiegeMusterPlotValid(const CvPlot& kPlot, const CvCity& kCity) const; // WTP: siege
+	CvPlot* AI_findSiegeMusterPlot(const CvCity& kCity, const CvPlot& kThreatPlot) const; // WTP: siege
+	int AI_siegeMusterStrengthPercent(const CvPlot& kMusterPlot, const CvPlot& kThreatPlot) const; // WTP: siege
 public:
 	// WTP: siege
 	int AI_siegeArtilleryNeeded(int iGroupSize) const;
