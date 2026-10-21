@@ -153,6 +153,13 @@ public:
 	short AI_enemyCityDistance(CvPlot* pPlot) const;
 	short AI_enemyUnitDistance(CvPlot* pPlot) const;
 
+	// K-Mod: tactical memory: the strength of the enemy defence last seen on a plot (fades out while out of sight)
+	int AI_getStrengthMemory(int iX, int iY) const;
+	int AI_getStrengthMemory(const CvPlot* pPlot) const;
+	void AI_setStrengthMemory(int iX, int iY, int iValue);
+	void AI_setStrengthMemory(const CvPlot* pPlot, int iValue);
+	void AI_updateStrengthMemory();
+
 	int AI_getGreed(TeamTypes eTeam) const;
 	int AI_getAnger(TeamTypes eTeam) const;
 	int AI_getFear(TeamTypes eTeam) const;
@@ -179,6 +186,7 @@ protected:
 
 	std::vector<short> m_aiEnemyCityDistance;
 	std::vector<short> m_aiEnemyUnitDistance;
+	std::vector<int> m_aiStrengthMemory; // K-Mod: per plot, empty until the first entry (humans and natives keep none)
 
 	EnumMap<TeamTypes, int> m_em_iWarPlanStateCounter;
 	EnumMap<TeamTypes, int> m_em_iAtWarCounter;
