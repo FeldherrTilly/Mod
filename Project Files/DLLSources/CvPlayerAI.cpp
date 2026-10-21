@@ -848,6 +848,7 @@ void CvPlayerAI::AI_doWarDefense()
 			CvUnit* const pUnit = getUnit(*it);
 			if (pUnit != NULL && pUnit->AI_getUnitAIType() == UNITAI_COUNTER)
 			{
+				pUnit->joinGroup(NULL); // out of the counter group of the gathering plot (units that can not move alike)
 				pUnit->AI_setUnitAIType(UNITAI_OFFENSIVE);
 			}
 		}
