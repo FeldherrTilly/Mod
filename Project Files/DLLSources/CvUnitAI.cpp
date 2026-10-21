@@ -16164,7 +16164,13 @@ bool CvUnitAI::AI_siegeMuster()
 
 	// strong enough: attack the siege stack
 	const bool bThreatReachable = !pThreatPlot->isWater() && pThreatPlot->isVisibleEnemyUnit(this);
-	const int iRatio = bThreatReachable ? getGroup()->AI_compareStacks(pThreatPlot, true) : -1;
+	int iRatio = bThreatReachable ? getGroup()->AI_compareStacks(pThreatPlot, true) : -1;
+	// on the gathering plot all counter units there count together (groups of units that can not move alike stay apart), each
+	// group attacks when they are strong enough together
+	if (bThreatReachable && atPlot(pMusterPlot))
+	{
+		iRatio = std::max(iRatio, kOwner.AI_siegeMusterStrengthPercent(*pMusterPlot, *pThreatPlot));
+	}
 	if (bThreatReachable)
 	{
 		if (iRatio >= GLOBAL_DEFINE_SIEGE_AI_MUSTER_ATTACK_PERCENT && generatePath(pThreatPlot, 0, true))
@@ -16193,7 +16199,13 @@ bool CvUnitAI::AI_siegeMuster()
 				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getGroup()->getNumUnits(), getX_INLINE(), getY_INLINE(),
 				pCity->getName().GetCString(), iRatio, pThreatPlot->getX_INLINE(), pThreatPlot->getY_INLINE(), GLOBAL_DEFINE_SIEGE_AI_MUSTER_ATTACK_PERCENT);
 		}
-		getGroup()->pushMission(isHurt() ? MISSION_HEAL : MISSION_FORTIFY);
+		// units that can not fortify (or heal) skip, else the group would be updated again and again this turn
+		MissionTypes eWait = isHurt() ? MISSION_HEAL : MISSION_FORTIFY;
+		if (!getGroup()->canStartMission(eWait, -1, -1))
+		{
+			eWait = MISSION_SKIP;
+		}
+		getGroup()->pushMission(eWait);
 		return true;
 	}
 

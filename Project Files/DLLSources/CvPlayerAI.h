@@ -800,7 +800,6 @@ protected:
 	void AI_setSiegeMuster(const std::vector<struct SiegeThreat>& aThreats, int iOldCityID, int iOldPlot); // WTP: siege
 	bool AI_isSiegeMusterPlotValid(const CvPlot& kPlot, const CvCity& kCity) const; // WTP: siege
 	CvPlot* AI_findSiegeMusterPlot(const CvCity& kCity, const CvPlot& kThreatPlot) const; // WTP: siege
-	int AI_siegeMusterStrengthPercent(const CvPlot& kMusterPlot, const CvPlot& kThreatPlot) const; // WTP: siege
 public:
 	// WTP: siege
 	int AI_siegeArtilleryNeeded(int iGroupSize) const;
@@ -810,6 +809,7 @@ public:
 	CvCity* AI_getSiegeMusterCity() const;
 	CvPlot* AI_getSiegeMusterPlot() const;
 	CvPlot* AI_getSiegeMusterThreatPlot() const;
+	int AI_siegeMusterStrengthPercent(const CvPlot& kMusterPlot, const CvPlot& kThreatPlot) const;
 	bool AI_canBuySiegePowder(const CvCity& kCity, int iAmount) const;
 	void AI_buySiegePowder(CvCity& kCity, int iAmount);
 protected:
