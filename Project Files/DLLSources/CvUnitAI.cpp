@@ -3668,34 +3668,7 @@ void CvUnitAI::AI_counterMove()
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	bool bDanger = kOwner.AI_getPlotDanger(plot(), 2, false, true);
 
-	if (!isHuman() && getProfession() != NO_PROFESSION)
-	{
-		CvCity* pCity = plot()->getPlotCity();
-		if ((pCity != NULL) && (pCity->getOwnerINLINE() == getOwnerINLINE()))
-		{
-			if (isCargo())
-			{
-				if (AI_allowedToJoin(*pCity))
-				{
-					pCity->addPopulationUnit(this, NO_PROFESSION);
-					return;
-				}
-			}
-
-			if (!bDanger && ((getFortifyTurns() == 0) || (GC.getGameINLINE().getSorenRandNum(10, "AI better job")  == 0)))
-			{
-				if (AI_allowedToJoin(*pCity) && AI_betterJob())
-				{
-					return;
-				}
-				if (canClearSpecialty())
-				{
-					clearSpecialty();
-					return;
-				}
-			}
-		}
-	}
+	// WTP: counter units stay soldiers: they do not join colonies, look for a better job or clear their specialty
 
 	if (isCargo())
 	{
@@ -3793,14 +3766,6 @@ void CvUnitAI::AI_counterMove()
 		{
 			return;
 		}
-	}
-
-	CvCity* pCity = plot()->getPlotCity();
-
-	if (pCity != NULL && AI_allowedToJoin(*pCity))
-	{
-		pCity->addPopulationUnit(this, NO_PROFESSION);
-		return;
 	}
 
 	// K-Mod: enemies further away in our territory
