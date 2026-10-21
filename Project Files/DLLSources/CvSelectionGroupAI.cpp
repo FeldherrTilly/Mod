@@ -536,7 +536,9 @@ int CvSelectionGroupAI::AI_sumStrength(const CvPlot* pAttackedPlot, DomainTypes 
 				if (!bCheckCanMove || pLoopUnit->canMove())
 					if (!bCheckCanMove || pAttackedPlot == NULL || pLoopUnit->canMoveInto(*pAttackedPlot, /*bAttack*/ true, /*bDeclareWar*/ true))
 						if (eDomainType == NO_DOMAIN || pLoopUnit->getDomainType() == eDomainType)
-							strSum += pLoopUnit->currEffectiveStr(pAttackedPlot, pLoopUnit);
+							// WTP: without an attacked plot the plain strength (as attacker against an unknown defender, maxCombatStr
+							// needs the plot)
+							strSum += pLoopUnit->currEffectiveStr(pAttackedPlot, (pAttackedPlot != NULL) ? pLoopUnit : NULL);
 			}
 		}
 	}
