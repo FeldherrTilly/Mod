@@ -1852,7 +1852,8 @@
 		from an enemy colony give one needed defender each to those within SIEGE_AI_NEAR_DISTANCE plots (the king attacks the coast);
 		visible enemy soldiers within SIEGE_AI_THREAT_RANGE plots (also aboard ships) add one needed defender per two. Against an enemy
 		siege stack within SIEGE_AI_COUNTER_RANGE plots of a colony offensive units within SIEGE_AI_COUNTER_GATHER_RANGE plots become
-		counter units until they have SIEGE_AI_COUNTER_PERCENT of its strength -->
+		counter units until they have SIEGE_AI_COUNTER_PERCENT of its strength. They gather beside the most valuable threatened colony
+		(on the side away from the stack) and attack the stack once their group compares with it by SIEGE_AI_MUSTER_ATTACK_PERCENT -->
 	<Define>
 		<DefineName>SIEGE_AI_NEAR_DISTANCE</DefineName>
 		<iDefineIntVal>6</iDefineIntVal>
@@ -1876,6 +1877,10 @@
 	<Define>
 		<DefineName>SIEGE_AI_COUNTER_PERCENT</DefineName>
 		<iDefineIntVal>150</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SIEGE_AI_MUSTER_ATTACK_PERCENT</DefineName>
+		<iDefineIntVal>130</iDefineIntVal>
 	</Define>
 	<Define>
 		<DefineName>SIEGE_AI_UNITS_PER_ARTILLERY</DefineName>

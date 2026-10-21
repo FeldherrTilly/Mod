@@ -741,9 +741,13 @@ struct SiegeThreat
 //     ships) within SIEGE_AI_COUNTER_RANGE plots of a colony, units of the own offensive stacks within SIEGE_AI_COUNTER_GATHER_RANGE
 //     plots become counter units (soldiers before artillery, nearest first) until the counter units near the colony have
 //     SIEGE_AI_COUNTER_PERCENT of the stack's strength; the rest goes on attacking. They go back to the offensive when no such
-//     stack threatens any more.
+//     stack threatens any more. The counter units gather against the stack threatening the most valuable colony (population,
+//     the capital +3; the nearest stack) on the plot beside it farthest from the stack (CvUnitAI::AI_siegeMuster).
 void CvPlayerAI::AI_doWarDefense()
 {
+	m_iSiegeMusterCityID = -1;
+	m_iSiegeMusterPlot = -1;
+	m_iSiegeMusterThreatPlot = -1;
 	if (isHuman() || isNative() || isEurope() || getNumCities() == 0)
 	{
 		return;
@@ -888,6 +892,7 @@ void CvPlayerAI::AI_doWarDefense()
 					getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), kThreat.iStrength, kThreat.iDistance, kThreat.pCity->getName().GetCString(), iMade, iHave, iNeeded);
 			}
 		}
+		AI_setSiegeMuster(aThreats);
 	}
 
 	if (aeEnemies.empty())
@@ -979,6 +984,83 @@ void CvPlayerAI::AI_doWarDefense()
 		aiShift[c] += (iEnemies + 1) / 2;
 		static_cast<CvCityAI*>(apCities[c])->AI_setWarDefenseShift(aiShift[c]);
 	}
+}
+
+// WTP: siege: the counter units gather against the siege stack threatening the most valuable colony (population, the capital
+// +3; for the same colony the nearest stack), on the plot beside it farthest from the stack (the besieged colony can not be
+// entered or left), the one with the best defense among those; the colony itself only if no such plot exists and it is not
+// besieged
+void CvPlayerAI::AI_setSiegeMuster(const std::vector<SiegeThreat>& aThreats)
+{
+	const SiegeThreat* pBest = NULL;
+	int iBestValue = -1;
+	for (uint t = 0; t < aThreats.size(); ++t)
+	{
+		const SiegeThreat& kThreat = aThreats[t];
+		const int iValue = 1000 * (kThreat.pCity->getPopulation() + (kThreat.pCity->isCapital() ? 3 : 0)) - kThreat.iDistance;
+		if (iValue > iBestValue)
+		{
+			iBestValue = iValue;
+			pBest = &kThreat;
+		}
+	}
+	if (pBest == NULL)
+	{
+		return;
+	}
+	const CvCity* const pCity = pBest->pCity;
+	const CvPlot* const pThreatPlot = pBest->pPlot;
+	CvPlot* pMusterPlot = NULL;
+	int iBestPlotValue = -1;
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		CvPlot* const pLoopPlot = plotDirection(pCity->getX_INLINE(), pCity->getY_INLINE(), (DirectionTypes)iI);
+		if (pLoopPlot == NULL || pLoopPlot->isWater() || pLoopPlot->isImpassable() || pLoopPlot->isCity(true) || pLoopPlot->area() != pCity->area()
+			|| pLoopPlot->isVisibleEnemyUnit(getID()))
+		{
+			continue;
+		}
+		const int iValue = 1000 * plotDistance(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), pThreatPlot->getX_INLINE(), pThreatPlot->getY_INLINE())
+			+ std::max(0, pLoopPlot->defenseModifier(getTeam(), false));
+		if (iValue > iBestPlotValue)
+		{
+			iBestPlotValue = iValue;
+			pMusterPlot = pLoopPlot;
+		}
+	}
+	if (pMusterPlot == NULL && !pCity->isBesieged())
+	{
+		pMusterPlot = pCity->plot();
+	}
+	if (pMusterPlot == NULL)
+	{
+		return;
+	}
+	const CvMap& kMap = GC.getMap();
+	m_iSiegeMusterCityID = pCity->getID();
+	m_iSiegeMusterPlot = kMap.plotNumINLINE(pMusterPlot->getX_INLINE(), pMusterPlot->getY_INLINE());
+	m_iSiegeMusterThreatPlot = kMap.plotNumINLINE(pThreatPlot->getX_INLINE(), pThreatPlot->getY_INLINE());
+	if (gPlayerLogLevel >= 1)
+	{
+		logWTP(WTP_LOG_MILITARY, getID(), "WTP siege: Player %d (%S) turn %d: counter units gather at %d,%d beside %S against the siege stack at %d,%d (strength %d)",
+			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pMusterPlot->getX_INLINE(), pMusterPlot->getY_INLINE(),
+			pCity->getName().GetCString(), pThreatPlot->getX_INLINE(), pThreatPlot->getY_INLINE(), pBest->iStrength);
+	}
+}
+
+CvCity* CvPlayerAI::AI_getSiegeMusterCity() const
+{
+	return (m_iSiegeMusterCityID >= 0) ? getCity(m_iSiegeMusterCityID) : NULL;
+}
+
+CvPlot* CvPlayerAI::AI_getSiegeMusterPlot() const
+{
+	return (m_iSiegeMusterPlot >= 0) ? GC.getMap().plotByIndexINLINE(m_iSiegeMusterPlot) : NULL;
+}
+
+CvPlot* CvPlayerAI::AI_getSiegeMusterThreatPlot() const
+{
+	return (m_iSiegeMusterThreatPlot >= 0) ? GC.getMap().plotByIndexINLINE(m_iSiegeMusterThreatPlot) : NULL;
 }
 
 // WTP: siege: the artillery units a stack attacking a city takes along: one per SIEGE_AI_UNITS_PER_ARTILLERY units, from

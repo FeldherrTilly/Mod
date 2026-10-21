@@ -763,6 +763,11 @@ protected:
 	int m_iSiegeArtilleryCount; // WTP: siege: own land artillery units, counted every turn (not saved)
 	int m_iSiegeWagonShortfall; // WTP: siege: attacking stacks with artillery minus wagon trains (not saved)
 	std::set<int> m_setSiegeCounterIDs; // WTP: siege: offensive units made counter units against a siege stack (not saved)
+	// WTP: siege: the counter units gather against the siege stack threatening the most valuable colony (AI_doWarDefense, every
+	// turn, not saved): the colony, the plot beside it where they gather and the plot of the siege stack (plot indices, -1: none)
+	int m_iSiegeMusterCityID;
+	int m_iSiegeMusterPlot;
+	int m_iSiegeMusterThreatPlot;
 	int m_iWfFoodCityID; // WTP: the colony that needs a food provider most (not saved), -1
 	bool m_bWfFoodWater; // WTP: ... a fisherman (else a farmer or an African slave)
 	bool AI_buyExpertForOpportunity();
@@ -792,12 +797,16 @@ protected:
 	void AI_doSuppressRevolution();
 	void AI_doSieges(); // WTP: siege
 	void AI_doWarDefense(); // WTP: siege
+	void AI_setSiegeMuster(const std::vector<struct SiegeThreat>& aThreats); // WTP: siege
 public:
 	// WTP: siege
 	int AI_siegeArtilleryNeeded(int iGroupSize) const;
 	bool AI_isSiegeThreatened(const CvPlot& kStackPlot, const CvCity& kCity) const;
 	int AI_getSiegeArtilleryCount() const { return m_iSiegeArtilleryCount; }
 	int AI_getSiegeWagonShortfall() const { return m_iSiegeWagonShortfall; }
+	CvCity* AI_getSiegeMusterCity() const;
+	CvPlot* AI_getSiegeMusterPlot() const;
+	CvPlot* AI_getSiegeMusterThreatPlot() const;
 	bool AI_canBuySiegePowder(const CvCity& kCity, int iAmount) const;
 	void AI_buySiegePowder(CvCity& kCity, int iAmount);
 protected:

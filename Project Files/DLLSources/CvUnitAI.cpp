@@ -3719,6 +3719,12 @@ void CvUnitAI::AI_counterMove()
 
 	CvPlot* pMissionPlot = getGroup()->AI_getMissionAIPlot();
 
+	// WTP: siege: the counter units gather against the siege stack threatening the most valuable colony
+	if (AI_siegeMuster())
+	{
+		return;
+	}
+
 	// K-Mod: a group of counter units attacks an enemy stack within a turn when it is strong enough and the stack is a threat
 	// (thresholds of K-Mod for the own territory in a defensive area, else for the attack stacks)
 	if (getGroup()->getNumUnits() > 1)
@@ -16170,6 +16176,58 @@ bool CvUnitAI::AI_stackVsStack(int iSearchRange, int iAttackThreshold, int iRisk
 	return false;
 }
 // K-Mod end
+
+// WTP: siege: a counter unit within SIEGE_AI_COUNTER_GATHER_RANGE (+2) plots of the colony the siege stack threatens most
+// (CvPlayerAI::AI_doWarDefense) goes to the plot beside it where the counter units gather, joins the group there and waits;
+// as soon as its group compares with the siege stack by SIEGE_AI_MUSTER_ATTACK_PERCENT (AI_compareStacks), it attacks the stack
+// first (the stack aboard ships: the group waits)
+bool CvUnitAI::AI_siegeMuster()
+{
+	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const CvCity* const pCity = kOwner.AI_getSiegeMusterCity();
+	CvPlot* const pMusterPlot = kOwner.AI_getSiegeMusterPlot();
+	CvPlot* const pThreatPlot = kOwner.AI_getSiegeMusterThreatPlot();
+	if (pCity == NULL || pMusterPlot == NULL || pThreatPlot == NULL || getDomainType() != DOMAIN_LAND || area() != pCity->area()
+		|| plotDistance(getX_INLINE(), getY_INLINE(), pCity->getX_INLINE(), pCity->getY_INLINE()) > GLOBAL_DEFINE_SIEGE_AI_COUNTER_GATHER_RANGE + 2)
+	{
+		return false;
+	}
+
+	// strong enough: attack the siege stack
+	if (!pThreatPlot->isWater() && pThreatPlot->isVisibleEnemyUnit(this))
+	{
+		const int iRatio = getGroup()->AI_compareStacks(pThreatPlot, true);
+		if (iRatio >= GLOBAL_DEFINE_SIEGE_AI_MUSTER_ATTACK_PERCENT && generatePath(pThreatPlot, 0, true))
+		{
+			if (gUnitLogLevel >= 1)
+			{
+				logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP siege: Player %d (%S) turn %d: %d counter units (ratio %d) attack the siege stack at %d,%d near %S",
+					getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getGroup()->getNumUnits(), iRatio,
+					pThreatPlot->getX_INLINE(), pThreatPlot->getY_INLINE(), pCity->getName().GetCString());
+			}
+			getGroup()->pushMission(MISSION_MOVE_TO, pThreatPlot->getX_INLINE(), pThreatPlot->getY_INLINE());
+			return true;
+		}
+	}
+
+	if (atPlot(pMusterPlot))
+	{
+		// join the other counter units here, whatever their size
+		if (AI_omniGroup(UNITAI_COUNTER, -1, -1, false, 0, 0, true, false, false, false, false))
+		{
+			return true;
+		}
+		getGroup()->pushMission(isHurt() ? MISSION_HEAL : MISSION_FORTIFY);
+		return true;
+	}
+
+	if (generatePath(pMusterPlot, 0, true))
+	{
+		getGroup()->pushMission(MISSION_MOVE_TO, pMusterPlot->getX_INLINE(), pMusterPlot->getY_INLINE());
+		return true;
+	}
+	return false;
+}
 
 // Returns true if a mission was pushed...
 bool CvUnitAI::AI_seaBombardRange(int iMaxRange)
