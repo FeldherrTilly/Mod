@@ -1192,9 +1192,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	if (!kToPlot.isRevealed(eTeam, false))
 		return iWorstCost;
 
-#if 0
-	// WTP: Not supported yet due to the sheer effort required to port everything from AdvCiv atm.
-	// the cost of battle...
+	// the cost of battle... (K-Mod; WTP: with CvPlayerAI::AI_localDefenceStrength and the strength memory of CvTeamAI)
 	if (iFlags & MOVE_ATTACK_STACK)
 	{
 		FAssert(bAIControl); // only the AI uses MOVE_ATTACK_STACK
@@ -1202,20 +1200,12 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 
 		int iEnemyDefence = 0;
 
-		if (kToPlot.isVisible(eTeam))
-		{	/*  <advc.001> In the rare case that the AI plans war while animals
-			still roam the map, the DefenceStrength computation will crash
-			when it gets to the point where the UnitCombatType is accessed.
-			(Actually, not so exotic b/c advc.300 allows animals to survive
-			in continents w/o civ cities.) */
-			CvUnit* pUnit = kToPlot.getUnitByIndex(0);
-			if (pUnit != NULL && !pUnit->isAnimal()) // </advc.001>
-			{
-				iEnemyDefence = GET_PLAYER(pSelectionGroup->getOwner()).
-					AI_localDefenceStrength(&kToPlot, NO_TEAM,
-						pSelectionGroup->getDomainType(), 0, true, false,
-						pSelectionGroup->isHuman());
-			}
+		if (kToPlot.isVisible(eTeam, false))
+		{
+			iEnemyDefence = GET_PLAYER(pSelectionGroup->getOwner()).
+				AI_localDefenceStrength(&kToPlot, NO_TEAM,
+					pSelectionGroup->getDomainType(), 0, true, false,
+					pSelectionGroup->isHuman());
 		}
 		else
 		{
@@ -1231,13 +1221,12 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 			// I just haven't done that yet, mostly because I'm worried about performance.
 			if (iAttackRatio < 400)
 			{
-				iWorstCost += PATH_MOVEMENT_WEIGHT * GC.getMOVE_DENOMINATOR() * (400 - iAttackRatio) /
+				iWorstCost += PATH_MOVEMENT_WEIGHT * GLOBAL_DEFINE_MOVE_DENOMINATOR * (400 - iAttackRatio) /
 					std::min(150, iAttackRatio);
 			}
 			// else, don't worry about it too much.
 		}
-	} //
-#endif
+	} // K-Mod end
 	  // <advc.082>
 	TeamTypes eToPlotTeam = kToPlot.getTeam();
 	/*  The AVOID_ENEMY code in the no-moves-left branch below doesn't stop the AI

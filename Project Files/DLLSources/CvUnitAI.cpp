@@ -3544,7 +3544,8 @@ void CvUnitAI::AI_attackCityMove()
 				}
 			}
 
-			if (AI_goToTargetCity(MOVE_AVOID_ENEMY_WEIGHT_2, MAX_INT, pTargetCity))
+			// K-Mod: MOVE_ATTACK_STACK: the path may fight through enemy stacks, at the cost of the battle (see pathCost)
+			if (AI_goToTargetCity(MOVE_AVOID_ENEMY_WEIGHT_2 | MOVE_ATTACK_STACK, MAX_INT, pTargetCity))
 			{
 				return;
 			}
