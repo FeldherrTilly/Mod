@@ -501,6 +501,7 @@ protected:
 	int AI_combatWorth(const CvUnit& kUnit) const;
 	bool AI_isWeightedOdds() const;
 	int AI_attackOddsToCompare(CvPlot* pPlot);
+	void AI_logAttackDecision(const char* szFunction, const CvPlot& kTarget, int iOdds) const; // WTP: war AI log
 
 	int AI_stackOfDoomExtra();
 

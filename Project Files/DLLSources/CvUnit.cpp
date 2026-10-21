@@ -1688,6 +1688,27 @@ void CvUnit::updateCombat(bool bQuick)
 		NotifyEntity(MISSION_DAMAGE);
 		pDefender->NotifyEntity(MISSION_DAMAGE);
 
+		// WTP: war AI log: the outcome of a land combat for the AI colonial nations (attacker and defender side)
+		if (gUnitLogLevel >= 1 && getDomainType() == DOMAIN_LAND)
+		{
+			const char* const szOutcome = isDead() ? "lost" : (pDefender->isDead() ? "won" : "withdrew");
+			const PlayerTypes aeSides[2] = { getOwnerINLINE(), pDefender->getOwnerINLINE() };
+			for (int iSide = 0; iSide < 2; ++iSide)
+			{
+				const CvPlayer& kSide = GET_PLAYER(aeSides[iSide]);
+				if (!kSide.isHuman() && kSide.isColonialNation())
+				{
+					logWTP(WTP_LOG_MILITARY, aeSides[iSide], "WTP combat: turn %d: %S %S (unitAI %s, group of %d) of player %d at %d,%d attacked %S %S (unitAI %s) of player %d at %d,%d: attacker %s",
+						GC.getGameINLINE().getGameTurn(), getName().GetCString(), (getProfession() != NO_PROFESSION) ? GC.getProfessionInfo(getProfession()).getDescription() : L"",
+						(AI_getUnitAIType() != NO_UNITAI) ? GC.getUnitAIInfo(AI_getUnitAIType()).getType() : "none", (getGroup() != NULL) ? getGroup()->getNumUnits() : 1,
+						getOwnerINLINE(), getX_INLINE(), getY_INLINE(),
+						pDefender->getName().GetCString(), (pDefender->getProfession() != NO_PROFESSION) ? GC.getProfessionInfo(pDefender->getProfession()).getDescription() : L"",
+						(pDefender->AI_getUnitAIType() != NO_UNITAI) ? GC.getUnitAIInfo(pDefender->AI_getUnitAIType()).getType() : "none",
+						pDefender->getOwnerINLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE(), szOutcome);
+				}
+			}
+		}
+
 		// case: Attacker died, defender won
 		if (isDead())
 		{
