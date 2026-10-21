@@ -3356,6 +3356,34 @@ void CvUnitAI::AI_attackCityMove()
 		}
 	}
 
+	// K-Mod. Lets have some slightly smarter stack vs. stack AI.
+	if (!isNative() && getGroup()->getNumUnits() > 1)
+	{
+		if (bAtWar) // recall that "bAtWar" just means we are in enemy territory.
+		{
+			if (AI_stackVsStack(1, 160, 95, 0))
+			{
+				return;
+			}
+		}
+		else if (eAreaAIType == AREAAI_DEFENSIVE && plot()->getOwnerINLINE() == getOwnerINLINE())
+		{
+			if (AI_stackVsStack(4, 110, 55, 0))
+			{
+				return;
+			}
+			if (AI_stackVsStack(4, 180, 30, 0))
+			{
+				return;
+			}
+		}
+		else if (AI_stackVsStack(4, 130, 60, 0))
+		{
+			return;
+		}
+	}
+	// K-Mod end
+
 	if (AI_groupMergeRange(UNITAI_OFFENSIVE, 2, true, true, bIgnoreFaster))
 	{
 		return;
@@ -3690,6 +3718,17 @@ void CvUnitAI::AI_counterMove()
 
 	CvPlot* pMissionPlot = getGroup()->AI_getMissionAIPlot();
 
+	// K-Mod: a group of counter units attacks an enemy stack within a turn when it is strong enough and the stack is a threat
+	// (thresholds of K-Mod for the own territory in a defensive area, else for the attack stacks)
+	if (getGroup()->getNumUnits() > 1)
+	{
+		const bool bOwnTerritory = plot()->getTeam() == getTeam();
+		if (AI_stackVsStack(4, bOwnTerritory ? 110 : 130, bOwnTerritory ? 55 : 60, 0))
+		{
+			return;
+		}
+	}
+
 	// K-Mod: enemies near us in our territory: attack them when the odds and our local strength are good
 	if (bDanger && plot()->getTeam() == getTeam())
 	{
@@ -3704,6 +3743,12 @@ void CvUnitAI::AI_counterMove()
 		{
 			return;
 		}
+	}
+
+	// WTP: counter units gather in groups of up to 4 within 2 turns, so that they can fight enemy stacks
+	if (AI_omniGroup(UNITAI_COUNTER, 4, -1, false, 0, 2, true, false))
+	{
+		return;
 	}
 
 	if (bDanger)
@@ -16040,6 +16085,84 @@ bool CvUnitAI::AI_defendTeritory(int iThreshold, int iFlags, int iMaxPathTurns, 
 				getX_INLINE(), getY_INLINE(), pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), iBestValue);
 		}
 		getGroup()->pushMission(MISSION_MOVE_TO, pEndTurnPlot->getX_INLINE(), pEndTurnPlot->getY_INLINE(), iFlags);
+		return true;
+	}
+
+	return false;
+}
+// K-Mod end
+
+// K-Mod: stack vs. stack: attack a visible enemy stack within one turn.
+// iAttackThreshold is the minimum ratio for our attack / their defence.
+// iRiskThreshold is the minimum ratio for their attack / our defence adjusted for stack size
+// note: iSearchRange is /not/ the number of turns. It is the number of steps. iSearchRange < 1 means 'automatic'
+// Only 1-turn moves are considered here.
+bool CvUnitAI::AI_stackVsStack(int iSearchRange, int iAttackThreshold, int iRiskThreshold, int iFlags)
+{
+	PROFILE_FUNC();
+
+	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+
+	if (iSearchRange < 1)
+	{
+		iSearchRange = AI_searchRange(1);
+	}
+
+	const int iOurDefence = getGroup()->AI_sumStrength(NULL); // not counting defensive bonuses
+
+	CvPlot* pBestPlot = NULL;
+	int iBestValue = 0;
+
+	for (int iDX = -iSearchRange; iDX <= iSearchRange; iDX++)
+	{
+		for (int iDY = -iSearchRange; iDY <= iSearchRange; iDY++)
+		{
+			CvPlot* const pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
+			if (pLoopPlot == NULL || !AI_plotValid(pLoopPlot) || atPlot(pLoopPlot))
+			{
+				continue;
+			}
+			const int iEnemies = pLoopPlot->getNumVisibleEnemyDefenders(this);
+			int iPathTurns;
+			if (iEnemies <= 0 || !generatePath(pLoopPlot, iFlags, true, &iPathTurns, 1))
+			{
+				continue;
+			}
+			const int iEnemyAttack = kOwner.AI_localAttackStrength(pLoopPlot, NO_TEAM, getDomainType(), 0, false);
+
+			int iRiskRatio = 100 * iEnemyAttack / std::max(1, iOurDefence);
+			// adjust risk ratio based on the relative numbers of units.
+			iRiskRatio *= 50 + 50 * (getGroup()->getNumUnits() + 3) / std::min(iEnemies + 3, getGroup()->getNumUnits() + 3);
+			iRiskRatio /= 100;
+			if (iRiskRatio < iRiskThreshold)
+			{
+				continue;
+			}
+			const int iAttackRatio = getGroup()->AI_compareStacks(pLoopPlot, true);
+			if (iAttackRatio < iAttackThreshold)
+			{
+				continue;
+			}
+			const int iValue = iAttackRatio * iRiskRatio;
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				pBestPlot = pLoopPlot;
+				FAssert(pBestPlot == getPathEndTurnPlot());
+			}
+		}
+	}
+
+	if (pBestPlot != NULL)
+	{
+		FAssert(!atPlot(pBestPlot));
+		if (gUnitLogLevel >= 2)
+		{
+			logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP stack vs stack: Player %d (%S) turn %d group of %d (%S) at %d,%d attacks the stack at %d,%d (value %d)",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getGroup()->getNumUnits(), getName().GetCString(),
+				getX_INLINE(), getY_INLINE(), pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), iBestValue);
+		}
+		getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), iFlags, false, false, NO_MISSIONAI, pBestPlot);
 		return true;
 	}
 
