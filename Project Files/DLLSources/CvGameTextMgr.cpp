@@ -10937,7 +10937,7 @@ void CvGameTextMgr::setFatherHelp(CvWStringBuffer &szBuffer, FatherTypes eFather
 					szTempBuffer += L"\n";
 				}
 
-				szTempBuffer += CvWString::format(L"%d%c", (eTeam != NO_TEAM ? GET_TEAM(eTeam).getFatherPointCost(eFather, ePointType) : kFatherInfo.getPointCost(ePointType)), GC.getFatherPointInfo(ePointType).getChar());
+				szTempBuffer += CvWString::format(L"%d%c", (eTeam != NO_TEAM ? GET_TEAM(eTeam).getFatherPointCost(eFather, ePointType) : GC.getGameINLINE().getFatherPointCost(eFather, ePointType)), GC.getFatherPointInfo(ePointType).getChar());
 			}
 		}
 

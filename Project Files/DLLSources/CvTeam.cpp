@@ -1729,7 +1729,7 @@ int CvTeam::getFatherCostModifier() const
 
 int CvTeam::getFatherPointCost(FatherTypes eFather, FatherPointTypes ePointType) const
 {
-	return GC.getFatherInfo(eFather).getPointCost(ePointType) * getFatherCostModifier() / 100;
+	return GC.getGameINLINE().getFatherPointCost(eFather, ePointType) * getFatherCostModifier() / 100;
 }
 
 int CvTeam::getFatherPoints(FatherPointTypes ePointType) const

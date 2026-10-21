@@ -276,6 +276,8 @@ void CvGame::setInitialItems(bool bScenario)
 	createBarbarianPlayer(); // < JAnimals Mod Start >
 	createChurchPlayer(); // R&R, ray, the Church - START
 
+	shuffleFatherCosts();
+
 	// R&R, ray, Correct Geographical Placement of Natives - START
 	if (!GC.getGameINLINE().isOption(GAMEOPTION_RANDOM_SETTLEMENT_AREAS))
 	{
@@ -7532,6 +7534,64 @@ int CvGame::getFatherCategoryPosition(FatherTypes eFather) const
 	}
 
 	return iPosition;
+}
+
+// WTP: the cost of a founding father: with random founding fathers the cost of the place in its category it was given
+int CvGame::getFatherPointCost(FatherTypes eFather, FatherPointTypes ePointType) const
+{
+	const int iPosition = m_em_iFatherCostPosition.get(eFather);
+	if (iPosition >= 0)
+	{
+		const FatherCategoryTypes eCategory = GC.getFatherInfo(eFather).getFatherCategory();
+		int iCount = 0;
+		for (FatherTypes eLoopFather = FIRST_FATHER; eLoopFather < NUM_FATHER_TYPES; ++eLoopFather)
+		{
+			if (GC.getFatherInfo(eLoopFather).getFatherCategory() == eCategory)
+			{
+				if (iCount == iPosition)
+				{
+					return GC.getFatherInfo(eLoopFather).getPointCost(ePointType);
+				}
+				++iCount;
+			}
+		}
+	}
+	return GC.getFatherInfo(eFather).getPointCost(ePointType);
+}
+
+// WTP: random founding fathers: within each category the fathers swap their places (costs) at random, except those
+// marked bNoShuffle, which keep theirs
+void CvGame::shuffleFatherCosts()
+{
+	m_em_iFatherCostPosition.reset();
+	if (!isOption(GAMEOPTION_RANDOM_FOUNDING_FATHERS))
+	{
+		return;
+	}
+
+	for (int iCategory = 0; iCategory < GC.getNumFatherCategoryInfos(); ++iCategory)
+	{
+		const FatherCategoryTypes eCategory = (FatherCategoryTypes)iCategory;
+		std::vector<FatherTypes> aeFathers;
+		std::vector<int> aiPositions;
+		for (FatherTypes eFather = FIRST_FATHER; eFather < NUM_FATHER_TYPES; ++eFather)
+		{
+			const CvFatherInfo& kFather = GC.getFatherInfo(eFather);
+			if (kFather.getFatherCategory() == eCategory && !kFather.isNoShuffle())
+			{
+				aeFathers.push_back(eFather);
+				aiPositions.push_back(getFatherCategoryPosition(eFather));
+			}
+		}
+		for (int i = (int)aiPositions.size() - 1; i > 0; --i)
+		{
+			std::swap(aiPositions[i], aiPositions[getSorenRandNum(i + 1, "Shuffle founding fathers")]);
+		}
+		for (uint i = 0; i < aeFathers.size(); ++i)
+		{
+			m_em_iFatherCostPosition.set(aeFathers[i], aiPositions[i]);
+		}
+	}
 }
 
 void CvGame::changeYieldBoughtTotal(TradeLocationTypes eLocation, PlayerTypes eMainEurope, YieldTypes eYield, int iChange) const

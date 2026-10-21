@@ -735,6 +735,7 @@
 	<ElementType name="RevealImprovements" content="eltOnly">
 		<element type="RevealImprovement" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
+	<ElementType name="bNoShuffle" content="textOnly" dt:type="boolean"/>
 	<ElementType name="FatherInfo" content="eltOnly">
 		<element type="Type"/>
 		<element type="Portrait"/>
@@ -746,6 +747,7 @@
 		<element type="RevealImprovements"/>
 		<element type="FreeUnits"/>
 		<element type="FatherPointCosts"/>
+		<element type="bNoShuffle" minOccurs="0"/>
 		<element type="Trait"/>
 		<element type="Quote"/>
 		<element type="Sound"/>

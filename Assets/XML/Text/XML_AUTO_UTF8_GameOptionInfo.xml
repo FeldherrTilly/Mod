@@ -421,6 +421,28 @@
 		<Russian>Убирает возможность запуска Строителя мира.[NEWLINE]Строитель мира – серьёзный способ обмана в игре и иногда требуется, чтобы он был недоступен. Например, в качестве меры избавления от искушения или в многопользовательской игре.</Russian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_GAMEOPTION_RANDOM_FOUNDING_FATHERS</Tag>
+		<English>Random Founding Fathers</English>
+		<Portuguese>Pais Fundadores aleatórios</Portuguese>
+		<French>Pères fondateurs aléatoires</French>
+		<German>Zufällige Gründerväter</German>
+		<Italian>Padri Fondatori casuali</Italian>
+		<Spanish>Padres Fundadores aleatorios</Spanish>
+		<Russian>Случайные отцы-основатели</Russian>
+		<Hungarian>Véletlenszerű alapító atyák</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAMEOPTION_RANDOM_FOUNDING_FATHERS_HELP</Tag>
+		<English>The Founding Fathers of each category come in a random order: at the start of the game they swap their point costs at random.[NEWLINE]A few especially strong late Founding Fathers (e.g. Thomas Jefferson, Thomas Paine, Samuel Adams, von Steuben) keep their place.</English>
+		<Portuguese>Os Pais Fundadores de cada categoria surgem numa ordem aleatória: no início do jogo trocam os seus custos em pontos ao acaso.[NEWLINE]Alguns Pais Fundadores tardios especialmente fortes (p. ex. Thomas Jefferson, Thomas Paine, Samuel Adams, von Steuben) mantêm o seu lugar.</Portuguese>
+		<French>Les Pères fondateurs de chaque catégorie arrivent dans un ordre aléatoire : au début de la partie, ils échangent leurs coûts en points au hasard.[NEWLINE]Quelques Pères fondateurs tardifs particulièrement puissants (p. ex. Thomas Jefferson, Thomas Paine, Samuel Adams, von Steuben) gardent leur place.</French>
+		<German>Die Gründerväter jeder Kategorie kommen in zufälliger Reihenfolge: zu Spielbeginn tauschen sie ihre Punktkosten zufällig untereinander.[NEWLINE]Einige besonders starke späte Gründerväter (z. B. Thomas Jefferson, Thomas Paine, Samuel Adams, von Steuben) behalten ihren Platz.</German>
+		<Italian>I Padri Fondatori di ogni categoria arrivano in ordine casuale: all'inizio della partita si scambiano a caso i loro costi in punti.[NEWLINE]Alcuni Padri Fondatori tardivi particolarmente forti (ad es. Thomas Jefferson, Thomas Paine, Samuel Adams, von Steuben) mantengono il loro posto.</Italian>
+		<Spanish>Los Padres Fundadores de cada categoría llegan en orden aleatorio: al comienzo de la partida intercambian sus costes en puntos al azar.[NEWLINE]Algunos Padres Fundadores tardíos especialmente fuertes (p. ej. Thomas Jefferson, Thomas Paine, Samuel Adams, von Steuben) conservan su lugar.</Spanish>
+		<Russian>Отцы-основатели каждой категории появляются в случайном порядке: в начале игры они случайно меняются стоимостью в очках.[NEWLINE]Несколько особенно сильных поздних отцов-основателей (например, Томас Джефферсон, Томас Пейн, Сэмюэл Адамс, фон Штойбен) сохраняют своё место.</Russian>
+		<Hungarian>Az egyes kategóriák alapító atyái véletlenszerű sorrendben érkeznek: a játék elején véletlenszerűen felcserélik a pontköltségeiket.[NEWLINE]Néhány különösen erős késői alapító atya (pl. Thomas Jefferson, Thomas Paine, Samuel Adams, von Steuben) megtartja a helyét.</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_GAMEOPTION_DEACTIVATE_HEMISPHERE_RESTRICTIONS</Tag>
 		<English>No Hemisphere Restrictions for Resources</English>
 		<Portuguese>Sem restrições hemisféricas para recursos</Portuguese>
