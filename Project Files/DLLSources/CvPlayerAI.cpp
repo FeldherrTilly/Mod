@@ -858,7 +858,11 @@ void CvPlayerAI::AI_doWarDefense()
 		for (uint t = 0; t < aThreats.size(); ++t)
 		{
 			const SiegeThreat& kThreat = aThreats[t];
-			const int iNeeded = kThreat.iStrength * GLOBAL_DEFINE_SIEGE_AI_COUNTER_PERCENT / 100;
+			// the defense of the stack on its plot (terrain, fortification) like the attack decision of the counter units
+			// (CvUnitAI::AI_siegeMuster), at least its plain strength; their attack strength against that plot (aboard ships: plain)
+			const CvPlot* const pAttackPlot = kThreat.pPlot->isWater() ? NULL : kThreat.pPlot;
+			const int iEnemy = std::max(kThreat.iStrength, (pAttackPlot != NULL) ? AI_localDefenceStrength(pAttackPlot, NO_TEAM, DOMAIN_LAND, 0) : 0);
+			const int iNeeded = iEnemy * GLOBAL_DEFINE_SIEGE_AI_COUNTER_PERCENT / 100;
 			int iHave = 0;
 			std::vector<std::pair<int, CvUnit*> > aCandidates;
 			for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
@@ -870,7 +874,7 @@ void CvPlayerAI::AI_doWarDefense()
 				const int iDistance = plotDistance(pLoopUnit->getX_INLINE(), pLoopUnit->getY_INLINE(), kThreat.pCity->getX_INLINE(), kThreat.pCity->getY_INLINE());
 				if (pLoopUnit->AI_getUnitAIType() == UNITAI_COUNTER && iDistance <= GLOBAL_DEFINE_SIEGE_AI_COUNTER_RANGE + 2)
 				{
-					iHave += pLoopUnit->currEffectiveStr(NULL, NULL);
+					iHave += pLoopUnit->currEffectiveStr(pAttackPlot, (pAttackPlot != NULL) ? pLoopUnit : NULL);
 				}
 				else if (pLoopUnit->AI_getUnitAIType() == UNITAI_OFFENSIVE && !pLoopUnit->isCargo() && iDistance <= GLOBAL_DEFINE_SIEGE_AI_COUNTER_GATHER_RANGE)
 				{
@@ -885,13 +889,13 @@ void CvPlayerAI::AI_doWarDefense()
 				pUnit->joinGroup(NULL);
 				pUnit->AI_setUnitAIType(UNITAI_COUNTER);
 				m_setSiegeCounterIDs.insert(pUnit->getID());
-				iHave += pUnit->currEffectiveStr(NULL, NULL);
+				iHave += pUnit->currEffectiveStr(pAttackPlot, (pAttackPlot != NULL) ? pUnit : NULL);
 				++iMade;
 			}
 			if (iMade > 0 && gPlayerLogLevel >= 1)
 			{
-				logWTP(WTP_LOG_MILITARY, getID(), "WTP siege: Player %d (%S) turn %d: siege stack (strength %d) %d plots from %S, %d offensive units become counter units (counter strength %d, wanted %d)",
-					getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), kThreat.iStrength, kThreat.iDistance, kThreat.pCity->getName().GetCString(), iMade, iHave, iNeeded);
+				logWTP(WTP_LOG_MILITARY, getID(), "WTP siege: Player %d (%S) turn %d: siege stack (strength %d, defense %d) %d plots from %S, %d offensive units become counter units (counter strength %d, wanted %d)",
+					getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), kThreat.iStrength, iEnemy, kThreat.iDistance, kThreat.pCity->getName().GetCString(), iMade, iHave, iNeeded);
 			}
 		}
 		AI_setSiegeMuster(aThreats, iOldMusterCityID, iOldMusterPlot);
