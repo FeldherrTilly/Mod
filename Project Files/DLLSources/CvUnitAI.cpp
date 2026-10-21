@@ -16162,6 +16162,27 @@ bool CvUnitAI::AI_siegeMuster()
 		return false;
 	}
 
+	// on the gathering plot all counter groups there merge into this one, also units that can not move alike (the group only
+	// waits and attacks the stack nearby; AI_doWarDefense splits the units again when the threat is over)
+	if (atPlot(pMusterPlot))
+	{
+		std::vector<CvSelectionGroup*> apOtherGroups;
+		CLLNode<IDInfo>* pUnitNode = pMusterPlot->headUnitNode();
+		while (pUnitNode != NULL)
+		{
+			CvUnit* const pLoopUnit = pMusterPlot->getUnitNodeLoop(pUnitNode);
+			if (pLoopUnit != NULL && pLoopUnit->getOwnerINLINE() == getOwnerINLINE() && pLoopUnit->isGroupHead() && !pLoopUnit->isCargo()
+				&& pLoopUnit->getGroup() != getGroup() && pLoopUnit->AI_getUnitAIType() == UNITAI_COUNTER && pLoopUnit->getDomainType() == DOMAIN_LAND)
+			{
+				apOtherGroups.push_back(pLoopUnit->getGroup());
+			}
+		}
+		for (uint i = 0; i < apOtherGroups.size(); ++i)
+		{
+			apOtherGroups[i]->mergeIntoGroup(getGroup());
+		}
+	}
+
 	// strong enough: attack the siege stack
 	const bool bThreatReachable = !pThreatPlot->isWater() && pThreatPlot->isVisibleEnemyUnit(this);
 	int iRatio = bThreatReachable ? getGroup()->AI_compareStacks(pThreatPlot, true) : -1;
@@ -16189,10 +16210,6 @@ bool CvUnitAI::AI_siegeMuster()
 	if (atPlot(pMusterPlot))
 	{
 		// join the other counter units here, whatever their size
-		if (AI_omniGroup(UNITAI_COUNTER, -1, -1, false, 0, 0, true, false, false, false, false))
-		{
-			return true;
-		}
 		if (gUnitLogLevel >= 1)
 		{
 			logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP siege: Player %d (%S) turn %d: %d counter units wait at %d,%d near %S (ratio %d against the siege stack at %d,%d, attack at %d)",
