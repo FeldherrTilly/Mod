@@ -762,7 +762,7 @@ protected:
 	int m_iWfIdleCount; // WTP: colonists without a job in the last plan (not saved)
 	int m_iSiegeArtilleryCount; // WTP: siege: own land artillery units, counted every turn (not saved)
 	int m_iSiegeWagonShortfall; // WTP: siege: attacking stacks with artillery minus wagon trains (not saved)
-	std::set<int> m_setSiegeCounterIDs; // WTP: siege: offensive units made counter units against a siege stack (not saved)
+	std::set<int> m_setSiegeCounterIDs; // WTP: siege: offensive units made counter units against a siege stack (saved)
 	// WTP: siege: the counter units gather against the siege stack threatening the most valuable colony (AI_doWarDefense, every
 	// turn, not saved): the colony, the plot beside it where they gather and the plot of the siege stack (plot indices, -1: none)
 	int m_iSiegeMusterCityID;

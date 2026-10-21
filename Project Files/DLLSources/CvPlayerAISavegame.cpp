@@ -106,6 +106,7 @@ enum SavegameVariableTypes
 	PlayerSaveAI_EarlySettlerId1,
 	PlayerSaveAI_WarMilitarySpent,
 	PlayerSaveAI_WarCivilianSpent,
+	PlayerSaveAI_SiegeCounterIDs, // WTP: siege
 	NUM_SAVE_ENUM_VALUES,
 };
 
@@ -164,6 +165,7 @@ const char* getSavedEnumNamePlayerAi(SavegameVariableTypes eType)
 	case PlayerSaveAI_EarlySettlerId1: return "PlayerSaveAI_EarlySettlerId1";
 	case PlayerSaveAI_WarMilitarySpent: return "PlayerSaveAI_WarMilitarySpent";
 	case PlayerSaveAI_WarCivilianSpent: return "PlayerSaveAI_WarCivilianSpent";
+	case PlayerSaveAI_SiegeCounterIDs: return "PlayerSaveAI_SiegeCounterIDs";
 
 		case PlayerSaveAI_AICitySites: return "PlayerSaveAI_AICitySites";
 		case PlayerSaveAI_unitPriorityHeap: return "PlayerSaveAI_unitPriorityHeap";
@@ -366,6 +368,15 @@ void CvPlayerAI::read(CvSavegameReader reader)
 		case PlayerSaveAI_EarlySettlerId1: reader.Read(m_aiEarlySettlerIDs[1]); break;
 		case PlayerSaveAI_WarMilitarySpent: reader.Read(m_iWarMilitarySpent); break;
 		case PlayerSaveAI_WarCivilianSpent: reader.Read(m_iWarCivilianSpent); break;
+		case PlayerSaveAI_SiegeCounterIDs:
+		{
+			// WTP: siege: the offensive units made counter units (a set, saved as a vector)
+			std::vector<int> aiIDs;
+			reader.Read(aiIDs);
+			m_setSiegeCounterIDs.clear();
+			m_setSiegeCounterIDs.insert(aiIDs.begin(), aiIDs.end());
+			break;
+		}
 
 		case PlayerSaveAI_AICitySites: reader.Read(m_aiAICitySites); break;
 		case PlayerSaveAI_unitPriorityHeap: reader.Read(m_unitPriorityHeap); break;
@@ -452,6 +463,11 @@ void CvPlayerAI::write(CvSavegameWriter writer)
 	writer.Write(PlayerSaveAI_EarlySettlerId1, m_aiEarlySettlerIDs[1], defaultEarlyId);
 	writer.Write(PlayerSaveAI_WarMilitarySpent, m_iWarMilitarySpent, defaultEarlyZero);
 	writer.Write(PlayerSaveAI_WarCivilianSpent, m_iWarCivilianSpent, defaultEarlyZero);
+	if (!m_setSiegeCounterIDs.empty())
+	{
+		const std::vector<int> aiIDs(m_setSiegeCounterIDs.begin(), m_setSiegeCounterIDs.end());
+		writer.Write(PlayerSaveAI_SiegeCounterIDs, aiIDs);
+	}
 
 	writer.Write(PlayerSaveAI_AICitySites, m_aiAICitySites);
 	writer.Write(PlayerSaveAI_unitPriorityHeap, m_unitPriorityHeap);
