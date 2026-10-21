@@ -15904,6 +15904,8 @@ bool CvUnitAI::AI_leaveAttack(int iRange, int iOddsThreshold, int iStrengthThres
 
 	pCity = plot()->getPlotCity();
 
+	// WTP: a city too weak against the enemies nearby still attacks with odds of at least AI_LEAVE_ATTACK_SURE_ODDS
+	bool bSureAttacksOnly = false;
 	if ((pCity != NULL) && (pCity->getOwnerINLINE() == getOwnerINLINE()))
 	{
 		int iOurStrength = GET_PLAYER(getOwnerINLINE()).AI_getOurPlotStrength(plot(), 0, false, false);
@@ -15912,7 +15914,7 @@ bool CvUnitAI::AI_leaveAttack(int iRange, int iOddsThreshold, int iStrengthThres
 		{
 			if (((iOurStrength * 100) / iEnemyStrength) < iStrengthThreshold)
 			{
-				return false;
+				bSureAttacksOnly = true;
 			}
 			if (plot()->plotCount(PUF_canDefendGroupHead, -1, -1, getOwnerINLINE()) <= getGroup()->getNumUnits())
 			{
@@ -15940,7 +15942,7 @@ bool CvUnitAI::AI_leaveAttack(int iRange, int iOddsThreshold, int iStrengthThres
 							{
 								iValue = AI_attackOddsToCompare(pLoopPlot); // K-Mod: weighted odds
 
-								if (iValue >= AI_finalOddsThreshold(pLoopPlot, iOddsThreshold))
+								if (iValue >= AI_finalOddsThreshold(pLoopPlot, iOddsThreshold) && (!bSureAttacksOnly || iValue >= GLOBAL_DEFINE_AI_LEAVE_ATTACK_SURE_ODDS))
 								{
 									if (iValue > iBestValue)
 									{

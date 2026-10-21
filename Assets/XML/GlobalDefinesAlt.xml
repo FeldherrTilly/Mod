@@ -1882,6 +1882,12 @@
 		<DefineName>SIEGE_AI_MUSTER_ATTACK_PERCENT</DefineName>
 		<iDefineIntVal>130</iDefineIntVal>
 	</Define>
+	<!-- WTP: AI: a unit in a city too weak against the enemies nearby (AI_leaveAttack strength threshold) still attacks a
+		reachable enemy with odds of at least AI_LEAVE_ATTACK_SURE_ODDS percent, if another defender stays in the city -->
+	<Define>
+		<DefineName>AI_LEAVE_ATTACK_SURE_ODDS</DefineName>
+		<iDefineIntVal>95</iDefineIntVal>
+	</Define>
 	<Define>
 		<DefineName>SIEGE_AI_UNITS_PER_ARTILLERY</DefineName>
 		<iDefineIntVal>4</iDefineIntVal>
