@@ -251,6 +251,7 @@ void CvPlayerAI::AI_resetSavedData()
 	m_iSiegeMusterCityID = -1;
 	m_iSiegeMusterPlot = -1;
 	m_iSiegeMusterThreatPlot = -1;
+	m_iSiegeMusterAttackTurn = -1;
 	m_mapWfLearnWait.clear();
 	m_mapWfRecentBuy.clear();
 	m_mapWfUnreachable.clear();

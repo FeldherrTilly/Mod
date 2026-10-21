@@ -16185,6 +16185,33 @@ bool CvUnitAI::AI_siegeMuster()
 
 	// strong enough: attack the siege stack
 	const bool bThreatReachable = !pThreatPlot->isWater() && pThreatPlot->isVisibleEnemyUnit(this);
+
+	// the attack goes on this turn while a unit of the group can still attack the stack beside it (a move mission ends after
+	// the first combat); with nobody left to attack the group waits (not the old counter AI with its weak odds)
+	if (kOwner.AI_getSiegeMusterAttackTurn() == GC.getGameINLINE().getGameTurn() && !atPlot(pMusterPlot))
+	{
+		if (bThreatReachable && stepDistance(getX_INLINE(), getY_INLINE(), pThreatPlot->getX_INLINE(), pThreatPlot->getY_INLINE()) == 1)
+		{
+			int iOdds = 0;
+			if (getGroup()->AI_getBestGroupAttacker(pThreatPlot, true, iOdds) != NULL)
+			{
+				if (gUnitLogLevel >= 2)
+				{
+					logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP siege: Player %d (%S) turn %d: %d counter units go on attacking the siege stack at %d,%d (odds %d)",
+						getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getGroup()->getNumUnits(),
+						pThreatPlot->getX_INLINE(), pThreatPlot->getY_INLINE(), iOdds);
+				}
+				getGroup()->pushMission(MISSION_MOVE_TO, pThreatPlot->getX_INLINE(), pThreatPlot->getY_INLINE(), MOVE_DIRECT_ATTACK);
+				return true;
+			}
+		}
+		if (plotDistance(getX_INLINE(), getY_INLINE(), pMusterPlot->getX_INLINE(), pMusterPlot->getY_INLINE()) <= 2 && !canMove())
+		{
+			getGroup()->pushMission(MISSION_SKIP);
+			return true;
+		}
+	}
+
 	int iRatio = bThreatReachable ? getGroup()->AI_compareStacks(pThreatPlot, true) : -1;
 	// on the gathering plot all counter units there count together (groups of units that can not move alike stay apart), each
 	// group attacks when they are strong enough together
@@ -16202,6 +16229,7 @@ bool CvUnitAI::AI_siegeMuster()
 					getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getGroup()->getNumUnits(), iRatio,
 					pThreatPlot->getX_INLINE(), pThreatPlot->getY_INLINE(), pCity->getName().GetCString());
 			}
+			GET_PLAYER(getOwnerINLINE()).AI_setSiegeMusterAttackTurn(GC.getGameINLINE().getGameTurn());
 			getGroup()->pushMission(MISSION_MOVE_TO, pThreatPlot->getX_INLINE(), pThreatPlot->getY_INLINE());
 			return true;
 		}

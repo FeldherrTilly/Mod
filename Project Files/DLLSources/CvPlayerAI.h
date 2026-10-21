@@ -768,6 +768,7 @@ protected:
 	int m_iSiegeMusterCityID;
 	int m_iSiegeMusterPlot;
 	int m_iSiegeMusterThreatPlot;
+	int m_iSiegeMusterAttackTurn; // WTP: siege: the turn the gathered counter units attacked the siege stack (not saved)
 	int m_iWfFoodCityID; // WTP: the colony that needs a food provider most (not saved), -1
 	bool m_bWfFoodWater; // WTP: ... a fisherman (else a farmer or an African slave)
 	bool AI_buyExpertForOpportunity();
@@ -810,6 +811,8 @@ public:
 	CvPlot* AI_getSiegeMusterPlot() const;
 	CvPlot* AI_getSiegeMusterThreatPlot() const;
 	int AI_siegeMusterStrengthPercent(const CvPlot& kMusterPlot, const CvPlot& kThreatPlot) const;
+	int AI_getSiegeMusterAttackTurn() const { return m_iSiegeMusterAttackTurn; }
+	void AI_setSiegeMusterAttackTurn(int iTurn) { m_iSiegeMusterAttackTurn = iTurn; }
 	bool AI_canBuySiegePowder(const CvCity& kCity, int iAmount) const;
 	void AI_buySiegePowder(CvCity& kCity, int iAmount);
 protected:

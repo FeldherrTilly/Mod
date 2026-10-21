@@ -1708,6 +1708,18 @@ int CvPlayerAI::AI_movementPriority(CvSelectionGroup* pGroup)
 			return 4;
 		}
 
+		// WTP: siege: the counter units gathering against a siege stack move before the other fighters, so that the city
+		// defenders (AI_leaveAttack) see the stack after their attack
+		if (pHeadUnit->AI_getUnitAIType() == UNITAI_COUNTER && pHeadUnit->getDomainType() == DOMAIN_LAND)
+		{
+			const CvCity* const pMusterCity = AI_getSiegeMusterCity();
+			if (pMusterCity != NULL && plotDistance(pHeadUnit->getX_INLINE(), pHeadUnit->getY_INLINE(), pMusterCity->getX_INLINE(), pMusterCity->getY_INLINE())
+				<= GLOBAL_DEFINE_SIEGE_AI_COUNTER_GATHER_RANGE + 2)
+			{
+				return 4;
+			}
+		}
+
 		if (pHeadUnit->bombardRate() > 0)
 		{
 			return 5;
