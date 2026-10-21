@@ -3135,6 +3135,15 @@ void CvUnitAI::AI_attackCityMove()
 		return;
 	}
 
+	// K-Mod: enemies near us in our territory: attack them when the odds and our local strength are good
+	if (!isNative() && plot()->getTeam() == getTeam() && kOwner.AI_getPlotDanger(plot(), 2, false) > 0)
+	{
+		if (AI_defendTeritory(70, 0, 2, true))
+		{
+			return;
+		}
+	}
+
 	CvCity* pTargetCity = NULL;
 	if( isNative() )
 	{
@@ -3528,6 +3537,15 @@ void CvUnitAI::AI_attackCityMove()
 	}
 	else
 	{
+		// K-Mod: a stack not ready to attack defends our territory (more eager in a defensive area)
+		if (!isNative() && plot()->getTeam() == getTeam())
+		{
+			if (AI_defendTeritory(eAreaAIType == AREAAI_DEFENSIVE ? 65 : 70, 0, 3, true))
+			{
+				return;
+			}
+		}
+
 		int iTargetCount = kOwner.AI_unitTargetMissionAIs_(this, MISSIONAI_GROUP);
 		if( ((iTargetCount * 4) > getGroup()->getNumUnits()) || ((getGroup()->getNumUnits() + iTargetCount) >= (bHuntBarbs ? 3 : AI_stackOfDoomExtra())) )
 		{
@@ -3672,6 +3690,22 @@ void CvUnitAI::AI_counterMove()
 
 	CvPlot* pMissionPlot = getGroup()->AI_getMissionAIPlot();
 
+	// K-Mod: enemies near us in our territory: attack them when the odds and our local strength are good
+	if (bDanger && plot()->getTeam() == getTeam())
+	{
+		if (plot()->isCity())
+		{
+			if (AI_leaveAttack(1, 65, 115))
+			{
+				return;
+			}
+		}
+		else if (AI_defendTeritory(70, 0, 2, true))
+		{
+			return;
+		}
+	}
+
 	if (bDanger)
 	{
 		if (AI_anyAttack(3, 60))
@@ -3714,6 +3748,12 @@ void CvUnitAI::AI_counterMove()
 	if (pCity != NULL && AI_allowedToJoin(*pCity))
 	{
 		pCity->addPopulationUnit(this, NO_PROFESSION);
+		return;
+	}
+
+	// K-Mod: enemies further away in our territory
+	if (AI_defendTeritory(55, 0, 5, true))
+	{
 		return;
 	}
 
@@ -15909,6 +15949,103 @@ bool CvUnitAI::AI_leaveAttack(int iRange, int iOddsThreshold, int iStrengthThres
 	return false;
 
 }
+
+// K-Mod: attack enemies in our territory, valued by the weighted odds and our local strength advantage, more for plots with a
+// bonus, worked by a city or beside one of our cities (WTP: siege), less the further away.
+// bLocal is just to help with the efficiency of this function for short-range checks. It means that we should look only in nearby plots.
+// the default (bLocal == false) is to look at every plot on the map!
+bool CvUnitAI::AI_defendTeritory(int iThreshold, int iFlags, int iMaxPathTurns, bool bLocal)
+{
+	PROFILE_FUNC();
+
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+
+	CvPlot* pEndTurnPlot = NULL;
+	CvPlot* pBestPlot = NULL;
+	int iBestValue = 0;
+
+	// I'm going to use a loop over all plots when !bLocal; and a loop in a square around our unit if bLocal.
+	int iRange = bLocal ? AI_searchRange(iMaxPathTurns) : 0;
+	int iPlots = bLocal ? (2 * iRange + 1) * (2 * iRange + 1) : GC.getMap().numPlotsINLINE();
+	if (bLocal && iPlots >= GC.getMap().numPlotsINLINE())
+	{
+		bLocal = false;
+		iRange = 0;
+		iPlots = GC.getMap().numPlotsINLINE();
+		// otherwise it's just silly.
+	}
+	for (int i = 0; i < iPlots; i++)
+	{
+		CvPlot* const pLoopPlot = bLocal
+			? plotXY(getX_INLINE(), getY_INLINE(), -iRange + i % (2 * iRange + 1), -iRange + i / (2 * iRange + 1))
+			: GC.getMap().plotByIndexINLINE(i);
+
+		if (pLoopPlot == NULL || pLoopPlot->getTeam() != getTeam() || !AI_plotValid(pLoopPlot) || !pLoopPlot->isVisibleEnemyUnit(this))
+		{
+			continue;
+		}
+		int iPathTurns;
+		if (!generatePath(pLoopPlot, iFlags, true, &iPathTurns, iMaxPathTurns))
+		{
+			continue;
+		}
+		const int iOdds = AI_getWeightedOdds(pLoopPlot);
+		int iValue = iOdds;
+
+		if (iOdds > 0 && iOdds < 100 && iThreshold > 0)
+		{
+			const int iOurAttack = kOwner.AI_localAttackStrength(pLoopPlot, getTeam(), getDomainType(), 2, true, true, true);
+			const int iEnemyDefence = kOwner.AI_localDefenceStrength(pLoopPlot, NO_TEAM, getDomainType(), 0);
+
+			if (iOurAttack > iEnemyDefence && iEnemyDefence > 0)
+			{
+				iValue += 100 * (iOdds + 15) * (iOurAttack - iEnemyDefence) / ((iThreshold + 100) * iEnemyDefence);
+			}
+		}
+
+		if (iValue >= iThreshold)
+		{
+			// WTP: no bonus values in Col: a flat amount for a bonus; beside one of our cities the enemy may besiege it
+			iValue *= 100 + (pLoopPlot->getBonusType() != NO_BONUS ? 50 : 0) + (pLoopPlot->getWorkingCity() != NULL ? 20 : 0)
+				+ (kOwner.AI_cityDistance(pLoopPlot) <= 1 ? 40 : 0);
+
+			if (pLoopPlot->getOwnerINLINE() != getOwnerINLINE())
+			{
+				iValue = 2 * iValue / 3;
+			}
+			if (iPathTurns > 1)
+			{
+				iValue /= iPathTurns + 2;
+			}
+			if (iOdds >= iThreshold)
+			{
+				iValue = 4 * iValue / 3;
+			}
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				pEndTurnPlot = getPathEndTurnPlot();
+				pBestPlot = pLoopPlot;
+			}
+		}
+	}
+
+	if (pEndTurnPlot != NULL)
+	{
+		FAssert(!atPlot(pEndTurnPlot));
+		if (gUnitLogLevel >= 2)
+		{
+			logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP defend territory: Player %d (%S) turn %d group of %d (%S) at %d,%d attacks the enemy at %d,%d (value %d)",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getGroup()->getNumUnits(), getName().GetCString(),
+				getX_INLINE(), getY_INLINE(), pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), iBestValue);
+		}
+		getGroup()->pushMission(MISSION_MOVE_TO, pEndTurnPlot->getX_INLINE(), pEndTurnPlot->getY_INLINE(), iFlags);
+		return true;
+	}
+
+	return false;
+}
+// K-Mod end
 
 // Returns true if a mission was pushed...
 bool CvUnitAI::AI_seaBombardRange(int iMaxRange)
