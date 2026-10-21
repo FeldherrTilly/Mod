@@ -15616,7 +15616,7 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack, bool 
 							{
 								if (pLoopPlot->getNumVisibleEnemyDefenders(this) >= iMinStack)
 								{
-									int iValue = getGroup()->AI_attackOdds(pLoopPlot, true);
+									int iValue = AI_attackOddsToCompare(pLoopPlot); // K-Mod: weighted odds
 
 									if (iValue >= AI_finalOddsThreshold(pLoopPlot, iOddsThreshold))
 									{
@@ -15880,7 +15880,7 @@ bool CvUnitAI::AI_leaveAttack(int iRange, int iOddsThreshold, int iStrengthThres
 						{
 							//if (pLoopPlot->getNumVisibleEnemyDefenders(this) > 0)
 							{
-								iValue = getGroup()->AI_attackOdds(pLoopPlot, true);
+								iValue = AI_attackOddsToCompare(pLoopPlot); // K-Mod: weighted odds
 
 								if (iValue >= AI_finalOddsThreshold(pLoopPlot, iOddsThreshold))
 								{
@@ -21376,6 +21376,104 @@ int CvUnitAI::AI_finalOddsThreshold(CvPlot* pPlot, int iOddsThreshold)
 	return range(iFinalOddsThreshold, 1, 99);
 }
 
+
+// K-Mod: a new odds-adjusting function to replace the seriously flawed CvUnitAI::AI_finalOddsThreshold function
+// WTP: the worth of the units is their Europe price with the equipment of their profession (no production costs in Col); no
+// lead from behind values; land units only (the sea adjustments of K-Mod are left out)
+int CvUnitAI::AI_getWeightedOdds(CvPlot* pPlot, bool bPotentialEnemy)
+{
+	PROFILE_FUNC();
+
+	if (!pPlot->hasDefender(false, NO_PLAYER, getOwnerINLINE(), NULL, !bPotentialEnemy, bPotentialEnemy))
+	{
+		return 100;
+	}
+	int iOdds = 0;
+	CvUnit* const pAttacker = getGroup()->AI_getBestGroupAttacker(pPlot, bPotentialEnemy, iOdds);
+	if (pAttacker == NULL)
+	{
+		return 0;
+	}
+	CvUnit* pDefender = pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), pAttacker, !bPotentialEnemy, bPotentialEnemy);
+	CvCity* const pCity = pPlot->getPlotCity();
+	if (pCity != NULL)
+	{
+		pDefender = pCity->getBestDefender(NULL, pDefender, pAttacker);
+	}
+	if (pDefender == NULL)
+	{
+		return 100;
+	}
+
+	int iAdjustedOdds = iOdds;
+
+	// adjust the values based on the relative worth of the units
+	{
+		const int iOurWorth = AI_combatWorth(*pAttacker);
+		const int iTheirWorth = AI_combatWorth(*pDefender);
+		if (iOurWorth > 0 && iTheirWorth > 0 && iOurWorth != iTheirWorth)
+		{
+			const int x = iOdds * (100 - iOdds) * 2 / (iOurWorth + iTheirWorth + 20);
+			iAdjustedOdds += x * (iTheirWorth - iOurWorth) / 100;
+		}
+	}
+
+	// adjust down if the enemy is on a defensive tile - we'd prefer to attack them on open ground.
+	if (!pDefender->noDefensiveBonus())
+	{
+		iAdjustedOdds -= (100 - iOdds) * pPlot->defenseModifier(pDefender->getTeam(), false) / 300;
+	}
+
+	// adjust the odds up if the enemy is wounded. We want to attack them now before they heal.
+	iAdjustedOdds += iOdds * (100 - iOdds) * pDefender->getDamage() / (100 * pDefender->maxHitPoints());
+	// adjust the odds down if our attacker is wounded - but only if healing is viable.
+	if (pAttacker->isHurt() && pAttacker->healRate(pAttacker->plot()) > 10)
+	{
+		iAdjustedOdds -= iOdds * (100 - iOdds) * pAttacker->getDamage() / (100 * pAttacker->maxHitPoints());
+	}
+
+	// We're extra keen to take cites when we can...
+	if (pCity != NULL && pPlot->getNumVisiblePotentialEnemyDefenders(pAttacker) == 1)
+	{
+		iAdjustedOdds += (100 - iOdds) / 3;
+	}
+
+	return range(iAdjustedOdds, 1, 99);
+}
+
+// WTP: the worth of a unit for AI_getWeightedOdds: its Europe price and the Europe price of the equipment of its profession
+// (veteran soldiers are worth more than free colonists with muskets); 0 if unknown
+int CvUnitAI::AI_combatWorth(const CvUnit& kUnit) const
+{
+	int iWorth = std::max(0, kUnit.getUnitInfo().getEuropeCost());
+	const PlayerTypes eParent = GET_PLAYER(getOwnerINLINE()).getParent();
+	const ProfessionTypes eProfession = kUnit.getProfession();
+	if (eProfession != NO_PROFESSION && eParent != NO_PLAYER)
+	{
+		const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+		for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
+		{
+			const int iAmount = kProfession.getYieldEquipmentAmount(eYield);
+			if (iAmount > 0)
+			{
+				iWorth += iAmount * GET_PLAYER(eParent).getYieldSellPrice(eYield);
+			}
+		}
+	}
+	return iWorth;
+}
+
+// WTP: land units of the colonial nations attack by the weighted odds (natives, the king and ships keep the old odds)
+bool CvUnitAI::AI_isWeightedOdds() const
+{
+	return getDomainType() == DOMAIN_LAND && GET_PLAYER(getOwnerINLINE()).isColonialNation();
+}
+
+// WTP: the odds AI_anyAttack and AI_leaveAttack compare with AI_finalOddsThreshold
+int CvUnitAI::AI_attackOddsToCompare(CvPlot* pPlot)
+{
+	return AI_isWeightedOdds() ? AI_getWeightedOdds(pPlot, true) : getGroup()->AI_attackOdds(pPlot, true);
+}
 
 int CvUnitAI::AI_stackOfDoomExtra()
 {

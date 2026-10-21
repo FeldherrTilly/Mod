@@ -493,6 +493,11 @@ protected:
 	bool AI_plotValid(const CvPlot* pPlot) const;
 
 	int AI_finalOddsThreshold(CvPlot* pPlot, int iOddsThreshold);
+	// K-Mod: attack odds weighted by the worth of the units, wounds, the defensive terrain and a last city defender
+	int AI_getWeightedOdds(CvPlot* pPlot, bool bPotentialEnemy = false);
+	int AI_combatWorth(const CvUnit& kUnit) const;
+	bool AI_isWeightedOdds() const;
+	int AI_attackOddsToCompare(CvPlot* pPlot);
 
 	int AI_stackOfDoomExtra();
 
