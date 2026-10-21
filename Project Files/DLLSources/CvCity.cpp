@@ -8687,6 +8687,24 @@ void CvCity::doProduction(bool bAllowNoProduction)
 			if (getProduction() >= getProductionNeeded(YIELD_HAMMERS))
 			{
 				popOrder(0, true, true);
+
+				// WTP: the overflow goes into the next item of the build list at once; as long as it covers that item (and its
+				// required yields are there), it is finished in this turn too (at most 10 items per turn)
+				for (int iItems = 1; iItems < 10; ++iItems)
+				{
+					if (!isProduction() || isProductionConvince() || getProductionFatherPoint() != NO_FATHER_POINT_TYPE || getOverflowProduction() <= 0)
+					{
+						break;
+					}
+					const int iOverflow = getOverflowProduction();
+					setOverflowProduction(0);
+					changeProduction(iOverflow);
+					if (getProduction() < getProductionNeeded(YIELD_HAMMERS) || !checkRequiredYields(headOrderQueueNode()->m_data))
+					{
+						break;
+					}
+					popOrder(0, true, true);
+				}
 			}
 		}
 	}
