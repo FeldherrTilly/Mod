@@ -204,5 +204,12 @@
 			<bDefault>0</bDefault>
 			<bVisible>1</bVisible>
 		</GameOptionInfo>
+		<GameOptionInfo>
+			<Type>GAMEOPTION_RANDOM_FOUNDING_FATHERS</Type>
+			<Description>TXT_KEY_GAMEOPTION_RANDOM_FOUNDING_FATHERS</Description>
+			<Help>TXT_KEY_GAMEOPTION_RANDOM_FOUNDING_FATHERS_HELP</Help>
+			<bDefault>0</bDefault>
+			<bVisible>1</bVisible>
+		</GameOptionInfo>
 	</GameOptionInfos>
 </Civ4GameOptionInfos>

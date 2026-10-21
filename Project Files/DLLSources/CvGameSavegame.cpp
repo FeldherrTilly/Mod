@@ -110,6 +110,7 @@ enum SavegameVariableTypes
 	GameSave_CultureVictoryCultureLevel,
 	GameSave_WorldBuilderUseCount,
 	GameSave_AsyncRand,
+	GameSave_FatherCostPosition,
 
 	NUM_SAVE_ENUM_VALUES,
 };
@@ -181,6 +182,7 @@ const char* getSavedEnumNameGame(SavegameVariableTypes eType)
 	case GameSave_CultureVictoryCultureLevel: return "GameSave_CultureVictoryCultureLevel";
 	case GameSave_WorldBuilderUseCount: return "GameSave_WorldBuilderUseCount";
 	case GameSave_AsyncRand: return "GameSave_AsyncRand";
+	case GameSave_FatherCostPosition: return "GameSave_FatherCostPosition";
 	}
 	FAssertMsg(0, "Missing case");
 	return "";
@@ -237,6 +239,7 @@ void CvGame::resetSavedData(HandicapTypes eHandicap, bool bConstructorCall)
 	m_em_iBuildingClassCreatedCount.reset();
 	m_em_eFatherTeam.reset();
 	m_em_iFatherGameTurn.reset();
+	m_em_iFatherCostPosition.reset();
 	m_em_bSpecialUnitValid.reset();
 	m_em_bSpecialBuildingValid.reset();
 	m_em_bUniqueGoodyValid.reset();
@@ -340,6 +343,7 @@ void CvGame::read(CvSavegameReader reader)
 		case GameSave_CultureVictoryCultureLevel: reader.Read(m_eCultureVictoryCultureLevel); break;
 		case GameSave_WorldBuilderUseCount: reader.Read(m_uiWorldBuilderUseCount); break;
 		case GameSave_AsyncRand: reader.Read(m_em_AsyncRand); break;
+		case GameSave_FatherCostPosition: reader.Read(m_em_iFatherCostPosition); break;
 		}
 		
 	}
@@ -453,6 +457,7 @@ void CvGame::write(CvSavegameWriter writer)
 	writer.Write(GameSave_CultureVictoryCultureLevel, m_eCultureVictoryCultureLevel, defaultCultureVictoryCultureLevel);
 	writer.Write(GameSave_WorldBuilderUseCount, m_uiWorldBuilderUseCount, defaultWorldBuilderUseCount);
 	writer.Write(GameSave_AsyncRand, m_em_AsyncRand);
+	writer.Write(GameSave_FatherCostPosition, m_em_iFatherCostPosition);
 
 	writer.Write(GameSave_END);
 }

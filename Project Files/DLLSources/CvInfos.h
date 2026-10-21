@@ -4844,6 +4844,7 @@ public:
 	int getFreeUnits(int iUnitClass) const;
 	int getAlternativeFreeUnitClass(int iUnitClass) const;
 	int getPointCost(int iFatherPointType) const;
+	bool isNoShuffle() const { return m_bNoShuffle; } // WTP: keeps its place (cost) when the founding fathers are shuffled
 	bool isRevealImprovement(int iImprovement) const;
 	const char* getPortrait() const;
 
@@ -4861,6 +4862,7 @@ protected:
 	FatherCategoryTypes m_eFatherCategory;
 	TraitTypes m_eTrait;
 	CivEffectTypes m_eCivEffect;
+	bool m_bNoShuffle;
 	int* m_aiFreeUnits;
 	int* m_aiAlternativeFreeUnits;
 	int* m_aiPointCost;
