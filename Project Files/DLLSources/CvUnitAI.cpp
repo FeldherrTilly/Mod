@@ -20326,7 +20326,8 @@ bool CvUnitAI::AI_routeCityNear(int iMaxDistance)
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	int iLoop;
-	// WTP: the colonial AI connects its colonies with at most 2 pioneers at a time (the others improve the colonies' plots)
+	// WTP: the colonial AI connects its colonies with at most 2 pioneers or 30% of its pioneers at a time, whichever is more
+	// (the others improve the colonies' plots)
 	if (kOwner.AI_isWorkforcePlanned())
 	{
 		int iRoadBuilders = 0;
@@ -20334,7 +20335,7 @@ bool CvUnitAI::AI_routeCityNear(int iMaxDistance)
 		{
 			iRoadBuilders += kOwner.AI_plotTargetMissionAIs(pLoopCity->plot(), MISSIONAI_BUILD, getGroup());
 		}
-		if (iRoadBuilders >= 2)
+		if (iRoadBuilders >= std::max(2, kOwner.AI_totalUnitAIs(UNITAI_WORKER) * 30 / 100))
 		{
 			return false;
 		}
