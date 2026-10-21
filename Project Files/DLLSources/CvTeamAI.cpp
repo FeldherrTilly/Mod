@@ -81,6 +81,7 @@ void CvTeamAI::AI_reset()
 void CvTeamAI::AI_doTurnPre()
 {
 	AI_doCounter();
+	AI_updateStrengthMemory(); // K-Mod
 }
 
 
@@ -3218,6 +3219,81 @@ short CvTeamAI::AI_enemyUnitDistance(CvPlot* pPlot) const
 	}
 	return m_aiEnemyUnitDistance[GC.getMap().plotNumINLINE(pPlot->getX_INLINE(), pPlot->getY_INLINE())];
 }
+
+// K-Mod: AI tactical memory. The AI uses this to remember how strong the enemy defence is at particular plots.
+// NOTE: AI_setStrengthMemory should not be used by human players - because it may cause OOS errors.
+int CvTeamAI::AI_getStrengthMemory(int iX, int iY) const
+{
+	if (m_aiStrengthMemory.empty())
+	{
+		return 0;
+	}
+	return m_aiStrengthMemory[GC.getMap().plotNumINLINE(iX, iY)];
+}
+
+void CvTeamAI::AI_setStrengthMemory(int iX, int iY, int iValue)
+{
+	if (m_aiStrengthMemory.empty())
+	{
+		if (iValue == 0)
+		{
+			return;
+		}
+		m_aiStrengthMemory.resize(GC.getMap().numPlotsINLINE(), 0);
+	}
+	m_aiStrengthMemory[GC.getMap().plotNumINLINE(iX, iY)] = iValue;
+}
+
+int CvTeamAI::AI_getStrengthMemory(const CvPlot* pPlot) const
+{
+	return AI_getStrengthMemory(pPlot->getX_INLINE(), pPlot->getY_INLINE());
+}
+
+void CvTeamAI::AI_setStrengthMemory(const CvPlot* pPlot, int iValue)
+{
+	AI_setStrengthMemory(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iValue);
+}
+
+// K-Mod: every turn the memory of plots in sight without enemies is cleared, the rest fades by 4%
+void CvTeamAI::AI_updateStrengthMemory()
+{
+	PROFILE_FUNC();
+
+	if (m_aiStrengthMemory.empty())
+	{
+		return;
+	}
+	if (!isAlive() || isHuman())
+	{
+		m_aiStrengthMemory.clear();
+		return;
+	}
+	FAssert((int)m_aiStrengthMemory.size() == GC.getMap().numPlotsINLINE());
+	const PlayerTypes eLeader = getLeaderID();
+	bool bAny = false;
+	for (int iI = 0; iI < (int)m_aiStrengthMemory.size(); iI++)
+	{
+		if (m_aiStrengthMemory[iI] == 0)
+		{
+			continue;
+		}
+		const CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
+		if (pLoopPlot->isVisible(getID(), false) && !pLoopPlot->isVisibleEnemyUnit(eLeader))
+		{
+			m_aiStrengthMemory[iI] = 0;
+		}
+		else
+		{
+			m_aiStrengthMemory[iI] = 96 * m_aiStrengthMemory[iI] / 100; // reduce by 4%, rounding down. (arbitrary number)
+			bAny = bAny || m_aiStrengthMemory[iI] > 0;
+		}
+	}
+	if (!bAny)
+	{
+		m_aiStrengthMemory.clear(); // nothing left to remember: keep the savegame small
+	}
+}
+// K-Mod end
 
 //Greed is a function of relative wealth and relative power.
 int CvTeamAI::AI_getGreed(TeamTypes eTeam) const

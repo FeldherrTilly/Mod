@@ -15333,6 +15333,120 @@ int CvPlayerAI::AI_getEnemyPlotStrength(CvPlot* pPlot, int iRange, bool bDefensi
 
 }
 
+// K-Mod: total defensive strength of the units that can move iRange steps to reach pDefencePlot (eDefenceTeam NO_TEAM: our
+// potential enemies). For our potential enemies on land without bCheckMoves it also refreshes the strength memory of the team.
+// WTP: no first strikes, collateral damage or fort aid; units aboard ships do not defend
+int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eDefenceTeam, DomainTypes eDomainType, int iRange, bool bAtTarget, bool bCheckMoves, bool bNoCache) const
+{
+	PROFILE_FUNC();
+
+	FAssert(bAtTarget || !bCheckMoves); // it doesn't make much sense to check moves if the defenders are meant to stay put.
+
+	int iTotal = 0;
+	for (int iDX = -iRange; iDX <= iRange; iDX++)
+	{
+		for (int iDY = -iRange; iDY <= iRange; iDY++)
+		{
+			const CvPlot* const pLoopPlot = plotXY(pDefencePlot->getX_INLINE(), pDefencePlot->getY_INLINE(), iDX, iDY);
+			if (pLoopPlot == NULL || !pLoopPlot->isVisible(getTeam(), false))
+			{
+				continue;
+			}
+			int iPlotTotal = 0;
+			CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
+			while (pUnitNode != NULL)
+			{
+				const CvUnit* const pLoopUnit = pLoopPlot->getUnitNodeLoop(pUnitNode);
+				if (pLoopUnit == NULL || pLoopUnit->isCargo() || !pLoopUnit->canDefend() || pLoopUnit->isInvisible(getTeam(), false))
+				{
+					continue;
+				}
+				if (eDefenceTeam != NO_TEAM ? pLoopUnit->getTeam() != eDefenceTeam : !pLoopUnit->isPotentialEnemy(getTeam(), pLoopPlot))
+				{
+					continue;
+				}
+				if (eDomainType != NO_DOMAIN && pLoopUnit->getDomainType() != eDomainType)
+				{
+					continue;
+				}
+				if (bCheckMoves)
+				{
+					// unfortunately, we can't use the global pathfinder here
+					// - because the calling function might be waiting to use some pathfinding results
+					// So this check will have to be really rough. :(
+					const int iMoves = pLoopUnit->baseMoves() + (pLoopPlot->isValidRoute(pLoopUnit) ? 1 : 0);
+					if (std::max(std::abs(iDX), std::abs(iDY)) > iMoves)
+					{
+						continue; // can't make it. (maybe?)
+					}
+				}
+				iPlotTotal += pLoopUnit->currEffectiveStr(bAtTarget ? pDefencePlot : pLoopPlot, NULL);
+			}
+			if (!bNoCache && !isHuman() && eDefenceTeam == NO_TEAM && eDomainType == DOMAIN_LAND && !bCheckMoves && (!bAtTarget || pLoopPlot == pDefencePlot))
+			{
+				// while since we're here, we might as well update our memory.
+				// (human players don't track strength memory)
+				GET_TEAM(getTeam()).AI_setStrengthMemory(pLoopPlot, iPlotTotal);
+			}
+			iTotal += iPlotTotal;
+		}
+	}
+	return iTotal;
+}
+
+// K-Mod: total attack strength of the units at war with us (or of eAttackTeam) that can move iRange steps to reach pTargetPlot;
+// bCheckCanAttack: only units that can still attack this turn. WTP: no first strikes, collateral damage or fort aid; units aboard
+// ships count (landing)
+int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAttackTeam, DomainTypes eDomainType, int iRange, bool bUseTarget, bool bCheckMoves, bool bCheckCanAttack) const
+{
+	PROFILE_FUNC();
+
+	int iTotal = 0;
+	for (int iDX = -iRange; iDX <= iRange; iDX++)
+	{
+		for (int iDY = -iRange; iDY <= iRange; iDY++)
+		{
+			const CvPlot* const pLoopPlot = plotXY(pTargetPlot->getX_INLINE(), pTargetPlot->getY_INLINE(), iDX, iDY);
+			if (pLoopPlot == NULL || !pLoopPlot->isVisible(getTeam(), false))
+			{
+				continue;
+			}
+			CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
+			while (pUnitNode != NULL)
+			{
+				const CvUnit* const pLoopUnit = pLoopPlot->getUnitNodeLoop(pUnitNode);
+				if (pLoopUnit == NULL || !pLoopUnit->canAttack() || pLoopUnit->isInvisible(getTeam(), false))
+				{
+					continue;
+				}
+				if (eAttackTeam != NO_TEAM ? pLoopUnit->getTeam() != eAttackTeam : !pLoopUnit->isEnemy(getTeam(), pLoopPlot))
+				{
+					continue;
+				}
+				if (eDomainType != NO_DOMAIN && pLoopUnit->getDomainType() != eDomainType)
+				{
+					continue;
+				}
+				if (bCheckMoves)
+				{
+					const int iMoves = pLoopUnit->baseMoves() + (pLoopPlot->isValidRoute(pLoopUnit) ? 1 : 0);
+					if (std::max(std::abs(iDX), std::abs(iDY)) > iMoves)
+					{
+						continue; // can't make it. (maybe?)
+					}
+				}
+				if (bCheckCanAttack && (!pLoopUnit->canMove() || (pLoopUnit->isMadeAttack() && !pLoopUnit->isBlitz())))
+				{
+					continue; // can't attack
+				}
+				iTotal += pLoopUnit->currEffectiveStr(bUseTarget ? pTargetPlot : NULL, bUseTarget ? pLoopUnit : NULL);
+			}
+		}
+	}
+	return iTotal;
+}
+// K-Mod end
+
 int CvPlayerAI::AI_goldToUpgradeAllUnits(int iExpThreshold)
 {
 	if (m_iUpgradeUnitsCacheTurn == GC.getGameINLINE().getGameTurn() && m_iUpgradeUnitsCachedExpThreshold == iExpThreshold)
