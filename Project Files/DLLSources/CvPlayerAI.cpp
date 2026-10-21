@@ -1053,7 +1053,27 @@ void CvPlayerAI::AI_setSiegeMuster(const std::vector<SiegeThreat>& aThreats, int
 // WTP: siege: a gathering plot: land of the colony's area, passable, no city or fort, no visible enemy
 bool CvPlayerAI::AI_isSiegeMusterPlotValid(const CvPlot& kPlot, const CvCity& kCity) const
 {
-	return !kPlot.isWater() && !kPlot.isImpassable() && !kPlot.isCity(true) && kPlot.area() == kCity.area() && !kPlot.isVisibleEnemyUnit(getID());
+	if (kPlot.isWater() || kPlot.isImpassable() || kPlot.isCity(true) || kPlot.area() != kCity.area() || kPlot.isVisibleEnemyUnit(getID()))
+	{
+		return false;
+	}
+	// the counter units must be able to get there: no peak without a route (only some professions enter them), no terrain or
+	// feature a colonist can not enter (e.g. large rivers)
+	if (kPlot.isPeak() && kPlot.getRouteType() == NO_ROUTE)
+	{
+		return false;
+	}
+	const UnitTypes eColonist = getUnitType(GLOBAL_DEFINE_DEFAULT_POPULATION_UNIT);
+	if (eColonist != NO_UNIT)
+	{
+		const CvUnitInfo& kColonist = GC.getUnitInfo(eColonist);
+		if (kColonist.getTerrainImpassable(kPlot.getTerrainType())
+			|| (kPlot.getFeatureType() != NO_FEATURE && kColonist.getFeatureImpassable(kPlot.getFeatureType())))
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 // WTP: siege: the gathering plot beside the colony with the best defense that is not beside the siege stack (the farther the
