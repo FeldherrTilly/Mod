@@ -398,7 +398,8 @@ RANGES = [   # polyline lon/lat, half width in tiles
     ('Highlands', [(-5.3, 57.2), (-4.0, 56.8), (-3.0, 56.7)], 1.4),
     ('Pennines', [(-2.3, 54.5), (-2.0, 53.2)], 0.9),
     ('Tell Atlas', [(-2.5, 35.0), (1.0, 36.0), (5.0, 36.4), (8.0, 36.5)], 1.4),
-    ('High Atlas', [(-9.5, 31.2), (-6.5, 32.0), (-3.5, 33.2), (-1.0, 34.0), (2.5, 34.6), (6.0, 34.8), (9.5, 34.6)], 1.9),
+    ('High Atlas', [(-9.5, 31.2), (-6.5, 32.0), (-3.5, 32.7), (-1.5, 32.9), (0.0, 33.6), (1.5, 33.8), (3.0, 33.2), (4.5, 33.1),      # two tiles
+                    (6.0, 33.8), (7.5, 34.0), (9.0, 33.4), (10.0, 33.2)], 1.9),                                                       # off the coast, bent
     ('Lebanon', [(35.6, 34.5), (36.2, 33.5)], 1.0),
     ('Sinai', [(33.7, 29.5), (34.2, 28.2)], 1.5),
     ('Urals', [(53.2, 66.0), (54.4, 61.0), (53.4, 55.0)], 1.6),
@@ -441,6 +442,10 @@ LOW_CHAINS = [   # (polyline lon/lat, half width in tiles, height): low, broken 
     ([(21.5, 45.4), (23.0, 45.0), (24.5, 45.2)], 1.0, 0.55), ([(15.5, 47.3), (17.0, 47.0)], 0.9, 0.55),
     ([(-1.0, 27.0), (2.0, 28.4), (4.5, 27.6)], 1.2, 0.62), ([(8.0, 26.8), (12.0, 27.8), (16.0, 27.2)], 1.2, 0.6), ([(20.0, 27.5), (23.5, 28.5)], 1.2, 0.6),
     ([(-6.0, 25.8), (-4.0, 27.4)], 1.1, 0.6), ([(26.0, 26.2), (29.0, 27.5)], 1.1, 0.58), ([(36.0, 26.0), (39.0, 27.5), (42.0, 26.5)], 1.2, 0.6),
+    # the North European Plain: moraine ridges and heaths
+    ([(9.3, 52.9), (10.3, 53.2), (11.0, 52.9)], 1.0, 0.58), ([(12.0, 53.4), (13.3, 53.2), (14.8, 53.5), (16.3, 53.8), (17.8, 54.0)], 1.0, 0.6),
+    ([(19.8, 53.5), (21.3, 53.8), (22.8, 53.9)], 1.0, 0.6), ([(24.0, 53.3), (25.5, 53.8), (27.0, 54.0), (28.5, 54.3)], 1.1, 0.62),
+    ([(31.0, 54.4), (32.5, 54.9)], 1.0, 0.6), ([(12.2, 51.9), (13.3, 52.0)], 0.9, 0.55), ([(24.5, 50.9), (26.5, 50.7)], 1.0, 0.55),
 ]
 MASSIFS = [(-6.0, 31.0, 2.0), (-1.5, 32.3, 2.0), (5.5, 32.0, 2.0), (10.0, 32.8, 2.0), (21.0, 31.2, 2.0), (-9.0, 29.6, 1.6), (-1.0, 30.0, 1.4), (6.0, 30.0, 1.4), (9.8, 31.0, 1.4), (22.0, 29.5, 1.4), (10.6, 51.7, 2.6), (13.2, 49.1, 2.4), (19.9, 49.2, 2.2), (5.5, 50.1, 2.2), (7.1, 48.3, 2.4), (2.8, 45.3, 3.2), (8.2, 48.0, 2.2),
            (16.2, 50.7, 2.2), (24.5, 41.8, 3.0), (21.2, 39.7, 2.6), (-5.2, 40.3, 2.2), (-3.8, 52.4, 2.0), (4.0, 47.0, 1.8), (20.9, 50.9, 1.8),
@@ -448,7 +453,8 @@ MASSIFS = [(-6.0, 31.0, 2.0), (-1.5, 32.3, 2.0), (5.5, 32.0, 2.0), (10.0, 32.8, 
            (-6.8, 42.4, 2.0), (1.5, 43.0, 2.0), (12.0, 43.8, 1.8), (16.0, 40.5, 2.0), (18.0, 44.0, 2.4), (22.0, 47.0, 2.2), (25.5, 46.5, 2.2),
            (30.5, 49.0, 1.6), (0.5, 49.9, 1.4), (-8.0, 40.5, 1.8), (13.0, 56.2, 1.8), (22.0, 58.5, 1.6), (36.5, 37.0, 2.4), (43.5, 37.5, 2.4),
            (50.0, 33.0, 2.4), (55.0, 30.0, 2.4), (52.0, 27.0, 2.0), (3.0, 27.5, 2.4), (9.5, 28.0, 2.2), (14.0, 28.2, 2.4), (19.5, 28.5, 2.0),
-           (24.0, 27.0, 2.2), (-3.0, 27.0, 2.0), (-8.0, 26.5, 2.0), (31.0, 25.5, 1.8), (38.0, 28.0, 2.0), (42.0, 26.0, 2.0), (47.0, 24.5, 1.8)]
+           (24.0, 27.0, 2.2), (-3.0, 27.0, 2.0), (-8.0, 26.5, 2.0), (31.0, 25.5, 1.8), (38.0, 28.0, 2.0), (42.0, 26.0, 2.0), (47.0, 24.5, 1.8),
+           (13.6, 53.3, 1.8), (21.0, 53.7, 1.7), (26.0, 53.8, 1.9), (32.0, 54.7, 1.7), (10.2, 53.1, 1.6)]     # a few summits in the North European Plain
 MASSIFXY = [to_xy(lo, la) + (r,) for lo, la, r in MASSIFS]
 LOWXY = [([to_xy(lo, la) for lo, la in pts], w, h) for pts, w, h in LOW_CHAINS]
 PLATEAUS = [(34.5, 38.8, 4.5, 0.38), (-3.5, 40.0, 4.5, 0.30), (28.0, 61.0, 6.0, 0.18), (53.0, 47.0, 6.0, 0.12), (53.0, 33.0, 6.0, 0.30), (3.0, 25.0, 6.0, 0.20)]   # lon, lat, radius, elevation
@@ -1523,6 +1529,24 @@ for x, y in ALL:
     elif feature[i] == 'SHRUB' and terrain[i] == 'MARSH':
         feature[i] = None
 
+# the North European Plain gets a few more features: lush grass and bogs along the small rivers, thickets and groves elsewhere
+pl_rng = random.Random(SEED * 7 + 97)
+pl_pick = lambda a, b, wa: a if pl_rng.random() < wa else b      # own random stream: the rest of the map stays as it was
+for x, y in ALL:
+    i = I(x, y)
+    lon, la = from_xy(x + 0.5, y + 0.5)
+    if not land[i] or plot_type[i] == 0 or feature[i] is not None or not (4.0 <= lon <= 34.0 and 50.0 <= la <= 57.5) or pl_rng.random() > 0.55:
+        continue
+    b, flat, riv = terrain[i], plot_type[i] == 2, has_river(x, y)
+    if riv and flat and b in ('GRASS', 'PLAINS', 'PLAINS_FERTILE'):
+        feature[i] = 'LUSHGRASS'
+    elif riv and flat and b == 'WETLAND':
+        feature[i] = pl_pick('BOG', 'WILD_FLOWERS', 0.67)
+    elif b == 'TAIGA':
+        feature[i] = pl_pick('MOSS', 'THICKET', 0.67)
+    elif b in ('GRASS', 'PLAINS', 'PLAINS_FERTILE', 'WETLAND'):
+        feature[i] = pl_pick('THICKET', 'LIGHT_FOREST', 0.4)
+
 # natural harbours and coves, barrier islands with a shallow lagoon (carved late so that they keep clear of the river mouths)
 HARBOUR_WATER, SHALLOW_WATER = set(), set()
 hb_rng = random.Random(SEED * 7 + 23)
@@ -2144,7 +2168,7 @@ def write_preview(path):
 
 
 TOP_LAT, BOTTOM_LAT = 70, -30
-WB_NAME = 'Eporue Huge'
+WB_NAME = 'Eporue Massive'
 
 
 def write_wbsave(path):
@@ -2154,7 +2178,7 @@ def write_wbsave(path):
         for p in range(49):
             f.write('BeginPlayer\n\tTeam=%d\n\tLeaderType=NONE\n\tCivType=NONE\nEndPlayer\n' % p)
         f.write('BeginMap\n\tgrid width=%d\n\tgrid height=%d\n\ttop latitude=%d\n\tbottom latitude=%d\n' % (W, H, TOP_LAT, BOTTOM_LAT))
-        f.write('\twrap X=0\n\twrap Y=0\n\tworld size=WORLDSIZE_HUGE\n\tclimate=CLIMATE_TEMPERATE\n\tsealevel=SEALEVEL_MEDIUM\n')
+        f.write('\twrap X=0\n\twrap Y=0\n\tworld size=WORLDSIZE_MASSIVE\n\tclimate=CLIMATE_TEMPERATE\n\tsealevel=SEALEVEL_MEDIUM\n')
         f.write('\tnum plots written=%d\n\tnum signs written=%d\n' % (W * H, len(SIGNS)))
         f.write('\tRandomize Features=false\n\tRandomize Resources=true\n\tRandomize Goodies=true\nEndMap\n\n### Plot Info ###\n')
         for x in range(W):

@@ -39,8 +39,8 @@ Copy the generated `.ColonizationWBSave` to `PrivateMaps/` and restart Colonizat
 Second map "Eporue": Europe turned by 180 degrees (Atlantic in the east = Europe side, Scandinavia in the south, Mediterranean with a strip of North Africa in the north, Russia and Asia in the west), 107x125, world size HUGE, same style rules as above. Real coastlines are drawn in lon/lat and projected piecewise (`LON_KN`, `LAT_KN`: west and central Europe get the most tiles per degree); the climate is a free, slightly warmer variant (`LAT_SHIFT`). The east of Russia and Ukraine is replaced by an eastern sea with an island world (a volcanic island with a stream and a reef ring, settleable islands, shallow coast around them). Pipeline: land mask with fractal coastline and tile-scale ragged coast, seas and straits, ranges with passes (wavy, plus low broken chains, massifs and lone hills in the plains), lakes, large rivers with fords, climate, biomes, clay hills, features, volcanoes, canyon, mesas and gorge, edge rivers (small rivers, none across desert), natural harbours, coves and barrier islands with a lagoon, hardwood clusters, coastal water (shallow coast in the North Sea, Baltic, Adriatic, Persian Gulf, ...) with deep-water lanes, reefs and kelp (no currents), Europe plots (Atlantic, at least 8 tiles from land), four Pacific columns on the left, map signs with real names, WBSave writer, ASCII preview and PNG.
 
 ```
-python Tools/MapGenerator/gen_eporue.py [seed] [output dir]    # writes Eporue Huge.ColonizationWBSave, ascii_terrain.txt, ascii_features.txt, preview.png
-python Tools/MapGenerator/validate.py "<output dir>/Eporue Huge.ColonizationWBSave"
+python Tools/MapGenerator/gen_eporue.py [seed] [output dir]    # writes Eporue Massive.ColonizationWBSave, ascii_terrain.txt, ascii_features.txt, preview.png
+python Tools/MapGenerator/validate.py "<output dir>/Eporue Massive.ColonizationWBSave"
 ```
 
-The generated file is also stored as `PrivateMaps/Eporue Huge.ColonizationWBSave`; the map text key is `TXT_KEY_WORLDBUILDER_EPORUE_DESC`.
+The generated file is also stored as `PrivateMaps/Eporue Massive.ColonizationWBSave`; the map text key is `TXT_KEY_WORLDBUILDER_EPORUE_DESC`.
