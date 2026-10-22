@@ -1,6 +1,7 @@
 // unit.cpp
 
 #include "CvGameCoreDLL.h"
+#include "CvHumanLog.h"
 #include "CombatOdds.h"
 #include "CvUnit.h"
 #include "CvArea.h"
@@ -1677,6 +1678,8 @@ void CvUnit::updateCombat(bool bQuick)
 		pDefender->setCombatUnit(NULL);
 		NotifyEntity(MISSION_DAMAGE);
 		pDefender->NotifyEntity(MISSION_DAMAGE);
+
+		HumanLog::combat(*this, *pDefender, *pPlot, isDead() ? "lost" : (pDefender->isDead() ? "won" : "withdrew"));
 
 		// case: Attacker died, defender won
 		if (isDead())
