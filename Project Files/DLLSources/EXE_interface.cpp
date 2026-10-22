@@ -35,6 +35,7 @@
 #include "CvPopupReturn.h"
 #include "CvReplayInfo.h"
 #include "CvXMLLoadUtility.h"
+#include "CvHumanLog.h"
 
 #include "Network/CvNetwork.h"
 
@@ -541,6 +542,7 @@ public:
 	#pragma comment(linker, "/EXPORT:?doTask@CvCity@@QAEXW4TaskTypes@@HH_N111@Z=?doTask@EXE_CvCity@@QAEXW4TaskTypes@@HH_N111@Z")
 	DllExport void doTask(TaskTypes eTask, int iData1 = -1, int iData2 = -1, bool bOption = false, bool bAlt = false, bool bShift = false, bool bCtrl = false)
 	{
+		HumanLog::cityTask(*this, eTask, iData1, iData2, bOption);
 		CvCity::doTask(eTask, iData1, iData2, bOption, bAlt, bShift, bCtrl);
 	}
 
@@ -652,10 +654,12 @@ public:
 	DllExport void pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave, bool bPop, bool bAppend, bool bForce = false)
 	{
 		CvCity::pushOrder(eOrder, iData1, iData2, bSave, bPop, bAppend, bForce);
+		HumanLog::cityOrder(*this, "add", eOrder, iData1, bAppend);
 	}
 	#pragma comment(linker, "/EXPORT:?popOrder@CvCity@@QAEXH_N0@Z=?popOrder@EXE_CvCity@@QAEXH_N0@Z")
 	DllExport void popOrder(int iNum, bool bFinish = false, bool bChoose = false)
 	{
+		HumanLog::cityPopOrder(*this, iNum);
 		CvCity::popOrder(iNum, bFinish, bChoose);
 	}
 	/*
@@ -3045,7 +3049,9 @@ public:
 	#pragma comment(linker, "/EXPORT:?doAction@CvPlayer@@QAEXW4PlayerActionTypes@@HHH@Z=?doAction@EXE_CvPlayer@@QAEXW4PlayerActionTypes@@HHH@Z")
 	DllExport void doAction(PlayerActionTypes eAction, int iData1, int iData2, int iData3)
 	{
+		const int iGoldBefore = getGold();
 		CvPlayer::doAction(eAction, iData1, iData2, iData3);
+		HumanLog::playerAction(*this, eAction, iData1, iData2, iData3, iGoldBefore);
 	}	
 
 	#pragma comment(linker, "/EXPORT:?doAdvancedStartAction@CvPlayer@@QAEXW4AdvancedStartActionTypes@@HHH_N@Z=?doAdvancedStartAction@EXE_CvPlayer@@QAEXW4AdvancedStartActionTypes@@HHH_N@Z")
@@ -3214,6 +3220,7 @@ public:
 	#pragma comment(linker, "/EXPORT:?handleDiploEvent@CvPlayer@@QAEXW4DiploEventTypes@@W4PlayerTypes@@HH@Z=?handleDiploEvent@EXE_CvPlayer@@QAEXW4DiploEventTypes@@W4PlayerTypes@@HH@Z")
 	DllExport void handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer, int iData1, int iData2)
 	{
+		HumanLog::diploEvent(*this, eDiploEvent, ePlayer, iData1, iData2);
 		CvPlayer::handleDiploEvent(eDiploEvent, ePlayer, iData1, iData2);
 	}
 
@@ -3864,6 +3871,7 @@ public:
 	#pragma comment(linker, "/EXPORT:?pushMission@CvSelectionGroup@@QAEXW4MissionTypes@@HHH_N1W4MissionAITypes@@PAVCvPlot@@PAVCvUnit@@@Z=?pushMission@EXE_CvSelectionGroup@@QAEXW4MissionTypes@@HHH_N1W4MissionAITypes@@PAVCvPlot@@PAVCvUnit@@@Z")
 	DllExport void pushMission(MissionTypes eMission, int iData1 = -1, int iData2 = -1, int iFlags = 0, bool bAppend = false, bool bManual = false, MissionAITypes eMissionAI = NO_MISSIONAI, CvPlot* pMissionAIPlot = NULL, CvUnit* pMissionAIUnit = NULL)
 	{
+		HumanLog::mission(*this, eMission, iData1, iData2, iFlags, bAppend);
 		return CvSelectionGroup::pushMission(eMission, iData1, iData2, iFlags, bAppend, bManual, eMissionAI, pMissionAIPlot, pMissionAIUnit);
 	}
 
@@ -4142,6 +4150,7 @@ public:
 	#pragma comment(linker, "/EXPORT:?doCommand@CvUnit@@QAEXW4CommandTypes@@HH@Z=?doCommand@EXE_CvUnit@@QAEXW4CommandTypes@@HH@Z")
 	DllExport void doCommand(CommandTypes eCommand, int iData1, int iData2)
 	{
+		HumanLog::command(*this, eCommand, iData1, iData2);
 		return CvUnit::doCommand(eCommand, iData1,  iData2);
 	}
 

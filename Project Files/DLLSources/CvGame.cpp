@@ -1,6 +1,7 @@
 // game.cpp
 
 #include "CvGameCoreDLL.h"
+#include "CvHumanLog.h"
 #include "CvGameCoreUtils.h"
 #include "CvGameCoreUtils.h"
 #include <time.h>
@@ -3468,6 +3469,8 @@ void CvGame::implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<Tr
 	FAssertMsg(eWho != NO_PLAYER, "Who is not assigned a valid value");
 	FAssertMsg(eOtherWho != NO_PLAYER, "OtherWho is not assigned a valid value");
 	FAssertMsg(eWho != eOtherWho, "eWho is not expected to be equal with eOtherWho");
+
+	HumanLog::deal(eWho, eOtherWho, pOurList, pTheirList);
 
 	pDeal = addDeal();
 	pDeal->init(pDeal->getID(), eWho, eOtherWho);

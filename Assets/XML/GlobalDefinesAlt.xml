@@ -1882,6 +1882,12 @@
 		<DefineName>SIEGE_AI_MUSTER_ATTACK_PERCENT</DefineName>
 		<iDefineIntVal>130</iDefineIntVal>
 	</Define>
+	<!-- WTP: 1 logs every action of the human players with its situation (WTP_P00_<civ>_human.log in the game's log folder),
+		as data to tune the AI by; 0 turns this log off -->
+	<Define>
+		<DefineName>WTP_LOG_HUMAN_ACTIONS</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
 	<!-- WTP: AI: a unit in a city too weak against the enemies nearby (AI_leaveAttack strength threshold) still attacks a
 		reachable enemy with odds of at least AI_LEAVE_ATTACK_SURE_ODDS percent, if another defender stays in the city -->
 	<Define>
