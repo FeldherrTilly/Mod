@@ -19855,6 +19855,9 @@ void CvPlayerAI::AI_doWorkforcePlan()
 	std::vector<int> aiPlotTaken(GC.getMap().numPlotsINLINE(), -1); // plot number -> job holding it in the target plan
 	std::vector<int> aiGroupHeld(aiGroupSlots.size(), 0); // building group -> jobs of it held in the target plan
 	#define WF_GROUP_FREE(j) (aJobs[j].iGroup < 0 || aiGroupHeld[aJobs[j].iGroup] < aiGroupSlots[aJobs[j].iGroup])
+	// WTP (user 2026-10-23): a plot job on a gold, silver or gem deposit: before the first carpenter and lumberjack
+	#define wfIsPreciousJob(kJ) ((kJ).pPlot != NULL && (kJ).pPlot->getBonusType() != NO_BONUS && ((kJ).eYield == YIELD_GOLD || (kJ).eYield == YIELD_SILVER || (kJ).eYield == YIELD_GEMS) \
+		&& GC.getBonusInfo((kJ).pPlot->getBonusType()).getYieldChange((kJ).eYield) > 0)
 	for (int w = 0; w < iNumWorkers; ++w)
 	{
 		WfWorker& kWorker = aWorkers[w];
@@ -20169,7 +20172,10 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				// always fish (a water plot with food)
 				const bool bExpertFood = kJob.bFood && kJob.pPlot != NULL && kProfession.isWorkPlot() && wfIsExpertFor(*kWorker.pUnit, kJob.eProfession)
 					&& (kJob.pPlot->isWater() ? aiFood[j] > 0 : aiFood[j] >= 4);
-				const bool bMust = (bFirstCarpenterHere && !bOtherTradeExpert) || bExpertBuilding || bExpertFood;
+				// WTP (user 2026-10-23): a job on a gold, silver or gem deposit comes before the first carpenter and lumberjack
+				// (a colony founded for the deposit mined nothing while the plan seated a carpenter and a lumberjack)
+				const bool bPrecious = kProfession.isWorkPlot() && wfIsPreciousJob(kJob);
+				const bool bMust = (bFirstCarpenterHere && !bOtherTradeExpert) || bExpertBuilding || bExpertFood || bPrecious;
 				int iValue = iJobGold + wfFoodGold(kCity.iSurplus, iFoodDelta);
 				if (bFirstCarpenterHere && bOtherTradeExpert)
 				{
@@ -20199,6 +20205,10 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				if (bExpertBuilding || bExpertFood)
 				{
 					iValue += WF_PRIORITY / 2;
+				}
+				if (bPrecious)
+				{
+					iValue += WF_PRIORITY * 2;
 				}
 				WfCand kCand = { w, j, iValue, iFoodDelta };
 				// a lumber job is a partner for a carpenter without lumber
@@ -20387,12 +20397,13 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				aiOrder.push_back(j);
 			}
 		}
-		// food jobs (by food) first, then the carpenters and the expert statesmen and preachers, then the lumberjacks working
-		// for the carpenters, then the others by value
+		// food jobs (by food) first, then the jobs on gold, silver and gem deposits, then the carpenters and the expert statesmen
+		// and preachers, then the lumberjacks working for the carpenters, then the others by value
 		#define WF_SEAT_KEY(j, iT) (aiFood[(iT) * iNumJobs + (j)] * 1000000 + std::max(0, aiGold[(iT) * iNumJobs + (j)]) \
-			+ ((aJobs[j].eYield == YIELD_HAMMERS || ((aJobs[j].eYield == YIELD_BELLS || aJobs[j].eYield == YIELD_CROSSES) \
+			+ (wfIsPreciousJob(aJobs[j]) ? 950000 \
+			: ((aJobs[j].eYield == YIELD_HAMMERS || ((aJobs[j].eYield == YIELD_BELLS || aJobs[j].eYield == YIELD_CROSSES) \
 				&& wfIsExpertFor(*aWorkers[aJobs[j].iHolder].pUnit, aJobs[j].eProfession))) ? 900000 \
-				: ((aJobs[j].eYield == YIELD_LUMBER && kCity.aiUse[YIELD_LUMBER] > 0) ? 800000 : 0)))
+				: ((aJobs[j].eYield == YIELD_LUMBER && kCity.aiUse[YIELD_LUMBER] > 0) ? 800000 : 0))))
 		for (uint a = 0; a < aiOrder.size(); ++a)
 		{
 			for (uint b = a + 1; b < aiOrder.size(); ++b)
