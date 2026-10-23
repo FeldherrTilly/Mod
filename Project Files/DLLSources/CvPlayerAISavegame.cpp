@@ -243,6 +243,7 @@ void CvPlayerAI::AI_resetSavedData()
 	m_iSurplusPioneerID = -1;
 	m_iSurplusPioneerCityID = -1;
 	m_iSavingGoldTurn = -1;
+	m_iEuropeFallbackTurn = -1;
 	m_mapWfLearnWait.clear();
 	m_mapWfRecentBuy.clear();
 	m_mapWfUnreachable.clear();
