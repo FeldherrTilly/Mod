@@ -24,7 +24,8 @@ namespace HumanLog
 	void cityTask(const CvCity& kCity, TaskTypes eTask, int iData1, int iData2, bool bOption);
 	void cityOrder(const CvCity& kCity, const char* szWhat, OrderTypes eOrder, int iData1, bool bAppend);
 	void cityPopOrder(const CvCity& kCity, int iNum);
-	void playerAction(const CvPlayer& kPlayer, PlayerActionTypes eAction, int iData1, int iData2, int iData3, int iGoldBefore);
+	CvString actionContext(const CvPlayer& kPlayer, PlayerActionTypes eAction, int iData1, int iData2, int iData3);
+	void playerAction(const CvPlayer& kPlayer, PlayerActionTypes eAction, int iData1, int iData2, int iData3, int iGoldBefore, const CvString& szBefore);
 	void diploEvent(const CvPlayer& kPlayer, DiploEventTypes eEvent, PlayerTypes eOther, int iData1, int iData2);
 	void deal(PlayerTypes eWho, PlayerTypes eOtherWho, const CLinkList<TradeData>* pOurList, const CLinkList<TradeData>* pTheirList);
 	void combat(const CvUnit& kAttacker, const CvUnit& kDefender, const CvPlot& kPlot, const char* szOutcome);

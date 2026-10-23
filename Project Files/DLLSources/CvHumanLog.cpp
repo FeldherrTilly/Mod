@@ -28,7 +28,7 @@ namespace
 
 	const char* const ACTION_NAMES[] = { "BUY_EUROPE_UNIT", "SELL_YIELD_UNIT", "BUY_YIELD_UNIT", "LOAD_UNIT_FROM_EUROPE",
 		"UNLOAD_UNIT_TO_EUROPE", "TRANSFER_UNIT_IN_EUROPE", "SET_OPTION", "AUTO_MOVES", "TURN_COMPLETE", "APPLY_EVENT",
-		"CONVINCE_FATHER", "SET_CIVIC", "RECEIVE_GOODY", "BUY_UNITS_FROM_KING", "HURRY", "EUROPE_CHANGE_PROFESSION", "FEAT",
+		"CONVINCE_FATHER", "SET_CIVIC", "RECEIVE_GOODY", "BUY_UNITS_FROM_KING", "HURRY_IMMIGRANT", "EUROPE_CHANGE_PROFESSION", "FEAT",
 		"BUY_AFRICA_UNIT", "SELL_YIELD_UNIT_AFRICA", "BUY_YIELD_UNIT_AFRICA", "LOAD_UNIT_FROM_AFRICA", "UNLOAD_UNIT_TO_AFRICA",
 		"TRANSFER_UNIT_IN_AFRICA", "BUY_PORT_ROYAL_UNIT", "SELL_YIELD_UNIT_PORT_ROYAL", "BUY_YIELD_UNIT_PORT_ROYAL",
 		"LOAD_UNIT_FROM_PORT_ROYAL", "UNLOAD_UNIT_TO_PORT_ROYAL", "TRANSFER_UNIT_IN_PORT_ROYAL", "NETWORK_DESYNC_LOG_WRITE",
@@ -316,19 +316,14 @@ void HumanLog::cityPopOrder(const CvCity& kCity, int iNum)
 	}
 }
 
-void HumanLog::playerAction(const CvPlayer& kPlayer, PlayerActionTypes eAction, int iData1, int iData2, int iData3, int iGoldBefore)
+// the situation before a player action: what it buys or sells at which price (a sold cargo is gone afterwards)
+CvString HumanLog::actionContext(const CvPlayer& kPlayer, PlayerActionTypes eAction, int iData1, int iData2, int iData3)
 {
 	if (!isActive(kPlayer.getID()))
 	{
-		return;
+		return CvString();
 	}
-	// network bookkeeping, no decisions
-	if (eAction == PLAYER_ACTION_NETWORK_DESYNC_LOG_WRITE || eAction == PLAYER_ACTION_NETWORK_canDoEvent || eAction == PLAYER_ACTION_NETWORK_canDoGoody
-		|| eAction == PLAYER_ACTION_ASYNC_RANDOM)
-	{
-		return;
-	}
-	CvString szText = CvString::format("ACTION %s data=%d,%d,%d ", ((int)eAction >= 0 && (int)eAction < (int)NUM_PLAYER_ACTION_TYPES) ? ACTION_NAMES[(int)eAction] : "?", iData1, iData2, iData3);
+	CvString szText;
 	switch (eAction)
 	{
 	case PLAYER_ACTION_BUY_EUROPE_UNIT:
@@ -336,7 +331,8 @@ void HumanLog::playerAction(const CvPlayer& kPlayer, PlayerActionTypes eAction, 
 	case PLAYER_ACTION_BUY_PORT_ROYAL_UNIT:
 		if (iData1 >= 0 && iData1 < GC.getNumUnitInfos())
 		{
-			szText += CvString::format("unit=%s ", shortType(GC.getUnitInfo((UnitTypes)iData1).getType()));
+			szText = CvString::format("unit=%s europePrice=%d ", shortType(GC.getUnitInfo((UnitTypes)iData1).getType()),
+				kPlayer.getEuropeUnitBuyPrice((UnitTypes)iData1, false));
 		}
 		break;
 	case PLAYER_ACTION_BUY_YIELD_UNIT:
@@ -344,7 +340,7 @@ void HumanLog::playerAction(const CvPlayer& kPlayer, PlayerActionTypes eAction, 
 	case PLAYER_ACTION_BUY_YIELD_UNIT_PORT_ROYAL:
 		if (iData1 >= 0 && iData1 < NUM_YIELD_TYPES)
 		{
-			szText += CvString::format("yield=%s amount=%d buyPrice=%d sellPrice=%d ", shortType(GC.getYieldInfo((YieldTypes)iData1).getType()), iData2,
+			szText = CvString::format("yield=%s amount=%d buyPrice=%d sellPrice=%d ", shortType(GC.getYieldInfo((YieldTypes)iData1).getType()), iData2,
 				kPlayer.getYieldBuyPrice((YieldTypes)iData1), kPlayer.getYieldSellPrice((YieldTypes)iData1));
 		}
 		break;
@@ -355,20 +351,49 @@ void HumanLog::playerAction(const CvPlayer& kPlayer, PlayerActionTypes eAction, 
 			const CvUnit* const pUnit = kPlayer.getUnit(iData3);
 			if (pUnit != NULL && pUnit->getYield() != NO_YIELD)
 			{
-				szText += CvString::format("yield=%s amount=%d sellPrice=%d ", shortType(GC.getYieldInfo(pUnit->getYield()).getType()), iData2,
+				szText = CvString::format("yield=%s amount=%d sellPrice=%d ", shortType(GC.getYieldInfo(pUnit->getYield()).getType()), iData2,
 					kPlayer.getYieldSellPrice(pUnit->getYield()));
+			}
+		}
+		break;
+	case PLAYER_ACTION_HURRY: // pays for an immigrant on the docks of Europe at once
+		if (iData1 >= 0 && iData1 < GC.getNumHurryInfos())
+		{
+			szText = CvString::format("hurry=%s ", shortType(GC.getHurryInfo((HurryTypes)iData1).getType()));
+			const UnitTypes eDockUnit = kPlayer.getDocksNextUnit(iData2);
+			if (eDockUnit != NO_UNIT)
+			{
+				szText += CvString::format("dock=%d immigrant=%s price=%d crosses=%d/%d ", iData2, shortType(GC.getUnitInfo(eDockUnit).getType()),
+					kPlayer.getHurryGold((HurryTypes)iData1, iData2), kPlayer.getCrossesStored(), kPlayer.immigrationThreshold());
 			}
 		}
 		break;
 	case PLAYER_ACTION_CONVINCE_FATHER:
 		if (iData1 >= 0 && iData1 < GC.getNumFatherInfos())
 		{
-			szText += CvString::format("father=%s ", shortType(GC.getFatherInfo((FatherTypes)iData1).getType()));
+			szText = CvString::format("father=%s ", shortType(GC.getFatherInfo((FatherTypes)iData1).getType()));
 		}
 		break;
 	default:
 		break;
 	}
+	return szText;
+}
+
+void HumanLog::playerAction(const CvPlayer& kPlayer, PlayerActionTypes eAction, int iData1, int iData2, int iData3, int iGoldBefore, const CvString& szBefore)
+{
+	if (!isActive(kPlayer.getID()))
+	{
+		return;
+	}
+	// network bookkeeping and interface settings, no decisions
+	if (eAction == PLAYER_ACTION_NETWORK_DESYNC_LOG_WRITE || eAction == PLAYER_ACTION_NETWORK_canDoEvent || eAction == PLAYER_ACTION_NETWORK_canDoGoody
+		|| eAction == PLAYER_ACTION_ASYNC_RANDOM || eAction == PLAYER_ACTION_SET_OPTION || eAction == PLAYER_ACTION_AUTO_MOVES)
+	{
+		return;
+	}
+	CvString szText = CvString::format("ACTION %s data=%d,%d,%d ", ((int)eAction >= 0 && (int)eAction < (int)NUM_PLAYER_ACTION_TYPES) ? ACTION_NAMES[(int)eAction] : "?", iData1, iData2, iData3);
+	szText += szBefore;
 	szText += CvString::format("goldBefore=%d goldChange=%+d ", iGoldBefore, kPlayer.getGold() - iGoldBefore) + playerText(kPlayer);
 	write(kPlayer.getID(), szText);
 }
