@@ -3050,8 +3050,9 @@ public:
 	DllExport void doAction(PlayerActionTypes eAction, int iData1, int iData2, int iData3)
 	{
 		const int iGoldBefore = getGold();
+		const CvString szBefore = HumanLog::actionContext(*this, eAction, iData1, iData2, iData3);
 		CvPlayer::doAction(eAction, iData1, iData2, iData3);
-		HumanLog::playerAction(*this, eAction, iData1, iData2, iData3, iGoldBefore);
+		HumanLog::playerAction(*this, eAction, iData1, iData2, iData3, iGoldBefore, szBefore);
 	}	
 
 	#pragma comment(linker, "/EXPORT:?doAdvancedStartAction@CvPlayer@@QAEXW4AdvancedStartActionTypes@@HHH_N@Z=?doAdvancedStartAction@EXE_CvPlayer@@QAEXW4AdvancedStartActionTypes@@HHH_N@Z")
