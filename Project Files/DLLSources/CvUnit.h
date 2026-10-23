@@ -422,6 +422,8 @@ public:
 	int bombardRate() const;
 	SpecialUnitTypes specialCargo() const;
 	DomainTypes domainCargo() const;
+	// WTP: a ship that can take colonists aboard (not a goods-only ship like the smuggling ship or a privateer)
+	bool canCarryPeople() const { return getDomainType() == DOMAIN_SEA && cargoSpace() > 0 && specialCargo() == NO_SPECIALUNIT && domainCargo() == DOMAIN_LAND; }
 	int cargoSpace() const;
 	void changeCargoSpace(int iChange);
 	bool isFull() const;

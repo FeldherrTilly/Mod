@@ -154,6 +154,8 @@ public:
 	// WTP: native trade automation of a human player's ship: it trades with the villages around its home colony (the nearest
 	// colony when the automation was switched on) and comes back there from Europe
 	void AI_startNativeTrade();
+	// WTP: a transport that has done nothing in Europe this turn: logs its state and runs its Europe routine
+	void AI_europeIdleFallback();
 	bool AI_isHumanNativeTrade() const;
 	bool AI_hasNativeTradeAutomation() const; // a human player's native trade ship (home colony and trade state)
 	bool AI_isNativeVillageTargeted(const CvCity& kVillage) const;

@@ -2069,6 +2069,24 @@ void CvPlayerAI::AI_unitUpdate()
 			AI_groupUpdate();
 			// TAC - AI BTS Groups - koma13 - END
 
+			// WTP: a transport still idle in Europe (not updated this turn) runs its Europe routine now
+			if (!isNative() && !isEurope() && getParent() != NO_PLAYER)
+			{
+				std::vector<CvUnitAI*> apIdle;
+				for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+				{
+					if (pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && pLoopUnit->getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE
+						&& pLoopUnit->getUnitTravelTimer() == 0 && pLoopUnit->canMove() && pLoopUnit->getGroup() != NULL)
+					{
+						apIdle.push_back(static_cast<CvUnitAI*>(pLoopUnit));
+					}
+				}
+				for (uint i = 0; i < apIdle.size(); ++i)
+				{
+					apIdle[i]->AI_europeIdleFallback();
+				}
+			}
+
 			for (CvSelectionGroup*pLoopSelectionGroup = firstSelectionGroup(&iLoop); pLoopSelectionGroup; pLoopSelectionGroup = nextSelectionGroup(&iLoop))
 			{
 				if (pLoopSelectionGroup->readyToMove())
@@ -5977,13 +5995,27 @@ void CvPlayerAI::AI_updateNativeTradeShip()
 		return;
 	}
 
+	int iLoop;
+	// WTP: a transport that cannot carry people (the smuggling ship) trades with the natives as well
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && !pLoopUnit->canCarryPeople()
+			&& pLoopUnit->cargoSpace() > 0 && pLoopUnit->AI_getUnitAIState() != UNITAI_STATE_NATIVE_TRADE_BUY && pLoopUnit->AI_getUnitAIState() != UNITAI_STATE_NATIVE_TRADE_EUROPE
+			&& pLoopUnit->AI_getUnitAIState() != UNITAI_STATE_NATIVE_TRADE_SELL && pLoopUnit->AI_getUnitAIState() != UNITAI_STATE_EXPLORER_SHIP)
+		{
+			static_cast<CvUnitAI*>(pLoopUnit)->AI_startNativeTrade();
+			if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_TRADE, getID(), "WTP native trade: Player %d (%S) turn %d makes the goods-only ship %S (cargo %d) a native trade ship",
+				getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pLoopUnit->getName().GetCString(), pLoopUnit->cargoSpace());
+		}
+	}
+
 	// one ship (the second one of the early strategy Ship Trader gets its role when it is bought)
 	int iTradeShips = 0;
-	int iLoop;
 	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 	{
 		const UnitAIStates eState = pLoopUnit->AI_getUnitAIState();
-		if (pLoopUnit->getDomainType() == DOMAIN_SEA && (eState == UNITAI_STATE_NATIVE_TRADE_BUY || eState == UNITAI_STATE_NATIVE_TRADE_EUROPE || eState == UNITAI_STATE_NATIVE_TRADE_SELL))
+		if (pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->canCarryPeople()
+			&& (eState == UNITAI_STATE_NATIVE_TRADE_BUY || eState == UNITAI_STATE_NATIVE_TRADE_EUROPE || eState == UNITAI_STATE_NATIVE_TRADE_SELL))
 		{
 			++iTradeShips;
 		}
@@ -7481,7 +7513,7 @@ int CvPlayerAI::AI_cargoSpaceToEurope(CvSelectionGroup* pSkipSelectionGroup)
 		{
 			CvUnit* pHeadUnit = pLoopSelectionGroup->getHeadUnit();
 
-			if ((pHeadUnit != NULL) && (pHeadUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA))
+			if ((pHeadUnit != NULL) && (pHeadUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA) && pHeadUnit->canCarryPeople())
 			{
 				MissionAITypes eMissionAI = pLoopSelectionGroup->AI_getMissionAIType();
 
@@ -21862,7 +21894,7 @@ bool CvPlayerAI::AI_doColonyTransportPurchase()
 	int iLoop;
 	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 	{
-		if (pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA)
+		if (pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && pLoopUnit->canCarryPeople())
 		{
 			++iTransports;
 		}
@@ -22600,7 +22632,9 @@ bool CvPlayerAI::AI_doEarlyResources()
 	if (pSite == NULL)
 	{
 		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_PLAN, getID(), "WTP early: Player %d (%S) turn %d knows no site next to gold, silver or gems for a colony", getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn());
-		if (GC.getGameINLINE().getGameTurn() > 80)
+		// WTP: the first pair is over there: no waiting for a second site (the early game blocks all other purchases); without
+		// any site the strategy ends at turn 40
+		if (m_iEarlyProgress >= 5 || GC.getGameINLINE().getGameTurn() > 40)
 		{
 			AI_earlyEnd();
 		}
@@ -22762,7 +22796,7 @@ bool CvPlayerAI::AI_doTransportPurchase()
 	int iLoop;
 	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 	{
-		if (pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA)
+		if (pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && pLoopUnit->canCarryPeople())
 		{
 			iCapacity += pLoopUnit->cargoSpace();
 			++iTransports;

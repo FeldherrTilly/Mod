@@ -5552,7 +5552,8 @@ void CvUnitAI::AI_logShipTarget()
 // The Danish transports chased goodies and native trade for 25 turns while 21 units waited in Europe.
 bool CvUnitAI::AI_sailForEuropeBacklog()
 {
-	if (hasAnyUnitInCargo() || getDomainType() != DOMAIN_SEA)
+	// (a goods-only ship such as the smuggling ship cannot bring the waiting units)
+	if (hasAnyUnitInCargo() || getDomainType() != DOMAIN_SEA || !canCarryPeople())
 	{
 		return false;
 	}
@@ -8019,6 +8020,30 @@ bool CvUnitAI::AI_europe()
 	crossOcean(UNIT_TRAVEL_STATE_FROM_EUROPE);
 	finishMoves();
 	return true;
+}
+
+// WTP: a transport still in Europe with its moves left after the AI moved its units: it was not updated (or its Europe
+// routine did nothing). Its state goes to the ship log, then the Europe routine runs for it.
+void CvUnitAI::AI_europeIdleFallback()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d ship %S idle in Europe (unitAI %d state %d, activity %d, missionAI %d, group of %d, head %d, hurt %d, timer %d, move priority %d), %d units wait",
+		getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), (int)AI_getUnitAIType(), (int)AI_getUnitAIState(),
+		(int)getGroup()->getActivityType(), (int)getGroup()->AI_getMissionAIType(), getGroup()->getNumUnits(), (int)isGroupHead(), (int)isHurt(), getUnitTravelTimer(),
+		AI_getMovePriority(), kOwner.getNumEuropeUnits());
+	if (!isGroupHead())
+	{
+		joinGroup(NULL);
+	}
+	getGroup()->clearMissionQueue();
+	getGroup()->setActivityType(ACTIVITY_AWAKE);
+	AI_europeUpdate();
+	if (getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE && canMove())
+	{
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) ship %S still in Europe after its Europe routine", getOwnerINLINE(),
+			kOwner.getCivilizationDescription(0), getName().GetCString());
+		finishMoves();
+	}
 }
 
 bool CvUnitAI::AI_europeAssaultSea()
@@ -18478,7 +18503,7 @@ bool CvUnitAI::AI_nativeTradeEurope()
 	const bool bHuman = AI_isHumanNativeTrade();
 	if (kOwner.getNumCities() > 0)
 	{
-		if (!bHuman && kOwner.getNumEuropeUnits() > 5)
+		if (!bHuman && kOwner.getNumEuropeUnits() > 5 && canCarryPeople())
 		{
 			kOwner.sortEuropeUnits();
 			std::deque<CvUnit*> aUnits;
