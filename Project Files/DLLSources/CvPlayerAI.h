@@ -191,6 +191,7 @@ public:
 	bool AI_mayHurryBuildingEarly(BuildingTypes eBuilding) const;
 	void AI_doEarlyPhase();
 	bool AI_isEarlyResourceSettler(int iUnitID) const;
+	bool AI_isEarlyResourceSiteKnown() const { return AI_earlyResourceSite(NULL, NULL) != NULL; }
 	int AI_earlyResourceSiteValue(const CvPlot& kPlot) const;
 
 	int AI_calculateDamages(TeamTypes eTeam);
@@ -769,6 +770,7 @@ protected:
 	int m_iSiegeMusterPlot;
 	int m_iSiegeMusterThreatPlot;
 	int m_iSiegeMusterAttackTurn; // WTP: siege: the turn the gathered counter units attacked the siege stack (not saved)
+	int m_iEuropeFallbackTurn; // WTP: the turn the idle transports in Europe were last checked (not saved)
 	int m_iWfFoodCityID; // WTP: the colony that needs a food provider most (not saved), -1
 	bool m_bWfFoodWater; // WTP: ... a fisherman (else a farmer or an African slave)
 	bool AI_buyExpertForOpportunity();

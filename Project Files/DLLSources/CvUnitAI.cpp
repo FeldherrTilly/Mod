@@ -8027,10 +8027,10 @@ bool CvUnitAI::AI_europe()
 void CvUnitAI::AI_europeIdleFallback()
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
-	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d ship %S idle in Europe (unitAI %d state %d, activity %d, missionAI %d, group of %d, head %d, hurt %d, timer %d, move priority %d), %d units wait",
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d ship %S idle in Europe (unitAI %d state %d, activity %d, missions %d, missionAI %d, group of %d, head %d, hurt %d, moves %d/%d, move priority %d), %d units wait",
 		getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), (int)AI_getUnitAIType(), (int)AI_getUnitAIState(),
-		(int)getGroup()->getActivityType(), (int)getGroup()->AI_getMissionAIType(), getGroup()->getNumUnits(), (int)isGroupHead(), (int)isHurt(), getUnitTravelTimer(),
-		AI_getMovePriority(), kOwner.getNumEuropeUnits());
+		(int)getGroup()->getActivityType(), getGroup()->getLengthMissionQueue(), (int)getGroup()->AI_getMissionAIType(), getGroup()->getNumUnits(), (int)isGroupHead(), (int)isHurt(),
+		getMoves(), maxMoves(), AI_getMovePriority(), kOwner.getNumEuropeUnits());
 	if (!isGroupHead())
 	{
 		joinGroup(NULL);
@@ -8038,7 +8038,7 @@ void CvUnitAI::AI_europeIdleFallback()
 	getGroup()->clearMissionQueue();
 	getGroup()->setActivityType(ACTIVITY_AWAKE);
 	AI_europeUpdate();
-	if (getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE && canMove())
+	if (getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE)
 	{
 		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) ship %S still in Europe after its Europe routine", getOwnerINLINE(),
 			kOwner.getCivilizationDescription(0), getName().GetCString());
@@ -17047,8 +17047,9 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 	CvUnit* pTransportUnit = getTransportUnit();
 
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
-	// WTP: a settler of the early strategy Opportunistic Resources founds next to a precious resource, however far away
-	const bool bEarlyResourceSettler = kOwner.AI_isEarlyResourceSettler(getID());
+	// WTP: a settler of the early strategy Opportunistic Resources founds next to a precious resource, however far away; with
+	// no such site known it founds like any other settler (two Dutch settlers waited 20 turns for a resource site)
+	const bool bEarlyResourceSettler = kOwner.AI_isEarlyResourceSettler(getID()) && kOwner.AI_isEarlyResourceSiteKnown();
 
 	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;

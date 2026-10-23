@@ -2069,14 +2069,16 @@ void CvPlayerAI::AI_unitUpdate()
 			AI_groupUpdate();
 			// TAC - AI BTS Groups - koma13 - END
 
-			// WTP: a transport still idle in Europe (not updated this turn) runs its Europe routine now
-			if (!isNative() && !isEurope() && getParent() != NO_PLAYER)
+			// WTP: a transport still idle in Europe after the units moved runs its Europe routine now (once a turn; movement
+			// points do not matter in Europe)
+			if (!isNative() && !isEurope() && getParent() != NO_PLAYER && m_iEuropeFallbackTurn != GC.getGameINLINE().getGameTurn())
 			{
+				m_iEuropeFallbackTurn = GC.getGameINLINE().getGameTurn();
 				std::vector<CvUnitAI*> apIdle;
 				for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 				{
 					if (pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && pLoopUnit->getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE
-						&& pLoopUnit->getUnitTravelTimer() == 0 && pLoopUnit->canMove() && pLoopUnit->getGroup() != NULL)
+						&& pLoopUnit->getUnitTravelTimer() == 0 && pLoopUnit->getGroup() != NULL)
 					{
 						apIdle.push_back(static_cast<CvUnitAI*>(pLoopUnit));
 					}
