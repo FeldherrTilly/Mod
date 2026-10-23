@@ -502,7 +502,11 @@ bool CvUnitAI::AI_europeUpdate()
 
 	if (!(getGroup()->isAutomated() && (getGroup()->getAutomateType() != AUTOMATE_FULL)))
 	{
-		if (isHurt() && (healRate(plot()) > 0))
+		// WTP: a transport in Europe or Africa does not wait to heal. Healing there is slow and
+		// the ship would lie idle for several turns, so it loads and sails off damaged.
+		const bool bTransportInEurope = (AI_getUnitAIType() == UNITAI_TRANSPORT_SEA &&
+			(getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE || getUnitTravelState() == UNIT_TRAVEL_STATE_IN_AFRICA));
+		if (isHurt() && (healRate(plot()) > 0) && !bTransportInEurope)
 		{
 			if (hasCargo() && getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE)
 			{
