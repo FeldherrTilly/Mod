@@ -22460,10 +22460,10 @@ static int earlyBonusValue(BonusTypes eBonus)
 
 // WTP: how good a site for Opportunistic Resources is: the most precious resource on the plots around it (not on the plot
 // itself), a little more for a site near our colonies. 0 if the plot is no site: it must be coastal land that ships reach,
-// free of owners, and give food for two colonists (2 food, 1 with a river beside it).
+// free of colonial owners (native land is fine), and give food for two colonists (2 food, 1 with a river beside it).
 int CvPlayerAI::AI_earlyResourceSiteValue(const CvPlot& kPlot) const
 {
-	if (kPlot.isWater() || kPlot.isOwned() || !kPlot.isCoastalLand() || !kPlot.isRevealed(getTeam(), false))
+	if (kPlot.isWater() || (kPlot.isOwned() && !GET_PLAYER(kPlot.getOwnerINLINE()).isNative()) || !kPlot.isCoastalLand() || !kPlot.isRevealed(getTeam(), false))
 	{
 		return 0;
 	}
