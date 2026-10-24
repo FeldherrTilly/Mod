@@ -2697,25 +2697,25 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_PRIVATE_BUILD_FAILED</Tag>
-		<English>No private pioneer can build here: it costs %d1 gold and works only on your land outside colonies, where the improvement can be built and no other private pioneer works.</English>
-		<Portuguese>Nenhum pioneiro particular pode construir aqui: custa %d1 de ouro e só trabalha em suas terras fora das colônias, onde a melhoria pode ser construída e nenhum outro pioneiro particular trabalha.</Portuguese>
-		<French>Aucun pionnier privé ne peut construire ici : il coûte %d1 pièces d'or et ne travaille que sur vos terres hors des colonies, là où l'aménagement est possible et où aucun autre pionnier privé ne travaille.</French>
-		<German>Hier kann kein privater Pionier bauen: Er kostet %d1 Gold und arbeitet nur auf eigenem Land außerhalb der Kolonien, wo die Verbesserung möglich ist und kein anderer privater Pionier arbeitet.</German>
-		<Italian>Nessun pioniere privato può costruire qui: costa %d1 monete d'oro e lavora solo sulle tue terre fuori dalle colonie, dove il miglioramento è possibile e nessun altro pioniere privato lavora.</Italian>
-		<Spanish>Ningún pionero privado puede construir aquí: cuesta %d1 de oro y solo trabaja en tus tierras fuera de las colonias, donde la mejora es posible y no trabaja otro pionero privado.</Spanish>
-		<Russian>Здесь частный пионер строить не может: он стоит %d1 золота и работает только на ваших землях вне колоний, где улучшение возможно и не работает другой частный пионер.</Russian>
-		<Hungarian>Itt nem építhet magánúttörő: %d1 aranyba kerül, és csak a saját földeden, gyarmatokon kívül dolgozik, ahol a fejlesztés lehetséges és nem dolgozik másik magánúttörő.</Hungarian>
+		<English>No private pioneer can build here: it costs %d1 gold and works only on your land outside colonies, within %d2 plots of a colony with a town market or better, where the improvement can be built and no other private pioneer works.</English>
+		<Portuguese>Nenhum pioneiro particular pode construir aqui: custa %d1 de ouro e só trabalha em suas terras fora das colônias, a até %d2 casas de uma colônia com mercado municipal ou melhor, onde a melhoria pode ser construída e nenhum outro pioneiro particular trabalha.</Portuguese>
+		<French>Aucun pionnier privé ne peut construire ici : il coûte %d1 pièces d'or et ne travaille que sur vos terres hors des colonies, à %d2 cases au plus d'une colonie dotée d'un marché couvert ou mieux, là où l'aménagement est possible et où aucun autre pionnier privé ne travaille.</French>
+		<German>Hier kann kein privater Pionier bauen: Er kostet %d1 Gold und arbeitet nur auf eigenem Land außerhalb der Kolonien, höchstens %d2 Felder von einer Kolonie mit Städtischem Markt oder besser entfernt, wo die Verbesserung möglich ist und kein anderer privater Pionier arbeitet.</German>
+		<Italian>Nessun pioniere privato può costruire qui: costa %d1 monete d'oro e lavora solo sulle tue terre fuori dalle colonie, entro %d2 caselle da una colonia con mercato cittadino o migliore, dove il miglioramento è possibile e nessun altro pioniere privato lavora.</Italian>
+		<Spanish>Ningún pionero privado puede construir aquí: cuesta %d1 de oro y solo trabaja en tus tierras fuera de las colonias, a %d2 casillas como máximo de una colonia con mercado municipal o mejor, donde la mejora es posible y no trabaja otro pionero privado.</Spanish>
+		<Russian>Здесь частный пионер строить не может: он стоит %d1 золота и работает только на ваших землях вне колоний, не дальше %d2 клеток от колонии с городским рынком или лучше, где улучшение возможно и не работает другой частный пионер.</Russian>
+		<Hungarian>Itt nem építhet magánúttörő: %d1 aranyba kerül, és csak a saját földeden, gyarmatokon kívül dolgozik, legfeljebb %d2 mezőre egy városi piaccal vagy jobbal rendelkező gyarmattól, ahol a fejlesztés lehetséges és nem dolgozik másik magánúttörő.</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_INTERFACE_PRIVATE_BUILD</Tag>
-		<English>[COLOR_YELLOW]Private Pioneer[COLOR_REVERT]: choose an improvement above and click a plot of your land; for %d1 gold a private pioneer builds it there as fast as a hardy pioneer.</English>
-		<Portuguese>[COLOR_YELLOW]Pioneiro particular[COLOR_REVERT]: escolha uma melhoria acima e clique num terreno seu; por %d1 de ouro um pioneiro particular a constrói ali tão rápido quanto um pioneiro experiente.</Portuguese>
-		<French>[COLOR_YELLOW]Pionnier privé[COLOR_REVERT] : choisissez un aménagement ci-dessus et cliquez sur une case de vos terres ; pour %d1 pièces d'or, un pionnier privé le construit aussi vite qu'un pionnier aguerri.</French>
-		<German>[COLOR_YELLOW]Privater Pionier[COLOR_REVERT]: oben eine Verbesserung wählen und ein Feld des eigenen Landes anklicken; für %d1 Gold baut ein privater Pionier sie dort so schnell wie ein Hardy Pioneer.</German>
-		<Italian>[COLOR_YELLOW]Pioniere privato[COLOR_REVERT]: scegli un miglioramento qui sopra e clicca su una casella delle tue terre; per %d1 monete d'oro un pioniere privato lo costruisce lì veloce come un pioniere esperto.</Italian>
-		<Spanish>[COLOR_YELLOW]Pionero privado[COLOR_REVERT]: elige una mejora arriba y haz clic en una casilla de tus tierras; por %d1 de oro un pionero privado la construye allí tan rápido como un pionero experto.</Spanish>
-		<Russian>[COLOR_YELLOW]Частный пионер[COLOR_REVERT]: выберите улучшение сверху и щёлкните по клетке на своей земле; за %d1 золота частный пионер построит его там так же быстро, как опытный пионер.</Russian>
-		<Hungarian>[COLOR_YELLOW]Magánúttörő[COLOR_REVERT]: fent válassz egy fejlesztést, és kattints egy mezőre a saját földeden; %d1 aranyért egy magánúttörő olyan gyorsan megépíti, mint egy edzett úttörő.</Hungarian>
+		<English>[COLOR_YELLOW]Private Pioneer[COLOR_REVERT]: choose an improvement above and click a plot of your land within %d2 plots of a colony with a town market or better; for %d1 gold a private pioneer builds it there as fast as a hardy pioneer.</English>
+		<Portuguese>[COLOR_YELLOW]Pioneiro particular[COLOR_REVERT]: escolha uma melhoria acima e clique num terreno seu a até %d2 casas de uma colônia com mercado municipal ou melhor; por %d1 de ouro um pioneiro particular a constrói ali tão rápido quanto um pioneiro experiente.</Portuguese>
+		<French>[COLOR_YELLOW]Pionnier privé[COLOR_REVERT] : choisissez un aménagement ci-dessus et cliquez sur une case de vos terres à %d2 cases au plus d'une colonie dotée d'un marché couvert ou mieux ; pour %d1 pièces d'or, un pionnier privé le construit aussi vite qu'un pionnier aguerri.</French>
+		<German>[COLOR_YELLOW]Privater Pionier[COLOR_REVERT]: oben eine Verbesserung wählen und ein Feld des eigenen Landes höchstens %d2 Felder von einer Kolonie mit Städtischem Markt oder besser anklicken; für %d1 Gold baut ein privater Pionier sie dort so schnell wie ein Hardy Pioneer.</German>
+		<Italian>[COLOR_YELLOW]Pioniere privato[COLOR_REVERT]: scegli un miglioramento qui sopra e clicca su una casella delle tue terre entro %d2 caselle da una colonia con mercato cittadino o migliore; per %d1 monete d'oro un pioniere privato lo costruisce lì veloce come un pioniere esperto.</Italian>
+		<Spanish>[COLOR_YELLOW]Pionero privado[COLOR_REVERT]: elige una mejora arriba y haz clic en una casilla de tus tierras a %d2 casillas como máximo de una colonia con mercado municipal o mejor; por %d1 de oro un pionero privado la construye allí tan rápido como un pionero experto.</Spanish>
+		<Russian>[COLOR_YELLOW]Частный пионер[COLOR_REVERT]: выберите улучшение сверху и щёлкните по клетке своей земли не дальше %d2 клеток от колонии с городским рынком или лучше; за %d1 золота частный пионер построит его там так же быстро, как опытный пионер.</Russian>
+		<Hungarian>[COLOR_YELLOW]Magánúttörő[COLOR_REVERT]: fent válassz egy fejlesztést, és kattints a saját földed egy mezőjére legfeljebb %d2 mezőre egy városi piaccal vagy jobbal rendelkező gyarmattól; %d1 aranyért egy magánúttörő olyan gyorsan megépíti, mint egy edzett úttörő.</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_PRIVATE_BUILD_COST</Tag>

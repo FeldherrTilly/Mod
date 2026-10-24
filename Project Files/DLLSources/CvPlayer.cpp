@@ -20549,10 +20549,12 @@ int CvPlayer::getPioneerPlanPriority(int iPlotIndex) const
 
 // WTP: private pioneer (user 2026-10-25): for PRIVATE_BUILD_COST gold a hardy pioneer (a unit of the player the player cannot
 // command) appears on a plot of the player and builds the improvement there, as fast as a hardy pioneer; it leaves when done.
-// Only on own land outside colonies, where the improvement can be built and no other private pioneer works.
+// Only on own land outside colonies, within PRIVATE_BUILD_RANGE plots of a colony with a town market or better (the second
+// market level), where the improvement can be built and no other private pioneer works.
 bool CvPlayer::startPrivateBuild(int iX, int iY, BuildTypes eBuild)
 {
 	static const int PRIVATE_BUILD_COST = 500;
+	static const int PRIVATE_BUILD_RANGE = 3;
 	CvPlot* const pPlot = GC.getMap().plot(iX, iY);
 	const ProfessionTypes ePioneer = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_PIONEER");
 	const UnitClassTypes eHardyClass = (ePioneer != NO_PROFESSION) ? (UnitClassTypes)GC.getProfessionInfo(ePioneer).LbD_getExpert() : NO_UNITCLASS;
@@ -20560,6 +20562,21 @@ bool CvPlayer::startPrivateBuild(int iX, int iY, BuildTypes eBuild)
 	bool bValid = pPlot != NULL && eBuild != NO_BUILD && eHardy != NO_UNIT && getGold() >= PRIVATE_BUILD_COST && !pPlot->isWater() && !pPlot->isCity()
 		&& pPlot->getOwnerINLINE() == getID() && GC.getBuildInfo(eBuild).getImprovement() != NO_IMPROVEMENT
 		&& pPlot->getImprovementType() != (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement() && pPlot->canBuild(eBuild, getID());
+	// (a colony with the second market level or better nearby)
+	if (bValid)
+	{
+		const CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
+		const BuildingTypes eTownMarket = kCiv.getCivilizationBuildings((BuildingClassTypes)GC.getInfoTypeForString("BUILDINGCLASS_TOWN_MARKET"));
+		const BuildingTypes eCentralMarket = kCiv.getCivilizationBuildings((BuildingClassTypes)GC.getInfoTypeForString("BUILDINGCLASS_CENTRAL_CITY_MARKET"));
+		bool bMarket = false;
+		int iCityLoop;
+		for (const CvCity* pLoopCity = firstCity(&iCityLoop); pLoopCity != NULL && !bMarket; pLoopCity = nextCity(&iCityLoop))
+		{
+			bMarket = plotDistance(iX, iY, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE()) <= PRIVATE_BUILD_RANGE
+				&& ((eTownMarket != NO_BUILDING && pLoopCity->isHasBuilding(eTownMarket)) || (eCentralMarket != NO_BUILDING && pLoopCity->isHasBuilding(eCentralMarket)));
+		}
+		bValid = bMarket;
+	}
 	if (bValid)
 	{
 		CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
@@ -20573,7 +20590,7 @@ bool CvPlayer::startPrivateBuild(int iX, int iY, BuildTypes eBuild)
 	{
 		if (isHuman())
 		{
-			const CvWString szBuffer = gDLL->getText("TXT_KEY_PRIVATE_BUILD_FAILED", PRIVATE_BUILD_COST);
+			const CvWString szBuffer = gDLL->getText("TXT_KEY_PRIVATE_BUILD_FAILED", PRIVATE_BUILD_COST, PRIVATE_BUILD_RANGE);
 			gDLL->UI().addPlayerMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, Coordinates::invalidCoord(), NULL, MESSAGE_TYPE_INFO, NULL, COLOR_WARNING_TEXT);
 		}
 		return false;

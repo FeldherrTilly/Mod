@@ -289,6 +289,7 @@ class CvMainInterface:
 	BUTTON_PIONEER_PLAN_PRIORITY = 753 # WTP: iData2 = the priority
 	BUTTON_PRIVATE_BUILD = 754 # WTP: private pioneer
 	PRIVATE_BUILD_COST = 500 # WTP: as CvPlayer::startPrivateBuild
+	PRIVATE_BUILD_RANGE = 3 # WTP: as CvPlayer::startPrivateBuild
 
 	def numPlotListButtons( self ):
 		return NUM_PLOT_LIST_BUTTONS
@@ -4040,7 +4041,7 @@ class CvMainInterface:
 			elif iData1 == self.BUTTON_PIONEER_PLAN_BUILD:
 				return gc.getBuildInfo(iData2).getDescription()
 			elif iData1 == self.BUTTON_PRIVATE_BUILD:
-				return localText.getText("TXT_KEY_INTERFACE_PRIVATE_BUILD", (self.PRIVATE_BUILD_COST,))
+				return localText.getText("TXT_KEY_INTERFACE_PRIVATE_BUILD", (self.PRIVATE_BUILD_COST, self.PRIVATE_BUILD_RANGE))
 			elif iData1 == VET_NEW_CAPACITY:
 				return localText.getText("TXT_KEY_NEW_STORAGE_CITY_SCREEN", ());
 			elif iData1 == NEW_HARBOUR_SYSTEM:
