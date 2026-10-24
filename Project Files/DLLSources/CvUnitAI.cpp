@@ -5754,9 +5754,12 @@ void CvUnitAI::AI_transportSeaMove()
 		}
 
 		// WTP: a transport with room also picks up settlers and experts waiting nearby (within 2 turns), not only an
-		// empty one; a settler waited in port for many turns while loaded transports passed by
+		// empty one; a settler waited in port for many turns while loaded transports passed by. With goods only aboard
+		// the transport's next destination is unknown here (no detour check): within 1 turn only (user 2026-10-24: a
+		// detour of up to 2 turns in any direction held up the goods)
+		const int iNearbyPickup = hasAnyUnitInCargo() ? 2 : 1;
 		if (!bEmpty && !isFull() && getUnitAICargo(UNITAI_TREASURE) == 0
-			&& (AI_respondToPickup(2, UNITAI_SETTLER, true) || AI_respondToPickup(2, UNITAI_COLONIST, true)))
+			&& (AI_respondToPickup(iNearbyPickup, UNITAI_SETTLER, true) || AI_respondToPickup(iNearbyPickup, UNITAI_COLONIST, true)))
 		{
 			s_szWtpShipReason = "pickup nearby with room";
 			AI_setUnitAIState(UNITAI_STATE_PICKUP);
