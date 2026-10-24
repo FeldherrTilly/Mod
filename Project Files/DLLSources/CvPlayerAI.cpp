@@ -10338,6 +10338,12 @@ void CvPlayerAI::AI_doEurope()
 		// WTP: after the ships the missing pioneers come first
 		AI_doEquipPioneersInEurope();
 
+		// WTP: about every 10 turns a native trader for a new trade post
+		if (AI_doNativeTraderPurchase())
+		{
+			return;
+		}
+
 		// WTP: two defenders per colony (in peace too) before civilian units are bought; in war an even mix of military
 		// units instead, with up to 30% of the gold spent in the war going to civilian purchases
 		const bool bWar = GET_TEAM(getTeam()).getAnyWarPlanCount() > 0;
@@ -22012,6 +22018,78 @@ void CvPlayerAI::AI_doEquipPioneersInEurope()
 		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) equips %S as pioneer in Europe (%d pioneers, %d needed)", getID(), getCivilizationDescription(0),
 			pBest->getName().GetCString(), AI_totalUnitAIs(UNITAI_WORKER), AI_neededWorkers(NULL));
 	}
+}
+
+// WTP: about every 10 turns a native trader (a free colonist or indentured servant, equipped in Europe) while a village
+// for a new trade post of ours is known. Not while a trader of ours is still on its way. True while saving for it.
+bool CvPlayerAI::AI_doNativeTraderPurchase()
+{
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+	if (isHuman() || isNative() || isEurope() || getNumCities() == 0 || iTurn - m_iNativeTraderTurn < 10)
+	{
+		return false;
+	}
+	const ProfessionTypes eTrader = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_NATIVE_TRADER");
+	if (eTrader == NO_PROFESSION || AI_totalUnitAIs(UNITAI_TRADER) > 0 || !AI_hasTradePostTarget())
+	{
+		return false;
+	}
+	CvUnit* const pUnit = AI_earlyGetColonist(AI_earlyEquipCost(eTrader));
+	if (pUnit == NULL)
+	{
+		return AI_isSavingGold();
+	}
+	if (AI_earlyEquip(pUnit, eTrader, UNITAI_TRADER))
+	{
+		m_iNativeTraderTurn = iTurn;
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) turn %d equips %S as native trader for a new trade post, gold now %d",
+			getID(), getCivilizationDescription(0), iTurn, pUnit->getName().GetCString(), getGold());
+	}
+	return false;
+}
+
+// WTP: a village where one of our native traders could found a trade post (the rules of CvUnitAI::AI_spreadTradePosts:
+// no war plan, the tribe at least annoyed, not our trade post yet, at most 2 of ours per tribe, the village on a land
+// area with one of our colonies)
+bool CvPlayerAI::AI_hasTradePostTarget() const
+{
+	if (getNativeTradePostSuccessPercent() <= 50)
+	{
+		return false;
+	}
+	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
+	{
+		CvPlayerAI& kNative = GET_PLAYER((PlayerTypes)iPlayer);
+		if (!kNative.isAlive() || !kNative.canHaveTradePost(getID()) || GET_TEAM(getTeam()).AI_getWarPlan(kNative.getTeam()) != NO_WARPLAN
+			|| kNative.AI_getAttitude(getID()) < ATTITUDE_ANNOYED)
+		{
+			continue;
+		}
+		int iOwnPosts = 0;
+		int iLoop;
+		for (const CvCity* pVillage = kNative.firstCity(&iLoop); pVillage != NULL; pVillage = kNative.nextCity(&iLoop))
+		{
+			if (pVillage->getTradePostCivilization() == getCivilizationType())
+			{
+				++iOwnPosts;
+			}
+		}
+		if (iOwnPosts >= 2)
+		{
+			continue;
+		}
+		for (const CvCity* pVillage = kNative.firstCity(&iLoop); pVillage != NULL; pVillage = kNative.nextCity(&iLoop))
+		{
+			const CvPlot* const pPlot = pVillage->plot();
+			if (pVillage->getTradePostCivilization() != getCivilizationType() && pPlot->isRevealed(getTeam(), false)
+				&& pPlot->area()->getCitiesPerPlayer(getID()) > 0 && pPlot->calculateCulturePercent(pPlot->getOwnerINLINE()) == 100
+				&& pVillage->getTradeBlockingFortOwner(getID()) == NO_PLAYER)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 // WTP: an immigrant on the docks the workforce plan wants as an expert: it has a job task the unit is an expert for

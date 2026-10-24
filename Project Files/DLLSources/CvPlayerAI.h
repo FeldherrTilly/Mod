@@ -514,6 +514,8 @@ public:
 	void AI_setSavingGold();
 	bool AI_isSavingGold() const;
 	void AI_doEquipPioneersInEurope();
+	bool AI_doNativeTraderPurchase();
+	bool AI_hasTradePostTarget() const;
 	bool AI_isUselessExpert(const CvUnitAI& kUnit, std::vector<int>& aiYieldAvailable);
 	UnitTypes AI_transportToBuy();
 	enum { WATER_ACCESS_NONE, WATER_ACCESS_DEEP, WATER_ACCESS_SHALLOW, WATER_ACCESS_RIVER };
@@ -680,6 +682,7 @@ protected:
 	// WTP: gold spent in Europe during the current war (military / civilian, civilian purchases get up to 30%); saved
 	int m_iWarMilitarySpent;
 	int m_iWarCivilianSpent;
+	int m_iNativeTraderTurn; // WTP: the turn the last native trader was equipped in Europe (one about every 10 turns); saved
 	int m_aiEarlySettlerIDs[2]; // settlers of Opportunistic Resources
 	void AI_startEarlyStrategy();
 	bool AI_doEarlyExplorer();
