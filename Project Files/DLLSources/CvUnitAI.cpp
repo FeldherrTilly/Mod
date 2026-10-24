@@ -17691,8 +17691,8 @@ void CvUnitAI::AI_nativeTradeShipMove()
 		GET_PLAYER(pTarget->getOwnerINLINE()).getCivilizationDescription(0), kOwner.getGold(), getCargo(), cargoSpace());
 }
 
-// WTP: native trade ship in Europe: sells its goods, then takes the experts the workforce plan wants if any wait at the dock,
-// else buys Trade Goods (up to 300) or, in 40% of the trips, 75 muskets for the natives. No gold reserve applies to these purchases.
+// WTP: native trade ship in Europe: sells its goods, takes the experts the workforce plan wants if any wait at the dock and
+// fills the free cargo slots with Trade Goods (up to 300) or, in 40% of the trips, 75 muskets for the natives. No gold reserve applies to these purchases.
 bool CvUnitAI::AI_nativeTradeEurope()
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
@@ -17745,9 +17745,9 @@ bool CvUnitAI::AI_nativeTradeEurope()
 				}
 			}
 		}
+		int iLoaded = 0;
 		if (!aUnits.empty())
 		{
-			int iLoaded = 0;
 			while (!aUnits.empty() && !isFull())
 			{
 				CvUnit* pUnit = aUnits.front();
@@ -17760,6 +17760,10 @@ bool CvUnitAI::AI_nativeTradeEurope()
 			}
 			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S takes %d wanted experts from the dock (%d units wait there)",
 				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), iLoaded, kOwner.getNumEuropeUnits());
+		}
+		// WTP: the cargo slots the experts leave free take goods for the natives (the experts are put ashore first)
+		if (isFull())
+		{
 			AI_setUnitAIState(UNITAI_STATE_NATIVE_TRADE_BUY);
 		}
 		else
@@ -17811,8 +17815,8 @@ bool CvUnitAI::AI_nativeTradeEurope()
 					break;
 				}
 			}
-			if (!bBought && gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S cannot buy goods in Europe (gold %d), returns empty",
-				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), kOwner.getGold());
+			if (!bBought && gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S cannot buy goods in Europe (gold %d), returns %s",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), kOwner.getGold(), iLoaded > 0 ? "with the experts only" : "empty");
 			AI_setUnitAIState(bBought ? UNITAI_STATE_NATIVE_TRADE_SELL : UNITAI_STATE_NATIVE_TRADE_BUY);
 		}
 	}
