@@ -106,6 +106,7 @@ enum SavegameVariableTypes
 	PlayerSaveAI_EarlySettlerId1,
 	PlayerSaveAI_WarMilitarySpent,
 	PlayerSaveAI_WarCivilianSpent,
+	PlayerSaveAI_NativeTraderTurn, // WTP: the turn the last native trader was equipped
 	NUM_SAVE_ENUM_VALUES,
 };
 
@@ -164,6 +165,7 @@ const char* getSavedEnumNamePlayerAi(SavegameVariableTypes eType)
 	case PlayerSaveAI_EarlySettlerId1: return "PlayerSaveAI_EarlySettlerId1";
 	case PlayerSaveAI_WarMilitarySpent: return "PlayerSaveAI_WarMilitarySpent";
 	case PlayerSaveAI_WarCivilianSpent: return "PlayerSaveAI_WarCivilianSpent";
+	case PlayerSaveAI_NativeTraderTurn: return "PlayerSaveAI_NativeTraderTurn";
 
 		case PlayerSaveAI_AICitySites: return "PlayerSaveAI_AICitySites";
 		case PlayerSaveAI_unitPriorityHeap: return "PlayerSaveAI_unitPriorityHeap";
@@ -268,6 +270,7 @@ void CvPlayerAI::AI_resetSavedData()
 	m_aiEarlySettlerIDs[1] = defaultEarlyId;
 	m_iWarMilitarySpent = defaultEarlyZero;
 	m_iWarCivilianSpent = defaultEarlyZero;
+	m_iNativeTraderTurn = defaultEarlyZero;
 
 	m_aiAICitySites.clear();
 	m_unitPriorityHeap.clear();
@@ -360,6 +363,7 @@ void CvPlayerAI::read(CvSavegameReader reader)
 		case PlayerSaveAI_EarlySettlerId1: reader.Read(m_aiEarlySettlerIDs[1]); break;
 		case PlayerSaveAI_WarMilitarySpent: reader.Read(m_iWarMilitarySpent); break;
 		case PlayerSaveAI_WarCivilianSpent: reader.Read(m_iWarCivilianSpent); break;
+		case PlayerSaveAI_NativeTraderTurn: reader.Read(m_iNativeTraderTurn); break;
 
 		case PlayerSaveAI_AICitySites: reader.Read(m_aiAICitySites); break;
 		case PlayerSaveAI_unitPriorityHeap: reader.Read(m_unitPriorityHeap); break;
@@ -446,6 +450,7 @@ void CvPlayerAI::write(CvSavegameWriter writer)
 	writer.Write(PlayerSaveAI_EarlySettlerId1, m_aiEarlySettlerIDs[1], defaultEarlyId);
 	writer.Write(PlayerSaveAI_WarMilitarySpent, m_iWarMilitarySpent, defaultEarlyZero);
 	writer.Write(PlayerSaveAI_WarCivilianSpent, m_iWarCivilianSpent, defaultEarlyZero);
+	writer.Write(PlayerSaveAI_NativeTraderTurn, m_iNativeTraderTurn, defaultEarlyZero);
 
 	writer.Write(PlayerSaveAI_AICitySites, m_aiAICitySites);
 	writer.Write(PlayerSaveAI_unitPriorityHeap, m_unitPriorityHeap);

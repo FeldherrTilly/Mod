@@ -2132,14 +2132,6 @@ void CvUnitAI::AI_nativeTraderMove()
 		}
 	}
 
-	if (!isHuman() && pCity != NULL)
-	{
-		if (AI_betterJob())
-		{
-			return;
-		}
-	}
-
 	if (isCargo())
 	{
 		if (AI_unloadWhereNeeded())
@@ -2148,22 +2140,34 @@ void CvUnitAI::AI_nativeTraderMove()
 		}
 	}
 
-	pCity = plot()->getPlotCity();
-	if (pCity != NULL)
+	CvCity* const pVillage = plot()->getPlotCity();
+	if (pVillage != NULL)
 	{
-		if (!pCity->isScoutVisited(getTeam()))
+		if (!pVillage->isScoutVisited(getTeam()))
 		{
 			if (canSpeakWithChief(plot()))
 			{
 				speakWithChief();
-				FAssert(pCity->isScoutVisited(getTeam()));
+				FAssert(pVillage->isScoutVisited(getTeam()));
 			}
 		}
 	}
 
+	// WTP: a trade post first; only without one a job in the colony (a trader equipped for a trade post joined the
+	// colony it was landed in)
 	if (AI_spreadTradePosts())
 	{
 		return;
+	}
+
+	if (!isHuman() && pCity != NULL)
+	{
+		if (AI_betterJob())
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S finds no village for a trade post and takes a job in %S",
+				getOwnerINLINE(), GET_PLAYER(getOwnerINLINE()).getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pCity->getName().GetCString());
+			return;
+		}
 	}
 
 	if (area()->getNumUnrevealedTiles(getTeam()) > 0)
@@ -2198,6 +2202,8 @@ void CvUnitAI::AI_nativeTraderMove()
 
 	if (AI_retreatToCity())
 	{
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S finds no village for a trade post and becomes a colonist",
+			getOwnerINLINE(), GET_PLAYER(getOwnerINLINE()).getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString());
 		AI_setUnitAIType(UNITAI_COLONIST);
 		GET_PLAYER(getOwnerINLINE()).AI_changeNumRetiredAIUnits(UNITAI_MISSIONARY, 1);
 		return;
@@ -10480,6 +10486,8 @@ bool CvUnitAI::AI_spreadTradePosts()
 
 	if (canEstablishTradePost())
 	{
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S founds a trade post in %S (%S)", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+			GC.getGameINLINE().getGameTurn(), getName().GetCString(), plot()->getPlotCity()->getName().GetCString(), GET_PLAYER(plot()->getOwnerINLINE()).getCivilizationDescription(0));
 		establishTradePost();
 		kOwner.AI_changeNumRetiredAIUnits(UNITAI_TRADER, 1); // line moved
 		return true;
@@ -10569,6 +10577,8 @@ bool CvUnitAI::AI_spreadTradePosts()
 		// I noticed that if 2 Native Traders are placed on a Native Village at the same time, both try to establish a Trade Post
 		if (atPlot(pBestSpreadPlot) && canEstablishTradePost())
 		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S founds a trade post in %S (%S)", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+				GC.getGameINLINE().getGameTurn(), getName().GetCString(), pBestSpreadPlot->getPlotCity()->getName().GetCString(), GET_PLAYER(pBestSpreadPlot->getOwnerINLINE()).getCivilizationDescription(0));
 			establishTradePost();
 			kOwner.AI_changeNumRetiredAIUnits(UNITAI_TRADER, 1);
 			return true;
@@ -10576,6 +10586,8 @@ bool CvUnitAI::AI_spreadTradePosts()
 		else
 		{
 			FAssert(!atPlot(pBestPlot));
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S goes to %S for a trade post", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+				GC.getGameINLINE().getGameTurn(), getName().GetCString(), pBestSpreadPlot->getPlotCity()->getName().GetCString());
 			getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_SPREAD, pBestSpreadPlot);
 			return true;
 		}
