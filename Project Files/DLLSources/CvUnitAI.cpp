@@ -23564,6 +23564,9 @@ bool CvUnitAI::AI_travelPlan(const CvPlot& kTarget, CvPlot*& pPickup, CvPlot*& p
 		g_pTravelSailCache = &aSailCache;
 		int iBestScore = MAX_INT;
 		int iBestTotal = MAX_INT;
+		int iBestApproach = 0; // (for the log)
+		int iBestSail = 0;
+		int iShips = 0;
 		int iLoop;
 		for (CvUnit* pShip = kOwner.firstUnit(&iLoop); pShip != NULL && !aPorts.empty(); pShip = kOwner.nextUnit(&iLoop))
 		{
@@ -23572,6 +23575,7 @@ bool CvUnitAI::AI_travelPlan(const CvPlot& kTarget, CvPlot*& pPickup, CvPlot*& p
 				continue;
 			}
 			const bool bCoastal = pShip->AI_getUnitAIType() == UNITAI_TRANSPORT_COAST;
+			++iShips;
 			for (uint p = 0; p < aPorts.size(); ++p)
 			{
 				CvPlot* const pPort = aPorts[p].second;
@@ -23595,6 +23599,8 @@ bool CvUnitAI::AI_travelPlan(const CvPlot& kTarget, CvPlot*& pPickup, CvPlot*& p
 					{
 						iBestScore = iScore;
 						iBestTotal = iTotal;
+						iBestApproach = iApproach;
+						iBestSail = iSail;
 						pPickup = pPort;
 						pDrop = pLoopDrop;
 						iShipID = pShip->getID();
@@ -23607,6 +23613,23 @@ bool CvUnitAI::AI_travelPlan(const CvPlot& kTarget, CvPlot*& pPickup, CvPlot*& p
 		{
 			iTurns = iBestTotal;
 			return true;
+		}
+		// WTP (user 2026-10-24): why the unit walks
+		if (gUnitLogLevel >= 1)
+		{
+			const CvUnit* const pBestShip = (iShipID >= 0) ? kOwner.getUnit(iShipID) : NULL;
+			if (pBestShip != NULL)
+			{
+				logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S walks to %d,%d (%d turns): the best ship %S would take %d turns (there in %d turns from %d,%d, %d at sea, ashore at %d,%d), a ship needs to save 2",
+					getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pTarget->getX_INLINE(), pTarget->getY_INLINE(), iWalk,
+					pBestShip->getName().GetCString(), iBestTotal, iBestApproach, pPickup->getX_INLINE(), pPickup->getY_INLINE(), iBestSail, pDrop->getX_INLINE(), pDrop->getY_INLINE());
+			}
+			else
+			{
+				logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S walks to %d,%d (%d turns): no ship (%d automated transports, %d ports, %d landing plots)",
+					getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pTarget->getX_INLINE(), pTarget->getY_INLINE(), iWalk,
+					iShips, (int)aPorts.size(), (int)aDrops.size());
+			}
 		}
 		pPickup = NULL;
 		pDrop = NULL;
