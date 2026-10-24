@@ -18468,8 +18468,8 @@ void CvUnitAI::AI_nativeTradeShipMove()
 		GET_PLAYER(pTarget->getOwnerINLINE()).getCivilizationDescription(0), kOwner.getGold(), getCargo(), cargoSpace());
 }
 
-// WTP: native trade ship in Europe: sells its goods, then takes the immigrants if more than 5 stand at the dock, else buys
-// Trade Goods (up to 300) or, now and then (20%), 50 muskets for the natives. No gold reserve applies to these purchases.
+// WTP: native trade ship in Europe: sells its goods, then takes the experts the workforce plan wants if any wait at the dock,
+// else buys Trade Goods (up to 300) or, in 40% of the trips, 75 muskets for the natives. No gold reserve applies to these purchases.
 bool CvUnitAI::AI_nativeTradeEurope()
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
@@ -18508,14 +18508,22 @@ bool CvUnitAI::AI_nativeTradeEurope()
 	const bool bHuman = AI_isHumanNativeTrade();
 	if (kOwner.getNumCities() > 0)
 	{
-		if (!bHuman && kOwner.getNumEuropeUnits() > 5 && canCarryPeople())
+		// WTP: only experts the workforce plan wants for a job (not free colonists and the like: the other transports bring them)
+		std::deque<CvUnit*> aUnits;
+		if (!bHuman && canCarryPeople())
 		{
 			kOwner.sortEuropeUnits();
-			std::deque<CvUnit*> aUnits;
 			for (int i = 0; i < kOwner.getNumEuropeUnits(); ++i)
 			{
-				aUnits.push_back(kOwner.getEuropeUnit(i));
+				CvUnit* const pUnit = kOwner.getEuropeUnit(i);
+				if (pUnit != NULL && kOwner.AI_isWantedExpertOnDock(*pUnit))
+				{
+					aUnits.push_back(pUnit);
+				}
 			}
+		}
+		if (!aUnits.empty())
+		{
 			int iLoaded = 0;
 			while (!aUnits.empty() && !isFull())
 			{
@@ -18527,7 +18535,7 @@ bool CvUnitAI::AI_nativeTradeEurope()
 					++iLoaded;
 				}
 			}
-			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S takes %d immigrants from the dock (%d wait there)",
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S takes %d wanted experts from the dock (%d units wait there)",
 				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), iLoaded, kOwner.getNumEuropeUnits());
 			AI_setUnitAIState(UNITAI_STATE_NATIVE_TRADE_BUY);
 		}
@@ -18535,15 +18543,15 @@ bool CvUnitAI::AI_nativeTradeEurope()
 		{
 			CvPlayer& kEurope = GET_PLAYER(kOwner.getParent());
 			bool bBought = false;
-			bool bMuskets = !bHuman && GC.getGameINLINE().getSorenRandNum(100, "AI native trade muskets") < 20;
+			bool bMuskets = !bHuman && GC.getGameINLINE().getSorenRandNum(100, "AI native trade muskets") < 40;
 			// the human automation: at most NATIVE_TRADE_HUMAN_BUDGET per trip, NATIVE_TRADE_HUMAN_RESERVE stays in the treasury
 			int iBudget = bHuman ? std::min(NATIVE_TRADE_HUMAN_BUDGET, kOwner.getGold() - NATIVE_TRADE_HUMAN_RESERVE) : MAX_INT;
 			for (int iTry = 0; iTry < 2 && !bBought; ++iTry)
 			{
 				const YieldTypes eYield = bMuskets ? YIELD_MUSKETS : YIELD_TRADE_GOODS;
 				const int iPrice = kEurope.getYieldSellPrice(eYield);
-				// muskets: one load of 50; Trade Goods: up to 300, one cargo slot (load) after the other
-				int iWanted = bMuskets ? 50 : 300;
+				// muskets: 75; Trade Goods: up to 300, one cargo slot (load) after the other
+				int iWanted = bMuskets ? 75 : 300;
 				for (int iLoad = 0; iLoad < 3 && iWanted > 0 && kOwner.isYieldEuropeTradable(eYield); ++iLoad)
 				{
 					int iAmount = std::min(iWanted, getLoadYieldAmount(eYield));

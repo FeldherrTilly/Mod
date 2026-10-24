@@ -22014,6 +22014,14 @@ void CvPlayerAI::AI_doEquipPioneersInEurope()
 	}
 }
 
+// WTP: an immigrant on the docks the workforce plan wants as an expert: it has a job task the unit is an expert for
+// (bought for a job, or an expert immigrant the plan seated); free colonists and the like do not count
+bool CvPlayerAI::AI_isWantedExpertOnDock(const CvUnit& kUnit) const
+{
+	const CvUnitAI& kUnitAI = static_cast<const CvUnitAI&>(kUnit);
+	return kUnitAI.AI_getWfTask() == CvUnitAI::WF_EXPERT_JOB && wfIsExpertFor(kUnitAI, kUnitAI.AI_getWfProfession());
+}
+
 // WTP: buy the colonist of the workforce plan with the best gain per price (see AI_doWorkforcePlan, step 6b).
 // Returns true if an opportunity was chosen (bought or not affordable), false if there is none.
 // WTP: more units wait in Europe than our transports take over in two trips: no colonists are bought or hurried (the

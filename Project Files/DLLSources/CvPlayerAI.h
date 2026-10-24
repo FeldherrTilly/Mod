@@ -746,6 +746,7 @@ public:
 	void AI_setWfExpertToBuy(UnitClassTypes eExpertClass);
 	UnitClassTypes AI_getWfExpertToBuy() const { return m_eWfExpertToBuy; }
 	static bool AI_isProtectedSpecialty(UnitClassTypes eUnitClass);
+	bool AI_isWantedExpertOnDock(const CvUnit& kUnit) const;
 protected:
 	// WTP: colonists the last workforce plan wants to buy (not saved, made again each turn): an expert for a job, or a food
 	// provider (eExpertClass) for the food job eProfession/iPlotIndex; iValue is the gain in gold x100 per turn
