@@ -20523,7 +20523,9 @@ int CvPlayer::getNativeTradePostSuccessPercent() const
 // automation AUTOMATE_PIONEER_PLAN build them (NO_BUILD or priority 0: the mark is removed)
 void CvPlayer::setPioneerPlan(int iPlotIndex, BuildTypes eBuild, int iPriority)
 {
-	if (eBuild == NO_BUILD || iPriority <= 0)
+	// (a mark only where the improvement can be built: a windmill only on hills, ...)
+	const CvPlot* const pPlanPlot = GC.getMap().plotByIndexINLINE(iPlotIndex);
+	if (eBuild == NO_BUILD || iPriority <= 0 || pPlanPlot == NULL || !pPlanPlot->canBuild(eBuild, getID()))
 	{
 		m_mapPioneerPlans.erase(iPlotIndex);
 	}

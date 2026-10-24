@@ -3808,7 +3808,7 @@ class CvMainInterface:
 
 		screen = CyGInterfaceScreen("MainInterface", CvScreenEnums.MAIN_INTERFACE )
 		xResolution = screen.getXResolution()
-		iSize = 32
+		iSize = 56
 		iStep = iSize + 4
 		iPerRow = 13
 		iLeft = xResolution / 2 - (iPerRow * iStep) / 2
@@ -3978,7 +3978,8 @@ class CvMainInterface:
 			return True
 
 		if bLeft:
-			if self.iPioneerPlanBuild >= 0 and not pPlot.isWater():
+			# (only where the improvement can be built, e.g. a windmill only on hills)
+			if self.iPioneerPlanBuild >= 0 and not pPlot.isWater() and pPlot.canBuild(self.iPioneerPlanBuild, iPlayer, False):
 				CyMessageControl().sendModNetMessage(751, iPlayer, iX, iY, self.iPioneerPlanBuild * 10 + self.iPioneerPlanPriority)
 				CyEngine().fillAreaBorderPlotAlt(iX, iY, AreaBorderLayers.AREA_BORDER_LAYER_REVEALED_PLOTS, self.pioneerPlanColor(self.iPioneerPlanPriority), 1.0)
 		else:
