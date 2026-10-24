@@ -13747,6 +13747,11 @@ PlayerTypes CvUnit::getCapturingPlayer() const
 
 void CvUnit::setCapturingPlayer(PlayerTypes eNewValue)
 {
+	// WTP: a private pioneer is destroyed, not captured
+	if (eNewValue != NO_PLAYER && static_cast<const CvUnitAI*>(this)->AI_getPrivateBuild() != NO_BUILD)
+	{
+		eNewValue = NO_PLAYER;
+	}
 	m_eCapturingPlayer = eNewValue;
 }
 
