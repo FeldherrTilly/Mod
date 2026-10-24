@@ -7821,12 +7821,110 @@ bool CvUnitAI::AI_africa()
 	return true;
 }
 
+// WTP: the treasure a ship in Europe sails to (the pickup plot of the most valuable treasure waiting for a ship that no
+// other ship fetches already and that this ship can carry); pArrival: the plot it appears at coming from Europe (the
+// nearest one to the treasure); bFar: the treasure waits more than TREASURE_NEAR_RANGE plots from our best port
+CvPlot* CvUnitAI::AI_europeTreasureTarget(CvPlot*& pArrival, bool& bFar)
+{
+	static const int TREASURE_NEAR_RANGE = 10;
+	pArrival = NULL;
+	bFar = false;
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	if (kOwner.getNumCities() == 0 || kOwner.AI_totalUnitAIs(UNITAI_TREASURE) == 0 || getDomainType() != DOMAIN_SEA)
+	{
+		return NULL;
+	}
+	int iLoop;
+	CvPlot* pBest = NULL;
+	int iBestGold = 0;
+	for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
+	{
+		if (pLoopUnit->AI_getUnitAIType() != UNITAI_TREASURE || !pLoopUnit->isOnMap() || pLoopUnit->isCargo()
+			|| pLoopUnit->getUnitInfo().getRequiredTransportSize() > cargoSpace())
+		{
+			continue;
+		}
+		CvSelectionGroup* const pGroup = pLoopUnit->getGroup();
+		if (pGroup == NULL || pGroup->AI_getMissionAIType() != MISSIONAI_AWAIT_PICKUP)
+		{
+			continue;
+		}
+		CvPlot* const pPickup = (pGroup->AI_getMissionAIPlot() != NULL) ? pGroup->AI_getMissionAIPlot() : pLoopUnit->plot();
+		if (kOwner.AI_plotTargetMissionAIs(pPickup, MISSIONAI_PICKUP, getGroup()) > 0)
+		{
+			continue; // another ship fetches it
+		}
+		if (pLoopUnit->getYieldStored() > iBestGold)
+		{
+			iBestGold = pLoopUnit->getYieldStored();
+			pBest = pPickup;
+		}
+	}
+	if (pBest == NULL)
+	{
+		return NULL;
+	}
+	// the ship sails into an own colony, else to water beside the pickup plot
+	CvPlot* pShipPlot = NULL;
+	const CvCity* const pPickupCity = pBest->getPlotCity();
+	if (pPickupCity != NULL && pPickupCity->getOwnerINLINE() == getOwnerINLINE())
+	{
+		pShipPlot = pBest;
+	}
+	for (int iDir = 0; iDir < NUM_DIRECTION_TYPES && pShipPlot == NULL; ++iDir)
+	{
+		CvPlot* const pAdjacent = plotDirection(pBest->getX_INLINE(), pBest->getY_INLINE(), (DirectionTypes)iDir);
+		if (pAdjacent != NULL && pAdjacent->isWater() && !pAdjacent->isImpassable() && !m_pUnitInfo->getTerrainImpassable(pAdjacent->getTerrainType()))
+		{
+			pShipPlot = pAdjacent;
+		}
+	}
+	if (pShipPlot == NULL)
+	{
+		return NULL;
+	}
+	pArrival = findNearbyOceanPlot(*pShipPlot);
+	if (pArrival == NULL)
+	{
+		return NULL;
+	}
+	// near our colonies: within TREASURE_NEAR_RANGE plots of the best port (else of any colony)
+	const CvCity* pBestPort = NULL;
+	for (const CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL && pBestPort == NULL; pLoopCity = kOwner.nextCity(&iLoop))
+	{
+		if (pLoopCity->isBestPortCity())
+		{
+			pBestPort = pLoopCity;
+		}
+	}
+	if (pBestPort != NULL)
+	{
+		bFar = plotDistance(pBestPort->getX_INLINE(), pBestPort->getY_INLINE(), pBest->getX_INLINE(), pBest->getY_INLINE()) > TREASURE_NEAR_RANGE;
+	}
+	else
+	{
+		bFar = true;
+		for (const CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL && bFar; pLoopCity = kOwner.nextCity(&iLoop))
+		{
+			bFar = plotDistance(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), pBest->getX_INLINE(), pBest->getY_INLINE()) > TREASURE_NEAR_RANGE;
+		}
+	}
+	return pBest;
+}
+
 bool CvUnitAI::AI_europe()
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 
 	AI_sellYieldUnits(TRADE_LOCATION_EUROPE);
 	AI_unloadUnits(TRADE_LOCATION_EUROPE);
+
+	// WTP (user 2026-10-24): a ship that can carry treasures sails from Europe straight to a treasure waiting for pickup;
+	// empty if it waits far from our colonies, else with colonists as usual
+	CvPlot* pTreasureArrival = NULL;
+	bool bTreasureFar = false;
+	const CvPlot* const pTreasure = isHuman() ? NULL : AI_europeTreasureTarget(pTreasureArrival, bTreasureFar);
+	const bool bLoadUnits = pTreasure == NULL || !bTreasureFar;
 
 	// TAC - AI King no Europe trading bugfix - koma13 - START
 	//kOwner.AI_doEurope();
@@ -7836,7 +7934,7 @@ bool CvUnitAI::AI_europe()
 		kOwner.AI_doEurope();
 	}
 
-	if (!kOwner.getNumCities() == 0)
+	if (!kOwner.getNumCities() == 0 && bLoadUnits)
 	{	// only do this if we have not lost all our cities!
 		// Otherwise we'll get our transport units stuck in a loop to Europe and back
 	// TAC - AI purchases military units - koma13 - START
@@ -7882,7 +7980,7 @@ bool CvUnitAI::AI_europe()
 
 	// WTP: hurrying immigrants is only done now and then: at most one per visit, on about every third visit and with the
 	// gold reserve of civilian purchases (it used to fill every transport's free space, all gold went into immigrants)
-	if (kOwner.AI_shouldHurryUnit() && iEstimatedUnemploymentCount < kOwner.getNumCities() * 2
+	if (bLoadUnits && kOwner.AI_shouldHurryUnit() && iEstimatedUnemploymentCount < kOwner.getNumCities() * 2
 		&& GC.getGameINLINE().getSorenRandNum(3, "AI hurry dock unit on visit") == 0
 		&& kOwner.AI_canAffordCivilianPurchase(kOwner.getHurryGold(HURRY_IMMIGRANT, 0)))
 	{
@@ -7909,7 +8007,7 @@ bool CvUnitAI::AI_europe()
 
 	// Pick up settlers first
 	// TODO: Refactor this into a list of priorities
-	while (!aUnits.empty() && !isFull())
+	while (bLoadUnits && !aUnits.empty() && !isFull())
 	{
 		CvUnit* pUnit = aUnits.front();
 		aUnits.pop_front();
@@ -7930,7 +8028,7 @@ bool CvUnitAI::AI_europe()
 		aUnits.push_back(kOwner.getEuropeUnit(i));
 	}
 
-	while (!aUnits.empty() && !isFull())
+	while (bLoadUnits && !aUnits.empty() && !isFull())
 	{
 		CvUnit* pUnit = aUnits.front();
 		aUnits.pop_front();
@@ -7962,7 +8060,7 @@ bool CvUnitAI::AI_europe()
 		*/
 		// TAC - AI Economy - koma13 - END
 
-		if (kOwner.AI_getEuropeYieldSpending() < kOwner.AI_getTotalIncome() / 12 && !kOwner.AI_isEarlyPhaseActive())	// TAC - AI Economy - koma13
+		if (bLoadUnits && kOwner.AI_getEuropeYieldSpending() < kOwner.AI_getTotalIncome() / 12 && !kOwner.AI_isEarlyPhaseActive())	// TAC - AI Economy - koma13
 		{
 			if (!kOwner.AI_isStrategy(STRATEGY_MILITARY_BUILDUP))	// TAC - AI Military Buildup - koma13
 			{
@@ -7978,7 +8076,13 @@ bool CvUnitAI::AI_europe()
 	// TAC - AI Improved Naval AI - koma13 - START
 	if (kOwner.getNumCities() > 0)
 	{
-		CvPlot* pNewPlot = AI_bestDestinationPlot();
+		CvPlot* pNewPlot = (pTreasureArrival != NULL) ? pTreasureArrival : AI_bestDestinationPlot();
+		if (pTreasureArrival != NULL && gUnitLogLevel >= 1)
+		{
+			logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d ship %S sails from Europe for the treasure at %d,%d (arrives at %d,%d, %s)",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pTreasure->getX_INLINE(), pTreasure->getY_INLINE(),
+				pTreasureArrival->getX_INLINE(), pTreasureArrival->getY_INLINE(), bTreasureFar ? "empty: far from our colonies" : "with colonists: near our colonies");
+		}
 
 		if (pNewPlot == NULL)
 		{

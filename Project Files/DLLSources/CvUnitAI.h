@@ -276,6 +276,7 @@ protected:
 
 	bool AI_sailToPreferredPort(bool bMove = true);
 	bool AI_sailToEurope(bool bMove = true);
+	CvPlot* AI_europeTreasureTarget(CvPlot*& pArrival, bool& bFar);
 	bool AI_sailToAfrica(bool bMove = true); /*** TRIANGLETRADE 10/28/08 by DPII ***/
 	bool AI_sailToPortRoyal(bool bMove = true); // R&R, ray, Port Royal
 
