@@ -1255,6 +1255,8 @@ protected:
 	BuildTypes getPioneerPlanBuild(int iPlotIndex) const;
 	int getPioneerPlanPriority(int iPlotIndex) const;
 	const std::map<int, int>& getPioneerPlans() const { return m_mapPioneerPlans; }
+	// WTP: private pioneer: for PRIVATE_BUILD_COST gold a hardy pioneer builds an improvement on a plot of the player
+	bool startPrivateBuild(int iX, int iY, BuildTypes eBuild);
 	void doBells();
 	void doCrosses();
 	void doWarnings();

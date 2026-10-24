@@ -755,6 +755,7 @@ void CyEnumsPythonInterface()
 		.value("AUTOMATE_WORKER_SEA", AUTOMATE_WORKER_SEA) //TAC Whaling, ray
 		.value("AUTOMATE_FULL", AUTOMATE_FULL)
 		.value("AUTOMATE_PIONEER_PLAN", AUTOMATE_PIONEER_PLAN) // WTP
+		.value("AUTOMATE_PRIVATE_BUILD", AUTOMATE_PRIVATE_BUILD) // WTP
 		.value("NUM_AUTOMATE_TYPES", NUM_AUTOMATE_TYPES)
 		;
 	python::enum_<MissionTypes>("MissionTypes")
