@@ -177,6 +177,10 @@ bool CvUnitAI::AI_update()
 				AI_workerSeaMove();
 				break;
 			//End TAC Whaling, ray
+			// WTP: pioneer plan of a human player's pioneer (it keeps the automation and waits when nothing is marked)
+			case AUTOMATE_PIONEER_PLAN:
+				AI_doPioneerPlan();
+				break;
 			case AUTOMATE_FULL:
 				FAssert(false);
 				break;
@@ -19838,3 +19842,40 @@ CvSelectionGroupAI* CvUnitAI::AI_getGroup()
 	return static_cast<CvSelectionGroupAI*>(getGroup());
 	//return GET_PLAYER(getOwner()).AI_getSelectionGroup(getGroupID());
 } // </advc.003u>
+// WTP: pioneer plan (user 2026-10-25): the pioneer goes to the plot it got (CvPlayerAI::AI_pioneerPlanTarget) and builds the
+// marked improvement there; a mark it cannot build any more is removed; with nothing to do it waits for the next turn
+bool CvUnitAI::AI_doPioneerPlan()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const int iPlotIndex = kOwner.AI_pioneerPlanTarget(*this);
+	CvPlot* const pPlot = (iPlotIndex >= 0) ? GC.getMap().plotByIndexINLINE(iPlotIndex) : NULL;
+	const BuildTypes eBuild = (iPlotIndex >= 0) ? kOwner.getPioneerPlanBuild(iPlotIndex) : NO_BUILD;
+	if (pPlot == NULL || eBuild == NO_BUILD)
+	{
+		getGroup()->pushMission(MISSION_SKIP);
+		return false;
+	}
+	if (!canBuild(pPlot, eBuild))
+	{
+		// (built by somebody else, or not possible there any more)
+		kOwner.setPioneerPlan(iPlotIndex, NO_BUILD, 0);
+		kOwner.AI_clearPioneerPlanTarget(getID());
+		getGroup()->pushMission(MISSION_SKIP);
+		return false;
+	}
+	if (atPlot(pPlot))
+	{
+		getGroup()->pushMission(MISSION_BUILD, eBuild, -1, 0, false, false, MISSIONAI_BUILD, pPlot);
+		return true;
+	}
+	if (!generatePath(pPlot, 0, true))
+	{
+		// (no way there now: another plot next turn)
+		kOwner.AI_clearPioneerPlanTarget(getID());
+		getGroup()->pushMission(MISSION_SKIP);
+		return false;
+	}
+	getGroup()->pushMission(MISSION_MOVE_TO, pPlot->getX_INLINE(), pPlot->getY_INLINE(), 0, false, false, MISSIONAI_BUILD, pPlot);
+	return true;
+}
+

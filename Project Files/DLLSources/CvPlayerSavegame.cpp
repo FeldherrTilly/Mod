@@ -327,6 +327,7 @@ enum SavegameVariableTypes
 	PlayerSave_TradePostMestizoThresholdMultiplier,
 	// WTP, Schmiddie, Trade Post Mestizo - END
 
+	PlayerSave_PioneerPlans, // WTP
 	NUM_SAVE_ENUM_VALUES,
 };
 
@@ -535,6 +536,7 @@ const char* getSavedEnumNamePlayer(SavegameVariableTypes eType)
 	// WTP, Schmiddie, Slave Emancipation - START
 	case PlayerSave_SlaveEmancipationCount: return "PlayerSave_SlaveEmancipationCount";
 	case PlayerSave_SlaveEmancipationCooldownEndTurn: return "PlayerSave_SlaveEmancipationCooldownEndTurn";
+	case PlayerSave_PioneerPlans: return "PlayerSave_PioneerPlans";
 	// WTP, Schmiddie, Slave Emancipation - END
 	// WTP, Schmiddie, Trade Post Mestizo - START
 	case PlayerSave_TradePostMestizoPoints: return "PlayerSave_TradePostMestizoPoints";
@@ -721,6 +723,7 @@ void CvPlayer::resetSavedData(PlayerTypes eID, bool bConstructorCall)
 	// WTP, Schmiddie, Slave Emancipation - START
 	m_iSlaveEmancipationCount = defaultSlaveEmancipationCount;
 	m_iSlaveEmancipationCooldownEndTurn = defaultSlaveEmancipationCooldownEndTurn;
+	m_mapPioneerPlans.clear();
 	// WTP, Schmiddie, Slave Emancipation - END
 	m_iFatherPointMultiplier = defaultFatherPointMultiplier;
 	m_iMissionaryRateModifier = defaultMissionaryRateModifier;
@@ -986,6 +989,18 @@ void CvPlayer::read(CvSavegameReader reader)
 		case PlayerSave_SlaveEmancipationCooldownEndTurn:
 			reader.Read(m_iSlaveEmancipationCooldownEndTurn);
 			break;
+		case PlayerSave_PioneerPlans:
+		{
+			// WTP: pioneer plan (pairs of plot index and build * 10 + priority)
+			std::vector<int> aiPlans;
+			reader.Read(aiPlans);
+			m_mapPioneerPlans.clear();
+			for (uint i = 0; i + 1 < aiPlans.size(); i += 2)
+			{
+				m_mapPioneerPlans[aiPlans[i]] = aiPlans[i + 1];
+			}
+			break;
+		}
 		// WTP, Schmiddie, Slave Emancipation - END
 		case PlayerSave_FatherPointMultiplier: reader.Read(m_iFatherPointMultiplier); break;
 		case PlayerSave_MissionaryRateModifier: reader.Read(m_iMissionaryRateModifier); break;
@@ -1255,6 +1270,16 @@ void CvPlayer::write(CvSavegameWriter writer)
 	// WTP, Schmiddie, Slave Emancipation - START
 	writer.Write(PlayerSave_SlaveEmancipationCount, m_iSlaveEmancipationCount, defaultSlaveEmancipationCount);
 	writer.Write(PlayerSave_SlaveEmancipationCooldownEndTurn, m_iSlaveEmancipationCooldownEndTurn, defaultSlaveEmancipationCooldownEndTurn);
+	if (!m_mapPioneerPlans.empty())
+	{
+		std::vector<int> aiPlans;
+		for (std::map<int, int>::const_iterator it = m_mapPioneerPlans.begin(); it != m_mapPioneerPlans.end(); ++it)
+		{
+			aiPlans.push_back(it->first);
+			aiPlans.push_back(it->second);
+		}
+		writer.Write(PlayerSave_PioneerPlans, aiPlans);
+	}
 	// WTP, Schmiddie, Slave Emancipation - END
 	writer.Write(PlayerSave_FatherPointMultiplier, m_iFatherPointMultiplier, defaultFatherPointMultiplier);
 	writer.Write(PlayerSave_MissionaryRateModifier, m_iMissionaryRateModifier, defaultMissionaryRateModifier);

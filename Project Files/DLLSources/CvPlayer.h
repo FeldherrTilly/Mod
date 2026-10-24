@@ -1082,6 +1082,7 @@ protected:
 	// WTP, Slave Emancipation - START
 	int m_iSlaveEmancipationCount;
 	int m_iSlaveEmancipationCooldownEndTurn;
+	std::map<int, int> m_mapPioneerPlans; // WTP: pioneer plan: plot index -> build * 10 + priority (saved)
 	// WTP, Slave Emancipation - END
 	int m_iFatherPointMultiplier;
 	int m_iMissionaryRateModifier;
@@ -1249,6 +1250,11 @@ protected:
 	// TAC - Trade Messages - koma13 - END
 
 	void doGold();
+	// WTP: pioneer plan: plots the player marked for an improvement (build) with priority 1 or 2 (AUTOMATE_PIONEER_PLAN works them)
+	void setPioneerPlan(int iPlotIndex, BuildTypes eBuild, int iPriority);
+	BuildTypes getPioneerPlanBuild(int iPlotIndex) const;
+	int getPioneerPlanPriority(int iPlotIndex) const;
+	const std::map<int, int>& getPioneerPlans() const { return m_mapPioneerPlans; }
 	void doBells();
 	void doCrosses();
 	void doWarnings();

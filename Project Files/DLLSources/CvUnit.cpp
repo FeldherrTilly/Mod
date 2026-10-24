@@ -4677,6 +4677,15 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 		}
 		break;
 
+
+	// WTP: pioneer plan: a human player's pioneer (a unit that can build improvements) alone on the map
+	case AUTOMATE_PIONEER_PLAN:
+		if (!isHuman() || getDomainType() != DOMAIN_LAND || !isOnMap_() || isCargo() || workRate(true) <= 0
+			|| getGroup() == NULL || getGroup()->getNumUnits() != 1)
+		{
+			return false;
+		}
+		break;
 	default:
 		FAssert(false);
 		break;
@@ -8523,6 +8532,15 @@ bool CvUnit::build(BuildTypes eBuild)
 
 	if (bFinished)
 	{
+		// WTP: pioneer plan: the mark of this improvement is done
+		{
+			CvPlayer& kOwner = GET_PLAYER(getOwnerINLINE());
+			const int iPlotIndex = GC.getMap().plotNumINLINE(getX_INLINE(), getY_INLINE());
+			if (kOwner.getPioneerPlanBuild(iPlotIndex) == eBuild)
+			{
+				kOwner.setPioneerPlan(iPlotIndex, NO_BUILD, 0);
+			}
+		}
 		// Super Forts begin *culture*
 		if (GC.getBuildInfo(eBuild).getImprovement() != NO_IMPROVEMENT)
 		{

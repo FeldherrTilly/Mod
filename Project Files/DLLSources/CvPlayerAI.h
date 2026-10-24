@@ -583,6 +583,10 @@ protected:
 	int m_iTurnLastProductionDirty;
 	int m_iTurnLastManagedPop;
 	int m_iMoveQueuePasses;
+	// WTP: pioneer plan: the plot (index) each pioneer with the automation AUTOMATE_PIONEER_PLAN works on (unit ID), not saved
+	std::map<int, int> m_mapPioneerPlanTargets;
+	int AI_pioneerPlanTarget(const CvUnit& kPioneer);
+	void AI_clearPioneerPlanTarget(int iUnitID) { m_mapPioneerPlanTargets.erase(iUnitID); }
 
 	void AI_doTradeRoutes();
 	void AI_doCounter();

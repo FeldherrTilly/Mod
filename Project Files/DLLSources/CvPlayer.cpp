@@ -20120,6 +20120,32 @@ int CvPlayer::getNativeTradePostSuccessPercent() const
 	return m_iNativeTradePostSuccessPercent;
 }
 
+// WTP: pioneer plan (user 2026-10-25): the player marks plots for an improvement with priority 1 or 2; pioneers with the
+// automation AUTOMATE_PIONEER_PLAN build them (NO_BUILD or priority 0: the mark is removed)
+void CvPlayer::setPioneerPlan(int iPlotIndex, BuildTypes eBuild, int iPriority)
+{
+	if (eBuild == NO_BUILD || iPriority <= 0)
+	{
+		m_mapPioneerPlans.erase(iPlotIndex);
+	}
+	else
+	{
+		m_mapPioneerPlans[iPlotIndex] = (int)eBuild * 10 + std::min(iPriority, 2);
+	}
+}
+
+BuildTypes CvPlayer::getPioneerPlanBuild(int iPlotIndex) const
+{
+	const std::map<int, int>::const_iterator it = m_mapPioneerPlans.find(iPlotIndex);
+	return (it != m_mapPioneerPlans.end()) ? (BuildTypes)(it->second / 10) : NO_BUILD;
+}
+
+int CvPlayer::getPioneerPlanPriority(int iPlotIndex) const
+{
+	const std::map<int, int>::const_iterator it = m_mapPioneerPlans.find(iPlotIndex);
+	return (it != m_mapPioneerPlans.end()) ? it->second % 10 : 0;
+}
+
 void CvPlayer::setNativeTradePostSuccessPercent(int iValue)
 {
 	m_iNativeTradePostSuccessPercent = iValue;

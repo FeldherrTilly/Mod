@@ -99,6 +99,8 @@ public:
 	bool is(UnitAIStates) const;
 	bool is(UnitAITypes) const;
 
+	// WTP: pioneer plan: a human player's pioneer builds the improvements the player marked (AUTOMATE_PIONEER_PLAN)
+	bool AI_doPioneerPlan();
 protected:
 
 	void AI_resetSavedData();
