@@ -22161,9 +22161,19 @@ bool CvPlayerAI::AI_isTraderTargetTaken(int iPlotIndex, int iUnitID) const
 }
 
 // WTP: pioneer plan (user 2026-10-25): the plot a pioneer with the automation AUTOMATE_PIONEER_PLAN works on (-1: none).
-// Marks whose improvement exists already are removed. Free pioneers get their plots together: first the priority 1 plots,
-// each to the nearest free pioneer (the nearest pair of pioneer and plot first, one pioneer per plot), then with the
-// pioneers left the priority 2 plots the same way. Only plots on the pioneer's land area.
+// Marks whose improvement exists already are removed. Free pioneers get their plots together, the nearest pair of pioneer
+// and plot first: a priority 1 plot gets a hardy pioneer or two pioneers (a hardy pioneer counts twice), then the pioneers
+// left go to the priority 2 plots, one each. Only plots on the pioneer's land area.
+namespace
+{
+	// the strength a pioneer brings to a priority 1 plot (2 are needed): a hardy pioneer (expert pioneer) 2, others 1
+	int pioneerPlanStrength(const CvUnit& kUnit)
+	{
+		const ProfessionTypes ePioneer = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_PIONEER");
+		return (ePioneer != NO_PROFESSION && GC.getProfessionInfo(ePioneer).LbD_getExpert() == kUnit.getUnitClassType()) ? 2 : 1;
+	}
+}
+
 int CvPlayerAI::AI_pioneerPlanTarget(const CvUnit& kPioneer)
 {
 	const CvMap& kMap = GC.getMap();
