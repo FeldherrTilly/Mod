@@ -778,7 +778,7 @@ class CvMainInterface:
 		iBtnX += self.ADVISOR_BUTTON_SPACING
 
 		# WTP: pioneer plan
-		iPioneer = gc.getInfoTypeForString("PROFESSION_PIONEER")
+		iPioneer = ProfessionTypes.PROFESSION_PIONEER
 		szPioneerButton = ArtFileMgr.getInterfaceArtInfo("INTERFACE_GENERAL_TERRITORIAL_INFLUENCE").getPath()
 		if iPioneer >= 0:
 			szPioneerButton = gc.getProfessionInfo(iPioneer).getButton()
