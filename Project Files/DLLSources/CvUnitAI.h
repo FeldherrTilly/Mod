@@ -443,6 +443,8 @@ protected:
 	bool AI_tradeWithCity();
 	// WTP: native trade ship, deals with the native village on this plot
 	bool AI_isNativeTradeShip() const;
+	bool AI_knowsMusketVillage() const;
+	static const int NATIVE_TRADE_MUSKET_GOLD = 2500; // WTP: a tribe with more gold gets muskets from the native trade ship
 	int AI_nativeTradeCargoCount(bool bGoods, bool* pbMuskets) const;
 	void AI_nativeTradeShipMove();
 	void AI_explorerShipMove();
