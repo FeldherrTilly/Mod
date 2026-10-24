@@ -9056,6 +9056,13 @@ bool CvUnit::build(BuildTypes eBuild)
 
 	if (bFinished)
 	{
+		// WTP: pioneer log
+		if (gUnitLogLevel >= 1 && !isHuman())
+		{
+			const CvCity* const pWorkingCity = plot()->getWorkingCity();
+			logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "%S finishes %S at %d,%d (%S)", getName().GetCString(), GC.getBuildInfo(eBuild).getDescription(), getX_INLINE(), getY_INLINE(),
+				(pWorkingCity != NULL) ? pWorkingCity->getName().GetCString() : L"no colony");
+		}
 		// Super Forts begin *culture*
 		if (GC.getBuildInfo(eBuild).getImprovement() != NO_IMPROVEMENT)
 		{

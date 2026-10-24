@@ -1849,6 +1849,47 @@ void CvUnitAI::AI_settlerMove()
 	return;
 }
 
+// WTP: pioneer log: the reason of a pioneer's new task and the mission it got (build, road or move with its plot, target of
+// the mission AI); a pioneer keeps its mission over several turns, so each line is a new task
+void CvUnitAI::AI_logPioneer(const char* szReason)
+{
+	if (gUnitLogLevel < 1 || isHuman())
+	{
+		return;
+	}
+	CvWString szMission = L"no mission";
+	const CLLNode<MissionData>* const pNode = getGroup()->headMissionQueueNode();
+	if (pNode != NULL)
+	{
+		const MissionData& kData = pNode->m_data;
+		if (kData.eMissionType == MISSION_BUILD && kData.iData1 >= 0 && kData.iData1 < GC.getNumBuildInfos())
+		{
+			szMission = CvWString::format(L"builds %s at %d,%d", GC.getBuildInfo((BuildTypes)kData.iData1).getDescription(), getX_INLINE(), getY_INLINE());
+		}
+		else if (kData.eMissionType == MISSION_ROUTE_TO)
+		{
+			szMission = CvWString::format(L"road to %d,%d", kData.iData1, kData.iData2);
+		}
+		else if (kData.eMissionType == MISSION_MOVE_TO)
+		{
+			szMission = CvWString::format(L"moves to %d,%d", kData.iData1, kData.iData2);
+		}
+		else if (kData.eMissionType == MISSION_SKIP)
+		{
+			szMission = L"waits";
+		}
+		else
+		{
+			szMission = CvWString::format(L"mission %d", (int)kData.eMissionType);
+		}
+	}
+	const CvPlot* const pTarget = getGroup()->AI_getMissionAIPlot();
+	const CvCity* const pHome = getHomeCity();
+	logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "%S at %d,%d (home %S): %s -> %S%s", getName().GetCString(), getX_INLINE(), getY_INLINE(),
+		(pHome != NULL) ? pHome->getName().GetCString() : L"-", szReason, szMission.GetCString(),
+		(pTarget != NULL && pTarget != plot()) ? CvString::format(", target %d,%d", pTarget->getX_INLINE(), pTarget->getY_INLINE()).c_str() : "");
+}
+
 void CvUnitAI::AI_workerMove()
 {
 	PROFILE_FUNC();
@@ -1867,20 +1908,22 @@ void CvUnitAI::AI_workerMove()
 		{
 			if (canJoinCity(plot()) && AI_mayPioneerJoinCity())
 			{
+				AI_logPioneer("danger: joins the colony");
 				joinCity();
 				return;
 			}
 		}
 		if (AI_retreatToCity())
 		{
+			AI_logPioneer("danger: retreats to a colony");
 			return;
 		}
 		if (AI_safety())
 		{
+			AI_logPioneer("danger: to safety");
 			return;
 		}
 	}
-
 	// WTP: a surplus pioneer chosen by the player goes to its colony and joins it
 	CvCity* const pSurplusCity = kOwner.AI_surplusPioneerCity(getID());
 	if (pSurplusCity != NULL && !isCargo())
@@ -1892,6 +1935,7 @@ void CvUnitAI::AI_workerMove()
 				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "WTP decision: Player %d (%S) turn %d surplus pioneer %S joins %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
 					GC.getGameINLINE().getGameTurn(), getNameAndProfession().GetCString(), pSurplusCity->getName().GetCString());
 				kOwner.AI_clearSurplusPioneer();
+				AI_logPioneer("surplus pioneer: joins the colony");
 				joinCity();
 				return;
 			}
@@ -1900,6 +1944,7 @@ void CvUnitAI::AI_workerMove()
 		else if (generatePath(pSurplusCity->plot(), MOVE_NO_ENEMY_TERRITORY, true))
 		{
 			getGroup()->pushMission(MISSION_MOVE_TO, pSurplusCity->getX_INLINE(), pSurplusCity->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY);
+			AI_logPioneer("surplus pioneer: goes to its colony");
 			return;
 		}
 		else
@@ -1922,8 +1967,10 @@ void CvUnitAI::AI_workerMove()
 	{
 		if ((pCity != NULL) && (pCity->getOwnerINLINE() == getOwnerINLINE()))
 		{
+			const CvWString szCity = pCity->getName();
 			if (AI_betterJob())
 			{
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "%S takes a job in %S (better job)", getName().GetCString(), szCity.GetCString());
 				return;
 			}
 		}
@@ -1933,9 +1980,9 @@ void CvUnitAI::AI_workerMove()
 	{
 		if (AI_unloadWhereNeeded())
 		{
+			AI_logPioneer("aboard: unloads");
 			return;
 		}
-
 		getGroup()->pushMission(MISSION_SKIP);
 		return;
 	}
@@ -1958,12 +2005,14 @@ void CvUnitAI::AI_workerMove()
 	// WTP: connecting the own colonies by road comes first
 	if (bCanRoute && AI_routeCityNear(12))
 	{
+		AI_logPioneer("road between colonies");
 		return;
 	}
 
 	// WTP: the colonial AI improves its colonies in stages (bonus resources, lumber, food) before the usual improvements
 	if (GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned() && AI_wfImproveStages())
 	{
+		AI_logPioneer("improvement stages (resources, lumber, food)");
 		return;
 	}
 
@@ -1977,6 +2026,7 @@ void CvUnitAI::AI_workerMove()
 				{
 					setHomeCity(pCity);
 				}
+				AI_logPioneer("improves its colony (pioneers needed there)");
 				return;
 			}
 		}
@@ -1984,6 +2034,7 @@ void CvUnitAI::AI_workerMove()
 
 	if (AI_nextCityToImprove(pCity))
 	{
+		AI_logPioneer("improves the next colony");
 		return;
 	}
 
@@ -1996,6 +2047,7 @@ void CvUnitAI::AI_workerMove()
 
 		if (AI_fortTerritory(bCanal))
 		{
+			AI_logPioneer("fort");
 			return;
 		}
 	}
@@ -2012,12 +2064,14 @@ void CvUnitAI::AI_workerMove()
 				{
 					setHomeCity(pCity);
 				}
+				AI_logPioneer("improves its colony (no pioneer needed there)");
 				return;
 			}
 		}
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
+	AI_logPioneer("idle: nothing to improve");
 	return;
 }
 

@@ -42,6 +42,7 @@ enum WtpLogTopic
 	WTP_LOG_TRADE,
 	WTP_LOG_DIAG, // workforce plan diagnosis: every plot's job alternatives, every colonist's options
 	WTP_LOG_HUMAN, // the human player's actions with their situation (CvHumanLog.h)
+	WTP_LOG_PIONEER, // the AI pioneers: each new task with its reason, finished improvements
 	NUM_WTP_LOG_TOPICS
 };
 class CvCity;

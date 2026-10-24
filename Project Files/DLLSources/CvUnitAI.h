@@ -315,6 +315,7 @@ protected:
 	bool AI_learn(int iRange = 8);
 	bool AI_routeCityNear(int iMaxDistance);
 	bool AI_wfImproveStages(); // WTP
+	void AI_logPioneer(const char* szReason); // WTP
 
 	bool AI_requestPickup(int iMaxPath = MAX_INT);
 	bool AI_respondToPickup(int iMaxPath = MAX_INT, UnitAITypes eUnitAI = NO_UNITAI, bool bAlongTheWay = false);
