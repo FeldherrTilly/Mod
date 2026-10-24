@@ -10709,6 +10709,7 @@ bool CvUnitAI::AI_spreadTradePosts()
 		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S founds a trade post in %S (%S)", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
 			GC.getGameINLINE().getGameTurn(), getName().GetCString(), plot()->getPlotCity()->getName().GetCString(), GET_PLAYER(plot()->getOwnerINLINE()).getCivilizationDescription(0));
 		kOwner.AI_clearWfLearnWait(getID());
+		kOwner.AI_setTraderTarget(getID(), -1);
 		establishTradePost();
 		kOwner.AI_changeNumRetiredAIUnits(UNITAI_TRADER, 1); // line moved
 		return true;
@@ -10771,7 +10772,9 @@ bool CvUnitAI::AI_spreadTradePosts()
 						{
 							continue;
 						}
-						if (kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_SPREAD, getGroup()) > 0)
+						// (nor the village another trader of ours is on its way to)
+						if (kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_SPREAD, getGroup()) > 0
+							|| kOwner.AI_isTraderTargetTaken(GC.getMap().plotNumINLINE(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()), getID()))
 						{
 							continue;
 						}
@@ -10858,9 +10861,11 @@ bool CvUnitAI::AI_spreadTradePosts()
 
 	if ((pBestPlot == NULL) || (pBestSpreadPlot == NULL))
 	{
+		kOwner.AI_setTraderTarget(getID(), -1);
 		return false;
 	}
 	const CvCity* const pBestVillage = pBestSpreadPlot->getPlotCity();
+	kOwner.AI_setTraderTarget(getID(), GC.getMap().plotNumINLINE(pBestSpreadPlot->getX_INLINE(), pBestSpreadPlot->getY_INLINE()));
 
 	if (pBestWaterPlot == NULL)
 	{
@@ -10870,6 +10875,7 @@ bool CvUnitAI::AI_spreadTradePosts()
 		{
 			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S founds a trade post in %S (%S)", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
 				GC.getGameINLINE().getGameTurn(), getName().GetCString(), pBestVillage->getName().GetCString(), GET_PLAYER(pBestSpreadPlot->getOwnerINLINE()).getCivilizationDescription(0));
+			kOwner.AI_setTraderTarget(getID(), -1);
 			establishTradePost();
 			kOwner.AI_changeNumRetiredAIUnits(UNITAI_TRADER, 1);
 			return true;

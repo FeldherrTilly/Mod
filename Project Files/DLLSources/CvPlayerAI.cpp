@@ -22072,6 +22072,36 @@ bool CvPlayerAI::AI_hasTradePostTarget() const
 	return false;
 }
 
+// WTP: the village each native trader is on its way to (plot index), so that no two go to the same village (not saved)
+void CvPlayerAI::AI_setTraderTarget(int iUnitID, int iPlotIndex)
+{
+	if (iPlotIndex < 0)
+	{
+		m_mapTraderTarget.erase(iUnitID);
+	}
+	else
+	{
+		m_mapTraderTarget[iUnitID] = iPlotIndex;
+	}
+}
+
+bool CvPlayerAI::AI_isTraderTargetTaken(int iPlotIndex, int iUnitID) const
+{
+	for (std::map<int, int>::const_iterator it = m_mapTraderTarget.begin(); it != m_mapTraderTarget.end(); ++it)
+	{
+		if (it->second == iPlotIndex && it->first != iUnitID)
+		{
+			// (only a trader that still lives and is still a trader)
+			const CvUnit* const pTrader = getUnit(it->first);
+			if (pTrader != NULL && pTrader->AI_getUnitAIType() == UNITAI_TRADER)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 // WTP: an immigrant on the docks the workforce plan wants as an expert: it has a job task the unit is an expert for
 // (bought for a job, or an expert immigrant the plan seated); free colonists and the like do not count
 bool CvPlayerAI::AI_isWantedExpertOnDock(const CvUnit& kUnit) const

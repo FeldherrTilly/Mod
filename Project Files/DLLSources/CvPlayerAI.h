@@ -740,6 +740,8 @@ public:
 protected:
 	// WTP: native villages the native trade ship visited (plot key, turn), not saved
 	std::map<int, int> m_mapNativeVillageVisit;
+	// WTP: the village (plot index) each native trader (unit ID) is on its way to, not saved
+	std::map<int, int> m_mapTraderTarget;
 	// WTP: expert to buy instead of learning it (learning was blocked for 15 turns), not saved
 	UnitClassTypes m_eWfExpertToBuy;
 	bool AI_doWfExpertPurchase();
@@ -750,6 +752,8 @@ public:
 	UnitClassTypes AI_getWfExpertToBuy() const { return m_eWfExpertToBuy; }
 	static bool AI_isProtectedSpecialty(UnitClassTypes eUnitClass);
 	bool AI_isWantedExpertOnDock(const CvUnit& kUnit) const;
+	void AI_setTraderTarget(int iUnitID, int iPlotIndex);
+	bool AI_isTraderTargetTaken(int iPlotIndex, int iUnitID) const;
 protected:
 	// WTP: colonists the last workforce plan wants to buy (not saved, made again each turn): an expert for a job, or a food
 	// provider (eExpertClass) for the food job eProfession/iPlotIndex; iValue is the gain in gold x100 per turn

@@ -263,6 +263,7 @@ void CvPlayerAI::AI_resetSavedData()
 	m_mapWfSeaTurns.clear();
 	m_iWfLandMoves = 1;
 	m_mapNativeVillageVisit.clear();
+	m_mapTraderTarget.clear();
 	m_eWfExpertToBuy = NO_UNITCLASS;
 	m_aWfOpenOpportunities.clear();
 	m_iWfIdleCount = 0;
