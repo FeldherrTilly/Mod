@@ -2664,14 +2664,14 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_LOW_FOOD</Tag>
-		<English> - little %c1</English>
-		<Portuguese> - pouca %c1</Portuguese>
-		<French> - peu de %c1</French>
-		<German> - wenig %c1</German>
-		<Italian> - poco %c1</Italian>
-		<Spanish> - poca %c1</Spanish>
-		<Russian> - мало %c1</Russian>
-		<Hungarian> - kevés %c1</Hungarian>
+		<English> - little [ICON_FOOD]</English>
+		<Portuguese> - pouca [ICON_FOOD]</Portuguese>
+		<French> - peu de [ICON_FOOD]</French>
+		<German> - wenig [ICON_FOOD]</German>
+		<Italian> - poco [ICON_FOOD]</Italian>
+		<Spanish> - poca [ICON_FOOD]</Spanish>
+		<Russian> - мало [ICON_FOOD]</Russian>
+		<Hungarian> - kevés [ICON_FOOD]</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_HAPPINESS</Tag>
