@@ -24343,6 +24343,8 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 	const CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
 	const UnitTypes eColonist = kCiv.getCivilizationUnits(GLOBAL_DEFINE_DEFAULT_POPULATION_UNIT);
 	const int iConsumption = GLOBAL_DEFINE_FOOD_CONSUMPTION_PER_POPULATION;
+	// WTP (user 2026-10-24): with this much food stored a colony takes a new citizen even if its food goes down (shown as low food)
+	static const int HUMAN_JOB_FOOD_STOCK = 30;
 	const bool bNoShip = !AI_hasWfShip();
 	AI_wfEnsureTravel(kUnit);
 
@@ -24494,12 +24496,14 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 				kJob.iGold = iValue / 100;
 				kJob.iFood = iFood;
 				kJob.bFoodShortage = false;
+				kJob.bLowFood = pHolder == NULL && iFood <= 0 && iSpare < 2;
 				if (bExpert && iScore > kBestExpertJob.iScore)
 				{
 					kBestExpertJob = kJob;
 				}
 				// a new citizen only where it does not make the colony unhappy and, without food of its own, where food is to spare
-				if (pHolder == NULL && (bCrowded || (iFood <= 0 && iSpare < 2)))
+				// or HUMAN_JOB_FOOD_STOCK is stored
+				if (pHolder == NULL && (bCrowded || (kJob.bLowFood && pCity->getFood() < HUMAN_JOB_FOOD_STOCK)))
 				{
 					continue;
 				}
@@ -24589,11 +24593,12 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 			kJob.iGold = iValue / 100;
 			kJob.iFood = iFood;
 			kJob.bFoodShortage = false;
+			kJob.bLowFood = pHolder == NULL && iFood <= 0 && iSpare < 2;
 			if (bExpert && iScore > kBestExpertJob.iScore)
 			{
 				kBestExpertJob = kJob;
 			}
-			if (pHolder == NULL && (bCrowded || (iFood <= 0 && iSpare < 2)))
+			if (pHolder == NULL && (bCrowded || (kJob.bLowFood && pCity->getFood() < HUMAN_JOB_FOOD_STOCK)))
 			{
 				continue;
 			}

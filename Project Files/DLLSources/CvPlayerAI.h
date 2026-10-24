@@ -730,6 +730,7 @@ public:
 		int iGold;
 		int iFood;
 		bool bFoodShortage; // a food job (net 3 food or more) in a colony short of food, for a worker who may be offered it
+		bool bLowFood; // WTP: a new citizen without food of its own where food is not to spare (offered with HUMAN_JOB_FOOD_STOCK stored)
 	};
 	void AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJobs, int iMaxJobs, std::vector<HumanJob>* paFoodJobs = NULL);
 	bool AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTypes& eBestProfession, int& iX, int& iY, int& iDisplaceID, int& iTurns, int& iGold);

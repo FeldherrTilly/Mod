@@ -2608,6 +2608,17 @@
 		<Hungarian> - kevés élelem</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_LOW_FOOD</Tag>
+		<English> - little %c1</English>
+		<Portuguese> - pouca %c1</Portuguese>
+		<French> - peu de %c1</French>
+		<German> - wenig %c1</German>
+		<Italian> - poco %c1</Italian>
+		<Spanish> - poca %c1</Spanish>
+		<Russian> - мало %c1</Russian>
+		<Hungarian> - kevés %c1</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_HAPPINESS</Tag>
 		<English> - happiness with those on their way %d1</English>
 		<Portuguese> - felicidade com os a caminho %d1</Portuguese>

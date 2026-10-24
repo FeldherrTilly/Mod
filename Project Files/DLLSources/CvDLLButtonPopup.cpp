@@ -4263,6 +4263,11 @@ bool CvDLLButtonPopup::launchAssignJobMenuPopup(CvPopup* pPopup, CvPopupInfo &in
 		{
 			szJob += gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_FOOD_SHORTAGE");
 		}
+		// WTP: the colony's food goes down with the new citizen (taken because enough food is stored)
+		if (kJob.bLowFood)
+		{
+			szJob += gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_LOW_FOOD", GC.getYieldInfo(YIELD_FOOD).getChar());
+		}
 		// happiness jobs (prostitutes): the colony's happiness with the colonists already on their way there
 		if (eJobYield == YIELD_HAPPINESS)
 		{
