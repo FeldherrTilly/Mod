@@ -682,7 +682,7 @@ protected:
 	// WTP: gold spent in Europe during the current war (military / civilian, civilian purchases get up to 30%); saved
 	int m_iWarMilitarySpent;
 	int m_iWarCivilianSpent;
-	int m_iNativeTraderTurn; // WTP: the turn the last native trader was equipped in Europe (one about every 10 turns); saved
+	int m_iNativeTraderTurn; // WTP: the turn the last native trader was equipped in Europe (one about every 8 turns); saved
 	int m_aiEarlySettlerIDs[2]; // settlers of Opportunistic Resources
 	void AI_startEarlyStrategy();
 	bool AI_doEarlyExplorer();

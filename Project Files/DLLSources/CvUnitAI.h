@@ -310,6 +310,7 @@ protected:
 	bool AI_spreadReligion();
 
 	bool AI_spreadTradePosts(); // WTP, ray, Native Trade Posts - START
+	bool AI_tradePostVoyage();
 
 	bool AI_learn(int iRange = 8);
 	bool AI_routeCityNear(int iMaxDistance);

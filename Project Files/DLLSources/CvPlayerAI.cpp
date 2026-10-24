@@ -10338,7 +10338,7 @@ void CvPlayerAI::AI_doEurope()
 		// WTP: after the ships the missing pioneers come first
 		AI_doEquipPioneersInEurope();
 
-		// WTP: about every 10 turns a native trader for a new trade post
+		// WTP: about every 8 turns a native trader for a new trade post
 		if (AI_doNativeTraderPurchase())
 		{
 			return;
@@ -22020,12 +22020,12 @@ void CvPlayerAI::AI_doEquipPioneersInEurope()
 	}
 }
 
-// WTP: about every 10 turns a native trader (a free colonist or indentured servant, equipped in Europe) while a village
+// WTP: about every 8 turns a native trader (a free colonist or indentured servant, equipped in Europe) while a village
 // for a new trade post of ours is known. Not while a trader of ours is still on its way. True while saving for it.
 bool CvPlayerAI::AI_doNativeTraderPurchase()
 {
 	const int iTurn = GC.getGameINLINE().getGameTurn();
-	if (isHuman() || isNative() || isEurope() || getNumCities() == 0 || iTurn - m_iNativeTraderTurn < 10)
+	if (isHuman() || isNative() || isEurope() || getNumCities() == 0 || iTurn - m_iNativeTraderTurn < 8)
 	{
 		return false;
 	}
@@ -22050,10 +22050,10 @@ bool CvPlayerAI::AI_doNativeTraderPurchase()
 
 // WTP: a village where one of our native traders could found a trade post (the rules of CvUnitAI::AI_spreadTradePosts:
 // no war plan, the tribe at least annoyed, not our trade post yet, at most 2 of ours per tribe, the village on a land
-// area with one of our colonies)
+// area with one of our colonies or on the coast: our transports bring the trader there)
 bool CvPlayerAI::AI_hasTradePostTarget() const
 {
-	if (getNativeTradePostSuccessPercent() <= 50)
+	if (getNativeTradePostSuccessPercent() < 40)
 	{
 		return false;
 	}
@@ -22082,7 +22082,8 @@ bool CvPlayerAI::AI_hasTradePostTarget() const
 		{
 			const CvPlot* const pPlot = pVillage->plot();
 			if (pVillage->getTradePostCivilization() != getCivilizationType() && pPlot->isRevealed(getTeam(), false)
-				&& pPlot->area()->getCitiesPerPlayer(getID()) > 0 && pPlot->calculateCulturePercent(pPlot->getOwnerINLINE()) == 100
+				&& (pPlot->area()->getCitiesPerPlayer(getID()) > 0 || pPlot->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN()))
+				&& pPlot->calculateCulturePercent(pPlot->getOwnerINLINE()) == 100
 				&& pVillage->getTradeBlockingFortOwner(getID()) == NO_PLAYER)
 			{
 				return true;

@@ -2163,6 +2163,12 @@ void CvUnitAI::AI_nativeTraderMove()
 		}
 	}
 
+	// WTP: on its way by ship to a village on another land area
+	if (AI_tradePostVoyage())
+	{
+		return;
+	}
+
 	if (isCargo())
 	{
 		if (AI_unloadWhereNeeded())
@@ -10684,9 +10690,15 @@ bool CvUnitAI::AI_spreadReligion()
 }
 
 // WTP, ray, Native Trade Posts - START
+// WTP: native traders found trade posts. A village on our land area is walked to (up to 12 turns, experts 25); a coastal
+// village on another land area is reached by ship: the trader walks to the nearest own coastal colony, boards one of our
+// transports there (or waits for one, at most 8 turns) and goes ashore beside the village (AI_tradePostVoyage)
 bool CvUnitAI::AI_spreadTradePosts()
 {
 	PROFILE_FUNC();
+
+	static const int TRADE_POST_SHIP_WAIT = 8;
+	static const int TRADE_POST_SHIP_MOVES = 4; // estimate of the turns at sea: plots per turn
 
 	// WTP, ray, AI imporevment - START
 	// AI was running around with Missionaries and Native Traders too much
@@ -10696,22 +10708,37 @@ bool CvUnitAI::AI_spreadTradePosts()
 	{
 		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S founds a trade post in %S (%S)", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
 			GC.getGameINLINE().getGameTurn(), getName().GetCString(), plot()->getPlotCity()->getName().GetCString(), GET_PLAYER(plot()->getOwnerINLINE()).getCivilizationDescription(0));
+		kOwner.AI_clearWfLearnWait(getID());
 		establishTradePost();
 		kOwner.AI_changeNumRetiredAIUnits(UNITAI_TRADER, 1); // line moved
 		return true;
 	}
 	// WTP, ray, AI imporevment - END
 
+	if (isCargo())
+	{
+		return false;
+	}
+
+	const int iMaxTurns = isExpertNativeTrader() ? 25 : 12;
+	const int iMinOcean = GC.getMIN_WATER_SIZE_FOR_OCEAN();
+	// the port for villages on other land areas: the nearest own coastal colony on our land area (looked for once)
+	bool bPortSearched = false;
+	CvCity* pPort = NULL;
+	int iPortTurns = 0;
+	const bool bShipAllowed = kOwner.AI_wfLearnWaitTurns(getID(), false) < TRADE_POST_SHIP_WAIT && kOwner.AI_hasWfShip();
+
 	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;
 	CvPlot* pBestSpreadPlot = NULL;
+	CvPlot* pBestWaterPlot = NULL; // set: the village is reached by ship (the water plot beside it)
 
 	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; iPlayer++)
 	{
 		CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
 		if (kLoopPlayer.isAlive())
 		{
-			if (kLoopPlayer.canHaveTradePost(getOwnerINLINE()) && getNativeTradePostSuccessPercent() > 50)
+			if (kLoopPlayer.canHaveTradePost(getOwnerINLINE()) && getNativeTradePostSuccessPercent() >= 40)
 			{
 				// Do not consider cities belonging to players that we have a war plan against
 				if (GET_TEAM(getTeam()).AI_getWarPlan(kLoopPlayer.getTeam()) != NO_WARPLAN)
@@ -10729,49 +10756,99 @@ bool CvUnitAI::AI_spreadTradePosts()
 							++ownTradePostsOfTribe;
 						}
 					}
+					if (ownTradePostsOfTribe >= 2)
+					{
+						continue; // WTP: at most 2 trade posts of our own per tribe
+					}
 					int iLoop;
 					for (CvCity* pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kLoopPlayer.nextCity(&iLoop))
 					{
 						CvPlot* pLoopPlot = pLoopCity->plot();
-						if (pLoopPlot->isRevealed(getTeam(), false))
+						// (revealed: discovered once, it need not be in sight)
+						if (!pLoopPlot->isRevealed(getTeam(), false) || pLoopCity->getTradePostCivilization() == getCivilizationType()
+							|| pLoopPlot->calculateCulturePercent(pLoopPlot->getOwnerINLINE()) != 100
+							|| pLoopCity->getTradeBlockingFortOwner(getOwnerINLINE()) != NO_PLAYER) // WTP, forts block foreign trade
 						{
-							if (pLoopPlot->getArea() == getArea())
+							continue;
+						}
+						if (kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_SPREAD, getGroup()) > 0)
+						{
+							continue;
+						}
+						int iPathTurns = MAX_INT;
+						CvPlot* pWaterPlot = NULL;
+						CvPlot* pMovePlot = NULL;
+						if (pLoopPlot->getArea() == getArea())
+						{
+							if (generatePath(pLoopPlot, MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns))
 							{
-								if ((pLoopCity->getTradePostCivilization() != getCivilizationType()) && (pLoopPlot->calculateCulturePercent(pLoopPlot->getOwnerINLINE()) == 100)
-									&& pLoopCity->getTradeBlockingFortOwner(getOwnerINLINE()) == NO_PLAYER) // WTP, forts block foreign trade
+								pMovePlot = getPathEndTurnPlot();
+							}
+						}
+						else if (bShipAllowed && pLoopPlot->isCoastalLand(iMinOcean))
+						{
+							// WTP: another land area: by ship from our port
+							if (!bPortSearched)
+							{
+								bPortSearched = true;
+								int iCityLoop;
+								for (CvCity* pOwnCity = kOwner.firstCity(&iCityLoop); pOwnCity != NULL; pOwnCity = kOwner.nextCity(&iCityLoop))
 								{
-									if (ownTradePostsOfTribe >= 2)
+									if (pOwnCity->area() != area() || !pOwnCity->isCoastal(iMinOcean))
 									{
-										continue; // WTP: at most 2 trade posts of our own per tribe
+										continue;
 									}
-									if (kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_SPREAD, getGroup()) == 0)
+									int iTurns = 0;
+									if (!atPlot(pOwnCity->plot()) && !generatePath(pOwnCity->plot(), MOVE_NO_ENEMY_TERRITORY, true, &iTurns))
 									{
-										int iPathTurns;
-										if (generatePath(pLoopPlot, MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns))
-										{
-											// WTP: experts travel further for a trade post
-											if (iPathTurns < (isExpertNativeTrader() ? 25 : 10))
-											{
-												int iValue = pLoopCity->getPopulation();
-
-												if (pLoopPlot->getCulture(getOwnerINLINE()) > 0)
-												{
-													iValue /= 4;
-												}
-
-												iValue *= 100 + GC.getGameINLINE().getSorenRandNum(25, "AI best spread plot");
-												iValue /= 400 + getPathCost();
-												if (iValue > iBestValue)
-												{
-													iBestValue = iValue;
-													pBestSpreadPlot = pLoopPlot;
-													pBestPlot = getPathEndTurnPlot();
-												}
-											}
-										}
+										continue;
+									}
+									if (pPort == NULL || iTurns < iPortTurns)
+									{
+										pPort = pOwnCity;
+										iPortTurns = iTurns;
 									}
 								}
 							}
+							if (pPort == NULL)
+							{
+								continue;
+							}
+							for (int iDir = 0; iDir < NUM_DIRECTION_TYPES && pWaterPlot == NULL; ++iDir)
+							{
+								CvPlot* const pAdjacent = plotDirection(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), (DirectionTypes)iDir);
+								if (pAdjacent != NULL && pAdjacent->isWater() && !pAdjacent->isImpassable() && pAdjacent->waterArea() == pPort->plot()->waterArea())
+								{
+									pWaterPlot = pAdjacent;
+								}
+							}
+							if (pWaterPlot == NULL)
+							{
+								continue;
+							}
+							iPathTurns = iPortTurns + 1 + stepDistance(pPort->getX_INLINE(), pPort->getY_INLINE(), pWaterPlot->getX_INLINE(), pWaterPlot->getY_INLINE()) / TRADE_POST_SHIP_MOVES;
+							pMovePlot = pPort->plot();
+						}
+						// WTP: experts travel further for a trade post
+						if (pMovePlot == NULL || iPathTurns > iMaxTurns)
+						{
+							continue;
+						}
+						int iValue = pLoopCity->getPopulation();
+
+						if (pLoopPlot->getCulture(getOwnerINLINE()) > 0)
+						{
+							iValue /= 4;
+						}
+
+						iValue *= 100 + GC.getGameINLINE().getSorenRandNum(25, "AI best spread plot");
+						iValue /= 4 + iPathTurns;
+						if (iValue > iBestValue)
+						{
+							iBestValue = iValue;
+							pBestSpreadPlot = pLoopPlot;
+							pBestPlot = pMovePlot;
+							pBestWaterPlot = pWaterPlot;
 						}
 					}
 				}
@@ -10779,30 +10856,88 @@ bool CvUnitAI::AI_spreadTradePosts()
 		}
 	}
 
+	if ((pBestPlot == NULL) || (pBestSpreadPlot == NULL))
+	{
+		return false;
+	}
+	const CvCity* const pBestVillage = pBestSpreadPlot->getPlotCity();
 
-	if ((pBestPlot != NULL) && (pBestSpreadPlot != NULL))
+	if (pBestWaterPlot == NULL)
 	{
 		// WTP, ray, for safety I added this
 		// I noticed that if 2 Native Traders are placed on a Native Village at the same time, both try to establish a Trade Post
 		if (atPlot(pBestSpreadPlot) && canEstablishTradePost())
 		{
 			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S founds a trade post in %S (%S)", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
-				GC.getGameINLINE().getGameTurn(), getName().GetCString(), pBestSpreadPlot->getPlotCity()->getName().GetCString(), GET_PLAYER(pBestSpreadPlot->getOwnerINLINE()).getCivilizationDescription(0));
+				GC.getGameINLINE().getGameTurn(), getName().GetCString(), pBestVillage->getName().GetCString(), GET_PLAYER(pBestSpreadPlot->getOwnerINLINE()).getCivilizationDescription(0));
 			establishTradePost();
 			kOwner.AI_changeNumRetiredAIUnits(UNITAI_TRADER, 1);
 			return true;
 		}
-		else
+		FAssert(!atPlot(pBestPlot));
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S goes to %S for a trade post", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+			GC.getGameINLINE().getGameTurn(), getName().GetCString(), pBestVillage->getName().GetCString());
+		getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_SPREAD, pBestSpreadPlot);
+		return true;
+	}
+
+	// WTP: by ship: walk to the port, there board a transport that finds a way to the village (not the native trade ship or
+	// the explorer ship, they go their own ways), else wait for one
+	if (!atPlot(pBestPlot))
+	{
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S goes to %S to take a ship to %S for a trade post", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+			GC.getGameINLINE().getGameTurn(), getName().GetCString(), pPort->getName().GetCString(), pBestVillage->getName().GetCString());
+		getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_AWAIT_PICKUP, pBestPlot);
+		return true;
+	}
+	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit != this && pLoopUnit->getOwnerINLINE() == getOwnerINLINE() && pLoopUnit->getDomainType() == DOMAIN_SEA
+			&& CvPlayerAI::AI_isWfShip(*pLoopUnit) && !static_cast<CvUnitAI*>(pLoopUnit)->AI_isNativeTradeShip()
+			&& pLoopUnit->AI_getUnitAIState() != UNITAI_STATE_EXPLORER_SHIP && canLoadUnit(pLoopUnit, plot(), true)
+			&& pLoopUnit->getGroup()->generatePath(plot(), pBestWaterPlot, MOVE_IGNORE_DANGER, true, NULL))
 		{
-			FAssert(!atPlot(pBestPlot));
-			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S goes to %S for a trade post", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
-				GC.getGameINLINE().getGameTurn(), getName().GetCString(), pBestSpreadPlot->getPlotCity()->getName().GetCString());
-			getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_SPREAD, pBestSpreadPlot);
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S boards %S in %S for a trade post in %S (waited %d turns)", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+				GC.getGameINLINE().getGameTurn(), getName().GetCString(), pLoopUnit->getName().GetCString(), plot()->getPlotCity()->getName().GetCString(), pBestVillage->getName().GetCString(),
+				kOwner.AI_wfLearnWaitTurns(getID(), false));
+			loadUnit(pLoopUnit);
+			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_SPREAD, pBestWaterPlot);
 			return true;
 		}
 	}
+	const int iWaited = kOwner.AI_wfLearnWaitTurns(getID(), true);
+	if (gUnitLogLevel >= 1 && iWaited == 0) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S waits in %S for a ship to %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+		GC.getGameINLINE().getGameTurn(), getName().GetCString(), plot()->getPlotCity()->getName().GetCString(), pBestVillage->getName().GetCString());
+	getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_AWAIT_PICKUP, plot());
+	return true;
+}
 
-	return false;
+// WTP: a native trader aboard a transport on its way to a village on another land area (mission plot: the water plot beside
+// the village): beside a village for a trade post it goes ashore into it, otherwise it stays aboard
+bool CvUnitAI::AI_tradePostVoyage()
+{
+	CvSelectionGroup* const pGroup = getGroup();
+	if (!isCargo() || pGroup->AI_getMissionAIType() != MISSIONAI_SPREAD || pGroup->AI_getMissionAIPlot() == NULL)
+	{
+		return false;
+	}
+	CvPlot* const pWaterPlot = pGroup->AI_getMissionAIPlot();
+	for (int iDir = 0; iDir < NUM_DIRECTION_TYPES; ++iDir)
+	{
+		CvPlot* const pAdjacent = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iDir);
+		const CvCity* const pVillage = (pAdjacent != NULL) ? pAdjacent->getPlotCity() : NULL;
+		if (pVillage != NULL && pVillage->isNative() && pVillage->getTradePostCivilization() != getCivilizationType() && canMoveInto(*pAdjacent))
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S goes ashore into %S for a trade post", getOwnerINLINE(),
+				GET_PLAYER(getOwnerINLINE()).getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pVillage->getName().GetCString());
+			pGroup->pushMission(MISSION_MOVE_TO, pAdjacent->getX_INLINE(), pAdjacent->getY_INLINE(), 0, false, false, MISSIONAI_SPREAD, pAdjacent);
+			return true;
+		}
+	}
+	pGroup->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_SPREAD, pWaterPlot);
+	return true;
 }
 // WTP, ray, Native Trade Posts - END
 
