@@ -926,6 +926,10 @@ class CvEventManager:
 	def onMouseEvent(self, argsList):
 		'mouse handler - returns 1 if the event was consumed'
 		eventType,mx,my,px,py,interfaceConsumed,screens = argsList
+		# WTP: territorial influence and pioneer plan take the clicks on the map (no unit is selected or moved meanwhile)
+		if ( px!=-1 and py!=-1 and not interfaceConsumed and (eventType == self.EventLButtonDown or eventType == self.EventRButtonDown) ):
+			if CvScreensInterface.mainInterface.handleMapClick(eventType == self.EventLButtonDown, px, py):
+				return 1
 		if ( px!=-1 and py!=-1 ):
 			if ( eventType == self.EventLButtonDown ):
 				if (self.bAllowCheats and self.bCtrl and self.bAlt and CyMap().plot(px,py).isCity() and not interfaceConsumed):
