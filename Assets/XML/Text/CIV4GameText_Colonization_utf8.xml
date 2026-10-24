@@ -2642,14 +2642,36 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MILITARY_UPKEEP_GOLD_STR</Tag>
-		<English> (military upkeep: -%d1 per turn)</English>
-		<Portuguese> (manutenção militar: -%d1 por turno)</Portuguese>
-		<French> (entretien militaire : -%d1 par tour)</French>
-		<German> (Militärunterhalt: -%d1 pro Runde)</German>
-		<Italian> (mantenimento militare: -%d1 per turno)</Italian>
-		<Spanish> (mantenimiento militar: -%d1 por turno)</Spanish>
-		<Russian> (содержание армии: -%d1 за ход)</Russian>
-		<Hungarian> (katonai fenntartás: -%d1 körönként)</Hungarian>
+		<English>Military upkeep: -%d1 per turn</English>
+		<Portuguese>Manutenção militar: -%d1 por turno</Portuguese>
+		<French>Entretien militaire : -%d1 par tour</French>
+		<German>Militärunterhalt: -%d1 pro Runde</German>
+		<Italian>Mantenimento militare: -%d1 per turno</Italian>
+		<Spanish>Mantenimiento militar: -%d1 por turno</Spanish>
+		<Russian>Содержание армии: -%d1 за ход</Russian>
+		<Hungarian>Katonai fenntartás: -%d1 körönként</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_DOMESTIC_MARKET_INCOME_STR</Tag>
+		<English>Domestic market: +%d1 last turn</English>
+		<Portuguese>Mercado interno: +%d1 no último turno</Portuguese>
+		<French>Marché intérieur : +%d1 au dernier tour</French>
+		<German>Binnenmarkt: +%d1 letzte Runde</German>
+		<Italian>Mercato interno: +%d1 nell'ultimo turno</Italian>
+		<Spanish>Mercado interior: +%d1 el último turno</Spanish>
+		<Russian>Внутренний рынок: +%d1 за прошлый ход</Russian>
+		<Hungarian>Belső piac: +%d1 az előző körben</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TURN_GOLD_CRIME_CULTURE</Tag>
+		<English>This turn thieves stole %d1 gold from our colonies because of low law; culture brought in %d2 gold.</English>
+		<Portuguese>Neste turno, ladrões roubaram %d1 de ouro das nossas colônias por causa da pouca lei; a cultura rendeu %d2 de ouro.</Portuguese>
+		<French>Ce tour-ci, des voleurs ont dérobé %d1 pièces d'or dans nos colonies faute d'ordre public ; la culture a rapporté %d2 pièces d'or.</French>
+		<German>In dieser Runde haben Diebe wegen zu wenig Ordnung %d1 Gold aus unseren Kolonien gestohlen; die Kultur hat %d2 Gold eingebracht.</German>
+		<Italian>In questo turno i ladri hanno rubato %d1 monete d'oro dalle nostre colonie a causa della scarsa legge; la cultura ha reso %d2 monete d'oro.</Italian>
+		<Spanish>Este turno los ladrones robaron %d1 de oro de nuestras colonias por falta de ley; la cultura aportó %d2 de oro.</Spanish>
+		<Russian>В этом ходу воры украли %d1 золота из наших колоний из-за слабого порядка; культура принесла %d2 золота.</Russian>
+		<Hungarian>Ebben a körben a tolvajok %d1 aranyat loptak el gyarmatainkról a gyenge közrend miatt; a kultúra %d2 aranyat hozott.</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MILITARY_UPKEEP_DISMISSED</Tag>

@@ -2311,6 +2311,11 @@ void CvPlayer::doTurn()
 
 	EXTRA_POWER_CHECK
 
+	// WTP: the colonies count their domestic market income, the gold stolen and the gold earned through culture of this turn
+	m_iDomesticMarketIncome = 0;
+	m_iTurnCrimeGold = 0;
+	m_iTurnCultureGold = 0;
+
 	// R&R Abandon City, ray START
 	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
@@ -2326,6 +2331,15 @@ void CvPlayer::doTurn()
 		}
 	}
 	// R&R  Abandon City, ray END
+
+	// WTP (user 2026-10-24): one message for the gold stolen because of low law and the gold earned through culture
+	// (instead of a message per colony)
+	if (isHuman() && (m_iTurnCrimeGold > 0 || m_iTurnCultureGold > 0))
+	{
+		const CvWString szBuffer = gDLL->getText("TXT_KEY_TURN_GOLD_CRIME_CULTURE", m_iTurnCrimeGold, m_iTurnCultureGold);
+		gDLL->UI().addPlayerMessage(getID(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, Coordinates::invalidCoord(), (m_iTurnCrimeGold > 0) ? "AS2D_CITYCRIME" : NULL,
+			MESSAGE_TYPE_INFO, NULL, (m_iTurnCrimeGold > 0) ? COLOR_RED : COLOR_WHITE);
+	}
 
 	// R&R, Little Extra Native Income, ray START
 	if (isNative())

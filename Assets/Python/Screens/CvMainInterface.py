@@ -2471,6 +2471,16 @@ class CvMainInterface:
 			if (gc.getPlayer(ePlayer).isAlive()):
 				szText = CyGameTextMgr().getGoldStr(ePlayer)
 				screen.setLabel("GoldText", "Background", self.setFontSize(szText, 1), CvUtil.FONT_LEFT_JUSTIFY, 17, 17, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, TIMETEXT_ID, -1 )
+				# WTP: below the gold the military upkeep, below that the domestic market income of the last turn
+				pPlayer = gc.getPlayer(ePlayer)
+				iUpkeep = pPlayer.getMilitaryUpkeep()
+				if (iUpkeep > 0):
+					szText = localText.getText("TXT_KEY_MILITARY_UPKEEP_GOLD_STR", (iUpkeep,))
+					screen.setLabel("MilitaryUpkeepText", "Background", self.setFontSize(szText, 0), CvUtil.FONT_LEFT_JUSTIFY, 17, 42, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+				else:
+					screen.hide("MilitaryUpkeepText")
+				szText = localText.getText("TXT_KEY_DOMESTIC_MARKET_INCOME_STR", (pPlayer.getDomesticMarketIncome(),))
+				screen.setLabel("DomesticIncomeText", "Background", self.setFontSize(szText, 0), CvUtil.FONT_LEFT_JUSTIFY, 17, 62, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 		return 0
 
@@ -2902,6 +2912,8 @@ class CvMainInterface:
 
 			screen.hide("TimeText")
 			screen.hide("GoldText")
+			screen.hide("MilitaryUpkeepText")
+			screen.hide("DomesticIncomeText")
 
 		else: # CITY SCREEN IS DOWN
 			self.MINIMAP_SIDE_MARGIN = MINIMAP_HEIGHT * 13 / 100
@@ -3038,6 +3050,8 @@ class CvMainInterface:
 			# GOLD
 			screen.hide("TimeText")
 			screen.hide("GoldText")
+			screen.hide("MilitaryUpkeepText")
+			screen.hide("DomesticIncomeText")
 			screen.registerHideList(ResourceHideList, len(ResourceHideList), RESOURCE_TABLE_HIDE)
 
 		# EMPHISIZE DISPLAY
@@ -3126,6 +3140,8 @@ class CvMainInterface:
 		if (CyEngine().isGlobeviewUp() or CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_HIDE_ALL):
 			screen.hide("TimeText")
 			screen.hide("GoldText")
+			screen.hide("MilitaryUpkeepText")
+			screen.hide("DomesticIncomeText")
 			for iYield in EMPHASIZEYIELDS:
 				screen.hide("MapYieldBox" + str(iYield))
 				screen.hide("MapYieldIcon" + str(iYield))
@@ -3142,6 +3158,7 @@ class CvMainInterface:
 		else:
 			screen.show("TimeText")
 			screen.show("GoldText")
+			screen.show("DomesticIncomeText")
 			screen.setTableColumnHeader("CityBuildQueue", 0, u"", QueueWidth - (QueueWidth * 3 / 10))
 			screen.setTableColumnHeader("CityBuildQueue", 1, u"", QueueWidth * 3 / 10)
 

@@ -8172,6 +8172,7 @@ void CvCity::doYields()
 				const int iProfit = rProfit.round();
 				aiYields[eYield] -= iAmount;
 				GET_PLAYER(getOwnerINLINE()).changeGold(iProfit);
+				GET_PLAYER(getOwnerINLINE()).changeDomesticMarketIncome(iProfit); // WTP: shown below the gold
 				iTotalProfitFromDomesticMarket = iTotalProfitFromDomesticMarket + iProfit;
 			}
 		}
@@ -11147,10 +11148,8 @@ void CvCity::doCityCrime()
 	{
 		OOS_LOG_3("Crime", CvString(getName()).c_str(), iGoldStolen);
 		kPlayer.changeGold(-iGoldStolen);
-
-		// add message
-		CvWString szBuffer = gDLL->getText("TXT_KEY_CITY_GOLD_STOLEN_BECAUSE_CRIME", getNameKey(), iGoldStolen);
-		gDLL->UI().addPlayerMessage(eOwner, false, GC.getEVENT_MESSAGE_TIME(), szBuffer, coord(), "AS2D_CITYCRIME", MESSAGE_TYPE_MAJOR_EVENT, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_SHOW_CTIYCRIME")->getPath(), COLOR_RED, true, true);
+		// WTP: one message per turn for all colonies (CvPlayer::doTurn)
+		kPlayer.changeTurnCrimeGold(iGoldStolen);
 
 	}
 
@@ -15616,6 +15615,7 @@ void CvCity::doEntertainmentBuildings()
 	{
 		OOS_LOG_3("Entertainment building", CvString(getName()).c_str(), iGoldthroughCulture);
 		GET_PLAYER(getOwnerINLINE()).changeGold(iGoldthroughCulture);
+		GET_PLAYER(getOwnerINLINE()).changeTurnCultureGold(iGoldthroughCulture); // WTP: one message per turn (CvPlayer::doTurn)
 
 		//CvWString szBuffer = gDLL->getText("TXT_KEY_GOLD_BY_ENTERTAINMENT", GC.getBuildingInfo(highestLevelEntertainmentBuilding).getDescription(), getNameKey(), iGoldthroughCulture);
 		//gDLL->UI().addPlayerMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, coord(), NULL, MESSAGE_TYPE_MINOR_EVENT, NULL, COLOR_WHITE, true, true);

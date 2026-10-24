@@ -1088,6 +1088,9 @@ protected:
 	int m_iSlaveEmancipationCount;
 	int m_iSlaveEmancipationCooldownEndTurn;
 	int m_iMilitaryDismissTurn; // WTP: the turn in which no unit may be armed as a soldier (a unit was dismissed for lack of upkeep)
+	int m_iDomesticMarketIncome; // WTP: gold the domestic markets of the colonies brought in the player's last turn (saved)
+	int m_iTurnCrimeGold; // WTP: gold stolen in this turn because of low law (one message per turn, not saved)
+	int m_iTurnCultureGold; // WTP: gold earned in this turn through culture (entertainment buildings; not saved)
 	// WTP, Slave Emancipation - END
 	int m_iFatherPointMultiplier;
 	int m_iMissionaryRateModifier;
@@ -1261,6 +1264,11 @@ protected:
 	void getMilitaryUpkeepUnits(std::vector<std::pair<int, int> >& aPaid) const;
 public:
 	int getMilitaryUpkeep() const;
+	// WTP: domestic market income of the last turn; gold stolen and earned through culture in this turn (one message)
+	int getDomesticMarketIncome() const { return m_iDomesticMarketIncome; }
+	void changeDomesticMarketIncome(int iChange) { m_iDomesticMarketIncome += iChange; }
+	void changeTurnCrimeGold(int iChange) { m_iTurnCrimeGold += iChange; }
+	void changeTurnCultureGold(int iChange) { m_iTurnCultureGold += iChange; }
 	static int getMilitaryProfessionUpkeep(ProfessionTypes eProfession, int& iFreePool);
 	bool isMilitaryEquipBlocked() const;
 protected:
