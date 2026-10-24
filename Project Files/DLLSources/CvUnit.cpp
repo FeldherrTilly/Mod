@@ -4827,6 +4827,15 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 	case AUTOMATE_TRAVEL:
 		return false;
 
+	// WTP: pioneer plan: a human player's pioneer (a unit that can build improvements) alone on the map
+	case AUTOMATE_PIONEER_PLAN:
+		if (!isHuman() || getDomainType() != DOMAIN_LAND || !isOnMap_() || isCargo() || workRate(true) <= 0
+			|| getGroup() == NULL || getGroup()->getNumUnits() != 1)
+		{
+			return false;
+		}
+		break;
+
 	// WTP: patrol: a human player's military unit or warship on the map (not aboard a ship)
 	case AUTOMATE_PATROL:
 		if (!isHuman() || isNative() || !isOnMap_() || isCargo() || !canAttack() || (getDomainType() != DOMAIN_LAND && getDomainType() != DOMAIN_SEA))
@@ -9056,6 +9065,15 @@ bool CvUnit::build(BuildTypes eBuild)
 
 	if (bFinished)
 	{
+		// WTP: pioneer plan: the mark of this improvement is done
+		{
+			CvPlayer& kOwner = GET_PLAYER(getOwnerINLINE());
+			const int iPlotIndex = GC.getMap().plotNumINLINE(getX_INLINE(), getY_INLINE());
+			if (kOwner.getPioneerPlanBuild(iPlotIndex) == eBuild)
+			{
+				kOwner.setPioneerPlan(iPlotIndex, NO_BUILD, 0);
+			}
+		}
 		// WTP: pioneer log
 		if (gUnitLogLevel >= 1 && !isHuman())
 		{

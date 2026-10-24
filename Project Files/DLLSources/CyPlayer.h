@@ -125,6 +125,9 @@ public:
 	int getGold();
 	int getMilitaryUpkeep(); // WTP
 	int getDomesticMarketIncome(); // WTP
+	void setPioneerPlan(int iX, int iY, int iBuild, int iPriority); // WTP
+	int getPioneerPlanBuild(int iX, int iY); // WTP
+	int getPioneerPlanPriority(int iX, int iY); // WTP
 	void setGold(int iNewValue);
 	void changeGold(int iChange);
 	int getAdvancedStartPoints();

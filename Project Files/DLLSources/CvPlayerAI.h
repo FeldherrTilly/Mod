@@ -744,6 +744,8 @@ protected:
 	std::map<int, int> m_mapNativeVillageVisit;
 	// WTP: the village (plot index) each native trader (unit ID) is on its way to, not saved
 	std::map<int, int> m_mapTraderTarget;
+	// WTP: pioneer plan: the plot (index) each pioneer with the automation AUTOMATE_PIONEER_PLAN works on (unit ID), not saved
+	std::map<int, int> m_mapPioneerPlanTargets;
 	// WTP: expert to buy instead of learning it (learning was blocked for 15 turns), not saved
 	UnitClassTypes m_eWfExpertToBuy;
 	bool AI_doWfExpertPurchase();
@@ -754,6 +756,8 @@ public:
 	UnitClassTypes AI_getWfExpertToBuy() const { return m_eWfExpertToBuy; }
 	static bool AI_isProtectedSpecialty(UnitClassTypes eUnitClass);
 	bool AI_isWantedExpertOnDock(const CvUnit& kUnit) const;
+	int AI_pioneerPlanTarget(const CvUnit& kPioneer);
+	void AI_clearPioneerPlanTarget(int iUnitID) { m_mapPioneerPlanTargets.erase(iUnitID); }
 	void AI_setTraderTarget(int iUnitID, int iPlotIndex);
 	bool AI_isTraderTargetTaken(int iPlotIndex, int iUnitID) const;
 protected:

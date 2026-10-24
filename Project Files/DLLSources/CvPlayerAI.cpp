@@ -22160,6 +22160,108 @@ bool CvPlayerAI::AI_isTraderTargetTaken(int iPlotIndex, int iUnitID) const
 	return false;
 }
 
+// WTP: pioneer plan (user 2026-10-25): the plot a pioneer with the automation AUTOMATE_PIONEER_PLAN works on (-1: none).
+// Marks whose improvement exists already are removed. Free pioneers get their plots together: first the priority 1 plots,
+// each to the nearest free pioneer (the nearest pair of pioneer and plot first, one pioneer per plot), then with the
+// pioneers left the priority 2 plots the same way. Only plots on the pioneer's land area.
+int CvPlayerAI::AI_pioneerPlanTarget(const CvUnit& kPioneer)
+{
+	const CvMap& kMap = GC.getMap();
+	// marks already done
+	std::vector<int> aiDone;
+	for (std::map<int, int>::const_iterator it = getPioneerPlans().begin(); it != getPioneerPlans().end(); ++it)
+	{
+		const CvPlot* const pPlot = kMap.plotByIndexINLINE(it->first);
+		const BuildTypes eBuild = (BuildTypes)(it->second / 10);
+		const ImprovementTypes eImprovement = (eBuild >= 0 && eBuild < GC.getNumBuildInfos()) ? (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement() : NO_IMPROVEMENT;
+		if (pPlot == NULL || eImprovement == NO_IMPROVEMENT || pPlot->getImprovementType() == eImprovement)
+		{
+			aiDone.push_back(it->first);
+		}
+	}
+	for (uint i = 0; i < aiDone.size(); ++i)
+	{
+		setPioneerPlan(aiDone[i], NO_BUILD, 0);
+	}
+	// targets of pioneers that are gone, no longer automated or whose mark is gone
+	std::set<int> setTaken;
+	for (std::map<int, int>::iterator it = m_mapPioneerPlanTargets.begin(); it != m_mapPioneerPlanTargets.end(); )
+	{
+		const CvUnit* const pUnit = getUnit(it->first);
+		if (pUnit == NULL || pUnit->getGroup() == NULL || pUnit->getGroup()->getAutomateType() != AUTOMATE_PIONEER_PLAN
+			|| getPioneerPlanBuild(it->second) == NO_BUILD)
+		{
+			m_mapPioneerPlanTargets.erase(it++);
+		}
+		else
+		{
+			setTaken.insert(it->second);
+			++it;
+		}
+	}
+	std::map<int, int>::const_iterator itOwn = m_mapPioneerPlanTargets.find(kPioneer.getID());
+	if (itOwn != m_mapPioneerPlanTargets.end())
+	{
+		return itOwn->second;
+	}
+	// the free pioneers
+	std::vector<const CvUnit*> apFree;
+	int iLoop;
+	for (const CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->getGroup() != NULL && pLoopUnit->getGroup()->getAutomateType() == AUTOMATE_PIONEER_PLAN && pLoopUnit->isOnMap()
+			&& !pLoopUnit->isCargo() && m_mapPioneerPlanTargets.find(pLoopUnit->getID()) == m_mapPioneerPlanTargets.end())
+		{
+			apFree.push_back(pLoopUnit);
+		}
+	}
+	for (int iPriority = 1; iPriority <= 2; ++iPriority)
+	{
+		std::vector<int> aiPlots;
+		for (std::map<int, int>::const_iterator it = getPioneerPlans().begin(); it != getPioneerPlans().end(); ++it)
+		{
+			if (it->second % 10 == iPriority && setTaken.count(it->first) == 0)
+			{
+				aiPlots.push_back(it->first);
+			}
+		}
+		while (!aiPlots.empty() && !apFree.empty())
+		{
+			int iBestDistance = MAX_INT;
+			int iBestUnit = -1;
+			int iBestPlot = -1;
+			for (uint u = 0; u < apFree.size(); ++u)
+			{
+				for (uint p = 0; p < aiPlots.size(); ++p)
+				{
+					const CvPlot* const pPlot = kMap.plotByIndexINLINE(aiPlots[p]);
+					if (pPlot->area() != apFree[u]->area() || !apFree[u]->canBuild(pPlot, getPioneerPlanBuild(aiPlots[p])))
+					{
+						continue;
+					}
+					const int iDistance = plotDistance(apFree[u]->getX_INLINE(), apFree[u]->getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+					if (iDistance < iBestDistance)
+					{
+						iBestDistance = iDistance;
+						iBestUnit = u;
+						iBestPlot = p;
+					}
+				}
+			}
+			if (iBestUnit < 0)
+			{
+				break;
+			}
+			m_mapPioneerPlanTargets[apFree[iBestUnit]->getID()] = aiPlots[iBestPlot];
+			setTaken.insert(aiPlots[iBestPlot]);
+			apFree.erase(apFree.begin() + iBestUnit);
+			aiPlots.erase(aiPlots.begin() + iBestPlot);
+		}
+	}
+	itOwn = m_mapPioneerPlanTargets.find(kPioneer.getID());
+	return (itOwn != m_mapPioneerPlanTargets.end()) ? itOwn->second : -1;
+}
+
 // WTP: an immigrant on the docks the workforce plan wants as an expert: it has a job task the unit is an expert for
 // (bought for a job, or an expert immigrant the plan seated); free colonists and the like do not count
 bool CvPlayerAI::AI_isWantedExpertOnDock(const CvUnit& kUnit) const

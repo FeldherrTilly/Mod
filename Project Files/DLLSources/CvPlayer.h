@@ -1091,6 +1091,7 @@ protected:
 	int m_iDomesticMarketIncome; // WTP: gold the domestic markets of the colonies brought in the player's last turn (saved)
 	int m_iTurnCrimeGold; // WTP: gold stolen in this turn because of low law (one message per turn, not saved)
 	int m_iTurnCultureGold; // WTP: gold earned in this turn through culture (entertainment buildings; not saved)
+	std::map<int, int> m_mapPioneerPlans; // WTP: pioneer plan: plot index -> build * 10 + priority (saved)
 	// WTP, Slave Emancipation - END
 	int m_iFatherPointMultiplier;
 	int m_iMissionaryRateModifier;
@@ -1269,6 +1270,11 @@ public:
 	void changeDomesticMarketIncome(int iChange) { m_iDomesticMarketIncome += iChange; }
 	void changeTurnCrimeGold(int iChange) { m_iTurnCrimeGold += iChange; }
 	void changeTurnCultureGold(int iChange) { m_iTurnCultureGold += iChange; }
+	// WTP: pioneer plan: plots the player marked for an improvement (build) with priority 1 or 2 (AUTOMATE_PIONEER_PLAN works them)
+	void setPioneerPlan(int iPlotIndex, BuildTypes eBuild, int iPriority);
+	BuildTypes getPioneerPlanBuild(int iPlotIndex) const;
+	int getPioneerPlanPriority(int iPlotIndex) const;
+	const std::map<int, int>& getPioneerPlans() const { return m_mapPioneerPlans; }
 	static int getMilitaryProfessionUpkeep(ProfessionTypes eProfession, int& iFreePool);
 	bool isMilitaryEquipBlocked() const;
 protected:

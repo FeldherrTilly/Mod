@@ -284,6 +284,7 @@ class CvMainInterface:
 	"Main Interface Screen"
 
 	BUTTON_TERRITORIAL_INFLUENCE = 750
+	BUTTON_PIONEER_PLAN = 751 # WTP
 
 	def numPlotListButtons( self ):
 		return NUM_PLOT_LIST_BUTTONS
@@ -558,6 +559,12 @@ class CvMainInterface:
 		self.bTerritorialInfluenceLeftMouseDown = False
 		self.bTerritorialInfluenceRightMouseDown = False
 		self.bTerritorialInfluenceOldNoUnitCycling = False
+		# WTP: pioneer plan mode (mark plots for an improvement with priority 1 or 2)
+		self.bPioneerPlanMode = False
+		self.iPioneerPlanBuild = -1
+		self.iPioneerPlanPriority = 1
+		self.bPioneerPlanLeftMouseDown = False
+		self.bPioneerPlanRightMouseDown = False
 
 		self.TableYields = []
 		for iYield in range(YieldTypes.NUM_YIELD_TYPES):
@@ -694,7 +701,7 @@ class CvMainInterface:
 	# ADVISOR BUTTONS
 
 		SpaceAvailable = (xResolution / 2)
-		self.ADVISOR_BUTTON_SPACING = SpaceAvailable / 15
+		self.ADVISOR_BUTTON_SPACING = SpaceAvailable / 16
 		self.ADVISOR_BUTTON_SIZE = SMALL_BUTTON_SIZE * 2
 		iBtnX = xResolution / 6 - self.ADVISOR_BUTTON_SPACING
 
@@ -768,6 +775,17 @@ class CvMainInterface:
 		screen.setImageShape("TerritorialInfluenceButton", ImageShapes.IMAGE_SHAPE_ELLIPSE, -1)
 		screen.setHitMargins("TerritorialInfluenceButton", self.ADVISOR_BUTTON_SIZE / 6, self.ADVISOR_BUTTON_SIZE / 6)
 		self.appendtoHideState(screen, "TerritorialInfluenceButton", HIDE_TYPE_MAP, HIDE_LEVEL_HIDE)
+		iBtnX += self.ADVISOR_BUTTON_SPACING
+
+		# WTP: pioneer plan
+		iPioneer = gc.getInfoTypeForString("PROFESSION_PIONEER")
+		szPioneerButton = ArtFileMgr.getInterfaceArtInfo("INTERFACE_GENERAL_TERRITORIAL_INFLUENCE").getPath()
+		if iPioneer >= 0:
+			szPioneerButton = gc.getProfessionInfo(iPioneer).getButton()
+		screen.setImageButton("PioneerPlanButton", szPioneerButton, iBtnX, (TOP_CENTER_HUD_HEIGHT - self.ADVISOR_BUTTON_SIZE) / 2, self.ADVISOR_BUTTON_SIZE, self.ADVISOR_BUTTON_SIZE, WidgetTypes.WIDGET_GENERAL, self.BUTTON_PIONEER_PLAN, -1 )
+		screen.setImageShape("PioneerPlanButton", ImageShapes.IMAGE_SHAPE_ELLIPSE, -1)
+		screen.setHitMargins("PioneerPlanButton", self.ADVISOR_BUTTON_SIZE / 6, self.ADVISOR_BUTTON_SIZE / 6)
+		self.appendtoHideState(screen, "PioneerPlanButton", HIDE_TYPE_MAP, HIDE_LEVEL_HIDE)
 		iBtnX += self.ADVISOR_BUTTON_SPACING
 
 		screen.setImageButton("DomesticAdvisorButton", ArtFileMgr.getInterfaceArtInfo("INTERFACE_DOMESTIC_ADVISOR").getPath(), iBtnX, (TOP_CENTER_HUD_HEIGHT - self.ADVISOR_BUTTON_SIZE) / 2, self.ADVISOR_BUTTON_SIZE, self.ADVISOR_BUTTON_SIZE, WidgetTypes.WIDGET_ACTION, gc.getControlInfo(ControlTypes.CONTROL_DOMESTIC_SCREEN).getActionInfoIndex(), -1 )
@@ -3661,8 +3679,11 @@ class CvMainInterface:
 
 		screen = CyGInterfaceScreen("MainInterface", CvScreenEnums.MAIN_INTERFACE )
 
-		self.bTerritorialInfluenceMode = not self.bTerritorialInfluenceMode
+		# WTP: only one of the plot marking modes at a time
+		if not self.bTerritorialInfluenceMode and self.bPioneerPlanMode:
+			self.togglePioneerPlan()
 
+		self.bTerritorialInfluenceMode = not self.bTerritorialInfluenceMode
 		if self.bTerritorialInfluenceMode:
 			self.bTerritorialInfluenceOldNoUnitCycling = CyUserProfile().getPlayerOption(PlayerOptionTypes.PLAYEROPTION_NO_UNIT_CYCLING)
 
@@ -3723,7 +3744,110 @@ class CvMainInterface:
 			elif (inputClass.getButtonType() == WidgetTypes.WIDGET_GENERAL and inputClass.getData1() == self.BUTTON_TERRITORIAL_INFLUENCE):
 				self.toggleTerritorialInfluence()
 
+			elif (inputClass.getButtonType() == WidgetTypes.WIDGET_GENERAL and inputClass.getData1() == self.BUTTON_PIONEER_PLAN):
+				self.togglePioneerPlan()
+
+		# WTP: pioneer plan: the improvement and the priority chosen
+		elif (inputClass.getNotifyCode() == NotifyCode.NOTIFY_LISTBOX_ITEM_SELECTED):
+			szName = inputClass.getFunctionName()
+			if (szName.startswith("PioneerPlanBuild")):
+				self.iPioneerPlanBuild = screen.getPullDownData("PioneerPlanBuild", screen.getSelectedPullDownID("PioneerPlanBuild"))
+			elif (szName.startswith("PioneerPlanPriority")):
+				self.iPioneerPlanPriority = screen.getPullDownData("PioneerPlanPriority", screen.getSelectedPullDownID("PioneerPlanPriority"))
+
 		return 0
+
+	# WTP: pioneer plan mode: choose an improvement and a priority, left click marks a plot, right click removes the mark
+	def togglePioneerPlan(self):
+
+		screen = CyGInterfaceScreen("MainInterface", CvScreenEnums.MAIN_INTERFACE )
+
+		if not self.bPioneerPlanMode and self.bTerritorialInfluenceMode:
+			self.toggleTerritorialInfluence()
+
+		self.bPioneerPlanMode = not self.bPioneerPlanMode
+
+		if self.bPioneerPlanMode:
+			screen.overlayButtonGFC("PioneerPlanButton", ArtFileMgr.getInterfaceArtInfo("INTERFACE_HIGHLIGHTED_BUTTON").getPath())
+			xResolution = screen.getXResolution()
+			iX = xResolution / 2 - 180
+			iY = TOP_CENTER_HUD_HEIGHT + 8
+			screen.addDropDownBoxGFC("PioneerPlanBuild", iX, iY, 240, WidgetTypes.WIDGET_GENERAL, -1, -1, FontTypes.GAME_FONT)
+			for iBuild in range(gc.getNumBuildInfos()):
+				kBuild = gc.getBuildInfo(iBuild)
+				if kBuild.getImprovement() < 0:
+					continue
+				if self.iPioneerPlanBuild < 0:
+					self.iPioneerPlanBuild = iBuild
+				screen.addPullDownString("PioneerPlanBuild", kBuild.getDescription(), iBuild, iBuild, iBuild == self.iPioneerPlanBuild)
+			screen.addDropDownBoxGFC("PioneerPlanPriority", iX + 250, iY, 130, WidgetTypes.WIDGET_GENERAL, -1, -1, FontTypes.GAME_FONT)
+			for iPriority in range(1, 3):
+				screen.addPullDownString("PioneerPlanPriority", localText.getText("TXT_KEY_PIONEER_PLAN_PRIORITY", (iPriority,)), iPriority, iPriority, iPriority == self.iPioneerPlanPriority)
+			screen.show("PioneerPlanBuild")
+			screen.show("PioneerPlanPriority")
+			self.refreshPioneerPlan()
+		else:
+			screen.overlayButtonGFC("PioneerPlanButton", None)
+			screen.hide("PioneerPlanBuild")
+			screen.hide("PioneerPlanPriority")
+			CyEngine().clearAreaBorderPlots(AreaBorderLayers.AREA_BORDER_LAYER_WORLD_BUILDER)
+			CyEngine().clearAreaBorderPlots(AreaBorderLayers.AREA_BORDER_LAYER_REVEALED_PLOTS)
+
+	def updatePioneerPlanEditor(self):
+
+		if not self.bPioneerPlanMode:
+			return
+
+		if CyInterface().isCityScreenUp() or CyEngine().isGlobeviewUp():
+			return
+
+		pPlot = CyInterface().getMouseOverPlot()
+
+		if pPlot is None or pPlot.isNone():
+			return
+
+		CyEngine().clearAreaBorderPlots(AreaBorderLayers.AREA_BORDER_LAYER_WORLD_BUILDER)
+		CyEngine().fillAreaBorderPlotAlt(pPlot.getX(), pPlot.getY(), AreaBorderLayers.AREA_BORDER_LAYER_WORLD_BUILDER, "COLOR_BLUE", 1.0)
+
+		bLeftMouseDown = CyInterface().isLeftMouseDown()
+		bRightMouseDown = CyInterface().isRightMouseDown()
+		iPlayer = CyGame().getActivePlayer()
+
+		if bLeftMouseDown and not self.bPioneerPlanLeftMouseDown:
+			if iPlayer >= 0 and self.iPioneerPlanBuild >= 0 and not pPlot.isWater():
+				CyMessageControl().sendModNetMessage(751, iPlayer, pPlot.getX(), pPlot.getY(), self.iPioneerPlanBuild * 10 + self.iPioneerPlanPriority)
+				CyEngine().fillAreaBorderPlotAlt(pPlot.getX(), pPlot.getY(), AreaBorderLayers.AREA_BORDER_LAYER_REVEALED_PLOTS, self.pioneerPlanColor(self.iPioneerPlanPriority), 1.0)
+
+		elif bRightMouseDown and not self.bPioneerPlanRightMouseDown:
+			if iPlayer >= 0:
+				CyMessageControl().sendModNetMessage(751, iPlayer, pPlot.getX(), pPlot.getY(), 0)
+				self.refreshPioneerPlan(pPlot.getX(), pPlot.getY())
+
+		self.bPioneerPlanLeftMouseDown = bLeftMouseDown
+		self.bPioneerPlanRightMouseDown = bRightMouseDown
+
+	def pioneerPlanColor(self, iPriority):
+		if iPriority == 1:
+			return "COLOR_YELLOW"
+		return "COLOR_GREEN"
+
+	def refreshPioneerPlan(self, iSkipX = -1, iSkipY = -1):
+
+		CyEngine().clearAreaBorderPlots(AreaBorderLayers.AREA_BORDER_LAYER_REVEALED_PLOTS)
+
+		iPlayer = CyGame().getActivePlayer()
+
+		if iPlayer < 0:
+			return
+
+		pPlayer = gc.getPlayer(iPlayer)
+		for iX in range(CyMap().getGridWidth()):
+			for iY in range(CyMap().getGridHeight()):
+				if iX == iSkipX and iY == iSkipY:
+					continue
+				iPriority = pPlayer.getPioneerPlanPriority(iX, iY)
+				if iPriority > 0:
+					CyEngine().fillAreaBorderPlotAlt(iX, iY, AreaBorderLayers.AREA_BORDER_LAYER_REVEALED_PLOTS, self.pioneerPlanColor(iPriority), 1.0)
 
 	def updateTerritorialInfluenceEditor(self):
 
@@ -3816,6 +3940,7 @@ class CvMainInterface:
 	# Updates the Screen
 	def update( self, fDelta ):
 		self.updateTerritorialInfluenceEditor()
+		self.updatePioneerPlanEditor()
 		return
 
 	# Adds Mouse Over Help to General Widgets
@@ -3833,6 +3958,8 @@ class CvMainInterface:
 				return localText.getText("TXT_KEY_INTERFACE_ACHIEVE_ADVISOR", ("F10", ""));
 			elif iData1 == self.BUTTON_TERRITORIAL_INFLUENCE:
 				return localText.getText("TXT_KEY_INTERFACE_TERRITORIAL_INFLUENCE", ("Ctrl+I", ""));
+			elif iData1 == self.BUTTON_PIONEER_PLAN:
+				return localText.getText("TXT_KEY_INTERFACE_PIONEER_PLAN", ());
 			elif iData1 == VET_NEW_CAPACITY:
 				return localText.getText("TXT_KEY_NEW_STORAGE_CITY_SCREEN", ());
 			elif iData1 == NEW_HARBOUR_SYSTEM:

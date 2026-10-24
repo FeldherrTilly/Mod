@@ -49,6 +49,9 @@ void CyPlayerPythonInterface3(python::class_<CyPlayer>& x)
 		.def("getGold", &CyPlayer::getGold, "int ()")
 		.def("getMilitaryUpkeep", &CyPlayer::getMilitaryUpkeep, "int ()") // WTP
 		.def("getDomesticMarketIncome", &CyPlayer::getDomesticMarketIncome, "int ()") // WTP
+		.def("setPioneerPlan", &CyPlayer::setPioneerPlan, "void (int iX, int iY, int iBuild, int iPriority)") // WTP
+		.def("getPioneerPlanBuild", &CyPlayer::getPioneerPlanBuild, "int (int iX, int iY)") // WTP
+		.def("getPioneerPlanPriority", &CyPlayer::getPioneerPlanPriority, "int (int iX, int iY)") // WTP
 		.def("setGold", &CyPlayer::setGold, "void (int iNewValue)")
 		.def("changeGold", &CyPlayer::changeGold, "void (int iChange)")
 		.def("getAdvancedStartPoints", &CyPlayer::getAdvancedStartPoints, "int ()")

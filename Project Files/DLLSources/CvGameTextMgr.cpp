@@ -3012,6 +3012,18 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 
 		}
 
+		// WTP: the active player's pioneer plan for this plot
+		{
+			const PlayerTypes eActive = GC.getGameINLINE().getActivePlayer();
+			const int iPlanIndex = GC.getMap().plotNumINLINE(pPlot->getX_INLINE(), pPlot->getY_INLINE());
+			const BuildTypes ePlanBuild = (eActive != NO_PLAYER) ? GET_PLAYER(eActive).getPioneerPlanBuild(iPlanIndex) : NO_BUILD;
+			if (ePlanBuild != NO_BUILD)
+			{
+				szString.append(NEWLINE);
+				szString.append(gDLL->getText("TXT_KEY_PIONEER_PLAN_PLOT_HELP", GC.getBuildInfo(ePlanBuild).getTextKeyWide(), GET_PLAYER(eActive).getPioneerPlanPriority(iPlanIndex)));
+			}
+		}
+
 		eImprovement = pPlot->getRevealedImprovementType(GC.getGameINLINE().getActiveTeam(), true);
 		if (eImprovement != NO_IMPROVEMENT)
 		{

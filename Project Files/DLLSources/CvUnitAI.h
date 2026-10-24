@@ -146,6 +146,8 @@ public:
 	bool AI_travelPlan(const CvPlot& kTarget, CvPlot*& pPickup, CvPlot*& pDrop, int& iShipID, int& iTurns);
 	int AI_getTravelShipID() const { return m_iTravelShipID; }
 
+	// WTP: pioneer plan: a human player's pioneer builds the improvements the player marked (AUTOMATE_PIONEER_PLAN)
+	bool AI_doPioneerPlan();
 	// WTP: patrol of a human player's military unit or warship (AUTOMATE_PATROL) around the plot where it was switched on
 	void AI_setPatrolCenter(const CvPlot* pPlot);
 	bool AI_doPatrol();

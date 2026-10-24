@@ -2608,6 +2608,61 @@
 		<Hungarian> - kevés élelem</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_PIONEER_PLAN</Tag>
+		<English>Work the Pioneer Plan</English>
+		<Portuguese>Executar o plano dos pioneiros</Portuguese>
+		<French>Exécuter le plan des pionniers</French>
+		<German>Pionier-Plan abarbeiten</German>
+		<Italian>Eseguire il piano dei pionieri</Italian>
+		<Spanish>Ejecutar el plan de pioneros</Spanish>
+		<Russian>Выполнять план пионеров</Russian>
+		<Hungarian>Úttörőterv végrehajtása</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_PIONEER_PLAN_HELP</Tag>
+		<English>The pioneer builds the improvements marked in the pioneer plan: first the plots of priority 1 (each by the nearest pioneer), then those of priority 2. With nothing marked it waits.</English>
+		<Portuguese>O pioneiro constrói as melhorias marcadas no plano dos pioneiros: primeiro os terrenos de prioridade 1 (cada um pelo pioneiro mais próximo), depois os de prioridade 2. Sem marcações, ele espera.</Portuguese>
+		<French>Le pionnier construit les aménagements marqués dans le plan des pionniers : d'abord les cases de priorité 1 (chacune par le pionnier le plus proche), puis celles de priorité 2. Sans marque, il attend.</French>
+		<German>Der Pionier baut die im Pionier-Plan vorgemerkten Verbesserungen: zuerst die Felder mit Priorität 1 (jedes vom nächstgelegenen Pionier), dann die mit Priorität 2. Ist nichts vorgemerkt, wartet er.</German>
+		<Italian>Il pioniere costruisce i miglioramenti segnati nel piano dei pionieri: prima le caselle di priorità 1 (ognuna dal pioniere più vicino), poi quelle di priorità 2. Se non c'è nulla di segnato, attende.</Italian>
+		<Spanish>El pionero construye las mejoras marcadas en el plan de pioneros: primero las casillas de prioridad 1 (cada una el pionero más cercano), después las de prioridad 2. Sin marcas, espera.</Spanish>
+		<Russian>Пионер строит улучшения, отмеченные в плане пионеров: сначала клетки с приоритетом 1 (каждую — ближайший пионер), затем с приоритетом 2. Если ничего не отмечено, он ждёт.</Russian>
+		<Hungarian>Az úttörő megépíti az úttörőtervben megjelölt fejlesztéseket: először az 1-es prioritású mezőket (mindegyiket a legközelebbi úttörő), utána a 2-es prioritásúakat. Ha nincs jelölés, vár.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_INTERFACE_PIONEER_PLAN</Tag>
+		<English>[COLOR_YELLOW]Pioneer Plan[COLOR_REVERT]: mark plots for an improvement (choose it and its priority above, left click: mark, right click: remove). Pioneers with the automation "Work the Pioneer Plan" build them.</English>
+		<Portuguese>[COLOR_YELLOW]Plano dos pioneiros[COLOR_REVERT]: marcar terrenos para uma melhoria (escolha-a e a prioridade acima; clique esquerdo: marcar, clique direito: remover). Pioneiros com a automação "Executar o plano dos pioneiros" as constroem.</Portuguese>
+		<French>[COLOR_YELLOW]Plan des pionniers[COLOR_REVERT] : marquer des cases pour un aménagement (choisissez-le et sa priorité ci-dessus ; clic gauche : marquer, clic droit : retirer). Les pionniers avec l'automatisation « Exécuter le plan des pionniers » les construisent.</French>
+		<German>[COLOR_YELLOW]Pionier-Plan[COLOR_REVERT]: Felder für eine Verbesserung vormerken (oben Verbesserung und Priorität wählen; Linksklick: vormerken, Rechtsklick: entfernen). Pioniere mit der Automatik „Pionier-Plan abarbeiten“ bauen sie.</German>
+		<Italian>[COLOR_YELLOW]Piano dei pionieri[COLOR_REVERT]: segna caselle per un miglioramento (sceglilo e la priorità qui sopra; clic sinistro: segna, clic destro: rimuovi). I pionieri con l'automazione "Eseguire il piano dei pionieri" li costruiscono.</Italian>
+		<Spanish>[COLOR_YELLOW]Plan de pioneros[COLOR_REVERT]: marca casillas para una mejora (elígela y su prioridad arriba; clic izquierdo: marcar, clic derecho: quitar). Los pioneros con la automatización «Ejecutar el plan de pioneros» las construyen.</Spanish>
+		<Russian>[COLOR_YELLOW]План пионеров[COLOR_REVERT]: отметьте клетки для улучшения (выберите его и приоритет сверху; левый щелчок — отметить, правый — убрать). Пионеры с автоматизацией «Выполнять план пионеров» строят их.</Russian>
+		<Hungarian>[COLOR_YELLOW]Úttörőterv[COLOR_REVERT]: mezők megjelölése egy fejlesztéshez (fent válaszd ki azt és a prioritást; bal kattintás: megjelölés, jobb kattintás: törlés). Az „Úttörőterv végrehajtása” automatizálású úttörők építik meg.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PIONEER_PLAN_PRIORITY</Tag>
+		<English>Priority %d1</English>
+		<Portuguese>Prioridade %d1</Portuguese>
+		<French>Priorité %d1</French>
+		<German>Priorität %d1</German>
+		<Italian>Priorità %d1</Italian>
+		<Spanish>Prioridad %d1</Spanish>
+		<Russian>Приоритет %d1</Russian>
+		<Hungarian>%d1. prioritás</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PIONEER_PLAN_PLOT_HELP</Tag>
+		<English>[COLOR_YELLOW]Pioneer plan: %s1 (priority %d2)[COLOR_REVERT]</English>
+		<Portuguese>[COLOR_YELLOW]Plano dos pioneiros: %s1 (prioridade %d2)[COLOR_REVERT]</Portuguese>
+		<French>[COLOR_YELLOW]Plan des pionniers : %s1 (priorité %d2)[COLOR_REVERT]</French>
+		<German>[COLOR_YELLOW]Pionier-Plan: %s1 (Priorität %d2)[COLOR_REVERT]</German>
+		<Italian>[COLOR_YELLOW]Piano dei pionieri: %s1 (priorità %d2)[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_YELLOW]Plan de pioneros: %s1 (prioridad %d2)[COLOR_REVERT]</Spanish>
+		<Russian>[COLOR_YELLOW]План пионеров: %s1 (приоритет %d2)[COLOR_REVERT]</Russian>
+		<Hungarian>[COLOR_YELLOW]Úttörőterv: %s1 (%d2. prioritás)[COLOR_REVERT]</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_LOW_FOOD</Tag>
 		<English> - little %c1</English>
 		<Portuguese> - pouca %c1</Portuguese>
