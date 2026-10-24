@@ -20600,6 +20600,11 @@ bool CvPlayer::startPrivateBuild(int iX, int iY, BuildTypes eBuild)
 	{
 		return false;
 	}
+	// (the pioneer profession without its tools: the player paid for the work)
+	if (pUnit->getProfession() != ePioneer)
+	{
+		pUnit->setProfession(ePioneer, true, false);
+	}
 	changeGold(-PRIVATE_BUILD_COST);
 	static_cast<CvUnitAI*>(pUnit)->AI_setPrivateBuild(eBuild);
 	pUnit->setName(gDLL->getText("TXT_KEY_PRIVATE_PIONEER_NAME"));

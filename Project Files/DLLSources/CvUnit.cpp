@@ -9021,7 +9021,8 @@ bool CvUnit::canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestVisible)
 	// R&R, ray, prevent Forts and Monasteries to be built on Peaks - end
 
 	// R&R, ray, AI Improvement - START
-	if (!isHuman() || isAutomated())  //R&R 2.3, ray's fix for automated pioneers
+	// (WTP: not the private pioneer: the player chose its improvement, it may replace one or clear a feature)
+	if ((!isHuman() || isAutomated()) && static_cast<const CvUnitAI*>(this)->AI_getPrivateBuild() == NO_BUILD)  //R&R 2.3, ray's fix for automated pioneers
 	{
 		// only go into here, if there is a Terrain Feature and build would remove it
 		if (pPlot->getFeatureType() != NO_FEATURE && GC.getBuildInfo(eBuild).isFeatureRemove(pPlot->getFeatureType()))

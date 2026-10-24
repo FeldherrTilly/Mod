@@ -24277,6 +24277,9 @@ void CvUnitAI::AI_doPrivateBuild()
 	const ImprovementTypes eImprovement = (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement();
 	if ((eImprovement != NO_IMPROVEMENT && plot()->getImprovementType() == eImprovement) || !canBuild(plot(), eBuild))
 	{
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "private pioneer at %d,%d leaves: %s (build %S, profession %d, work rate %d)", getX_INLINE(), getY_INLINE(),
+			(eImprovement != NO_IMPROVEMENT && plot()->getImprovementType() == eImprovement) ? "the improvement is there" : "it cannot build it",
+			GC.getBuildInfo(eBuild).getDescription(), (int)getProfession(), workRate(true));
 		kill(true);
 		return;
 	}
