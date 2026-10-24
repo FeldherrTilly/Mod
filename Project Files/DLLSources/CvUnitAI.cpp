@@ -7826,7 +7826,7 @@ bool CvUnitAI::AI_africa()
 // nearest one to the treasure); bFar: the treasure waits more than TREASURE_NEAR_RANGE plots from our best port
 CvPlot* CvUnitAI::AI_europeTreasureTarget(CvPlot*& pArrival, bool& bFar)
 {
-	static const int TREASURE_NEAR_RANGE = 10;
+	static const int TREASURE_NEAR_RANGE = 20;
 	pArrival = NULL;
 	bFar = false;
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
