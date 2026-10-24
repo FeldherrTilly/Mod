@@ -391,7 +391,7 @@ void CyPlayer::setPioneerPlan(int iX, int iY, int iBuild, int iPriority)
 {
 	if (m_pPlayer && GC.getMap().isPlot(iX, iY))
 	{
-		m_pPlayer->setPioneerPlan(GC.getMap().plotNumINLINE(iX, iY), (BuildTypes)iBuild, iPriority);
+		pointer(CREATE_ASSERT_DATA)->setPioneerPlan(GC.getMap().plotNumINLINE(iX, iY), (BuildTypes)iBuild, iPriority);
 	}
 }
 int CyPlayer::getPioneerPlanBuild(int iX, int iY)
