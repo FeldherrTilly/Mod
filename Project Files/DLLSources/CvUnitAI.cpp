@@ -5617,10 +5617,10 @@ void CvUnitAI::AI_logShipTarget()
 		s_szWtpShipReason, szMission, szTarget.GetCString(), kOwner.getNumEuropeUnits(), GET_PLAYER(getOwnerINLINE()).AI_cargoSpaceToEurope(pGroup));
 }
 
-// WTP: 5 or more units wait in Europe beyond the room of the ships already sailing there: a transport without
-// passengers sails to Europe at once (goods aboard are sold there), even if units on the map still wait for a ship.
-// The Danish transports chased goodies and native trade for 25 turns while 21 units waited in Europe.
-bool CvUnitAI::AI_sailForEuropeBacklog()
+// WTP: units bought in Africa (the slaves of the workforce plan) are fetched by one transport without passengers. (The
+// rule that sent a transport to Europe at once when 5 or more units waited there beyond the room of the ships sailing
+// there is gone, user 2026-10-24.)
+bool CvUnitAI::AI_sailForAfricaUnits()
 {
 	// (a goods-only ship such as the smuggling ship cannot bring the waiting units)
 	if (hasAnyUnitInCargo() || getDomainType() != DOMAIN_SEA || !canCarryPeople())
@@ -5656,31 +5656,6 @@ bool CvUnitAI::AI_sailForEuropeBacklog()
 				getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString(), kOwner.getNumAfricaUnits());
 			return true;
 		}
-	}
-	if (kOwner.getNumCities() == 0 || !kOwner.canTradeWithEurope())
-	{
-		return false;
-	}
-	const int iBacklog = kOwner.getNumEuropeUnits() - kOwner.AI_cargoSpaceToEurope(getGroup());
-	if (iBacklog < 5)
-	{
-		return false;
-	}
-	// a ship that can carry the waiting treasures collects them first
-	int iLoop;
-	for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
-	{
-		if (pLoopUnit->AI_getUnitAIType() == UNITAI_TREASURE && pLoopUnit->isOnMap()
-			&& pLoopUnit->getUnitInfo().getRequiredTransportSize() <= cargoSpace())
-		{
-			return false;
-		}
-	}
-	if (AI_sailToEurope())
-	{
-		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) ship %S sails to Europe for %d waiting units (%d without a ship)",
-			getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString(), kOwner.getNumEuropeUnits(), iBacklog);
-		return true;
 	}
 	return false;
 }
@@ -5723,11 +5698,10 @@ void CvUnitAI::AI_transportSeaMove()
 		CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 		const bool bEmpty = !getGroup()->hasCargo();
 
-		// WTP: 5 or more units wait in Europe (beyond the room of the ships already sailing there): a ship without
-		// passengers sails there at once, even if units on the map still wait for a ship
-		if (AI_sailForEuropeBacklog())
+		// WTP: units bought in Africa are fetched by one transport without passengers
+		if (AI_sailForAfricaUnits())
 		{
-			s_szWtpShipReason = "Europe backlog";
+			s_szWtpShipReason = "Africa units";
 			return;
 		}
 
@@ -5753,6 +5727,7 @@ void CvUnitAI::AI_transportSeaMove()
 			return;
 		}
 
+
 		// WTP: a transport with room also picks up settlers and experts waiting nearby (within 2 turns), not only an
 		// empty one; a settler waited in port for many turns while loaded transports passed by. With goods only aboard
 		// the transport's next destination is unknown here (no detour check): within 1 turn only (user 2026-10-24: a
@@ -5765,7 +5740,6 @@ void CvUnitAI::AI_transportSeaMove()
 			AI_setUnitAIState(UNITAI_STATE_PICKUP);
 			return;
 		}
-
 		if (kOwner.AI_totalUnitAIs(UNITAI_TREASURE) > 0)
 		{
 			if (AI_respondToPickup(20, UNITAI_TREASURE))

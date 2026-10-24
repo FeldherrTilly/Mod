@@ -21474,7 +21474,7 @@ UnitTypes CvPlayerAI::AI_africaFoodWorker()
 // WTP: a colony needs a farm worker and a slave from Africa is cheaper than an expert farmer from Europe
 bool CvPlayerAI::AI_wantsAfricaFoodWorkers()
 {
-	// WTP: the workforce plan buys its African slaves itself and a transport fetches them (AI_sailForEuropeBacklog)
+	// WTP: the workforce plan buys its African slaves itself and a transport fetches them (AI_sailForAfricaUnits)
 	if (AI_isWorkforcePlanned())
 	{
 		return false;
