@@ -19212,7 +19212,11 @@ namespace
 		return 0;
 	}
 
-	const int WF_LUMBER_GOLD = 500; // gold x100 of lumber the carpenters use (the lumberjack for them earns it)
+	const int WF_LUMBER_GOLD = 500; // gold x100 of lumber the carpenters use (their input cost)
+	// WTP (user 2026-10-24): gold x100 a lumberjack earns for the lumber the carpenters lack: about the hammers it makes possible
+	// (at 5 gold, the price of exotic wood, an expert lumberjack in Sao Salvador cut exotic wood while the carpenters had 5 of
+	// the 22 lumber they need)
+	const int WF_LUMBER_SHORT_GOLD = 1000;
 
 	// gold x100 of one unit of a yield: the price Europe pays for it (AI_estimateYieldValue adds the AI base value of the
 	// XML, +2 per unit, which made cheap raw materials worth 40% more); yields Europe does not buy keep the estimate
@@ -20135,7 +20139,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				}
 				const int iFoodDelta = aiFood[iT * iNumJobs + j] - iConsumption;
 				int iJobGold = iGold;
-				// lumber the carpenters need (planned ones, or the first one still to come) is worth WF_LUMBER_GOLD
+				// lumber the carpenters need (planned ones, or the first one still to come) is worth WF_LUMBER_SHORT_GOLD
 				if (kJob.eYield == YIELD_LUMBER && kJob.pPlot != NULL)
 				{
 					const int iUse = kCity.aiUse[YIELD_LUMBER];
@@ -20143,7 +20147,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 					if (iNeed > 0 && iOutput > 0)
 					{
 						const int iForCarpenters = std::min(iNeed, iOutput);
-						iJobGold = std::max(iGold, iGold * (iOutput - iForCarpenters) / iOutput + iForCarpenters * WF_LUMBER_GOLD);
+						iJobGold = std::max(iGold, iGold * (iOutput - iForCarpenters) / iOutput + iForCarpenters * WF_LUMBER_SHORT_GOLD);
 					}
 				}
 				// the first carpenter of a colony is a must; expert carpenters, statesmen and preachers always work in their
@@ -20479,13 +20483,13 @@ void CvPlayerAI::AI_doWorkforcePlan()
 						const int iTFrom = WF_TYPE(w, iFrom);
 						const int iOldDelta = aiFood[iTFrom * iNumJobs + iFrom] - iConsumption;
 						int iOldGold = aiGold[iTFrom * iNumJobs + iFrom];
-						// a lumberjack's lumber the carpenters need is worth WF_LUMBER_GOLD, as in the plan (at 1 gold the lumberjacks
+						// a lumberjack's lumber the carpenters need is worth WF_LUMBER_SHORT_GOLD, as in the plan (at 1 gold the lumberjacks
 						// of Trankebar and Fort Christina stood in for coal miners and hunters while the carpenters lacked lumber)
 						const int iOldOutput = aiOutput[iTFrom * iNumJobs + iFrom];
 						if (aJobs[iFrom].eYield == YIELD_LUMBER && aJobs[iFrom].pPlot != NULL && iOldOutput > 0)
 						{
 							const int iForCarpenters = std::max(0, std::min(iOldOutput, kCity.aiUse[YIELD_LUMBER] - (kCity.aiRaw[YIELD_LUMBER] - iOldOutput)));
-							iOldGold = std::max(iOldGold, iOldGold * (iOldOutput - iForCarpenters) / iOldOutput + iForCarpenters * WF_LUMBER_GOLD);
+							iOldGold = std::max(iOldGold, iOldGold * (iOldOutput - iForCarpenters) / iOldOutput + iForCarpenters * WF_LUMBER_SHORT_GOLD);
 						}
 						iOldValue = iOldGold + wfFoodGold(kCity.iNowSurplus - iOldDelta, iOldDelta);
 						iDelta -= iOldDelta; // the change of the food
