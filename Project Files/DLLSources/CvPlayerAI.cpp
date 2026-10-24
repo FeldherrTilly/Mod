@@ -13143,29 +13143,8 @@ int CvPlayerAI::AI_unitAIValueMultipler(UnitAITypes eUnitAI)
 
 		// WTP, ray, Native Trade Posts - START
 		case UNITAI_TRADER:
-			if (!AI_isStrategy(STRATEGY_REVOLUTION_PREPARING))
-			{
-				int iLowerPop = 12;
-				int iPop = 15 + iCount * 5;
-				int iModifier = 0;
-				iModifier -= getNativeCombatModifier() * 4;
-				iModifier += getNativeTradeModifier();
-				iModifier += 10 * GC.getLeaderHeadInfo(getLeaderType()).getNativeAttitude();
-				iModifier += getNativeTradePostSuccessPercent() - 50;
-				if (iModifier != 0)
-				{
-					iLowerPop *= 100 + std::max(0, -iModifier);
-					iLowerPop /= 100 + std::max(0, iModifier);
-					iPop *= 100 + std::max(0, -iModifier);
-					iPop /= 100 + std::max(0, iModifier);
-				}
-
-				iValue = (100 * std::max(0, iPopulation - (iLowerPop + iPop * iCount))) / iPop;
-				if (iValue > 0)
-				{
-					iValue += 100;
-				}
-			}
+			// WTP: native traders only come from AI_doNativeTraderPurchase (about every 8 turns, equipped in Europe) and the
+			// early strategy Native Trader; the old need by population made the colonies send out a citizen as trader every turn
 			break;
 		// WTP, ray, Native Trade Posts - END
 
