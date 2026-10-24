@@ -20505,6 +20505,30 @@ int CvPlayer::getNativeTradePostSuccessPercent() const
 	return m_iNativeTradePostSuccessPercent;
 }
 
+// WTP (user 2026-10-24): the chance of a new trade post falls with the player's trade posts: 1% for each of the first 7,
+// 2% for each from the 8th on
+int CvPlayer::getTradePostCountPenalty() const
+{
+	int iPosts = 0;
+	for (PlayerTypes eNative = FIRST_PLAYER; eNative < NUM_PLAYER_TYPES; ++eNative)
+	{
+		const CvPlayer& kNative = GET_PLAYER(eNative);
+		if (!kNative.isAlive() || !kNative.isNative())
+		{
+			continue;
+		}
+		int iLoop;
+		for (const CvCity* pCity = kNative.firstCity(&iLoop); pCity != NULL; pCity = kNative.nextCity(&iLoop))
+		{
+			if (pCity->getTradePostPlayer() == getID())
+			{
+				++iPosts;
+			}
+		}
+	}
+	return std::min(iPosts, 7) + 2 * std::max(0, iPosts - 7);
+}
+
 void CvPlayer::setNativeTradePostSuccessPercent(int iValue)
 {
 	m_iNativeTradePostSuccessPercent = iValue;

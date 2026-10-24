@@ -22090,7 +22090,7 @@ bool CvPlayerAI::AI_doNativeTraderPurchase()
 // area with one of our colonies or on the coast: our transports bring the trader there)
 bool CvPlayerAI::AI_hasTradePostTarget() const
 {
-	if (getNativeTradePostSuccessPercent() < 40)
+	if (getNativeTradePostSuccessPercent() - getTradePostCountPenalty() < 40)
 	{
 		return false;
 	}

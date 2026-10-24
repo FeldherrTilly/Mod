@@ -883,6 +883,7 @@ public:
 	bool canHaveTradePost(PlayerTypes ePlayer) const;
 	void validateTradePosts();
 	int getNativeTradePostSuccessPercent() const;
+	int getTradePostCountPenalty() const;
 	void setNativeTradePostSuccessPercent(int iValue);
 	// WTP, ray, Native Trade Posts - END
 
