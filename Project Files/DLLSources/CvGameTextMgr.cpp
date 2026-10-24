@@ -267,12 +267,7 @@ void CvGameTextMgr::setGoldStr(CvWString& szString, PlayerTypes ePlayer)
 	{
 		szString.Format(L"%d", GET_PLAYER(ePlayer).getGold());
 	}
-	// WTP: military upkeep per turn
-	const int iUpkeep = GET_PLAYER(ePlayer).getMilitaryUpkeep();
-	if (iUpkeep > 0)
-	{
-		szString += gDLL->getText("TXT_KEY_MILITARY_UPKEEP_GOLD_STR", iUpkeep);
-	}
+	// (WTP: the military upkeep and the domestic market income are lines of their own below the gold, CvMainInterface.py)
 }
 
 void CvGameTextMgr::setOOSSeeds(CvWString& szString, PlayerTypes ePlayer)

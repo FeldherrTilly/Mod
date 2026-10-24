@@ -47,6 +47,8 @@ void CyPlayerPythonInterface3(python::class_<CyPlayer>& x)
 		.def("getTotalLand", &CyPlayer::getTotalLand, "int ()")
 		.def("getTotalLandScored", &CyPlayer::getTotalLandScored, "int ()")
 		.def("getGold", &CyPlayer::getGold, "int ()")
+		.def("getMilitaryUpkeep", &CyPlayer::getMilitaryUpkeep, "int ()") // WTP
+		.def("getDomesticMarketIncome", &CyPlayer::getDomesticMarketIncome, "int ()") // WTP
 		.def("setGold", &CyPlayer::setGold, "void (int iNewValue)")
 		.def("changeGold", &CyPlayer::changeGold, "void (int iChange)")
 		.def("getAdvancedStartPoints", &CyPlayer::getAdvancedStartPoints, "int ()")
