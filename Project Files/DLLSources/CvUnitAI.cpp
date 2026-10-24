@@ -21310,8 +21310,19 @@ bool CvUnitAI::AI_treasureRetreat(int iMaxPathTurns)
 						if (atPlot(pLoopPlot) || generatePath(pLoopPlot, ((iPass % 2 > 0) ? MOVE_IGNORE_DANGER : 0), true, &iPathTurns, iMaxPathTurns))
 						{
 							int iValue = 3 + pLoopPlot->getDistanceToOcean();
-
 							iValue *= 3 + iPathTurns;
+							// WTP (user 2026-10-24): a port where other treasures of ours wait is preferred (they are merged there)
+							int iWaiting = 0;
+							CLLNode<IDInfo>* pTreasureNode = pLoopPlot->headUnitNode();
+							while (pTreasureNode != NULL)
+							{
+								const CvUnit* const pOther = pLoopPlot->getUnitNodeLoop(pTreasureNode);
+								if (pOther != NULL && pOther != this && pOther->getOwnerINLINE() == getOwnerINLINE() && pOther->getUnitInfo().isTreasure() && !pOther->isCargo())
+								{
+									++iWaiting;
+								}
+							}
+							iValue = iValue * 2 / (2 + iWaiting);
 
 							if (iValue < iBestValue)
 							{
