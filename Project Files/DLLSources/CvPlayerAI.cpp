@@ -22162,8 +22162,8 @@ bool CvPlayerAI::AI_isTraderTargetTaken(int iPlotIndex, int iUnitID) const
 
 // WTP: pioneer plan (user 2026-10-25): the plot a pioneer with the automation AUTOMATE_PIONEER_PLAN works on (-1: none).
 // Marks whose improvement exists already are removed. Free pioneers get their plots together, the nearest pair of pioneer
-// and plot first: a priority 1 plot gets a hardy pioneer or two pioneers (a hardy pioneer counts twice), then the pioneers
-// left go to the priority 2 plots, one each. Only plots on the pioneer's land area.
+// and plot first (a priority 2 plot counts 6 plots further away): a priority 1 plot gets a hardy pioneer or two pioneers
+// (a hardy pioneer counts twice), a priority 2 plot one. Only plots on the pioneer's land area.
 namespace
 {
 	// the strength a pioneer brings to a priority 1 plot (2 are needed): a hardy pioneer (expert pioneer) 2, others 1
@@ -22193,8 +22193,8 @@ int CvPlayerAI::AI_pioneerPlanTarget(const CvUnit& kPioneer)
 	{
 		setPioneerPlan(aiDone[i], NO_BUILD, 0);
 	}
-	// targets of pioneers that are gone, no longer automated or whose mark is gone
-	std::set<int> setTaken;
+	// targets of pioneers that are gone, no longer automated or whose mark is gone; the strength on each plot
+	std::map<int, int> mapStrength;
 	for (std::map<int, int>::iterator it = m_mapPioneerPlanTargets.begin(); it != m_mapPioneerPlanTargets.end(); )
 	{
 		const CvUnit* const pUnit = getUnit(it->first);
@@ -22205,7 +22205,7 @@ int CvPlayerAI::AI_pioneerPlanTarget(const CvUnit& kPioneer)
 		}
 		else
 		{
-			setTaken.insert(it->second);
+			mapStrength[it->second] += pioneerPlanStrength(*pUnit);
 			++it;
 		}
 	}
@@ -22225,48 +22225,56 @@ int CvPlayerAI::AI_pioneerPlanTarget(const CvUnit& kPioneer)
 			apFree.push_back(pLoopUnit);
 		}
 	}
-	for (int iPriority = 1; iPriority <= 2; ++iPriority)
+	// WTP (user 2026-10-25): priority 1 and 2 plots together; a priority 2 plot counts PIONEER_PLAN_PRIORITY_DISTANCE plots
+	// further away (a pioneer takes it if the nearest priority 1 plot is that much further); a priority 1 plot wants strength 2
+	// (a hardy pioneer or two pioneers), a priority 2 plot one pioneer
+	static const int PIONEER_PLAN_PRIORITY_DISTANCE = 6;
+	std::vector<int> aiPlots;
+	for (std::map<int, int>::const_iterator it = getPioneerPlans().begin(); it != getPioneerPlans().end(); ++it)
 	{
-		std::vector<int> aiPlots;
-		for (std::map<int, int>::const_iterator it = getPioneerPlans().begin(); it != getPioneerPlans().end(); ++it)
+		const int iWanted = (it->second % 10 == 1) ? 2 : 1;
+		const std::map<int, int>::const_iterator itStrength = mapStrength.find(it->first);
+		if (itStrength == mapStrength.end() || itStrength->second < iWanted)
 		{
-			if (it->second % 10 == iPriority && setTaken.count(it->first) == 0)
-			{
-				aiPlots.push_back(it->first);
-			}
+			aiPlots.push_back(it->first);
 		}
-		while (!aiPlots.empty() && !apFree.empty())
+	}
+	while (!aiPlots.empty() && !apFree.empty())
+	{
+		int iBestDistance = MAX_INT;
+		int iBestUnit = -1;
+		int iBestPlot = -1;
+		for (uint u = 0; u < apFree.size(); ++u)
 		{
-			int iBestDistance = MAX_INT;
-			int iBestUnit = -1;
-			int iBestPlot = -1;
-			for (uint u = 0; u < apFree.size(); ++u)
+			for (uint p = 0; p < aiPlots.size(); ++p)
 			{
-				for (uint p = 0; p < aiPlots.size(); ++p)
+				const CvPlot* const pPlot = kMap.plotByIndexINLINE(aiPlots[p]);
+				if (pPlot->area() != apFree[u]->area() || !apFree[u]->canBuild(pPlot, getPioneerPlanBuild(aiPlots[p])))
 				{
-					const CvPlot* const pPlot = kMap.plotByIndexINLINE(aiPlots[p]);
-					if (pPlot->area() != apFree[u]->area() || !apFree[u]->canBuild(pPlot, getPioneerPlanBuild(aiPlots[p])))
-					{
-						continue;
-					}
-					const int iDistance = plotDistance(apFree[u]->getX_INLINE(), apFree[u]->getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-					if (iDistance < iBestDistance)
-					{
-						iBestDistance = iDistance;
-						iBestUnit = u;
-						iBestPlot = p;
-					}
+					continue;
+				}
+				const int iDistance = plotDistance(apFree[u]->getX_INLINE(), apFree[u]->getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE())
+					+ ((getPioneerPlanPriority(aiPlots[p]) == 2) ? PIONEER_PLAN_PRIORITY_DISTANCE : 0);
+				if (iDistance < iBestDistance)
+				{
+					iBestDistance = iDistance;
+					iBestUnit = u;
+					iBestPlot = p;
 				}
 			}
-			if (iBestUnit < 0)
-			{
-				break;
-			}
-			m_mapPioneerPlanTargets[apFree[iBestUnit]->getID()] = aiPlots[iBestPlot];
-			setTaken.insert(aiPlots[iBestPlot]);
-			apFree.erase(apFree.begin() + iBestUnit);
+		}
+		if (iBestUnit < 0)
+		{
+			break;
+		}
+		const int iPlot = aiPlots[iBestPlot];
+		m_mapPioneerPlanTargets[apFree[iBestUnit]->getID()] = iPlot;
+		mapStrength[iPlot] += pioneerPlanStrength(*apFree[iBestUnit]);
+		if (mapStrength[iPlot] >= ((getPioneerPlanPriority(iPlot) == 1) ? 2 : 1))
+		{
 			aiPlots.erase(aiPlots.begin() + iBestPlot);
 		}
+		apFree.erase(apFree.begin() + iBestUnit);
 	}
 	itOwn = m_mapPioneerPlanTargets.find(kPioneer.getID());
 	return (itOwn != m_mapPioneerPlanTargets.end()) ? itOwn->second : -1;
