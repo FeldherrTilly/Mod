@@ -5705,39 +5705,6 @@ void CvUnitAI::AI_transportSeaMove()
 			return;
 		}
 
-		// WTP: only a galleon carries treasures; it collects all waiting treasures first and then sells them in Europe
-		if (getUnitAICargo(UNITAI_TREASURE) > 0)
-		{
-			if (!isFull() && AI_respondToPickup(MAX_INT, UNITAI_TREASURE))
-			{
-				s_szWtpShipReason = "more treasures";
-				AI_setUnitAIState(UNITAI_STATE_PICKUP);
-				return;
-			}
-			if (AI_sailToEurope())
-			{
-				s_szWtpShipReason = "treasures to Europe";
-				return;
-			}
-		}
-		else if (!hasAnyUnitInCargo() && kOwner.AI_totalUnitAIs(UNITAI_TREASURE) > 0 && AI_respondToPickup(MAX_INT, UNITAI_TREASURE))
-		{
-			s_szWtpShipReason = "treasure pickup";
-			AI_setUnitAIState(UNITAI_STATE_PICKUP);
-			return;
-		}
-
-
-		if (kOwner.AI_totalUnitAIs(UNITAI_TREASURE) > 0)
-		{
-			if (AI_respondToPickup(20, UNITAI_TREASURE))
-			{
-				s_szWtpShipReason = "treasure pickup";
-				AI_setUnitAIState(UNITAI_STATE_SAIL);
-				return;
-			}
-		}
-
 		CvCity* pCity = NULL;
 		if (plot()->getPlotCity() != NULL)
 		{
@@ -5830,6 +5797,31 @@ void CvUnitAI::AI_transportSeaMove()
 			}
 		}
 
+		// WTP (user 2026-10-24): treasures right before the sail state. A ship carrying treasures collects those waiting
+		// nearby (within 6 turns), then sails to Europe; a ship without passengers fetches waiting treasures (an empty one
+		// wherever they wait, one with goods aboard within 10 turns). Only ships that can carry treasures respond.
+		if (getUnitAICargo(UNITAI_TREASURE) > 0)
+		{
+			if (!isFull() && AI_respondToPickup(6, UNITAI_TREASURE))
+			{
+				s_szWtpShipReason = "more treasures nearby";
+				AI_setUnitAIState(UNITAI_STATE_PICKUP);
+				return;
+			}
+			if (AI_sailToEurope())
+			{
+				s_szWtpShipReason = "treasures to Europe";
+				return;
+			}
+		}
+		else if (!hasAnyUnitInCargo() && !isFull() && kOwner.AI_totalUnitAIs(UNITAI_TREASURE) > 0
+			&& AI_respondToPickup(bEmpty ? MAX_INT : 10, UNITAI_TREASURE))
+		{
+			s_szWtpShipReason = bEmpty ? "treasure pickup" : "treasure pickup with goods aboard";
+			AI_setUnitAIState(UNITAI_STATE_PICKUP);
+			return;
+		}
+
 		if (AI_getUnitAIState() == UNITAI_STATE_SAIL)
 		{
 			s_szWtpShipReason = "sail state";
@@ -5868,26 +5860,10 @@ void CvUnitAI::AI_transportSeaMove()
 			}
 
 
-			if (kOwner.AI_totalUnitAIs(UNITAI_TREASURE) > 0)
-			{
-				if (AI_respondToPickup(2, UNITAI_TREASURE))
-				{
-					return;
-				}
-			}
-
 			// If we happen to be in a city we own, attempt to load as many goods as possible
 			if (pCity != NULL && pCity->getOwnerINLINE() == getOwnerINLINE())
 			{
 				AI_collectGoods();
-			}
-
-			if (kOwner.AI_totalUnitAIs(UNITAI_TREASURE) > 0)
-			{
-				if (AI_respondToPickup(10, UNITAI_TREASURE))
-				{
-					return;
-				}
 			}
 
 			if (isFull())
@@ -6001,17 +5977,6 @@ void CvUnitAI::AI_transportSeaMove()
 					}
 				}
 			}
-		}
-
-		if (kOwner.AI_totalUnitAIs(UNITAI_TREASURE) > 0)
-		{
-			if (AI_respondToPickup(MAX_INT, UNITAI_TREASURE))
-			{
-				s_szWtpShipReason = "treasure pickup";
-				AI_setUnitAIState(UNITAI_STATE_SAIL);
-				return;
-			}
-
 		}
 
 		if (bEmpty && GC.getGameINLINE().getSorenRandNum(100, "AI Respond to Pickup 1") < 25)
