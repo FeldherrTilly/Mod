@@ -24348,6 +24348,10 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 
 	// the best job per (colony, profession)
 	std::map<std::pair<int, int>, HumanJob> mapJobs;
+	// WTP (user 2026-10-24): the best job of the expert's own trade is always offered, even where food or happiness would
+	// keep it from the list, and even if better paid jobs fill the list
+	HumanJob kBestExpertJob;
+	kBestExpertJob.iScore = 0;
 	// colonies short of food, and whether this worker is offered food jobs there
 	std::set<int> aFoodShortCities;
 	const UnitClassTypes eUnitClass = (UnitClassTypes)kUnit.getUnitInfo().getUnitClassType();
@@ -24450,7 +24454,7 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 			{
 				continue;
 			}
-			if (pHolder == NULL && (bCrowded || !pCity->canWork(pLoopPlot)))
+			if (pHolder == NULL && !pCity->canWork(pLoopPlot))
 			{
 				continue;
 			}
@@ -24465,7 +24469,7 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 				}
 				int iFood = 0;
 				const int iValue = wfHumanJobValue(*pCity, kUnitAI, eProfession, pLoopPlot, 0, eColonist, &iFood);
-				if (iValue <= 0 || (iFood <= 0 && iSpare < 2 && pHolder == NULL))
+				if (iValue <= 0)
 				{
 					continue;
 				}
@@ -24475,21 +24479,34 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 					continue;
 				}
 				const int iScore = iValue * 20 / (20 + iCityTurns);
+				if (iScore <= 0)
+				{
+					continue;
+				}
+				HumanJob kJob;
+				kJob.iScore = iScore;
+				kJob.iCityID = pCity->getID();
+				kJob.eProfession = eProfession;
+				kJob.iX = pLoopPlot->getX_INLINE();
+				kJob.iY = pLoopPlot->getY_INLINE();
+				kJob.iDisplaceID = (pHolder != NULL) ? pHolder->getID() : -1;
+				kJob.iTurns = iCityTurns;
+				kJob.iGold = iValue / 100;
+				kJob.iFood = iFood;
+				kJob.bFoodShortage = false;
+				if (bExpert && iScore > kBestExpertJob.iScore)
+				{
+					kBestExpertJob = kJob;
+				}
+				// a new citizen only where it does not make the colony unhappy and, without food of its own, where food is to spare
+				if (pHolder == NULL && (bCrowded || (iFood <= 0 && iSpare < 2)))
+				{
+					continue;
+				}
 				const std::pair<int, int> kKey(pCity->getID(), (int)eProfession);
 				const std::map<std::pair<int, int>, HumanJob>::const_iterator itJob = mapJobs.find(kKey);
-				if (iScore > 0 && (itJob == mapJobs.end() || iScore > itJob->second.iScore))
+				if (itJob == mapJobs.end() || iScore > itJob->second.iScore)
 				{
-					HumanJob kJob;
-					kJob.iScore = iScore;
-					kJob.iCityID = pCity->getID();
-					kJob.eProfession = eProfession;
-					kJob.iX = pLoopPlot->getX_INLINE();
-					kJob.iY = pLoopPlot->getY_INLINE();
-					kJob.iDisplaceID = (pHolder != NULL) ? pHolder->getID() : -1;
-					kJob.iTurns = iCityTurns;
-					kJob.iGold = iValue / 100;
-					kJob.iFood = iFood;
-					kJob.bFoodShortage = false;
 					mapJobs[kKey] = kJob;
 				}
 			}
@@ -24529,7 +24546,7 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 				}
 			}
 			CvUnit* const pHolder = (iUsed < iSlots) ? NULL : (bExpert ? pRegular : NULL);
-			if (iSlots <= 0 || (iUsed >= iSlots && pHolder == NULL) || (bCrowded && pHolder == NULL))
+			if (iSlots <= 0 || (iUsed >= iSlots && pHolder == NULL))
 			{
 				continue;
 			}
@@ -24548,7 +24565,7 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 			int iFood = 0;
 			const int iSlot = (pHolder != NULL) ? iUsed - 1 : iUsed;
 			const int iValue = wfHumanJobValue(*pCity, kUnitAI, eProfession, NULL, iSlot, eColonist, &iFood);
-			if (iValue <= 0 || (iFood <= 0 && iSpare < 2 && pHolder == NULL))
+			if (iValue <= 0)
 			{
 				continue;
 			}
@@ -24557,21 +24574,33 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 				continue;
 			}
 			const int iScore = iValue * 20 / (20 + iCityTurns);
+			if (iScore <= 0)
+			{
+				continue;
+			}
+			HumanJob kJob;
+			kJob.iScore = iScore;
+			kJob.iCityID = pCity->getID();
+			kJob.eProfession = eProfession;
+			kJob.iX = -1;
+			kJob.iY = -1;
+			kJob.iDisplaceID = (pHolder != NULL) ? pHolder->getID() : -1;
+			kJob.iTurns = iCityTurns;
+			kJob.iGold = iValue / 100;
+			kJob.iFood = iFood;
+			kJob.bFoodShortage = false;
+			if (bExpert && iScore > kBestExpertJob.iScore)
+			{
+				kBestExpertJob = kJob;
+			}
+			if (pHolder == NULL && (bCrowded || (iFood <= 0 && iSpare < 2)))
+			{
+				continue;
+			}
 			const std::pair<int, int> kKey(pCity->getID(), (int)eProfession);
 			const std::map<std::pair<int, int>, HumanJob>::const_iterator itJob = mapJobs.find(kKey);
-			if (iScore > 0 && (itJob == mapJobs.end() || iScore > itJob->second.iScore))
+			if (itJob == mapJobs.end() || iScore > itJob->second.iScore)
 			{
-				HumanJob kJob;
-				kJob.iScore = iScore;
-				kJob.iCityID = pCity->getID();
-				kJob.eProfession = eProfession;
-				kJob.iX = -1;
-				kJob.iY = -1;
-				kJob.iDisplaceID = (pHolder != NULL) ? pHolder->getID() : -1;
-				kJob.iTurns = iCityTurns;
-				kJob.iGold = iValue / 100;
-				kJob.iFood = iFood;
-				kJob.bFoodShortage = false;
 				mapJobs[kKey] = kJob;
 			}
 		}
@@ -24627,6 +24656,23 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 	if ((int)aJobs.size() > iMaxJobs)
 	{
 		aJobs.resize(iMaxJobs);
+	}
+	// the expert's own trade: at least one job of it in the list (instead of the last one)
+	if (kBestExpertJob.iScore > 0 && iMaxJobs > 0)
+	{
+		bool bHasExpertJob = false;
+		for (uint i = 0; i < aJobs.size() && !bHasExpertJob; ++i)
+		{
+			bHasExpertJob = wfIsExpertFor(kUnitAI, aJobs[i].eProfession);
+		}
+		if (!bHasExpertJob)
+		{
+			if ((int)aJobs.size() >= iMaxJobs)
+			{
+				aJobs.pop_back();
+			}
+			aJobs.push_back(kBestExpertJob);
+		}
 	}
 }
 
