@@ -2751,6 +2751,12 @@ bool CvUnit::canDoCommand(CommandTypes eCommand, int iData1, int iData2, bool bT
 {
 	CvUnit* pUnit;
 
+	// WTP: the private pioneer takes no commands
+	if (static_cast<const CvUnitAI*>(this)->AI_getPrivateBuild() != NO_BUILD)
+	{
+		return false;
+	}
+
 	if (bTestBusy && getGroup()->isBusy())
 	{
 		return false;
@@ -4825,6 +4831,10 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 
 	// WTP: transport to a city or plot: set by its own buttons (COMMAND_TRANSPORT_TO_CITY, INTERFACEMODE_TRANSPORT_TO)
 	case AUTOMATE_TRAVEL:
+		return false;
+
+	// WTP: private pioneer: set when the player pays for it (CvPlayer::startPrivateBuild), never by the player
+	case AUTOMATE_PRIVATE_BUILD:
 		return false;
 
 	// WTP: pioneer plan: a human player's pioneer (a unit that can build improvements) alone on the map
@@ -8831,6 +8841,11 @@ bool CvUnit::doFound(bool bBuyLand)
 bool CvUnit::canJoinCity(const CvPlot* pPlot, bool bTestVisible, bool bIgnoreFood) const
 // TAC - Clear Specialty Fix - koma13 - END
 {
+	// WTP: the private pioneer does not join a colony
+	if (static_cast<const CvUnitAI*>(this)->AI_getPrivateBuild() != NO_BUILD)
+	{
+		return false;
+	}
 	CvCity* pCity = pPlot->getPlotCity();
 
 	if (pCity == NULL)
@@ -9065,6 +9080,16 @@ bool CvUnit::build(BuildTypes eBuild)
 
 	if (bFinished)
 	{
+		// WTP: the private pioneer has done its work and leaves
+		if (static_cast<const CvUnitAI*>(this)->AI_getPrivateBuild() != NO_BUILD)
+		{
+			const CvCity* const pNear = plot()->getWorkingCity();
+			const CvWString szBuffer = gDLL->getText("TXT_KEY_PRIVATE_BUILD_DONE", GC.getBuildInfo(eBuild).getTextKeyWide(),
+				(pNear != NULL) ? pNear->getNameKey() : L"-");
+			gDLL->UI().addPlayerMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, plot(), "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO,
+				GC.getBuildInfo(eBuild).getButton(), COLOR_WHITE, true, true);
+			kill(true);
+		}
 		// WTP: pioneer plan: the mark of this improvement is done
 		{
 			CvPlayer& kOwner = GET_PLAYER(getOwnerINLINE());

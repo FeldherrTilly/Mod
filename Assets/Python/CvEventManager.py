@@ -379,6 +379,13 @@ class CvEventManager:
 				gc.getPlayer(iPlayer).setPioneerPlan(iData3, iData4, iData5 / 10, iData5 % 10)
 			return
 
+		# WTP: private pioneer (iData5: the build)
+		if (iData1 == 754):
+			iPlayer = iData2
+			if (iPlayer >= 0 and iPlayer < gc.getMAX_PLAYERS()):
+				gc.getPlayer(iPlayer).startPrivateBuild(iData3, iData4, iData5)
+			return
+
 		print("Modder's net message!")
 
 		CvUtil.pyPrint( 'onModNetMessage' )

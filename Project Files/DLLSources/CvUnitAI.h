@@ -148,6 +148,11 @@ public:
 
 	// WTP: pioneer plan: a human player's pioneer builds the improvements the player marked (AUTOMATE_PIONEER_PLAN)
 	bool AI_doPioneerPlan();
+	// WTP: private pioneer: a hardy pioneer the player paid for builds one improvement and leaves (AUTOMATE_PRIVATE_BUILD);
+	// the player cannot command it
+	BuildTypes AI_getPrivateBuild() const { return (BuildTypes)m_iPrivateBuild; }
+	void AI_setPrivateBuild(BuildTypes eBuild) { m_iPrivateBuild = (int)eBuild; }
+	void AI_doPrivateBuild();
 	// WTP: patrol of a human player's military unit or warship (AUTOMATE_PATROL) around the plot where it was switched on
 	void AI_setPatrolCenter(const CvPlot* pPlot);
 	bool AI_doPatrol();
@@ -194,6 +199,7 @@ protected:
 	int m_iTravelShipID; // WTP: transport to a city or plot: the ship that takes the unit (-1: it walks)
 	int m_iTravelPickup; // WTP: transport to a city or plot: plot number of the port where the ship picks it up (-1: none)
 	int m_iPatrolCenter; // WTP: patrol: plot number of the plot it patrols around (-1: none)
+	int m_iPrivateBuild; // WTP: private pioneer: the build it was paid for (NO_BUILD: none)
 	int m_iNativeTradeBuyTurn; // WTP: native trade ship: turn of its last purchase at a village
 	int m_iNativeTradeArriveTurn; // WTP: native trade ship: turn of its first move on the map after Europe (-1: not yet)
 	int m_iNativeTradeSlotsFullTurn; // WTP: native trade ship: turn all its cargo slots were taken (-1: not yet)

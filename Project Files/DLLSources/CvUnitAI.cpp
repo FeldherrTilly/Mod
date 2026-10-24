@@ -208,6 +208,10 @@ bool CvUnitAI::AI_update()
 			case AUTOMATE_PIONEER_PLAN:
 				AI_doPioneerPlan();
 				break;
+			// WTP: private pioneer paid by the player
+			case AUTOMATE_PRIVATE_BUILD:
+				AI_doPrivateBuild();
+				break;
 			// WTP: patrol of a human player's military unit or warship
 			case AUTOMATE_PATROL:
 				if (!AI_doPatrol() && getGroup() != NULL)
@@ -24258,6 +24262,25 @@ bool CvUnitAI::AI_transportAutoAssignColonists()
 		return true;
 	}
 	return false;
+}
+
+// WTP: private pioneer (user 2026-10-25): it builds the improvement it was paid for on its plot (as fast as a hardy pioneer);
+// when it is there already or cannot be built any more, the private pioneer leaves (CvUnit::build removes it when done)
+void CvUnitAI::AI_doPrivateBuild()
+{
+	const BuildTypes eBuild = AI_getPrivateBuild();
+	if (eBuild == NO_BUILD)
+	{
+		getGroup()->setAutomateType(NO_AUTOMATE);
+		return;
+	}
+	const ImprovementTypes eImprovement = (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement();
+	if ((eImprovement != NO_IMPROVEMENT && plot()->getImprovementType() == eImprovement) || !canBuild(plot(), eBuild))
+	{
+		kill(true);
+		return;
+	}
+	getGroup()->pushMission(MISSION_BUILD, eBuild, -1, 0, false, false, MISSIONAI_BUILD, plot());
 }
 
 // WTP: pioneer plan (user 2026-10-25): the pioneer goes to the plot it got (CvPlayerAI::AI_pioneerPlanTarget) and builds the

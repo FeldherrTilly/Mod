@@ -645,6 +645,21 @@ bool CvSelectionGroup::canStartMission(int iMission, int iData1, int iData2, CvP
 {
 	PROFILE_FUNC();
 
+	// WTP: a private pioneer only builds what it was paid for (or waits): the player cannot move or command it
+	{
+		CLLNode<IDInfo>* pPrivateNode = headUnitNode();
+		while (pPrivateNode != NULL)
+		{
+			const CvUnit* const pPrivate = ::getUnit(pPrivateNode->m_data);
+			pPrivateNode = nextUnitNode(pPrivateNode);
+			const BuildTypes ePrivateBuild = (pPrivate != NULL) ? static_cast<const CvUnitAI*>(pPrivate)->AI_getPrivateBuild() : NO_BUILD;
+			if (ePrivateBuild != NO_BUILD && !(iMission == MISSION_BUILD && iData1 == ePrivateBuild) && iMission != MISSION_SKIP)
+			{
+				return false;
+			}
+		}
+	}
+
 	CLLNode<IDInfo>* pUnitNode;
 	CvUnit* pTargetUnit;
 	CvUnit* pLoopUnit;

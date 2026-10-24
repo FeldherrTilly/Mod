@@ -128,6 +128,7 @@ public:
 	void setPioneerPlan(int iX, int iY, int iBuild, int iPriority); // WTP
 	int getPioneerPlanBuild(int iX, int iY); // WTP
 	int getPioneerPlanPriority(int iX, int iY); // WTP
+	bool startPrivateBuild(int iX, int iY, int iBuild); // WTP
 	void setGold(int iNewValue);
 	void changeGold(int iChange);
 	int getAdvancedStartPoints();

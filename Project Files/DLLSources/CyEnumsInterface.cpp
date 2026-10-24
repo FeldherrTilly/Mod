@@ -761,6 +761,7 @@ void CyEnumsPythonInterface()
 		.value("AUTOMATE_TRAVEL", AUTOMATE_TRAVEL) // WTP
 		.value("AUTOMATE_PATROL", AUTOMATE_PATROL) // WTP
 		.value("AUTOMATE_PIONEER_PLAN", AUTOMATE_PIONEER_PLAN) // WTP
+		.value("AUTOMATE_PRIVATE_BUILD", AUTOMATE_PRIVATE_BUILD) // WTP
 		.value("NUM_AUTOMATE_TYPES", NUM_AUTOMATE_TYPES)
 		;
 	python::enum_<MissionTypes>("MissionTypes")

@@ -2641,6 +2641,94 @@
 		<Hungarian>[COLOR_YELLOW]Úttörőterv[COLOR_REVERT]: mezők megjelölése egy fejlesztéshez (fent válaszd ki azt és a prioritást; bal kattintás: megjelölés, jobb kattintás: törlés). Az „Úttörőterv végrehajtása” automatizálású úttörők építik meg.</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_PRIVATE_BUILD</Tag>
+		<English>Private Pioneer</English>
+		<Portuguese>Pioneiro particular</Portuguese>
+		<French>Pionnier privé</French>
+		<German>Privater Pionier</German>
+		<Italian>Pioniere privato</Italian>
+		<Spanish>Pionero privado</Spanish>
+		<Russian>Частный пионер</Russian>
+		<Hungarian>Magánúttörő</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_PRIVATE_BUILD_HELP</Tag>
+		<English>A private pioneer paid by you builds an improvement and leaves.</English>
+		<Portuguese>Um pioneiro particular pago por você constrói uma melhoria e vai embora.</Portuguese>
+		<French>Un pionnier privé que vous avez payé construit un aménagement puis repart.</French>
+		<German>Ein von dir bezahlter privater Pionier baut eine Verbesserung und zieht dann weiter.</German>
+		<Italian>Un pioniere privato pagato da te costruisce un miglioramento e se ne va.</Italian>
+		<Spanish>Un pionero privado pagado por ti construye una mejora y se marcha.</Spanish>
+		<Russian>Нанятый вами частный пионер строит улучшение и уходит.</Russian>
+		<Hungarian>Egy általad fizetett magánúttörő megépít egy fejlesztést, majd továbbáll.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PRIVATE_PIONEER_NAME</Tag>
+		<English>Private Pioneer</English>
+		<Portuguese>Pioneiro particular</Portuguese>
+		<French>Pionnier privé</French>
+		<German>Privater Pionier</German>
+		<Italian>Pioniere privato</Italian>
+		<Spanish>Pionero privado</Spanish>
+		<Russian>Частный пионер</Russian>
+		<Hungarian>Magánúttörő</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PRIVATE_BUILD_STARTED</Tag>
+		<English>A private pioneer builds: %s1 for %d2 gold, ready in about %d3 turns.</English>
+		<Portuguese>Um pioneiro particular constrói: %s1 por %d2 de ouro, pronto em cerca de %d3 turnos.</Portuguese>
+		<French>Un pionnier privé construit : %s1 pour %d2 pièces d'or, prêt dans environ %d3 tours.</French>
+		<German>Ein privater Pionier baut: %s1 für %d2 Gold, fertig in etwa %d3 Runden.</German>
+		<Italian>Un pioniere privato costruisce: %s1 per %d2 monete d'oro, pronto in circa %d3 turni.</Italian>
+		<Spanish>Un pionero privado construye: %s1 por %d2 de oro, listo en unos %d3 turnos.</Spanish>
+		<Russian>Частный пионер строит: %s1 за %d2 золота, будет готово примерно через %d3 ход(ов).</Russian>
+		<Hungarian>Egy magánúttörő épít: %s1 %d2 aranyért, kb. %d3 kör múlva kész.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PRIVATE_BUILD_DONE</Tag>
+		<English>The private pioneer has finished %s1 near %s2 and leaves.</English>
+		<Portuguese>O pioneiro particular concluiu %s1 perto de %s2 e vai embora.</Portuguese>
+		<French>Le pionnier privé a terminé %s1 près de %s2 et repart.</French>
+		<German>Der private Pionier hat %s1 bei %s2 fertiggestellt und zieht weiter.</German>
+		<Italian>Il pioniere privato ha completato %s1 vicino a %s2 e se ne va.</Italian>
+		<Spanish>El pionero privado ha terminado %s1 cerca de %s2 y se marcha.</Spanish>
+		<Russian>Частный пионер завершил %s1 возле %s2 и уходит.</Russian>
+		<Hungarian>A magánúttörő befejezte: %s1 (%s2 közelében), és továbbáll.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PRIVATE_BUILD_FAILED</Tag>
+		<English>No private pioneer can build here: it costs %d1 gold and works only on your land outside colonies, where the improvement can be built and no other private pioneer works.</English>
+		<Portuguese>Nenhum pioneiro particular pode construir aqui: custa %d1 de ouro e só trabalha em suas terras fora das colônias, onde a melhoria pode ser construída e nenhum outro pioneiro particular trabalha.</Portuguese>
+		<French>Aucun pionnier privé ne peut construire ici : il coûte %d1 pièces d'or et ne travaille que sur vos terres hors des colonies, là où l'aménagement est possible et où aucun autre pionnier privé ne travaille.</French>
+		<German>Hier kann kein privater Pionier bauen: Er kostet %d1 Gold und arbeitet nur auf eigenem Land außerhalb der Kolonien, wo die Verbesserung möglich ist und kein anderer privater Pionier arbeitet.</German>
+		<Italian>Nessun pioniere privato può costruire qui: costa %d1 monete d'oro e lavora solo sulle tue terre fuori dalle colonie, dove il miglioramento è possibile e nessun altro pioniere privato lavora.</Italian>
+		<Spanish>Ningún pionero privado puede construir aquí: cuesta %d1 de oro y solo trabaja en tus tierras fuera de las colonias, donde la mejora es posible y no trabaja otro pionero privado.</Spanish>
+		<Russian>Здесь частный пионер строить не может: он стоит %d1 золота и работает только на ваших землях вне колоний, где улучшение возможно и не работает другой частный пионер.</Russian>
+		<Hungarian>Itt nem építhet magánúttörő: %d1 aranyba kerül, és csak a saját földeden, gyarmatokon kívül dolgozik, ahol a fejlesztés lehetséges és nem dolgozik másik magánúttörő.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_INTERFACE_PRIVATE_BUILD</Tag>
+		<English>[COLOR_YELLOW]Private Pioneer[COLOR_REVERT]: choose an improvement above and click a plot of your land; for %d1 gold a private pioneer builds it there as fast as a hardy pioneer.</English>
+		<Portuguese>[COLOR_YELLOW]Pioneiro particular[COLOR_REVERT]: escolha uma melhoria acima e clique num terreno seu; por %d1 de ouro um pioneiro particular a constrói ali tão rápido quanto um pioneiro experiente.</Portuguese>
+		<French>[COLOR_YELLOW]Pionnier privé[COLOR_REVERT] : choisissez un aménagement ci-dessus et cliquez sur une case de vos terres ; pour %d1 pièces d'or, un pionnier privé le construit aussi vite qu'un pionnier aguerri.</French>
+		<German>[COLOR_YELLOW]Privater Pionier[COLOR_REVERT]: oben eine Verbesserung wählen und ein Feld des eigenen Landes anklicken; für %d1 Gold baut ein privater Pionier sie dort so schnell wie ein Hardy Pioneer.</German>
+		<Italian>[COLOR_YELLOW]Pioniere privato[COLOR_REVERT]: scegli un miglioramento qui sopra e clicca su una casella delle tue terre; per %d1 monete d'oro un pioniere privato lo costruisce lì veloce come un pioniere esperto.</Italian>
+		<Spanish>[COLOR_YELLOW]Pionero privado[COLOR_REVERT]: elige una mejora arriba y haz clic en una casilla de tus tierras; por %d1 de oro un pionero privado la construye allí tan rápido como un pionero experto.</Spanish>
+		<Russian>[COLOR_YELLOW]Частный пионер[COLOR_REVERT]: выберите улучшение сверху и щёлкните по клетке на своей земле; за %d1 золота частный пионер построит его там так же быстро, как опытный пионер.</Russian>
+		<Hungarian>[COLOR_YELLOW]Magánúttörő[COLOR_REVERT]: fent válassz egy fejlesztést, és kattints egy mezőre a saját földeden; %d1 aranyért egy magánúttörő olyan gyorsan megépíti, mint egy edzett úttörő.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PRIVATE_BUILD_COST</Tag>
+		<English>Private pioneer: %d1 gold per improvement</English>
+		<Portuguese>Pioneiro particular: %d1 de ouro por melhoria</Portuguese>
+		<French>Pionnier privé : %d1 pièces d'or par aménagement</French>
+		<German>Privater Pionier: %d1 Gold pro Verbesserung</German>
+		<Italian>Pioniere privato: %d1 monete d'oro per miglioramento</Italian>
+		<Spanish>Pionero privado: %d1 de oro por mejora</Spanish>
+		<Russian>Частный пионер: %d1 золота за улучшение</Russian>
+		<Hungarian>Magánúttörő: %d1 arany fejlesztésenként</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_PIONEER_PLAN_PRIORITY</Tag>
 		<English>Priority %d1</English>
 		<Portuguese>Prioridade %d1</Portuguese>

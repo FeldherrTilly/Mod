@@ -20545,6 +20545,57 @@ int CvPlayer::getPioneerPlanPriority(int iPlotIndex) const
 	return (it != m_mapPioneerPlans.end()) ? it->second % 10 : 0;
 }
 
+// WTP: private pioneer (user 2026-10-25): for PRIVATE_BUILD_COST gold a hardy pioneer (a unit of the player the player cannot
+// command) appears on a plot of the player and builds the improvement there, as fast as a hardy pioneer; it leaves when done.
+// Only on own land outside colonies, where the improvement can be built and no other private pioneer works.
+bool CvPlayer::startPrivateBuild(int iX, int iY, BuildTypes eBuild)
+{
+	static const int PRIVATE_BUILD_COST = 500;
+	CvPlot* const pPlot = GC.getMap().plot(iX, iY);
+	const ProfessionTypes ePioneer = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_PIONEER");
+	const UnitClassTypes eHardyClass = (ePioneer != NO_PROFESSION) ? (UnitClassTypes)GC.getProfessionInfo(ePioneer).LbD_getExpert() : NO_UNITCLASS;
+	const UnitTypes eHardy = (eHardyClass != NO_UNITCLASS) ? GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(eHardyClass) : NO_UNIT;
+	bool bValid = pPlot != NULL && eBuild != NO_BUILD && eHardy != NO_UNIT && getGold() >= PRIVATE_BUILD_COST && !pPlot->isWater() && !pPlot->isCity()
+		&& pPlot->getOwnerINLINE() == getID() && GC.getBuildInfo(eBuild).getImprovement() != NO_IMPROVEMENT
+		&& pPlot->getImprovementType() != (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement() && pPlot->canBuild(eBuild, getID());
+	if (bValid)
+	{
+		CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
+		while (pUnitNode != NULL && bValid)
+		{
+			const CvUnit* const pLoopUnit = pPlot->getUnitNodeLoop(pUnitNode);
+			bValid = pLoopUnit == NULL || static_cast<const CvUnitAI*>(pLoopUnit)->AI_getPrivateBuild() == NO_BUILD;
+		}
+	}
+	if (!bValid)
+	{
+		if (isHuman())
+		{
+			const CvWString szBuffer = gDLL->getText("TXT_KEY_PRIVATE_BUILD_FAILED", PRIVATE_BUILD_COST);
+			gDLL->UI().addPlayerMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, Coordinates::invalidCoord(), NULL, MESSAGE_TYPE_INFO, NULL, COLOR_WARNING_TEXT);
+		}
+		return false;
+	}
+	CvUnit* const pUnit = initUnit(eHardy, ePioneer, iX, iY, UNITAI_WORKER);
+	if (pUnit == NULL)
+	{
+		return false;
+	}
+	changeGold(-PRIVATE_BUILD_COST);
+	static_cast<CvUnitAI*>(pUnit)->AI_setPrivateBuild(eBuild);
+	pUnit->setName(gDLL->getText("TXT_KEY_PRIVATE_PIONEER_NAME"));
+	pUnit->getGroup()->setAutomateType(AUTOMATE_PRIVATE_BUILD);
+	pUnit->getGroup()->pushMission(MISSION_BUILD, eBuild, -1, 0, false, false, MISSIONAI_BUILD, pPlot);
+	const int iWorkRate = std::max(1, pUnit->workRate(true));
+	const int iTurns = std::max(1, (pPlot->getBuildTime(eBuild) - pPlot->getBuildProgress(eBuild) + iWorkRate - 1) / iWorkRate);
+	if (isHuman())
+	{
+		const CvWString szBuffer = gDLL->getText("TXT_KEY_PRIVATE_BUILD_STARTED", GC.getBuildInfo(eBuild).getTextKeyWide(), PRIVATE_BUILD_COST, iTurns);
+		gDLL->UI().addPlayerMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, pPlot, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, GC.getBuildInfo(eBuild).getButton(), COLOR_WHITE);
+	}
+	return true;
+}
+
 // WTP (user 2026-10-24): the chance of a new trade post falls with the player's trade posts: 1% for each of the first 7,
 // 2% for each from the 8th on
 int CvPlayer::getTradePostCountPenalty() const
