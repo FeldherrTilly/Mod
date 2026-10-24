@@ -10283,6 +10283,12 @@ void CvPlayerAI::AI_doEurope()
 			return;
 		}
 
+		// WTP: from turn 30 a second native trade ship, a caravel (user 2026-10-24)
+		if (AI_doNativeTradeShipPurchase())
+		{
+			return;
+		}
+
 		// WTP: then at least one transport per colony (inland colonies too)
 		if (AI_doColonyTransportPurchase())
 		{
@@ -22001,6 +22007,54 @@ void CvPlayerAI::AI_doEquipPioneersInEurope()
 		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) equips %S as pioneer in Europe (%d pioneers, %d needed)", getID(), getCivilizationDescription(0),
 			pBest->getName().GetCString(), AI_totalUnitAIs(UNITAI_WORKER), AI_neededWorkers(NULL));
 	}
+}
+
+// WTP: from turn 30 a second native trade ship: a caravel bought in Europe that trades with the villages like the first one.
+// True while saving gold for it (nothing else is bought then).
+bool CvPlayerAI::AI_doNativeTradeShipPurchase()
+{
+	if (isHuman() || isNative() || isEurope() || getNumCities() == 0 || GC.getGameINLINE().getGameTurn() < 30)
+	{
+		return false;
+	}
+	int iTradeShips = 0;
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		const UnitAIStates eState = pLoopUnit->AI_getUnitAIState();
+		if (pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->canCarryPeople()
+			&& (eState == UNITAI_STATE_NATIVE_TRADE_BUY || eState == UNITAI_STATE_NATIVE_TRADE_EUROPE || eState == UNITAI_STATE_NATIVE_TRADE_SELL))
+		{
+			++iTradeShips;
+		}
+	}
+	if (iTradeShips >= 2)
+	{
+		return false;
+	}
+	const UnitClassTypes eCaravelClass = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_CARAVEL");
+	const UnitTypes eCaravel = (eCaravelClass != NO_UNITCLASS) ? GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(eCaravelClass) : NO_UNIT;
+	const int iPrice = (eCaravel != NO_UNIT) ? getEuropeUnitBuyPrice(eCaravel) : -1;
+	if (iPrice <= 0 || AI_shipReachableColonies(eCaravel) == 0)
+	{
+		return false;
+	}
+	if (getGold() < iPrice)
+	{
+		AI_setSavingGold();
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) saves for a second native trade ship %S (%d gold, have %d)", getID(), getCivilizationDescription(0),
+			GC.getUnitInfo(eCaravel).getDescription(), iPrice, getGold());
+		return true;
+	}
+	CvUnit* const pShip = buyEuropeUnit(eCaravel, 100);
+	if (pShip != NULL)
+	{
+		pShip->AI_setUnitAIType(UNITAI_TRANSPORT_SEA);
+		pShip->AI_setUnitAIState(UNITAI_STATE_NATIVE_TRADE_BUY);
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) turn %d buys %S for %d gold as its second native trade ship", getID(), getCivilizationDescription(0),
+			GC.getGameINLINE().getGameTurn(), pShip->getName().GetCString(), iPrice);
+	}
+	return false;
 }
 
 // WTP: about every 8 turns a native trader (a free colonist or indentured servant, equipped in Europe) while a village

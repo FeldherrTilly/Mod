@@ -515,6 +515,7 @@ public:
 	bool AI_isSavingGold() const;
 	void AI_doEquipPioneersInEurope();
 	bool AI_doNativeTraderPurchase();
+	bool AI_doNativeTradeShipPurchase();
 	bool AI_hasTradePostTarget() const;
 	bool AI_isUselessExpert(const CvUnitAI& kUnit, std::vector<int>& aiYieldAvailable);
 	UnitTypes AI_transportToBuy();
