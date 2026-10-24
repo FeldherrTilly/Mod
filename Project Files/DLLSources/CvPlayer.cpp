@@ -2337,7 +2337,7 @@ void CvPlayer::doTurn()
 	if (isHuman() && (m_iTurnCrimeGold > 0 || m_iTurnCultureGold > 0))
 	{
 		const CvWString szBuffer = gDLL->getText("TXT_KEY_TURN_GOLD_CRIME_CULTURE", m_iTurnCrimeGold, m_iTurnCultureGold);
-		gDLL->UI().addPlayerMessage(getID(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, Coordinates::invalidCoord(), (m_iTurnCrimeGold > 0) ? "AS2D_CITYCRIME" : NULL,
+		gDLL->UI().addPlayerMessage(getID(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, Coordinates::invalidCoord(), NULL,
 			MESSAGE_TYPE_INFO, NULL, (m_iTurnCrimeGold > 0) ? COLOR_RED : COLOR_WHITE);
 	}
 
