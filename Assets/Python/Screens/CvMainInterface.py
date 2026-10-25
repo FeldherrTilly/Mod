@@ -784,18 +784,14 @@ class CvMainInterface:
 		iBtnX += self.ADVISOR_BUTTON_SPACING
 
 		# WTP: pioneer plan
-		iPioneer = ProfessionTypes.PROFESSION_PIONEER
-		szPioneerButton = ArtFileMgr.getInterfaceArtInfo("INTERFACE_GENERAL_TERRITORIAL_INFLUENCE").getPath()
-		if iPioneer >= 0:
-			szPioneerButton = gc.getProfessionInfo(iPioneer).getButton()
-		screen.setImageButton("PioneerPlanButton", szPioneerButton, iBtnX, (TOP_CENTER_HUD_HEIGHT - self.ADVISOR_BUTTON_SIZE) / 2, self.ADVISOR_BUTTON_SIZE, self.ADVISOR_BUTTON_SIZE, WidgetTypes.WIDGET_GENERAL, self.BUTTON_PIONEER_PLAN, -1 )
+		screen.setImageButton("PioneerPlanButton", ArtFileMgr.getInterfaceArtInfo("INTERFACE_PIONEER_PLAN").getPath(), iBtnX, (TOP_CENTER_HUD_HEIGHT - self.ADVISOR_BUTTON_SIZE) / 2, self.ADVISOR_BUTTON_SIZE, self.ADVISOR_BUTTON_SIZE, WidgetTypes.WIDGET_GENERAL, self.BUTTON_PIONEER_PLAN, -1 )
 		screen.setImageShape("PioneerPlanButton", ImageShapes.IMAGE_SHAPE_ELLIPSE, -1)
 		screen.setHitMargins("PioneerPlanButton", self.ADVISOR_BUTTON_SIZE / 6, self.ADVISOR_BUTTON_SIZE / 6)
 		self.appendtoHideState(screen, "PioneerPlanButton", HIDE_TYPE_MAP, HIDE_LEVEL_HIDE)
 		iBtnX += self.ADVISOR_BUTTON_SPACING
 
 		# WTP: private pioneer (an improvement for gold)
-		screen.setImageButton("PrivateBuildButton", ArtFileMgr.getInterfaceArtInfo("SCREEN_GOLD_PILE").getPath(), iBtnX, (TOP_CENTER_HUD_HEIGHT - self.ADVISOR_BUTTON_SIZE) / 2, self.ADVISOR_BUTTON_SIZE, self.ADVISOR_BUTTON_SIZE, WidgetTypes.WIDGET_GENERAL, self.BUTTON_PRIVATE_BUILD, -1 )
+		screen.setImageButton("PrivateBuildButton", ArtFileMgr.getInterfaceArtInfo("INTERFACE_PRIVATE_PIONEER").getPath(), iBtnX, (TOP_CENTER_HUD_HEIGHT - self.ADVISOR_BUTTON_SIZE) / 2, self.ADVISOR_BUTTON_SIZE, self.ADVISOR_BUTTON_SIZE, WidgetTypes.WIDGET_GENERAL, self.BUTTON_PRIVATE_BUILD, -1 )
 		screen.setImageShape("PrivateBuildButton", ImageShapes.IMAGE_SHAPE_ELLIPSE, -1)
 		screen.setHitMargins("PrivateBuildButton", self.ADVISOR_BUTTON_SIZE / 6, self.ADVISOR_BUTTON_SIZE / 6)
 		self.appendtoHideState(screen, "PrivateBuildButton", HIDE_TYPE_MAP, HIDE_LEVEL_HIDE)
