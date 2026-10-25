@@ -646,6 +646,7 @@ bool CvSelectionGroup::canStartMission(int iMission, int iData1, int iData2, CvP
 	PROFILE_FUNC();
 
 	// WTP: a private pioneer only builds what it was paid for (or waits): the player cannot move or command it
+	// (the player sees only its build: skip is for its AI and has no button)
 	{
 		CLLNode<IDInfo>* pPrivateNode = headUnitNode();
 		while (pPrivateNode != NULL)
@@ -653,7 +654,7 @@ bool CvSelectionGroup::canStartMission(int iMission, int iData1, int iData2, CvP
 			const CvUnit* const pPrivate = ::getUnit(pPrivateNode->m_data);
 			pPrivateNode = nextUnitNode(pPrivateNode);
 			const BuildTypes ePrivateBuild = (pPrivate != NULL) ? static_cast<const CvUnitAI*>(pPrivate)->AI_getPrivateBuild() : NO_BUILD;
-			if (ePrivateBuild != NO_BUILD && !(iMission == MISSION_BUILD && iData1 == ePrivateBuild) && iMission != MISSION_SKIP)
+			if (ePrivateBuild != NO_BUILD && !(iMission == MISSION_BUILD && iData1 == ePrivateBuild) && (iMission != MISSION_SKIP || bTestVisible))
 			{
 				return false;
 			}
@@ -1655,6 +1656,12 @@ bool CvSelectionGroup::canDoInterfaceMode(InterfaceModeTypes eInterfaceMode) con
 		if (pLoopUnit == NULL)
 		{
 			continue;
+		}
+
+		// WTP: the private pioneer cannot be moved (no go to, route to, transport to, ...)
+		if (static_cast<const CvUnitAI*>(pLoopUnit)->AI_getPrivateBuild() != NO_BUILD)
+		{
+			return false;
 		}
 
 		switch (eInterfaceMode)

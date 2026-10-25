@@ -2751,8 +2751,8 @@ bool CvUnit::canDoCommand(CommandTypes eCommand, int iData1, int iData2, bool bT
 {
 	CvUnit* pUnit;
 
-	// WTP: the private pioneer takes no commands
-	if (static_cast<const CvUnitAI*>(this)->AI_getPrivateBuild() != NO_BUILD)
+	// WTP: the private pioneer takes no commands but delete
+	if (static_cast<const CvUnitAI*>(this)->AI_getPrivateBuild() != NO_BUILD && eCommand != COMMAND_DELETE)
 	{
 		return false;
 	}
