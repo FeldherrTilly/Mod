@@ -5002,25 +5002,6 @@
 			<Scale>0.4</Scale>
 		</ArtRef>
 		</LNode>
-	<!-- a tree the settlers planted by their farm: one of these picked at random -->
-	<LNode Name="Leaf_Farm_Tree">
-		<!-- pointed at by the Farm_Trees_4x4 productions -->
-		<Width>1</Width>
-		<Height>1</Height>
-		<Attribute Class="RegionTest">1</Attribute>
-		<!-- models made to stand alone (resource and city art), lit like the buildings; the forests' single trees
-		     are made for the forests' own shader and look flat and too green on their own -->
-		<ArtRef Name="art:FARM_TREE_MAPLE">
-			<Attribute Class="Scalar">NIF:Art/Terrain/Resources/Maple_Trees/blauholz.nif</Attribute>
-			<Attribute Class="Scalar">bForceGround:1</Attribute>
-			<Scale>0.5</Scale>
-		</ArtRef>
-		<ArtRef Name="art:FARM_TREE_CHERRY">
-			<Attribute Class="Scalar">NIF:Art/Terrain/Resources/Cherries/Cherry_Trees.nif</Attribute>
-			<Attribute Class="Scalar">bForceGround:1</Attribute>
-			<Scale>1.6</Scale>
-		</ArtRef>
-	</LNode>
 	<LNode Name="Leaf_Farm_4x4">
 		<!-- pointed at by two Farm_4x4 production -->
 		<Width>4</Width>
@@ -7702,10 +7683,6 @@
 		<Width>4</Width>
 		<Height>4</Height>
 	</LNode>
-	<LNode Name="Farm_Trees_4x4">
-		<Width>4</Width>
-		<Height>4</Height>
-	</LNode>
 	<!-- *************************************************************************** -->
 	<!-- *************************************************************************** -->
 	<!-- *************************************************************************** -->
@@ -7811,47 +7788,18 @@
 			<Translate>2.5,-0.5</Translate>
 		</To>
 	</LProduction>
-	<!-- a few trees by the farm (one of these picked at random): planted, so also where there was no forest -->
-	<LProduction From="Farm_Trees_4x4">
-		<To Name="Leaf_Farm_Tree">
-			<Translate>3.5,-3.5</Translate>
-		</To>
-	</LProduction>
-	<LProduction From="Farm_Trees_4x4">
-		<To Name="Leaf_Farm_Tree">
-			<Translate>-3.5,3.5</Translate>
-		</To>
-		<To Name="Leaf_Farm_Tree">
-			<Translate>3.0,3.5</Translate>
-		</To>
-	</LProduction>
-	<LProduction From="Farm_Trees_4x4">
-		<To Name="Leaf_Farm_Tree">
-			<Translate>0.5,-3.5</Translate>
-		</To>
-	</LProduction>
-	<LProduction From="Farm_Trees_4x4">
-		<To Name="Leaf_Farm_Tree">
-			<Translate>-3.5,-3.5</Translate>
-		</To>
-		<To Name="Leaf_Farm_Tree">
-			<Translate>3.5,0.5</Translate>
-		</To>
-	</LProduction>
-	<!-- Regular farm:     Place a farm in the mix (and a few trees) -->
+	<!-- Regular farm:     Place a farm in the mix -->
 	<LProduction From="Node_4x4" Name="Node_4x4_Farm">
 		<Attribute Class="Improvement">IMPROVEMENT_FARM</Attribute>
 		<Attribute Class="Scalar">bNotBFS:1</Attribute>
 		<To Name="Farm_4x4"/>
 		<To Name="GNode_4x4"/>
-		<To Name="Farm_Trees_4x4"/>
 	</LProduction>
 	<LProduction From="Node_4x4" Name="Node_4x4_Farm">
 		<Attribute Class="Improvement">IMPROVEMENT_LARGE_FARM</Attribute>
 		<Attribute Class="Scalar">bNotBFS:1</Attribute>
 		<To Name="Farm_4x4"/>
 		<To Name="GNode_4x4"/>
-		<To Name="Farm_Trees_4x4"/>
 	</LProduction>
 	<LProduction From="Node_4x4" Name="Node_4x4_Farm">
 		<Attribute Class="Improvement">IMPROVEMENT_PLANTATION</Attribute>
