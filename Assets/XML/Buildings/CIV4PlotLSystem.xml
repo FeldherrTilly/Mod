@@ -849,6 +849,42 @@
 			<Scale>0.8</Scale>
 		</ArtRef>
 	</LNode>
+	<!-- lumber mill, lumberjack camp, lodge: placed like a mine, so only the middle of the forest is cleared (without
+	     their own layout the game's fixed placement cut nearly every tree on the plot) -->
+	<LNode Name="Leaf_Forest_Camp_4x4">
+		<Width>4</Width>
+		<Height>4</Height>
+		<Attribute Class="Scalar">bNotBFS:1</Attribute>
+		<Attribute Class="RegionTest">0NW</Attribute>
+		<ArtRef Name="goal:IMPROVEMENT_LUMBERMILL">
+			<Attribute Class="Improvement">IMPROVEMENT_LUMBERMILL</Attribute>
+			<Attribute Class="Scalar">bIsPartOfImprovement:1</Attribute>
+			<Attribute Class="Scalar">bApplyRotation:1</Attribute>
+			<Attribute Class="Scalar">NIF:Art/Structures/Improvements/lumberjack_camp/Lumbermill.nif</Attribute>
+			<Attribute Class="Scalar">KFM:Art/Structures/Improvements/lumberjack_camp/Lumbermill.kfm</Attribute>
+			<Attribute Class="Scalar">bCutTrees:0</Attribute>
+			<Attribute Class="Scalar">fCenterCut:25</Attribute>
+			<Scale>0.55</Scale>
+		</ArtRef>
+		<ArtRef Name="goal:IMPROVEMENT_LUMBERJACK_CAMP">
+			<Attribute Class="Improvement">IMPROVEMENT_LUMBERJACK_CAMP</Attribute>
+			<Attribute Class="Scalar">bIsPartOfImprovement:1</Attribute>
+			<Attribute Class="Scalar">bApplyRotation:1</Attribute>
+			<Attribute Class="Scalar">NIF:Art/Structures/Improvements/lumberjack_camp/Lodge.nif</Attribute>
+			<Attribute Class="Scalar">bCutTrees:0</Attribute>
+			<Attribute Class="Scalar">fCenterCut:25</Attribute>
+			<Scale>0.55</Scale>
+		</ArtRef>
+		<ArtRef Name="goal:IMPROVEMENT_LODGE">
+			<Attribute Class="Improvement">IMPROVEMENT_LODGE</Attribute>
+			<Attribute Class="Scalar">bIsPartOfImprovement:1</Attribute>
+			<Attribute Class="Scalar">bApplyRotation:1</Attribute>
+			<Attribute Class="Scalar">NIF:Art/Structures/Improvements/Lodge/Lodge.nif</Attribute>
+			<Attribute Class="Scalar">bCutTrees:0</Attribute>
+			<Attribute Class="Scalar">fCenterCut:25</Attribute>
+			<Scale>0.55</Scale>
+		</ArtRef>
+	</LNode>
 	<LNode Name="Leaf_Large_Mine_4x4">
 		<Width>4</Width>
 		<Height>4</Height>
@@ -7687,8 +7723,20 @@
 	<!-- *************************************************************************** -->
 	<!-- *************************************************************************** -->
 	<LProduction From="PLOT_ROOT" Name="PLOT_ROOT_Base">
-		<Attribute Class="Improvement">NO_IMPROVEMENT,IMPROVEMENT_ALL,!IMPROVEMENT_WATER_WORKED,!IMPROVEMENT_MINE,!IMPROVEMENT_DEEP_MINE</Attribute>
+		<Attribute Class="Improvement">NO_IMPROVEMENT,IMPROVEMENT_ALL,!IMPROVEMENT_WATER_WORKED,!IMPROVEMENT_MINE,!IMPROVEMENT_DEEP_MINE,!IMPROVEMENT_LUMBERMILL,!IMPROVEMENT_LUMBERJACK_CAMP,!IMPROVEMENT_LODGE</Attribute>
 		<To Name="Node_12x12"/>
+	</LProduction>
+	<LProduction From="PLOT_ROOT" Name="ForestCampProd">
+		<Attribute Class="Improvement">IMPROVEMENT_LUMBERMILL,IMPROVEMENT_LUMBERJACK_CAMP,IMPROVEMENT_LODGE</Attribute>
+		<Attribute Class="Bonus">BONUS_ALL</Attribute>
+		<To Name="Node_12x12"/>
+		<To Name="Leaf_Forest_Camp_4x4"/>
+	</LProduction>
+	<LProduction From="PLOT_ROOT" Name="ForestCampProd_NoBonus">
+		<Attribute Class="Improvement">IMPROVEMENT_LUMBERMILL,IMPROVEMENT_LUMBERJACK_CAMP,IMPROVEMENT_LODGE</Attribute>
+		<Attribute Class="Bonus">NO_BONUS</Attribute>
+		<Attribute Class="Scalar">bNotBFS:1</Attribute>
+		<To Name="Leaf_Forest_Camp_4x4"/>
 	</LProduction>
 	<LProduction From="PLOT_ROOT" Name="MineProd">
 		<Attribute Class="Improvement">IMPROVEMENT_MINE</Attribute>
