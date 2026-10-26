@@ -864,7 +864,7 @@
 			<Attribute Class="Scalar">KFM:Art/Structures/Improvements/lumberjack_camp/Lumbermill.kfm</Attribute>
 			<Attribute Class="Scalar">bCutTrees:0</Attribute>
 			<Attribute Class="Scalar">fCenterCut:25</Attribute>
-			<Scale>0.45</Scale>
+			<Scale>0.25</Scale>
 		</ArtRef>
 		<ArtRef Name="goal:IMPROVEMENT_LUMBERJACK_CAMP">
 			<Attribute Class="Improvement">IMPROVEMENT_LUMBERJACK_CAMP</Attribute>
@@ -873,7 +873,7 @@
 			<Attribute Class="Scalar">NIF:Art/Structures/Improvements/lumberjack_camp/Lodge.nif</Attribute>
 			<Attribute Class="Scalar">bCutTrees:0</Attribute>
 			<Attribute Class="Scalar">fCenterCut:25</Attribute>
-			<Scale>0.45</Scale>
+			<Scale>0.25</Scale>
 		</ArtRef>
 		<ArtRef Name="goal:IMPROVEMENT_LODGE">
 			<Attribute Class="Improvement">IMPROVEMENT_LODGE</Attribute>
@@ -882,7 +882,7 @@
 			<Attribute Class="Scalar">NIF:Art/Structures/Improvements/Lodge/Lodge.nif</Attribute>
 			<Attribute Class="Scalar">bCutTrees:0</Attribute>
 			<Attribute Class="Scalar">fCenterCut:25</Attribute>
-			<Scale>0.45</Scale>
+			<Scale>0.25</Scale>
 		</ArtRef>
 	</LNode>
 	<LNode Name="Leaf_Large_Mine_4x4">
