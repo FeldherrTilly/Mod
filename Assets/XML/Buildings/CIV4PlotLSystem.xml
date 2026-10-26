@@ -5008,25 +5008,17 @@
 		<Width>1</Width>
 		<Height>1</Height>
 		<Attribute Class="RegionTest">1</Attribute>
-		<ArtRef Name="art:FARM_TREE_LEAFY">
-			<Attribute Class="Scalar">NIF:Art/Terrain/Features/TreeLeafy/Leafy_single_tree.nif</Attribute>
+		<!-- models made to stand alone (resource and city art), lit like the buildings; the forests' single trees
+		     are made for the forests' own shader and look flat and too green on their own -->
+		<ArtRef Name="art:FARM_TREE_MAPLE">
+			<Attribute Class="Scalar">NIF:Art/Terrain/Resources/Maple_Trees/blauholz.nif</Attribute>
 			<Attribute Class="Scalar">bForceGround:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.5</Scale>
 		</ArtRef>
-		<ArtRef Name="art:FARM_TREE_LEAFY">
-			<Attribute Class="Scalar">NIF:Art/Terrain/Features/TreeLeafy/Leafy_single_tree_01.nif</Attribute>
+		<ArtRef Name="art:FARM_TREE_CHERRY">
+			<Attribute Class="Scalar">NIF:Art/Terrain/Resources/Cherries/Cherry_Trees.nif</Attribute>
 			<Attribute Class="Scalar">bForceGround:1</Attribute>
-			<Scale>0.8</Scale>
-		</ArtRef>
-		<ArtRef Name="art:FARM_TREE_LEAFY">
-			<Attribute Class="Scalar">NIF:Art/Terrain/Features/TreeLeafy/Leafy_single_tree_02.nif</Attribute>
-			<Attribute Class="Scalar">bForceGround:1</Attribute>
-			<Scale>0.8</Scale>
-		</ArtRef>
-		<ArtRef Name="art:FARM_TREE_EVERGREEN">
-			<Attribute Class="Scalar">NIF:Art/Terrain/Features/TreeEvergreen/Evergreen_single_tree.nif</Attribute>
-			<Attribute Class="Scalar">bForceGround:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>1.6</Scale>
 		</ArtRef>
 	</LNode>
 	<LNode Name="Leaf_Farm_4x4">
