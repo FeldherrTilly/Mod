@@ -90,7 +90,7 @@
 		<ImprovementArtInfo>
 			<Type>ART_DEF_IMPROVEMENT_LODGE</Type>
 			<bExtraAnimations>0</bExtraAnimations>
-			<fScale>0.8</fScale>
+			<fScale>0.55</fScale>
 			<fInterfaceScale>1.0</fInterfaceScale>
 			<NIF>Art/Structures/Improvements/Lodge/Lodge.nif</NIF>
 			<KFM/>
@@ -225,7 +225,7 @@
 		<ImprovementArtInfo>
 			<Type>ART_DEF_IMPROVEMENT_LUMBERJACK_CAMP</Type>
 			<bExtraAnimations>0</bExtraAnimations>
-			<fScale>0.8</fScale>
+			<fScale>0.55</fScale>
 			<fInterfaceScale>1.0</fInterfaceScale>
 			<NIF>Art/Structures/Improvements/lumberjack_camp/Lodge.nif</NIF>
 			<KFM/>
@@ -234,7 +234,7 @@
 		<ImprovementArtInfo>
 			<Type>ART_DEF_IMPROVEMENT_LUMBERMILL</Type>
 			<bExtraAnimations>0</bExtraAnimations>
-			<fScale>0.8</fScale>
+			<fScale>0.55</fScale>
 			<fInterfaceScale>0.9</fInterfaceScale>
 			<NIF>Art/Structures/Improvements/lumberjack_camp/Lumbermill.nif</NIF>
 			<KFM>Art/Structures/Improvements/lumberjack_camp/Lumbermill.kfm</KFM>
