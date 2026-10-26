@@ -7733,5 +7733,47 @@
 			<RouteYieldChanges/>
 			<bGraphicalOnly>0</bGraphicalOnly>
 		</ImprovementInfo>
+		<!-- WTP: siege: art only, the camp of the besiegers beside a besieged city (CvPlot::isSiegeCampShown) -->
+		<ImprovementInfo>
+			<Type>IMPROVEMENT_SIEGE_CAMP</Type>
+			<Description>TXT_KEY_IMPROVEMENT_SIEGE_CAMP</Description>
+			<Civilopedia>TXT_KEY_IMPROVEMENT_SIEGE_CAMP_PEDIA</Civilopedia>
+			<ArtDefineTag>ART_DEF_IMPROVEMENT_SIEGE_CAMP</ArtDefineTag>
+			<PrereqNatureYields/>
+			<YieldIncreases/>
+			<RiverSideYieldChanges/>
+			<HillsYieldChanges/>
+			<bActsAsCity>0</bActsAsCity>
+			<bHillsMakesValid>0</bHillsMakesValid>
+			<bRiverSideMakesValid>0</bRiverSideMakesValid>
+			<bRequiresFlatlands>0</bRequiresFlatlands>
+			<bRequiresRiverSide>0</bRequiresRiverSide>
+			<bRequiresFeature>0</bRequiresFeature>
+			<bWater>0</bWater>
+			<bGoody>0</bGoody>
+			<bGoodyForSpawningUnits>0</bGoodyForSpawningUnits>
+			<bGoodyForSpawningHostileAnimals>0</bGoodyForSpawningHostileAnimals>
+			<bGoodyForSpawningHostileNatives>0</bGoodyForSpawningHostileNatives>
+			<bGoodyForSpawningHostileCriminals>0</bGoodyForSpawningHostileCriminals>
+			<bPermanent>0</bPermanent>
+			<bUseLSystem>0</bUseLSystem>
+			<iAdvancedStartCost>-1</iAdvancedStartCost>
+			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
+			<iTilesPerGoody>0</iTilesPerGoody>
+			<iGoodyRange>0</iGoodyRange>
+			<iFeatureGrowth>0</iFeatureGrowth>
+			<iUpgradeTime>0</iUpgradeTime>
+			<iDefenseModifier>0</iDefenseModifier>
+			<iPillageGold>0</iPillageGold>
+			<bOutsideBorders>0</bOutsideBorders>
+			<TerrainMakesValids/>
+			<FeatureMakesValids/>
+			<BonusTypeStructs/>
+			<ImprovementPillage/>
+			<ImprovementUpgrade/>
+			<RouteYieldChanges/>
+			<WorldSoundscapeAudioScript/>
+			<bGraphicalOnly>1</bGraphicalOnly>
+		</ImprovementInfo>
 	</ImprovementInfos>
 </Civ4ImprovementInfos>

@@ -339,6 +339,7 @@ public:
 	PlayerTypes getBesieger() const; // the player who started the siege, also while it is broken until the owner's turn ends
 	void startSiege(PlayerTypes eBesieger);
 	void endSiege();
+	void updateSiegeCamps(); // the siege camp art on the plots beside the city
 	void setBombarded(bool bNewValue);
 
 	void setAllCitizensAutomated(bool bAutomated);

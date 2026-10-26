@@ -5601,6 +5601,28 @@
 		<Hungarian>%s1 ostrom alatt áll! A városon kívüli földek semmit sem teremnek, védelme minden körben csökken, a szárazföldi egységek pedig nem hagyhatják el és nem léphetnek be.</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_IMPROVEMENT_SIEGE_CAMP</Tag>
+		<English>Siege Camp</English>
+		<Portuguese>Acampamento de Cerco</Portuguese>
+		<French>Camp de siège</French>
+		<German>Belagerungslager</German>
+		<Italian>Accampamento d'assedio</Italian>
+		<Spanish>Campamento de asedio</Spanish>
+		<Russian>Осадный лагерь</Russian>
+		<Hungarian>Ostromtábor</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_IMPROVEMENT_SIEGE_CAMP_PEDIA</Tag>
+		<English>The camp of the soldiers besieging a city: tents, a cooking place, barrels of supplies and chevaux-de-frise. It stands where a stack of the besiegers waits beside the city and disappears when the siege ends.</English>
+		<Portuguese>O acampamento dos soldados que sitiam uma cidade: tendas, um fogão de campanha, barris de provisões e cavalos de frisa. Fica onde um grupo dos sitiantes espera ao lado da cidade e desaparece quando o cerco termina.</Portuguese>
+		<French>Le camp des soldats qui assiègent une ville : tentes, foyer, tonneaux de vivres et chevaux de frise. Il se dresse là où un groupe d'assiégeants attend à côté de la ville et disparaît à la fin du siège.</French>
+		<German>Das Lager der Soldaten, die eine Stadt belagern: Zelte, eine Kochstelle, Fässer mit Vorräten und Spanische Reiter. Es steht dort, wo ein Stapel der Belagerer neben der Stadt wartet, und verschwindet, wenn die Belagerung endet.</German>
+		<Italian>L'accampamento dei soldati che assediano una città: tende, un focolare, barili di provviste e cavalli di Frisia. Sorge dove un gruppo di assedianti attende accanto alla città e scompare quando l'assedio finisce.</Italian>
+		<Spanish>El campamento de los soldados que asedian una ciudad: tiendas, un fogón, barriles de provisiones y caballos de frisa. Se levanta donde un grupo de sitiadores espera junto a la ciudad y desaparece cuando termina el asedio.</Spanish>
+		<Russian>Лагерь солдат, осаждающих город: палатки, кострище, бочки с припасами и рогатки. Он стоит там, где отряд осаждающих ждёт рядом с городом, и исчезает, когда осада заканчивается.</Russian>
+		<Hungarian>A várost ostromló katonák tábora: sátrak, főzőhely, ellátmányos hordók és spanyollovasok. Ott áll, ahol az ostromlók egy csapata a város mellett vár, és eltűnik, amikor az ostrom véget ér.</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_CITY_BESIEGED_ENEMY</Tag>
 		<English>Your soldiers besiege %s1: the land outside the city produces nothing any more and its defense drops each turn.</English>
 		<Portuguese>Seus soldados sitiam %s1: as terras fora da cidade não produzem mais nada e sua defesa cai a cada turno.</Portuguese>

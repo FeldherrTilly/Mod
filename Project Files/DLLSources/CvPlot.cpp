@@ -300,6 +300,7 @@ void CvPlot::reset(int iX, int iY, bool bConstructorCall)
 	m_bFlagDirty = false;
 	m_bPlotLayoutDirty = false;
 	m_bLayoutStateWorked = false;
+	m_bSiegeCamp = false;
 	m_bImpassable = false;
 
 	updateImpassable();
@@ -3895,6 +3896,66 @@ bool CvPlot::isBesiegedCityRing(TeamTypes eTeam) const
 		}
 	}
 	return false;
+}
+
+// WTP: siege: the engine shows a siege camp (IMPROVEMENT_SIEGE_CAMP, art only) on a land plot beside a besieged city where at
+// least SIEGE_MIN_STACK_SIZE soldiers of the besieger stand, if the active team sees the plot
+bool CvPlot::isSiegeCampShown() const
+{
+	if (isWater() || isCity() || !isActiveVisible(false))
+	{
+		return false;
+	}
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		const CvPlot* pLoopPlot = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
+		const CvCity* pCity = (pLoopPlot != NULL) ? pLoopPlot->getPlotCity() : NULL;
+		if (pCity == NULL || pCity->getBesieger() == NO_PLAYER || !pCity->isBesieged())
+		{
+			continue;
+		}
+		if (CvCity::getSiegeStackSize(*this, GET_PLAYER(pCity->getBesieger()).getTeam(), pCity->getTeam()) >= GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+// WTP: siege: rebuilds the plot art when the siege camp appears or disappears
+void CvPlot::updateSiegeCamp()
+{
+	if (!GC.IsGraphicsInitialized())
+	{
+		return;
+	}
+	const bool bShown = isSiegeCampShown();
+	if (bShown != m_bSiegeCamp)
+	{
+		m_bSiegeCamp = bShown;
+		setLayoutDirty(true);
+	}
+}
+
+// WTP: siege: the siege camps around the cities on or beside this plot (units coming or going change the siege and the stacks)
+void CvPlot::updateSiegeCampsNearby()
+{
+	if (!GC.IsGraphicsInitialized())
+	{
+		return;
+	}
+	if (getPlotCity() != NULL)
+	{
+		getPlotCity()->updateSiegeCamps();
+	}
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		CvPlot* pLoopPlot = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
+		if (pLoopPlot != NULL && pLoopPlot->getPlotCity() != NULL)
+		{
+			pLoopPlot->getPlotCity()->updateSiegeCamps();
+		}
+	}
 }
 // WTP, Schmiddie, Naval Control Movement - END
 bool CvPlot::isAdjacentOwned() const
@@ -8090,6 +8151,7 @@ void CvPlot::changeVisibilityCount(TeamTypes eTeam, int iChange, InvisibleTypes 
 				updateFog();
 				updateMinimapColor();
 				updateCenterUnit();
+				updateSiegeCamp(); // WTP: siege
 			}
 		}
 	}
@@ -9178,6 +9240,8 @@ void CvPlot::addUnit(CvUnit* pUnit, bool bUpdate)
 
 		setFlagDirty(true);
 	}
+
+	updateSiegeCampsNearby(); // WTP: siege
 }
 
 
@@ -9207,6 +9271,8 @@ void CvPlot::removeUnit(CvUnit* pUnit, bool bUpdate)
 
 		setFlagDirty(true);
 	}
+
+	updateSiegeCampsNearby(); // WTP: siege
 }
 
 
@@ -9627,6 +9693,16 @@ void CvPlot::getVisibleImprovementState(ImprovementTypes& eType, bool& bWorked)
 	if (getPlotCity() != NULL)
 	{
 		return;
+	}
+
+	// WTP: siege: the siege camp of the besiegers is shown instead of the improvement
+	if (isSiegeCampShown())
+	{
+		eType = (ImprovementTypes)GC.getInfoTypeForString("IMPROVEMENT_SIEGE_CAMP");
+		if (eType != NO_IMPROVEMENT)
+		{
+			return;
+		}
 	}
 
 	eType = getRevealedImprovementType(GC.getGameINLINE().getActiveTeam(), true);

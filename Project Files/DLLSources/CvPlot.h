@@ -113,6 +113,9 @@ public:
 	bool isAdjacentToLand() const;
 	bool isCoastalLand(int iMinWaterSize = -1) const;
 	bool isBesiegedCityRing(TeamTypes eTeam) const; // WTP: siege
+	bool isSiegeCampShown() const; // WTP: siege
+	void updateSiegeCamp(); // WTP: siege
+	void updateSiegeCampsNearby(); // WTP: siege
 	bool hasDeepWaterCoast() const;
 	bool isNextTo(TerrainTypes eTerrain) const;
 	bool hasOtherAdjacentOceanOrDeepWaterCoast() const; //WTP, ray, Safety Check for Deep Water Coast if there is Ocean or Deep Coast adjacent - START
@@ -602,6 +605,7 @@ protected:
 	bool m_bFlagDirty:1;
 	bool m_bPlotLayoutDirty:1;
 	bool m_bLayoutStateWorked:1;
+	bool m_bSiegeCamp:1; // WTP: siege: the siege camp is shown (not saved, only to notice changes)
 	bool m_bImpassable:1;
 
 	PlotTypes m_ePlotType : 16;
