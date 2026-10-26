@@ -113,7 +113,7 @@ public:
 	bool isAdjacentToLand() const;
 	bool isCoastalLand(int iMinWaterSize = -1) const;
 	bool isBesiegedCityRing(TeamTypes eTeam) const; // WTP: siege
-	bool isSiegeCampShown() const; // WTP: siege
+	ImprovementTypes getSiegeArt() const; // WTP: siege
 	void updateSiegeCamp(); // WTP: siege
 	void updateSiegeCampsNearby(); // WTP: siege
 	bool hasDeepWaterCoast() const;
@@ -605,8 +605,8 @@ protected:
 	bool m_bFlagDirty:1;
 	bool m_bPlotLayoutDirty:1;
 	bool m_bLayoutStateWorked:1;
-	bool m_bSiegeCamp:1; // WTP: siege: the siege camp is shown (not saved, only to notice changes)
 	bool m_bImpassable:1;
+	short m_eSiegeArt; // WTP: siege: the siege art shown (ImprovementTypes; not saved, only to notice changes)
 
 	PlotTypes m_ePlotType : 16;
 	TerrainTypes m_eTerrainType : 16;

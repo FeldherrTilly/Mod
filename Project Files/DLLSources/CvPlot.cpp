@@ -300,7 +300,7 @@ void CvPlot::reset(int iX, int iY, bool bConstructorCall)
 	m_bFlagDirty = false;
 	m_bPlotLayoutDirty = false;
 	m_bLayoutStateWorked = false;
-	m_bSiegeCamp = false;
+	m_eSiegeArt = NO_IMPROVEMENT;
 	m_bImpassable = false;
 
 	updateImpassable();
@@ -3898,14 +3898,22 @@ bool CvPlot::isBesiegedCityRing(TeamTypes eTeam) const
 	return false;
 }
 
-// WTP: siege: the engine shows a siege camp (IMPROVEMENT_SIEGE_CAMP, art only) on a land plot beside a besieged city where at
-// least SIEGE_MIN_STACK_SIZE soldiers of the besieger stand, if the active team sees the plot
-bool CvPlot::isSiegeCampShown() const
+// WTP: siege: the art the engine shows on this plot instead of its improvement (art only improvements, NO_IMPROVEMENT: none):
+// on every land plot beside a besieged city the siege works on the city side of the plot (trench, rampart, palisade, cannons;
+// together they give a ring around the city), with the camp of the besiegers where at least SIEGE_MIN_STACK_SIZE of their
+// soldiers stand; one improvement for each direction of the plot seen from the city; only if the active team sees the plot
+ImprovementTypes CvPlot::getSiegeArt() const
 {
 	if (isWater() || isCity() || !isActiveVisible(false))
 	{
-		return false;
+		return NO_IMPROVEMENT;
 	}
+	static const char* const aszWorks[NUM_DIRECTION_TYPES] = {"IMPROVEMENT_SIEGE_WORKS_N", "IMPROVEMENT_SIEGE_WORKS_NE",
+		"IMPROVEMENT_SIEGE_WORKS_E", "IMPROVEMENT_SIEGE_WORKS_SE", "IMPROVEMENT_SIEGE_WORKS_S", "IMPROVEMENT_SIEGE_WORKS_SW",
+		"IMPROVEMENT_SIEGE_WORKS_W", "IMPROVEMENT_SIEGE_WORKS_NW"};
+	static const char* const aszCamps[NUM_DIRECTION_TYPES] = {"IMPROVEMENT_SIEGE_CAMP_N", "IMPROVEMENT_SIEGE_CAMP_NE",
+		"IMPROVEMENT_SIEGE_CAMP_E", "IMPROVEMENT_SIEGE_CAMP_SE", "IMPROVEMENT_SIEGE_CAMP_S", "IMPROVEMENT_SIEGE_CAMP_SW",
+		"IMPROVEMENT_SIEGE_CAMP_W", "IMPROVEMENT_SIEGE_CAMP_NW"};
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 	{
 		const CvPlot* pLoopPlot = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
@@ -3914,30 +3922,29 @@ bool CvPlot::isSiegeCampShown() const
 		{
 			continue;
 		}
-		if (CvCity::getSiegeStackSize(*this, GET_PLAYER(pCity->getBesieger()).getTeam(), pCity->getTeam()) >= GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE)
-		{
-			return true;
-		}
+		const DirectionTypes eFromCity = directionXY(pLoopPlot, this);
+		const bool bCamp = CvCity::getSiegeStackSize(*this, GET_PLAYER(pCity->getBesieger()).getTeam(), pCity->getTeam()) >= GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE;
+		return (ImprovementTypes)GC.getInfoTypeForString(bCamp ? aszCamps[eFromCity] : aszWorks[eFromCity], true);
 	}
-	return false;
+	return NO_IMPROVEMENT;
 }
 
-// WTP: siege: rebuilds the plot art when the siege camp appears or disappears
+// WTP: siege: rebuilds the plot art when the siege art appears, changes or disappears
 void CvPlot::updateSiegeCamp()
 {
 	if (!GC.IsGraphicsInitialized())
 	{
 		return;
 	}
-	const bool bShown = isSiegeCampShown();
-	if (bShown != m_bSiegeCamp)
+	const ImprovementTypes eArt = getSiegeArt();
+	if (eArt != (ImprovementTypes)m_eSiegeArt)
 	{
-		m_bSiegeCamp = bShown;
+		m_eSiegeArt = (short)eArt;
 		setLayoutDirty(true);
 	}
 }
 
-// WTP: siege: the siege camps around the cities on or beside this plot (units coming or going change the siege and the stacks)
+// WTP: siege: the siege art around the cities on or beside this plot (units coming or going change the siege and the stacks)
 void CvPlot::updateSiegeCampsNearby()
 {
 	if (!GC.IsGraphicsInitialized())
@@ -9695,14 +9702,11 @@ void CvPlot::getVisibleImprovementState(ImprovementTypes& eType, bool& bWorked)
 		return;
 	}
 
-	// WTP: siege: the siege camp of the besiegers is shown instead of the improvement
-	if (isSiegeCampShown())
+	// WTP: siege: the siege works and the camp of the besiegers are shown instead of the improvement
+	eType = getSiegeArt();
+	if (eType != NO_IMPROVEMENT)
 	{
-		eType = (ImprovementTypes)GC.getInfoTypeForString("IMPROVEMENT_SIEGE_CAMP");
-		if (eType != NO_IMPROVEMENT)
-		{
-			return;
-		}
+		return;
 	}
 
 	eType = getRevealedImprovementType(GC.getGameINLINE().getActiveTeam(), true);

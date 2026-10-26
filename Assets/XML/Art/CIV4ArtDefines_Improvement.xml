@@ -483,5 +483,149 @@
 			<KFM/>
 			<Button>Art/Interface/Game Hud/Actions/siege_high_res.dds</Button>
 		</ImprovementArtInfo>
+		<ImprovementArtInfo>
+			<Type>ART_DEF_IMPROVEMENT_SIEGE_WORKS_N</Type>
+			<bExtraAnimations>0</bExtraAnimations>
+			<fScale>1.0</fScale>
+			<fInterfaceScale>1.0</fInterfaceScale>
+			<NIF>Art/Structures/Improvements/SiegeCamp/siege_works_n.nif</NIF>
+			<KFM/>
+			<Button>Art/Interface/Game Hud/Actions/siege_high_res.dds</Button>
+		</ImprovementArtInfo>
+		<ImprovementArtInfo>
+			<Type>ART_DEF_IMPROVEMENT_SIEGE_WORKS_NE</Type>
+			<bExtraAnimations>0</bExtraAnimations>
+			<fScale>1.0</fScale>
+			<fInterfaceScale>1.0</fInterfaceScale>
+			<NIF>Art/Structures/Improvements/SiegeCamp/siege_works_ne.nif</NIF>
+			<KFM/>
+			<Button>Art/Interface/Game Hud/Actions/siege_high_res.dds</Button>
+		</ImprovementArtInfo>
+		<ImprovementArtInfo>
+			<Type>ART_DEF_IMPROVEMENT_SIEGE_WORKS_E</Type>
+			<bExtraAnimations>0</bExtraAnimations>
+			<fScale>1.0</fScale>
+			<fInterfaceScale>1.0</fInterfaceScale>
+			<NIF>Art/Structures/Improvements/SiegeCamp/siege_works_e.nif</NIF>
+			<KFM/>
+			<Button>Art/Interface/Game Hud/Actions/siege_high_res.dds</Button>
+		</ImprovementArtInfo>
+		<ImprovementArtInfo>
+			<Type>ART_DEF_IMPROVEMENT_SIEGE_WORKS_SE</Type>
+			<bExtraAnimations>0</bExtraAnimations>
+			<fScale>1.0</fScale>
+			<fInterfaceScale>1.0</fInterfaceScale>
+			<NIF>Art/Structures/Improvements/SiegeCamp/siege_works_se.nif</NIF>
+			<KFM/>
+			<Button>Art/Interface/Game Hud/Actions/siege_high_res.dds</Button>
+		</ImprovementArtInfo>
+		<ImprovementArtInfo>
+			<Type>ART_DEF_IMPROVEMENT_SIEGE_WORKS_S</Type>
+			<bExtraAnimations>0</bExtraAnimations>
+			<fScale>1.0</fScale>
+			<fInterfaceScale>1.0</fInterfaceScale>
+			<NIF>Art/Structures/Improvements/SiegeCamp/siege_works_s.nif</NIF>
+			<KFM/>
+			<Button>Art/Interface/Game Hud/Actions/siege_high_res.dds</Button>
+		</ImprovementArtInfo>
+		<ImprovementArtInfo>
+			<Type>ART_DEF_IMPROVEMENT_SIEGE_WORKS_SW</Type>
+			<bExtraAnimations>0</bExtraAnimations>
+			<fScale>1.0</fScale>
+			<fInterfaceScale>1.0</fInterfaceScale>
+			<NIF>Art/Structures/Improvements/SiegeCamp/siege_works_sw.nif</NIF>
+			<KFM/>
+			<Button>Art/Interface/Game Hud/Actions/siege_high_res.dds</Button>
+		</ImprovementArtInfo>
+		<ImprovementArtInfo>
+			<Type>ART_DEF_IMPROVEMENT_SIEGE_WORKS_W</Type>
+			<bExtraAnimations>0</bExtraAnimations>
+			<fScale>1.0</fScale>
+			<fInterfaceScale>1.0</fInterfaceScale>
+			<NIF>Art/Structures/Improvements/SiegeCamp/siege_works_w.nif</NIF>
+			<KFM/>
+			<Button>Art/Interface/Game Hud/Actions/siege_high_res.dds</Button>
+		</ImprovementArtInfo>
+		<ImprovementArtInfo>
+			<Type>ART_DEF_IMPROVEMENT_SIEGE_WORKS_NW</Type>
+			<bExtraAnimations>0</bExtraAnimations>
+			<fScale>1.0</fScale>
+			<fInterfaceScale>1.0</fInterfaceScale>
+			<NIF>Art/Structures/Improvements/SiegeCamp/siege_works_nw.nif</NIF>
+			<KFM/>
+			<Button>Art/Interface/Game Hud/Actions/siege_high_res.dds</Button>
+		</ImprovementArtInfo>
+		<ImprovementArtInfo>
+			<Type>ART_DEF_IMPROVEMENT_SIEGE_CAMP_N</Type>
+			<bExtraAnimations>0</bExtraAnimations>
+			<fScale>1.0</fScale>
+			<fInterfaceScale>1.0</fInterfaceScale>
+			<NIF>Art/Structures/Improvements/SiegeCamp/siege_camp_n.nif</NIF>
+			<KFM/>
+			<Button>Art/Interface/Game Hud/Actions/siege_high_res.dds</Button>
+		</ImprovementArtInfo>
+		<ImprovementArtInfo>
+			<Type>ART_DEF_IMPROVEMENT_SIEGE_CAMP_NE</Type>
+			<bExtraAnimations>0</bExtraAnimations>
+			<fScale>1.0</fScale>
+			<fInterfaceScale>1.0</fInterfaceScale>
+			<NIF>Art/Structures/Improvements/SiegeCamp/siege_camp_ne.nif</NIF>
+			<KFM/>
+			<Button>Art/Interface/Game Hud/Actions/siege_high_res.dds</Button>
+		</ImprovementArtInfo>
+		<ImprovementArtInfo>
+			<Type>ART_DEF_IMPROVEMENT_SIEGE_CAMP_E</Type>
+			<bExtraAnimations>0</bExtraAnimations>
+			<fScale>1.0</fScale>
+			<fInterfaceScale>1.0</fInterfaceScale>
+			<NIF>Art/Structures/Improvements/SiegeCamp/siege_camp_e.nif</NIF>
+			<KFM/>
+			<Button>Art/Interface/Game Hud/Actions/siege_high_res.dds</Button>
+		</ImprovementArtInfo>
+		<ImprovementArtInfo>
+			<Type>ART_DEF_IMPROVEMENT_SIEGE_CAMP_SE</Type>
+			<bExtraAnimations>0</bExtraAnimations>
+			<fScale>1.0</fScale>
+			<fInterfaceScale>1.0</fInterfaceScale>
+			<NIF>Art/Structures/Improvements/SiegeCamp/siege_camp_se.nif</NIF>
+			<KFM/>
+			<Button>Art/Interface/Game Hud/Actions/siege_high_res.dds</Button>
+		</ImprovementArtInfo>
+		<ImprovementArtInfo>
+			<Type>ART_DEF_IMPROVEMENT_SIEGE_CAMP_S</Type>
+			<bExtraAnimations>0</bExtraAnimations>
+			<fScale>1.0</fScale>
+			<fInterfaceScale>1.0</fInterfaceScale>
+			<NIF>Art/Structures/Improvements/SiegeCamp/siege_camp_s.nif</NIF>
+			<KFM/>
+			<Button>Art/Interface/Game Hud/Actions/siege_high_res.dds</Button>
+		</ImprovementArtInfo>
+		<ImprovementArtInfo>
+			<Type>ART_DEF_IMPROVEMENT_SIEGE_CAMP_SW</Type>
+			<bExtraAnimations>0</bExtraAnimations>
+			<fScale>1.0</fScale>
+			<fInterfaceScale>1.0</fInterfaceScale>
+			<NIF>Art/Structures/Improvements/SiegeCamp/siege_camp_sw.nif</NIF>
+			<KFM/>
+			<Button>Art/Interface/Game Hud/Actions/siege_high_res.dds</Button>
+		</ImprovementArtInfo>
+		<ImprovementArtInfo>
+			<Type>ART_DEF_IMPROVEMENT_SIEGE_CAMP_W</Type>
+			<bExtraAnimations>0</bExtraAnimations>
+			<fScale>1.0</fScale>
+			<fInterfaceScale>1.0</fInterfaceScale>
+			<NIF>Art/Structures/Improvements/SiegeCamp/siege_camp_w.nif</NIF>
+			<KFM/>
+			<Button>Art/Interface/Game Hud/Actions/siege_high_res.dds</Button>
+		</ImprovementArtInfo>
+		<ImprovementArtInfo>
+			<Type>ART_DEF_IMPROVEMENT_SIEGE_CAMP_NW</Type>
+			<bExtraAnimations>0</bExtraAnimations>
+			<fScale>1.0</fScale>
+			<fInterfaceScale>1.0</fInterfaceScale>
+			<NIF>Art/Structures/Improvements/SiegeCamp/siege_camp_nw.nif</NIF>
+			<KFM/>
+			<Button>Art/Interface/Game Hud/Actions/siege_high_res.dds</Button>
+		</ImprovementArtInfo>
 	</ImprovementArtInfos>
 </Civ4ArtDefines>
