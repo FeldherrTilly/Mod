@@ -2740,6 +2740,7 @@
 			<Attribute Class="Scalar">szWallArtFile:Art/Structures/Buildings/Stockade/wall%1_Stockade.nif</Attribute>
 			<Rotate>45</Rotate>
 			<!-- this needs to be the negative of the CITY_TWIST value in detail manager; note that this uses degrees but DetailManager uses radians. Sorry. -->
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="building:LSYSTEM_FORT">
 			<Attribute Class="Scalar">szSpecialLayout:CityCenter</Attribute>
@@ -2750,6 +2751,7 @@
 			<Attribute Class="Scalar">szWallArtFile:Art/Structures/Buildings/Fort/wall%1_fort.nif</Attribute>
 			<Rotate>45</Rotate>
 			<!-- this needs to be the negative of the CITY_TWIST value in detail manager; note that this uses degrees but DetailManager uses radians. Sorry. -->
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="building:LSYSTEM_FORTRESS">
 			<Attribute Class="Scalar">szSpecialLayout:CityCenter</Attribute>
@@ -2760,6 +2762,7 @@
 			<Attribute Class="Scalar">szWallArtFile:Art/Structures/Buildings/Fortress/wall%1_Fortress.nif</Attribute>
 			<Rotate>45</Rotate>
 			<!-- this needs to be the negative of the CITY_TWIST value in detail manager; note that this uses degrees but DetailManager uses radians. Sorry. -->
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="building:LSYSTEM_STRONGHOLD">
 			<Attribute Class="Scalar">szSpecialLayout:CityCenter</Attribute>
@@ -2770,6 +2773,7 @@
 			<Attribute Class="Scalar">szWallArtFile:Art/Structures/Buildings/Stronghold/wall%1_Fortress.nif</Attribute>
 			<Rotate>45</Rotate>
 			<!-- this needs to be the negative of the CITY_TWIST value in detail manager; note that this uses degrees but DetailManager uses radians. Sorry. -->
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="building:LSYSTEM_NATIVEWALL">
 			<Attribute Class="Scalar">szSpecialLayout:CityCenter</Attribute>
@@ -2780,6 +2784,7 @@
 			<Attribute Class="Scalar">szWallArtFile:Art/Structures/Buildings/NativeWall/wall%1_Native.nif</Attribute>
 			<Rotate>45</Rotate>
 			<!-- this needs to be the negative of the CITY_TWIST value in detail manager; note that this uses degrees but DetailManager uses radians. Sorry. -->
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="building:LSYSTEM_WATER">
 			<Attribute Class="Scalar">bNoWaterTest:1</Attribute>
