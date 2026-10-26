@@ -863,7 +863,7 @@
 			<Attribute Class="Scalar">NIF:Art/Structures/Improvements/lumberjack_camp/Lumbermill.nif</Attribute>
 			<Attribute Class="Scalar">KFM:Art/Structures/Improvements/lumberjack_camp/Lumbermill.kfm</Attribute>
 			<Attribute Class="Scalar">bCutTrees:0</Attribute>
-			<Attribute Class="Scalar">fCenterCut:25</Attribute>
+			<Attribute Class="Scalar">fCenterCut:12</Attribute>
 			<Scale>0.25</Scale>
 		</ArtRef>
 		<ArtRef Name="goal:IMPROVEMENT_LUMBERJACK_CAMP">
@@ -872,7 +872,7 @@
 			<Attribute Class="Scalar">bApplyRotation:1</Attribute>
 			<Attribute Class="Scalar">NIF:Art/Structures/Improvements/lumberjack_camp/Lodge.nif</Attribute>
 			<Attribute Class="Scalar">bCutTrees:0</Attribute>
-			<Attribute Class="Scalar">fCenterCut:25</Attribute>
+			<Attribute Class="Scalar">fCenterCut:12</Attribute>
 			<Scale>0.25</Scale>
 		</ArtRef>
 		<ArtRef Name="goal:IMPROVEMENT_LODGE">
@@ -881,7 +881,7 @@
 			<Attribute Class="Scalar">bApplyRotation:1</Attribute>
 			<Attribute Class="Scalar">NIF:Art/Structures/Improvements/Lodge/Lodge.nif</Attribute>
 			<Attribute Class="Scalar">bCutTrees:0</Attribute>
-			<Attribute Class="Scalar">fCenterCut:25</Attribute>
+			<Attribute Class="Scalar">fCenterCut:12</Attribute>
 			<Scale>0.25</Scale>
 		</ArtRef>
 	</LNode>
