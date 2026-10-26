@@ -27,7 +27,7 @@
 	</Define>
 	<Define>
 		<DefineName>GAME_CITY_SIZE_EXP_MODIFIER</DefineName>
-		<fDefineFloatVal>1.05</fDefineFloatVal>
+		<fDefineFloatVal>0.8</fDefineFloatVal>
 	</Define>
 	<Define>
 		<DefineName>GAME_CITY_SIZE_LINMAP_AT_0</DefineName>
