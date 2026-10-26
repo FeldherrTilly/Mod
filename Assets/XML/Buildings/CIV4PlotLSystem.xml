@@ -5008,7 +5008,6 @@
 		<Width>1</Width>
 		<Height>1</Height>
 		<Attribute Class="RegionTest">1</Attribute>
-		<Attribute Class="Scalar">bNotBFS:1</Attribute>
 		<ArtRef Name="art:FARM_TREE_LEAFY">
 			<Attribute Class="Scalar">NIF:Art/Terrain/Features/TreeLeafy/Leafy_single_tree.nif</Attribute>
 			<Attribute Class="Scalar">bForceGround:1</Attribute>
@@ -7822,13 +7821,11 @@
 	</LProduction>
 	<!-- a few trees by the farm (one of these picked at random): planted, so also where there was no forest -->
 	<LProduction From="Farm_Trees_4x4">
-		<Attribute Class="Scalar">bNotBFS:1</Attribute>
 		<To Name="Leaf_Farm_Tree">
 			<Translate>3.5,-3.5</Translate>
 		</To>
 	</LProduction>
 	<LProduction From="Farm_Trees_4x4">
-		<Attribute Class="Scalar">bNotBFS:1</Attribute>
 		<To Name="Leaf_Farm_Tree">
 			<Translate>-3.5,3.5</Translate>
 		</To>
@@ -7837,13 +7834,11 @@
 		</To>
 	</LProduction>
 	<LProduction From="Farm_Trees_4x4">
-		<Attribute Class="Scalar">bNotBFS:1</Attribute>
 		<To Name="Leaf_Farm_Tree">
 			<Translate>0.5,-3.5</Translate>
 		</To>
 	</LProduction>
 	<LProduction From="Farm_Trees_4x4">
-		<Attribute Class="Scalar">bNotBFS:1</Attribute>
 		<To Name="Leaf_Farm_Tree">
 			<Translate>-3.5,-3.5</Translate>
 		</To>
