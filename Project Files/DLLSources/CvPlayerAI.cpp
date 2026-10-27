@@ -22202,6 +22202,15 @@ namespace
 	}
 }
 
+// WTP: the pioneer found no way to the plot: it does not get that plot again for PIONEER_PLAN_NO_WAY_TURNS turns (it got the
+// same plot every turn and stood still)
+static const int PIONEER_PLAN_NO_WAY_TURNS = 5;
+void CvPlayerAI::AI_setPioneerPlanNoWay(int iUnitID, int iPlotIndex)
+{
+	m_mapPioneerPlanTargets.erase(iUnitID);
+	m_mapPioneerPlanNoWay[std::make_pair(iUnitID, iPlotIndex)] = GC.getGameINLINE().getGameTurn();
+}
+
 int CvPlayerAI::AI_pioneerPlanTarget(const CvUnit& kPioneer)
 {
 	const CvMap& kMap = GC.getMap();
@@ -22278,6 +22287,11 @@ int CvPlayerAI::AI_pioneerPlanTarget(const CvUnit& kPioneer)
 			{
 				const CvPlot* const pPlot = kMap.plotByIndexINLINE(aiPlots[p]);
 				if (pPlot->area() != apFree[u]->area() || !apFree[u]->canBuild(pPlot, getPioneerPlanBuild(aiPlots[p])))
+				{
+					continue;
+				}
+				const std::map<std::pair<int, int>, int>::const_iterator itNoWay = m_mapPioneerPlanNoWay.find(std::make_pair(apFree[u]->getID(), aiPlots[p]));
+				if (itNoWay != m_mapPioneerPlanNoWay.end() && GC.getGameINLINE().getGameTurn() - itNoWay->second < PIONEER_PLAN_NO_WAY_TURNS)
 				{
 					continue;
 				}

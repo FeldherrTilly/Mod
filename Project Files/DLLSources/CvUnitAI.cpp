@@ -24375,40 +24375,44 @@ void CvUnitAI::AI_doPrivateBuild()
 }
 
 // WTP: pioneer plan (user 2026-10-25): the pioneer goes to the plot it got (CvPlayerAI::AI_pioneerPlanTarget) and builds the
-// marked improvement there; a mark it cannot build any more is removed; with nothing to do it waits for the next turn
+// marked improvement there; a mark it cannot build any more is removed; with nothing to do it waits for the next turn.
+// WTP (user 2026-10-27): a dropped target (mark gone, no way there) gives the next plot at once instead of a turn of waiting;
+// a plot it finds no way to is not given to it again for some turns
 bool CvUnitAI::AI_doPioneerPlan()
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
-	const int iPlotIndex = kOwner.AI_pioneerPlanTarget(*this);
-	CvPlot* const pPlot = (iPlotIndex >= 0) ? GC.getMap().plotByIndexINLINE(iPlotIndex) : NULL;
-	const BuildTypes eBuild = (iPlotIndex >= 0) ? kOwner.getPioneerPlanBuild(iPlotIndex) : NO_BUILD;
-	if (pPlot == NULL || eBuild == NO_BUILD)
+	for (int iTry = 0; iTry < 4; ++iTry)
 	{
-		getGroup()->pushMission(MISSION_SKIP);
-		return false;
-	}
-	if (!canBuild(pPlot, eBuild))
-	{
-		// (built by somebody else, or not possible there any more)
-		kOwner.setPioneerPlan(iPlotIndex, NO_BUILD, 0);
-		kOwner.AI_clearPioneerPlanTarget(getID());
-		getGroup()->pushMission(MISSION_SKIP);
-		return false;
-	}
-	if (atPlot(pPlot))
-	{
-		getGroup()->pushMission(MISSION_BUILD, eBuild, -1, 0, false, false, MISSIONAI_BUILD, pPlot);
+		const int iPlotIndex = kOwner.AI_pioneerPlanTarget(*this);
+		CvPlot* const pPlot = (iPlotIndex >= 0) ? GC.getMap().plotByIndexINLINE(iPlotIndex) : NULL;
+		const BuildTypes eBuild = (iPlotIndex >= 0) ? kOwner.getPioneerPlanBuild(iPlotIndex) : NO_BUILD;
+		if (pPlot == NULL || eBuild == NO_BUILD)
+		{
+			break;
+		}
+		if (!canBuild(pPlot, eBuild))
+		{
+			// (built by somebody else, or not possible there any more)
+			kOwner.setPioneerPlan(iPlotIndex, NO_BUILD, 0);
+			kOwner.AI_clearPioneerPlanTarget(getID());
+			continue;
+		}
+		if (atPlot(pPlot))
+		{
+			getGroup()->pushMission(MISSION_BUILD, eBuild, -1, 0, false, false, MISSIONAI_BUILD, pPlot);
+			return true;
+		}
+		if (!generatePath(pPlot, 0, true))
+		{
+			// (no way there now: another plot)
+			kOwner.AI_setPioneerPlanNoWay(getID(), iPlotIndex);
+			continue;
+		}
+		getGroup()->pushMission(MISSION_MOVE_TO, pPlot->getX_INLINE(), pPlot->getY_INLINE(), 0, false, false, MISSIONAI_BUILD, pPlot);
 		return true;
 	}
-	if (!generatePath(pPlot, 0, true))
-	{
-		// (no way there now: another plot next turn)
-		kOwner.AI_clearPioneerPlanTarget(getID());
-		getGroup()->pushMission(MISSION_SKIP);
-		return false;
-	}
-	getGroup()->pushMission(MISSION_MOVE_TO, pPlot->getX_INLINE(), pPlot->getY_INLINE(), 0, false, false, MISSIONAI_BUILD, pPlot);
-	return true;
+	getGroup()->pushMission(MISSION_SKIP);
+	return false;
 }
 
 // WTP: patrol of a human player's military unit or warship (AUTOMATE_PATROL) within 10 plots of the plot where it was

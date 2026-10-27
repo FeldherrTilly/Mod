@@ -746,6 +746,8 @@ protected:
 	std::map<int, int> m_mapTraderTarget;
 	// WTP: pioneer plan: the plot (index) each pioneer with the automation AUTOMATE_PIONEER_PLAN works on (unit ID), not saved
 	std::map<int, int> m_mapPioneerPlanTargets;
+	// WTP: pioneer plan: (unit ID, plot index) -> the turn the pioneer found no way to that plot (not saved)
+	std::map<std::pair<int, int>, int> m_mapPioneerPlanNoWay;
 	// WTP: expert to buy instead of learning it (learning was blocked for 15 turns), not saved
 	UnitClassTypes m_eWfExpertToBuy;
 	bool AI_doWfExpertPurchase();
@@ -758,6 +760,7 @@ public:
 	bool AI_isWantedExpertOnDock(const CvUnit& kUnit) const;
 	int AI_pioneerPlanTarget(const CvUnit& kPioneer);
 	void AI_clearPioneerPlanTarget(int iUnitID) { m_mapPioneerPlanTargets.erase(iUnitID); }
+	void AI_setPioneerPlanNoWay(int iUnitID, int iPlotIndex);
 	void AI_setTraderTarget(int iUnitID, int iPlotIndex);
 	bool AI_isTraderTargetTaken(int iPlotIndex, int iUnitID) const;
 protected:
