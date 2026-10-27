@@ -22191,7 +22191,8 @@ bool CvPlayerAI::AI_isTraderTargetTaken(int iPlotIndex, int iUnitID) const
 // WTP: pioneer plan (user 2026-10-25): the plot a pioneer with the automation AUTOMATE_PIONEER_PLAN works on (-1: none).
 // Marks whose improvement exists already are removed. Free pioneers get their plots together, the nearest pair of pioneer
 // and plot first (a priority 2 plot counts 6 plots further away): a priority 1 plot gets a hardy pioneer or two pioneers
-// (a hardy pioneer counts twice), a priority 2 plot one. Only plots on the pioneer's land area.
+// (a hardy pioneer counts twice), a priority 2 plot one; twice as many where the build clears a forest. Only plots on the
+// pioneer's land area.
 namespace
 {
 	// the strength a pioneer brings to a priority 1 plot (2 are needed): a hardy pioneer (expert pioneer) 2, others 1
@@ -22200,6 +22201,29 @@ namespace
 		const ProfessionTypes ePioneer = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_PIONEER");
 		return (ePioneer != NO_PROFESSION && GC.getProfessionInfo(ePioneer).LbD_getExpert() == kUnit.getUnitClassType()) ? 2 : 1;
 	}
+
+	// the strength a marked plot wants: priority 1 two, priority 2 one; WTP (user 2026-10-27): twice that if the build clears the
+	// plot's feature (a farm in a forest)
+	int pioneerPlanWanted(const CvPlayer& kPlayer, int iPlotIndex)
+	{
+		int iWanted = (kPlayer.getPioneerPlanPriority(iPlotIndex) == 1) ? 2 : 1;
+		const CvPlot* const pPlot = GC.getMap().plotByIndexINLINE(iPlotIndex);
+		const BuildTypes eBuild = kPlayer.getPioneerPlanBuild(iPlotIndex);
+		if (pPlot != NULL && eBuild != NO_BUILD && pPlot->getFeatureType() != NO_FEATURE && GC.getBuildInfo(eBuild).isFeatureRemove(pPlot->getFeatureType()))
+		{
+			iWanted *= 2;
+		}
+		return iWanted;
+	}
+}
+
+// WTP: the pioneer found no way to the plot: it does not get that plot again for PIONEER_PLAN_NO_WAY_TURNS turns (it got the
+// same plot every turn and stood still)
+static const int PIONEER_PLAN_NO_WAY_TURNS = 5;
+void CvPlayerAI::AI_setPioneerPlanNoWay(int iUnitID, int iPlotIndex)
+{
+	m_mapPioneerPlanTargets.erase(iUnitID);
+	m_mapPioneerPlanNoWay[std::make_pair(iUnitID, iPlotIndex)] = GC.getGameINLINE().getGameTurn();
 }
 
 int CvPlayerAI::AI_pioneerPlanTarget(const CvUnit& kPioneer)
@@ -22260,7 +22284,7 @@ int CvPlayerAI::AI_pioneerPlanTarget(const CvUnit& kPioneer)
 	std::vector<int> aiPlots;
 	for (std::map<int, int>::const_iterator it = getPioneerPlans().begin(); it != getPioneerPlans().end(); ++it)
 	{
-		const int iWanted = (it->second % 10 == 1) ? 2 : 1;
+		const int iWanted = pioneerPlanWanted(*this, it->first);
 		const std::map<int, int>::const_iterator itStrength = mapStrength.find(it->first);
 		if (itStrength == mapStrength.end() || itStrength->second < iWanted)
 		{
@@ -22281,6 +22305,11 @@ int CvPlayerAI::AI_pioneerPlanTarget(const CvUnit& kPioneer)
 				{
 					continue;
 				}
+				const std::map<std::pair<int, int>, int>::const_iterator itNoWay = m_mapPioneerPlanNoWay.find(std::make_pair(apFree[u]->getID(), aiPlots[p]));
+				if (itNoWay != m_mapPioneerPlanNoWay.end() && GC.getGameINLINE().getGameTurn() - itNoWay->second < PIONEER_PLAN_NO_WAY_TURNS)
+				{
+					continue;
+				}
 				const int iDistance = plotDistance(apFree[u]->getX_INLINE(), apFree[u]->getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE())
 					+ ((getPioneerPlanPriority(aiPlots[p]) == 2) ? PIONEER_PLAN_PRIORITY_DISTANCE : 0);
 				if (iDistance < iBestDistance)
@@ -22298,7 +22327,7 @@ int CvPlayerAI::AI_pioneerPlanTarget(const CvUnit& kPioneer)
 		const int iPlot = aiPlots[iBestPlot];
 		m_mapPioneerPlanTargets[apFree[iBestUnit]->getID()] = iPlot;
 		mapStrength[iPlot] += pioneerPlanStrength(*apFree[iBestUnit]);
-		if (mapStrength[iPlot] >= ((getPioneerPlanPriority(iPlot) == 1) ? 2 : 1))
+		if (mapStrength[iPlot] >= pioneerPlanWanted(*this, iPlot))
 		{
 			aiPlots.erase(aiPlots.begin() + iBestPlot);
 		}
