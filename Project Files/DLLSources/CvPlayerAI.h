@@ -587,9 +587,12 @@ protected:
 	std::map<int, int> m_mapPioneerPlanTargets;
 	// WTP: pioneer plan: the turn the player was told that nothing is marked any more (once per turn), not saved
 	int m_iPioneerPlanDoneTurn;
+	// WTP: pioneer plan: (unit ID, plot index) -> the turn the pioneer found no way to that plot (not saved)
+	std::map<std::pair<int, int>, int> m_mapPioneerPlanNoWay;
 	int AI_pioneerPlanTarget(const CvUnit& kPioneer);
 	void AI_clearPioneerPlanTarget(int iUnitID) { m_mapPioneerPlanTargets.erase(iUnitID); }
 	bool AI_pioneerPlanDoneNotice();
+	void AI_setPioneerPlanNoWay(int iUnitID, int iPlotIndex);
 
 	void AI_doTradeRoutes();
 	void AI_doCounter();
