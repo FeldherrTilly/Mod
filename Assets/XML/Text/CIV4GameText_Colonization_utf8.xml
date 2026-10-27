@@ -2641,6 +2641,17 @@
 		<Hungarian>[COLOR_YELLOW]Úttörőterv[COLOR_REVERT]: mezők megjelölése egy fejlesztéshez (fent válaszd ki azt és a prioritást; bal kattintás: megjelölés, jobb kattintás: törlés). Az „Úttörőterv végrehajtása” automatizálású úttörők építik meg.</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_PIONEER_PLAN_DONE</Tag>
+		<English>Pioneer Plan: no improvements are marked any more. %s1 and the other pioneers of the plan wait.</English>
+		<Portuguese>Plano dos pioneiros: não há mais melhorias marcadas. %s1 e os outros pioneiros do plano esperam.</Portuguese>
+		<French>Plan des pionniers : plus aucun aménagement n'est marqué. %s1 et les autres pionniers du plan attendent.</French>
+		<German>Pionier-Plan: Es sind keine Verbesserungen mehr vorgemerkt. %s1 und die anderen Pioniere des Plans warten.</German>
+		<Italian>Piano dei pionieri: non ci sono più miglioramenti segnati. %s1 e gli altri pionieri del piano attendono.</Italian>
+		<Spanish>Plan de pioneros: ya no hay mejoras marcadas. %s1 y los demás pioneros del plan esperan.</Spanish>
+		<Russian>План пионеров: отмеченных улучшений больше нет. %s1 и другие пионеры плана ждут.</Russian>
+		<Hungarian>Úttörőterv: nincs több megjelölt fejlesztés. %s1 és a terv többi úttörője vár.</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_ACTION_AUTOMATE_PRIVATE_BUILD</Tag>
 		<English>Private Pioneer</English>
 		<Portuguese>Pioneiro particular</Portuguese>
