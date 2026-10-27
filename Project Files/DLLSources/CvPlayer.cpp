@@ -2224,9 +2224,7 @@ void CvPlayer::doTurn()
 
 	EXTRA_POWER_CHECK
 
-	doGold();
-
-	EXTRA_POWER_CHECK
+	// WTP (user 2026-10-27): doGold (the military upkeep) comes after the colonies, i.e. after the domestic market income
 
 	doBells();
 
@@ -2340,6 +2338,11 @@ void CvPlayer::doTurn()
 		gDLL->UI().addPlayerMessage(getID(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, Coordinates::invalidCoord(), NULL,
 			MESSAGE_TYPE_INFO, NULL, (m_iTurnCrimeGold > 0) ? COLOR_RED : COLOR_WHITE);
 	}
+
+	EXTRA_POWER_CHECK
+
+	// WTP (user 2026-10-27): the military upkeep is paid with the income of the colonies (domestic market) of this turn
+	doGold();
 
 	// R&R, Little Extra Native Income, ray START
 	if (isNative())
@@ -11650,6 +11653,9 @@ void CvPlayer::doGold()
 	// WTP: military upkeep. Not enough gold: paid units are dismissed, at most 2 per turn. First the soldiers that become colonists
 	// again (a random one, non-veterans before veterans), then the units that leave (the most expensive first).
 	// After a dismissal no unit may be armed as a soldier in the coming turn.
+	// WTP (user 2026-10-27): only when the gold falls short a second time within MILITARY_UPKEEP_GRACE_TURNS turns; the first time
+	// the player is warned and pays what he has
+	static const int MILITARY_UPKEEP_GRACE_TURNS = 30;
 	if (isHuman())
 	{
 		std::vector<std::pair<int, int> > aPaid;
@@ -11660,7 +11666,20 @@ void CvPlayer::doGold()
 			iUpkeep += aPaid[i].first;
 		}
 		std::sort(aPaid.begin(), aPaid.end());
-		for (int iDismissed = 0; iDismissed < 2 && iUpkeep > getGold(); ++iDismissed)
+		bool bDismiss = false;
+		if (iUpkeep > getGold())
+		{
+			const int iTurn = GC.getGameINLINE().getGameTurn();
+			bDismiss = m_iMilitaryShortTurn >= 0 && iTurn - m_iMilitaryShortTurn <= MILITARY_UPKEEP_GRACE_TURNS;
+			m_iMilitaryShortTurn = iTurn;
+			if (!bDismiss)
+			{
+				const CvWString szBuffer = gDLL->getText("TXT_KEY_MILITARY_UPKEEP_WARNING", iUpkeep, MILITARY_UPKEEP_GRACE_TURNS);
+				gDLL->UI().addPlayerMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, Coordinates::invalidCoord(), "AS2D_POSITIVE_DINK",
+					MESSAGE_TYPE_MAJOR_EVENT, NULL, COLOR_RED);
+			}
+		}
+		for (int iDismissed = 0; bDismiss && iDismissed < 2 && iUpkeep > getGold(); ++iDismissed)
 		{
 			// candidates: 0 non-veteran soldiers, 1 veteran soldiers, 2 units that leave
 			std::vector<int> aiCandidates[3];
