@@ -1387,8 +1387,70 @@ FCH = {'FOREST': 'F', 'LIGHT_FOREST': 'F', 'THICKET': 'F', 'FOREST_EVERGREEN': '
        'LICHEN': ',', 'MOSS': ','}
 
 
+NORTH_SEA = (-4.5, 12.0, 50.8)        # lon from, lon to, lat from (to the map edge): North Sea and the sea off Norway
+
+
+def europe_zone():
+    """Atlantic Europe plots: open sea at least 8 tiles from land (5 in the North Sea), joined to the east edge.
+
+    The zone comes up to 8 tiles off every open Atlantic coast (5 off the North Sea coasts), but does not leak
+    through narrow straits into the Mediterranean, the Baltic or round the North Cape to the west."""
+    def min_dist(i):
+        lon, la = from_xy(i % W + 0.5, i // W + 0.5)
+        return 5 if NORTH_SEA[0] <= lon <= NORTH_SEA[1] and la >= NORTH_SEA[2] else 8
+
+    def open_sea(i):
+        return ocean[i] and i % W >= 48 and dland[i] >= min_dist(i)
+    zone = [False] * (W * H)
+    dq = deque(I(W - 1, y) for y in range(H) if open_sea(I(W - 1, y)))
+    for i in dq:
+        zone[i] = True
+    while dq:
+        i = dq.popleft()
+        for nx, ny in nbrs(i % W, i // W, N4):
+            j = I(nx, ny)
+            if not zone[j] and open_sea(j):
+                zone[j] = True
+                dq.append(j)
+    # bays and gulfs: the zone reaches in until the land of every open coast is at most 8 tiles from it; in a bay the
+    # zone takes the middle of the bay (the sea at least k tiles from land, k as large as possible). Distances run through
+    # water at least 3 tiles from land, so straits like Gibraltar and the Skagerrak stay closed.
+    deep = [ocean[i] and dland[i] >= 3 for i in range(W * H)]
+    coast = [i for i in range(W * H) if ocean[i] and dland[i] == 1 and i % W >= 48]
+    while True:
+        de = bfs_dist([i for i in range(W * H) if zone[i]], lambda j: deep[j])
+        worst = None
+        for c in coast:
+            cx, cy = c % W, c // W
+            d = min([de[I(x, y)] + max(abs(x - cx), abs(y - cy)) for x in range(cx - 2, cx + 3) for y in range(cy - 2, cy + 3)
+                     if inb(x, y) and deep[I(x, y)]] or [10 ** 6])
+            if 7 < d <= 16 and (worst is None or d > worst[0]):
+                worst = (d, cx, cy)
+        if worst is None:
+            return zone
+        d, cx, cy = worst
+        for k in range(7, 2, -1):
+            near = set(i for i in range(W * H) if ocean[i] and dland[i] >= k and not zone[i]
+                       and max(abs(i % W - cx), abs(i // W - cy)) <= 12)
+            grown = set(i for i in near if any(zone[I(nx, ny)] for nx, ny in nbrs(i % W, i // W, N4)))
+            dq = deque(grown)
+            while dq:
+                i = dq.popleft()
+                for nx, ny in nbrs(i % W, i // W, N4):
+                    j = I(nx, ny)
+                    if j in near and j not in grown:
+                        grown.add(j)
+                        dq.append(j)
+            if k == 3 or any(max(abs(i % W - cx), abs(i // W - cy)) <= 7 for i in grown):
+                break
+        for i in grown:
+            zone[i] = True
+        if not any(max(abs(i % W - cx), abs(i // W - cy)) <= 7 for i in grown):
+            coast = [c for c in coast if (c % W, c // W) != (cx, cy)]     # out of reach even at k = 3
+
+
 dland = bfs_dist([i for i in range(W * H) if not ocean[i]], lambda j: True)
-EUROPE = [ocean[i] and i % W >= W - 22 and dland[i] >= 8 for i in range(W * H)]      # Atlantic: Europe plots, 8 tiles from land
+EUROPE = europe_zone()
 PACIFIC = [ocean[i] and (i % W < 4 or (i % W < 18 and dland[i] >= 6)) for i in range(W * H)]      # the four added columns on the left, and wide open sea beyond
 
 
@@ -1666,24 +1728,7 @@ for i in BARRIER:
         if ocean[j] and dl1[j] == 1:
             SHALLOW_WATER.add(j)
 dland = bfs_dist([i for i in range(W * H) if not ocean[i]], lambda j: True)
-EUROPE = [ocean[i] and i % W >= W - 22 and dland[i] >= 8 for i in range(W * H)]
-# a narrow strip of Europe plots in the northern North Sea (five plots, deep water), joined to the Atlantic zone by a corridor of open sea
-ns_best = None
-for x, y in ALL:
-    if 69 <= x <= 73 and 11 <= y <= 23:
-        cells = [I(x, y + k) for k in range(5)]
-        if all(ocean[c] and dland[c] >= 4 for c in cells):
-            sc = (-abs(x - 71) - abs(y - 16), 0)      # close to the middle of the North Sea strip position, in open sea
-            if ns_best is None or sc > ns_best[0]:
-                ns_best = (sc, cells)
-NORTH_SEA_EUROPE = ns_best[1] if ns_best else []
-for c in NORTH_SEA_EUROPE:
-    EUROPE[c] = True
-if NORTH_SEA_EUROPE:
-    sx0, sy1 = NORTH_SEA_EUROPE[0] % W, NORTH_SEA_EUROPE[-1] // W
-    for i in range(W * H):             # the open ocean to the south of Norway belongs to Europe as far as the strip
-        if ocean[i] and dland[i] >= 4 and i % W >= sx0 and i // W <= sy1 + 3:
-            EUROPE[i] = True
+EUROPE = europe_zone()
 for i in range(W * H):                 # above the Sahara the zone reaches further to the centre
     if ocean[i] and dland[i] >= 3 and i % W >= 68 and i // W >= H - 7:
         EUROPE[i] = True
@@ -1820,7 +1865,7 @@ for x, y in ALL:
     if lake[i] and any(ocean[I(nx, ny)] for nx, ny in nbrs(x, y)):
         lake[i], land[i], plot_type[i], feature[i] = False, True, 2, None
         nb = [terrain[I(nx, ny)] for nx, ny in nbrs(x, y) if land[I(nx, ny)] and terrain[I(nx, ny)]]
-        terrain[i] = max(set(nb), key=nb.count) if nb else 'WETLAND'
+        terrain[i] = max(sorted(set(nb)), key=nb.count) if nb else 'WETLAND'
 disle = bfs_dist(list(ISLE_CELLS), lambda j: True) if ISLE_CELLS else [10 ** 6] * (W * H)
 WATER_TERRAIN = [''] * (W * H)
 for x, y in ALL:
@@ -2070,6 +2115,320 @@ for lo, la, name in ((12.0, 62.0, 'Scandinavia'), (-4.0, 40.0, 'Iberian Peninsul
 
 
 
+# ---------------------------------------------------------------- resources: placed by the generator instead of the game
+# The rules of the game (CvPlot::canHaveBonus, CvMapGenerator::canPlaceBonusAt) are read from CIV4BonusInfos.xml, and the
+# amount per resource follows the game's formula. The spread is not even: every resource has its own large-scale noise
+# (rich and poor provinces), there is a shared richness noise, resources come in small groups, and the real deposits of
+# Europe (coal in the Ruhr, silver in the Harz, iron at Kiruna, wine in Bordeaux, ...) draw their resource. The climate
+# latitude of a plot is its real latitude (the game's latitude runs the wrong way on this flipped map).
+BONUS_XML = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'Assets', 'XML', 'Terrain', 'CIV4BonusInfos.xml')
+
+
+def read_bonus_infos(path):
+    import re
+    text = open(path, encoding='utf-8').read()
+    infos = []
+    for b in re.findall(r'<BonusInfo>(.*?)</BonusInfo>', text, re.S):
+        def val(tag, default=0):
+            m = re.search(r'<%s>(-?\d+)<' % tag, b)
+            return int(m.group(1)) if m else default
+
+        def bools(tag):
+            m = re.search(r'<%s>(.*?)</%s>' % (tag, tag), b, re.S)
+            if not m:
+                return set()
+            return set(k.split('_', 1)[1] for k, v in re.findall(r'<(?:Terrain|Feature)Type>(\w+)</(?:Terrain|Feature)Type>\s*<b\w+>(\d)<', m.group(1)) if v == '1')
+        rands = re.search(r'<Rands>(.*?)</Rands>', b, re.S)
+        infos.append(dict(
+            type=re.search(r'<Type>BONUS_(\w+)<', b).group(1), order=val('iPlacementOrder'), const=val('iConstAppearance'),
+            rands=[int(v) for v in re.findall(r'>(\d+)<', rands.group(1))] if rands else [], tiles_per=val('iTilesPer'),
+            min_area=val('iMinAreaSize', -1), min_lat=val('iMinLatitude'), max_lat=val('iMaxLatitude', 90), unique=val('iUnique'),
+            hills=val('bHills') == 1, flat=val('bFlatlands') == 1, peaks=val('bPeaks') == 1, no_river=val('bNoRiverSide') == 1,
+            river_only=val('bRiverSideOnly') == 1, coastal=val('bCoastalLandOnly') == 1, whale=val('bWhalingboatWorkable') == 1,
+            south=val('bOnlySouthernHemisphere') == 1,
+            T=bools('TerrainBooleans'), F=bools('FeatureBooleans'), FT=bools('FeatureTerrainBooleans')))
+    return infos
+
+
+# real deposits: resource -> (lon, lat, radius in tiles, extra weight in the centre)
+DEPOSITS = {
+    'COAL': [(7.2, 51.5, 4, 8), (18.8, 50.3, 4, 8), (-3.5, 51.7, 3, 8), (-1.6, 55.0, 3, 6), (38.0, 48.0, 4, 8), (6.9, 49.3, 3, 5),
+             (4.4, 50.4, 3, 6), (-5.8, 43.3, 3, 5), (-4.0, 55.9, 3, 5)],
+    'IRON': [(20.2, 67.8, 4, 8), (15.0, 60.0, 4, 8), (6.0, 49.2, 3, 6), (14.9, 47.5, 3, 6), (-2.9, 43.3, 3, 6), (33.4, 47.9, 4, 6),
+             (10.3, 42.8, 2, 5), (8.0, 50.9, 3, 5), (59.5, 57.0, 5, 6)],
+    'SILVER': [(10.5, 51.8, 3, 10), (13.0, 50.6, 3, 10), (15.3, 49.9, 3, 8), (11.7, 47.3, 3, 8), (9.6, 59.7, 3, 8), (-5.5, 38.2, 4, 8),
+               (24.0, 37.7, 2, 6), (18.9, 48.4, 3, 8), (8.5, 39.3, 2, 6)],
+    'GOLD': [(23.0, 46.3, 3, 10), (18.9, 48.7, 2, 8), (-3.9, 52.0, 2, 6), (-6.8, 42.5, 3, 8), (13.0, 47.1, 2, 6), (25.5, 68.5, 3, 6),
+             (33.0, 23.0, 4, 6)],
+    'GEMS': [(13.8, 50.5, 3, 8), (7.3, 49.7, 2, 8), (60.0, 57.0, 5, 8), (33.6, 29.0, 3, 6), (58.8, 36.2, 3, 8)],
+    'SALT': [(20.0, 50.0, 3, 8), (13.6, 47.6, 3, 8), (10.4, 53.2, 2, 6), (-2.5, 53.2, 2, 6), (12.0, 51.5, 2, 6), (35.5, 31.5, 2, 6),
+             (-3.5, 24.0, 5, 4)],
+    'STONE': [(10.1, 44.1, 2, 6), (-2.4, 50.5, 2, 4), (23.9, 38.1, 2, 4), (27.6, 40.6, 2, 4)],
+    'GRAPES': [(-0.6, 44.8, 3, 10), (4.8, 47.0, 3, 10), (4.0, 49.0, 2, 8), (7.3, 50.0, 3, 8), (11.2, 43.5, 3, 8), (-2.5, 42.5, 2, 8),
+               (-7.5, 41.2, 2, 8), (21.4, 48.1, 2, 8), (-6.1, 36.7, 2, 6), (4.8, 44.5, 2, 6), (44.0, 42.0, 3, 6)],
+    'OLIVES': [(-4.5, 37.6, 4, 10), (16.5, 41.0, 3, 8), (22.0, 37.5, 3, 8), (10.0, 35.5, 3, 8), (24.9, 35.2, 2, 6), (35.5, 33.0, 3, 8),
+               (5.5, 43.5, 2, 6)],
+    'HORSES': [(-5.5, 37.5, 3, 5), (19.5, 47.0, 4, 6), (35.0, 48.0, 6, 6), (45.0, 27.0, 6, 6), (4.5, 43.5, 2, 4)],
+    'SHEEP': [(-1.5, 52.5, 4, 6), (-4.0, 56.5, 3, 6), (-4.0, 40.5, 5, 6)],
+    'CATTLE': [(5.5, 53.0, 3, 6), (-0.5, 49.0, 3, 6), (-8.0, 53.0, 4, 6), (8.2, 46.8, 3, 6), (9.0, 56.0, 3, 6)],
+    'FLAX': [(3.5, 51.0, 3, 8), (-7.0, 54.5, 3, 6), (29.5, 57.8, 4, 8)],
+    'HEMP': [(36.0, 54.0, 6, 6), (11.5, 44.8, 3, 5)],
+    'TOBACCO': [(22.5, 41.0, 3, 8), (36.0, 41.0, 3, 6)],
+    'COTTON': [(31.0, 30.0, 4, 10), (35.0, 37.0, 3, 6), (37.0, 36.5, 3, 5)],
+    'SUGAR': [(-4.0, 36.8, 2, 5), (14.0, 37.5, 2, 5), (31.0, 27.0, 3, 5)],
+    'RICE': [(9.5, 45.2, 2, 6), (-0.3, 39.4, 2, 6), (31.0, 31.0, 2, 6)],
+    'FUR': [(31.0, 58.5, 5, 6), (24.0, 67.0, 5, 5), (58.0, 60.0, 5, 6)],
+    'FISH': [(2.0, 54.6, 4, 6), (14.0, 68.0, 3, 8), (-5.0, 47.5, 3, 4), (14.0, 55.0, 4, 4)],
+    'WHALE': [(5.0, 64.0, 5, 6), (-4.0, 45.0, 4, 4)],
+    'HUMPBACK_WHALE': [(5.0, 64.0, 5, 6), (-4.0, 45.0, 4, 4)],
+    'PEARLS': [(51.0, 26.0, 4, 10), (37.5, 23.5, 4, 6)],
+    'PEARLS_2': [(51.0, 26.0, 4, 10), (37.5, 23.5, 4, 6)],
+}
+GROUP_CHANCE = {'COAL': 0.6, 'IRON': 0.6, 'SILVER': 0.5, 'GOLD': 0.4, 'GEMS': 0.4, 'SALT': 0.5, 'STONE': 0.5, 'GRAPES': 0.6,
+                'OLIVES': 0.6, 'FISH': 0.5, 'HIGH_SEA_FISH': 0.5, 'SHRIMP': 0.4, 'CRAB': 0.4}
+
+RICHNESS = 6.0                         # contrast of the shared rich/poor land noise (noise sd ~0.28)
+LAND_AMOUNT = 0.8                      # share of the game's amount on land: room for rich and empty stretches
+brng = random.Random(SEED * 7 + 71)
+BONUS_INFOS = [b for b in read_bonus_infos(BONUS_XML) if not b['south']]      # Europe has no southern hemisphere
+BONUS_INFOS.sort(key=lambda b: b['order'])                                      # stable: XML order within one placement order
+BONUS = {}
+area_size = [0] * (W * H)
+for comp in components([land[i] for i in range(W * H)], N8) + components([not land[i] for i in range(W * H)], N8):
+    for x, y in comp:
+        area_size[I(x, y)] = len(comp)
+NO_BONUS_FEATURES = ('VOLCANO', 'CRATER', 'TAR_PIT', 'RIVER_FORD')
+
+
+def river_side(x, y):
+    return I(x, y) in wofr or I(x, y) in nofr or (x > 0 and I(x - 1, y) in wofr) or (y + 1 < H and I(x, y + 1) in nofr)
+
+
+def can_have(b, i):
+    x, y = i % W, i // W
+    t, f = terrain[i], feature[i]
+    if not t or i in IMPROVEMENT or f in NO_BONUS_FEATURES or EUROPE[i] or PACIFIC[i]:
+        return False
+    if plot_type[i] == 0 and not b['peaks']:
+        return False
+    if f:
+        if f not in b['F'] or t not in b['FT']:
+            return False
+    elif t not in b['T']:
+        return False
+    if (plot_type[i] == 1 and not b['hills']) or (plot_type[i] == 2 and not b['flat']):
+        return False
+    if land[i] and ((b['no_river'] and river_side(x, y)) or (b['river_only'] and not river_side(x, y))):
+        return False
+    if b['coastal'] and not (land[i] and any(ocean[I(nx, ny)] for nx, ny in nbrs(x, y))):
+        return False
+    if area_size[i] < b['min_area']:
+        return False
+    if not b['min_lat'] <= real_lat(y) <= b['max_lat']:
+        return False
+    if b['whale'] and any(terrain[I(nx, ny)] in ('COAST', 'SHALLOW_COAST') for nx, ny in nbrs(x, y)):
+        return False
+    return True
+
+
+def can_place(b, i):
+    x, y = i % W, i // W
+    if i in BONUS or any(BONUS.get(I(nx, ny), b['type']) != b['type'] for nx, ny in nbrs(x, y)):
+        return False
+    r = b['unique']
+    return not any(BONUS.get(I(nx, ny)) == b['type'] for nx in range(x - r, x + r + 1) for ny in range(y - r, y + r + 1)
+                   if inb(nx, ny) and (nx, ny) != (x, y))
+
+
+RICH = Shifted(Noise(SEED * 1000 + 300))
+for k, b in enumerate(BONUS_INFOS):
+    cands = [i for i in range(W * H) if can_have(b, i)]
+    if not cands or b['tiles_per'] <= 0:
+        continue
+    count = (b['const'] + sum(brng.randrange(r) for r in b['rands'] if r > 0)) * (len(cands) // b['tiles_per']) // 100
+    if land[cands[0]]:
+        count = int(round(count * LAND_AMOUNT))
+    if count <= 0:
+        continue
+    prov = Shifted(Noise(SEED * 1000 + 400 + k))
+    deps = [to_xy(lo, la) + (r, m) for lo, la, r, m in DEPOSITS.get(b['type'], [])]
+    weight = {}
+    for i in cands:
+        x, y = i % W, i // W
+        w = math.exp(4.0 * prov.fbm(x, y, 3, 14) + (RICHNESS * RICH.fbm(x, y, 3, 10) if land[i] else 0.0))
+        for dx, dy, r, m in deps:
+            d = math.hypot(x + 0.5 - dx, y + 0.5 - dy)
+            if d < r:
+                w *= 1 + m * (1 - d / r)
+        weight[i] = w
+    group = GROUP_CHANCE.get(b['type'].rstrip('_0123456789'), 0.3)
+    while count > 0 and weight:
+        keys = list(weight)
+        i = brng.choices(keys, [weight[j] for j in keys])[0]
+        del weight[i]
+        if not can_place(b, i):
+            continue
+        BONUS[i] = b['type']
+        count -= 1
+        x, y = i % W, i // W
+        r = b['unique'] + 2
+        near = [j for j in weight if max(abs(j % W - x), abs(j // W - y)) <= r]
+        brng.shuffle(near)
+        for j in near:                 # a small group of the same resource around it
+            if count <= 0 or brng.random() >= group:
+                break
+            if can_place(b, j):
+                BONUS[j] = b['type']
+                count -= 1
+                del weight[j]
+
+
+# ---------------------------------------------------------------- natives: every tribe gets a home that fits its way of life
+# The map is a scenario: all players are set (8 colonial powers off their own coasts, 31 tribes, the kings), so the game
+# does not place the natives by its north/south rule (which would put the Inuit into the Sahara on this flipped map).
+# Each tribe has a home region; its land grows from there along the terrain (mountains and sea are costly), and the
+# villages are set in it by the quality of the site and the tribe's way of life, unevenly and clustered.
+NATIVE_KINDS = {   # preferred terrain, preferred plot types, settled (bigger, closer villages) or not
+    'arctic': ({'TUNDRA': 3, 'SNOW': 1, 'TAIGA': 2}, {1: 1, 2: 1}, False),
+    'boreal': ({'TAIGA': 3, 'TUNDRA': 1, 'WETLAND': 2, 'GRASS': 1}, {1: 1, 2: 1}, False),
+    'forest': ({'GRASS': 3, 'PLAINS_FERTILE': 2, 'WETLAND': 1, 'TAIGA': 1, 'PLAINS': 1}, {1: 1, 2: 1}, False),
+    'plains': ({'PLAINS': 3, 'PLAINS_FERTILE': 3, 'GRASS': 2, 'ROCK_STEPPES': 1, 'SHRUBLAND': 1}, {2: 2, 1: 0.5}, False),
+    'steppe': ({'PLAINS': 3, 'ROCK_STEPPES': 2, 'SHRUBLAND': 2, 'PLAINS_FERTILE': 1}, {2: 2, 1: 0.5}, False),
+    'desert': ({'DESERT': 2, 'ROCK_STEPPES': 3, 'SHRUBLAND': 2, 'PLAINS': 1}, {2: 1, 1: 1}, False),
+    'highland': ({'PLAINS': 2, 'SHRUBLAND': 2, 'GRASS': 2, 'PLAINS_FERTILE': 2, 'ROCK_STEPPES': 1}, {1: 3, 2: 1}, True),
+    'mountain': ({'GRASS': 2, 'TAIGA': 2, 'PLAINS': 2, 'TUNDRA': 1, 'PLAINS_FERTILE': 1}, {1: 3, 2: 1}, False),
+    'river': ({'GRASS': 2, 'PLAINS_FERTILE': 3, 'MARSH': 2, 'WETLAND': 2, 'SAVANNAH': 2}, {2: 2, 1: 0.5}, True),
+    'wetland': ({'WETLAND': 3, 'MARSH': 3, 'GRASS': 2, 'TAIGA': 1}, {2: 2, 1: 0.5}, False),
+    'coast': ({'GRASS': 2, 'PLAINS': 2, 'SHRUBLAND': 2, 'PLAINS_FERTILE': 2, 'SAVANNAH': 2}, {2: 1, 1: 1}, True),
+    'island': ({'GRASS': 2, 'PLAINS': 2, 'SHRUBLAND': 2, 'SAVANNAH': 2, 'MARSH': 1}, {2: 1, 1: 1}, True),
+}
+TRIBES = [   # civilization, home (lon, lat), way of life, villages
+    ('INUIT', (22.0, 69.0), 'arctic', 5), ('ALGONQUIAN', (30.0, 62.5), 'boreal', 6), ('HURON', (15.0, 60.5), 'boreal', 6),
+    ('IROQUOIS', (22.0, 54.0), 'forest', 8), ('CHEROKEE', (12.0, 49.0), 'forest', 8), ('NEZ_PERCE', (9.0, 46.5), 'mountain', 5),
+    ('BLACKFOOT', (33.0, 48.0), 'plains', 6), ('SIOUX', (20.0, 47.0), 'plains', 7), ('COMANCHE', (44.0, 48.0), 'steppe', 6),
+    ('CROW', (-3.5, 38.0), 'plains', 6), ('SHOSHONE', (-5.0, 41.5), 'steppe', 7), ('APACHE', (3.0, 30.5), 'desert', 6),
+    ('NAVAJO', (40.0, 30.0), 'desert', 6), ('AZTEC', (33.0, 39.0), 'highland', 9), ('MIXTEC', (46.0, 34.0), 'river', 7),
+    ('ZAPOTEC', (44.0, 40.5), 'mountain', 6), ('TARASCANS', (21.0, 43.0), 'highland', 7), ('MAYA', (12.5, 42.5), 'coast', 8),
+    ('GUAYMI', (22.0, 39.0), 'coast', 6), ('ARAWAK', (9.0, 40.5), 'island', 4), ('CARIBS', None, 'island', 6),
+    ('INCA', (-6.0, 31.5), 'highland', 9), ('MUISCA', (14.0, 31.0), 'highland', 7), ('MAPUCHE', (-1.5, 52.5), 'forest', 7),
+    ('TEHUELCHE', (-8.0, 53.0), 'steppe', 5), ('TUPI', (0.0, 47.5), 'coast', 7), ('GUARANI', (1.0, 44.5), 'river', 7),
+    ('SHUAR', (27.0, 52.0), 'wetland', 6), ('OMAGUA', (26.0, 44.5), 'river', 7), ('MACHIPARO', (7.0, 52.5), 'wetland', 6),
+    ('TOROMONA', (31.0, 29.0), 'river', 6),
+]
+nrng = random.Random(SEED * 7 + 83)
+NATIVE_OK = [land[i] and plot_type[i] in (1, 2) and terrain[i] not in ('SNOW',) and i not in BONUS and i not in IMPROVEMENT
+             and feature[i] not in NO_BONUS_FEATURES and area_size[i] >= 6 for i in range(W * H)]
+SITE_NZ = Shifted(Noise(SEED * 1000 + 500))
+
+
+def site_value(i, kind):
+    """Quality of a village site for a tribe: its terrain, the land around, rivers and coast, plus noise for uneven spread."""
+    terr, plots, _ = NATIVE_KINDS[kind]
+    x, y = i % W, i // W
+    v = terr.get(terrain[i], 0.3) * plots.get(plot_type[i], 0.3)
+    ring = [I(nx, ny) for nx, ny in nbrs(x, y)]
+    v += 0.25 * sum(terr.get(terrain[j], 0.2) for j in ring if land[j] and plot_type[j] != 0)
+    v -= 0.6 * sum(1 for j in ring if land[j] and plot_type[j] == 0)
+    nwater = sum(1 for j in ring if ocean[j])
+    if nwater > 4:
+        return 0.0
+    if river_side(x, y) or any(large[j] or lake[j] for j in ring):
+        v += 2.5 if kind in ('river', 'wetland') else 1.2
+    if nwater:
+        v += 2.0 if kind in ('coast', 'island', 'arctic') else 0.4
+    v *= math.exp(1.2 * SITE_NZ.fbm(x, y, 3, 6))
+    return max(v, 0.0)
+
+
+def snap_home(lon, la):
+    hx, hy = to_xy(lon, la)
+    best = None
+    for i in range(W * H):
+        if NATIVE_OK[i] and area_size[i] >= 20 and i not in homes:
+            d = math.hypot(i % W + 0.5 - hx, i // W + 0.5 - hy)
+            if best is None or d < best[0]:
+                best = (d, i)
+    return best[1]
+
+
+VILLAGES = {}                          # plot -> tribe index
+TRIBE_LAND = [-1] * (W * H)
+homes = []
+for t, (civ, home, kind, n) in enumerate(TRIBES):
+    if home is None:                   # the Caribs live on the islands of the eastern sea
+        cells = [i for cl in ISLES for i in cl if NATIVE_OK[i]]
+        home = from_xy(sum(i % W for i in cells) / float(len(cells)) + 0.5, sum(i // W for i in cells) / float(len(cells)) + 0.5)
+    homes.append(snap_home(*home))
+# tribal land: grows from all homes at once, across land; mountains, large rivers and short sea crossings are costly
+cost = {}
+pq = []
+for t, h in enumerate(homes):
+    cost[h] = 0.0
+    TRIBE_LAND[h] = t
+    heapq.heappush(pq, (0.0, h, t))
+while pq:
+    c, i, t = heapq.heappop(pq)
+    if c > cost.get(i, 1e9) or c > 20:
+        continue
+    for nx, ny in nbrs(i % W, i // W):
+        j = I(nx, ny)
+        if land[j]:
+            step = {0: 3.5, 1: 1.4}.get(plot_type[j], 1.0)
+        elif large[j] or lake[j]:
+            step = 2.0
+        elif ocean[j] and dland[j] <= 2 and not EUROPE[j]:
+            step = 2.5 if TRIBES[t][2] == 'island' else 4.0
+        else:
+            continue
+        if c + step < cost.get(j, 1e9):
+            cost[j] = c + step
+            TRIBE_LAND[j] = t
+            heapq.heappush(pq, (c + step, j, t))
+for t, (civ, home, kind, n) in enumerate(TRIBES):
+    settled = NATIVE_KINDS[kind][2]
+    gap = 3 if settled else 4         # Chebyshev distance between villages of one tribe
+    own = [i for i in range(W * H) if TRIBE_LAND[i] == t and NATIVE_OK[i]]
+    vals = dict((i, site_value(i, kind)) for i in own)
+    order = [homes[t]]
+    placed = []
+    tries = 0
+    while len(placed) < n and tries < 400:
+        tries += 1
+        if order:
+            i = order.pop()
+        else:
+            free = [j for j in own if vals[j] > 0 and j not in VILLAGES]
+            if not free:
+                break
+            i = nrng.choices(free, [vals[j] ** 2 for j in free])[0]
+        x, y = i % W, i // W
+        if any(max(abs(x - v % W), abs(y - v // W)) < (gap if VILLAGES[v] == t else 3) for v in VILLAGES):
+            continue
+        if placed and min(max(abs(x - p % W), abs(y - p // W)) for p in placed) > 10:
+            continue                   # stay together: within 10 tiles of another village of the tribe
+        VILLAGES[i] = t
+        placed.append(i)
+CAPITALS = dict((t, homes[t]) for t in range(len(TRIBES)) if homes[t] in VILLAGES)
+TRIBE_CONTACTS = [set() for _ in TRIBES]
+for i in range(W * H):
+    t = TRIBE_LAND[i]
+    if t >= 0:
+        for nx, ny in nbrs(i % W, i // W):
+            u = TRIBE_LAND[I(nx, ny)]
+            if u >= 0 and u != t:
+                TRIBE_CONTACTS[t].add(u)
+                TRIBE_CONTACTS[u].add(t)
+# the colonial powers start off their own coast (in the Europe zone): France, England, Spain, Portugal, Netherlands,
+# Denmark, Sweden, Russia (the player order of eporue_players.txt)
+COLONIAL_HOMES = [(-6.0, 47.0), (-7.0, 51.0), (-10.5, 43.0), (-11.5, 39.0), (4.0, 54.5), (6.0, 57.5), (8.0, 63.5), (16.0, 70.5)]
+COLONIAL_STARTS = []
+for lon, la in COLONIAL_HOMES:
+    hx, hy = to_xy(lon, la)
+    best = min((math.hypot(i % W + 0.5 - hx, i // W + 0.5 - hy), i) for i in range(W * H)
+               if EUROPE[i] and i not in COLONIAL_STARTS and dland[i] >= 4)
+    COLONIAL_STARTS.append(best[1])
+
+
 WGLYPH = {'OCEAN': '.', 'COAST': '-', 'SHALLOW_COAST': '_'}
 
 
@@ -2151,6 +2510,24 @@ def write_preview(path):
         for sy in range(2):
             for sx in range(2):
                 img[(H - 1 - y) * S + sy][x * S + sx] = (255, 255, 255)
+    for i in BONUS:                    # resources: a yellow dot at the lower right
+        x, y = i % W, i // W
+        for sy in (5, 6):
+            for sx in (5, 6):
+                img[(H - 1 - y) * S + sy][x * S + sx] = (255, 215, 0)
+    for i, t in VILLAGES.items():      # native villages: a square in the colour of the tribe, capitals with a white rim
+        x, y = i % W, i // W
+        col = TRIBE_COLOURS[t % len(TRIBE_COLOURS)]
+        for sy in range(1, 7):
+            for sx in range(1, 7):
+                edge = sy in (1, 6) or sx in (1, 6)
+                img[(H - 1 - y) * S + sy][x * S + sx] = (255, 255, 255) if edge and CAPITALS.get(t) == i else ((0, 0, 0) if edge else col)
+    for i in COLONIAL_STARTS:
+        x, y = i % W, i // W
+        for sy in range(1, 7):
+            for sx in range(1, 7):
+                if sx == sy or sx == 7 - sy:
+                    img[(H - 1 - y) * S + sy][x * S + sx] = (255, 255, 255)
     RC = (40, 110, 230)
     for i in wofr:
         x, y = i % W, i // W
@@ -2167,20 +2544,85 @@ def write_preview(path):
     write_png(path, W * S, H * S, img)
 
 
+TRIBE_COLOURS = [(220, 40, 40), (40, 40, 220), (230, 130, 20), (150, 40, 180), (20, 170, 170), (240, 240, 60), (120, 70, 30),
+                 (240, 120, 200), (90, 200, 60), (60, 60, 60)]
 TOP_LAT, BOTTOM_LAT = 70, -30
 WB_NAME = 'Eporue Massive'
+# game settings of a scenario (the options of the test games on this map)
+GAME_HEADER = '''Era=ERA_DISCOVERY
+Speed=GAMESPEED_TAC_NORMAL
+Calendar=CALENDAR_DEFAULT
+Option=GAMEOPTION_TWO_PLOT_CITY_RADIUS
+Option=GAMEOPTION_NEW_MOVEMENT_COST
+Option=GAMEOPTION_NO_MORE_VARIABLES_HIDDEN
+Option=GAMEOPTION_REDUCED_CITY_DISTANCE
+Option=GAMEOPTION_GOODIES_ALWAYS_DISPLAY_COLOURED_CIRCLE
+Option=GAMEOPTION_RANDOM_FOUNDING_FATHERS
+Victory=VICTORY_REVOLUTION
+Victory=VICTORY_DOMINATION
+GameTurn=0
+MaxTurns=0
+MaxCityElimination=0
+NumAdvancedStartPoints=720
+TargetScore=0
+StartYear=1492
+Description=TXT_KEY_WORLDBUILDER_EPORUE_DESC
+ModPath=
+WBNorthAmericanNative=1
+WBSouthAmericanNative=1
+WBCentralAmericanNative=1'''
+COLONIAL_PLAYERS, KING_TEAMS, NONE_TEAMS = range(8), range(39, 47), (47, 48)
+
+
+def read_players():
+    """Players of the scenario (eporue_players.txt: the 49 players of 'The New World Gigantic - Historic'): civ type -> block."""
+    import re
+    text = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'eporue_players.txt')).read()
+    return re.findall(r'BeginPlayer\n.*?EndPlayer\n', text, re.S)
+
+
+def write_players(f):
+    import re
+    blocks = read_players()
+    pid = dict((re.search(r'CivType=CIVILIZATION_(\w+)', b).group(1), k) for k, b in enumerate(blocks) if 'CivType=CIVILIZATION_' in b)
+    tribe_pid = [pid[civ] for civ, _, _, _ in TRIBES]
+    contacts = dict((p, set()) for p in range(len(blocks)))
+    for p in COLONIAL_PLAYERS:
+        contacts[p] |= set(KING_TEAMS) | set(NONE_TEAMS)
+    for k in KING_TEAMS:
+        contacts[k] |= set(COLONIAL_PLAYERS) | {47}
+    contacts[47] |= set(COLONIAL_PLAYERS) | set(KING_TEAMS) | {48}
+    contacts[48] |= set(COLONIAL_PLAYERS) | {47}
+    for t, others in enumerate(TRIBE_CONTACTS):
+        contacts[tribe_pid[t]] |= set(tribe_pid[u] for u in others)
+    for p in range(len(blocks)):
+        f.write('BeginTeam\n\tTeamID=%d\n' % p)
+        for q in sorted(contacts[p]):
+            f.write('\tContactWithTeam=%d\n' % q)
+        if p in COLONIAL_PLAYERS:
+            f.write('\tAtWar=48\n')
+        f.write('\tRevealMap=0\nEndTeam\n')
+    for p, b in enumerate(blocks):
+        start = None
+        if p in COLONIAL_PLAYERS:
+            start, gold = COLONIAL_STARTS[p], 100
+        elif p in tribe_pid:
+            start, gold = CAPITALS.get(tribe_pid.index(p)), 70
+        if start is not None:
+            b = re.sub(r'StartingGold=\d+', 'StartingGold=%d' % gold, b)
+            b = b.replace('\tStartingEra=', '\tStartingX=%d, StartingY=%d\n\tStartingEra=' % (start % W, start // W))
+        f.write(b)
+    return tribe_pid
 
 
 def write_wbsave(path):
     with open(path, 'w', newline='\r\n') as f:
-        f.write('Version=11\nBeginGame\n\tDescription=TXT_KEY_WORLDBUILDER_EPORUE_DESC\n\tModPath=\n')
-        f.write('\tWBNorthAmericanNative=1\n\tWBSouthAmericanNative=1\n\tWBCentralAmericanNative=1\nEndGame\n')
-        for p in range(49):
-            f.write('BeginPlayer\n\tTeam=%d\n\tLeaderType=NONE\n\tCivType=NONE\nEndPlayer\n' % p)
+        f.write('Version=11\nBeginGame\n\t%s\nEndGame\n' % GAME_HEADER.replace('\n', '\n\t'))
+        tribe_pid = write_players(f)
         f.write('BeginMap\n\tgrid width=%d\n\tgrid height=%d\n\ttop latitude=%d\n\tbottom latitude=%d\n' % (W, H, TOP_LAT, BOTTOM_LAT))
         f.write('\twrap X=0\n\twrap Y=0\n\tworld size=WORLDSIZE_MASSIVE\n\tclimate=CLIMATE_TEMPERATE\n\tsealevel=SEALEVEL_MEDIUM\n')
         f.write('\tnum plots written=%d\n\tnum signs written=%d\n' % (W * H, len(SIGNS)))
-        f.write('\tRandomize Features=false\n\tRandomize Resources=true\n\tRandomize Goodies=true\nEndMap\n\n### Plot Info ###\n')
+        f.write('\tRandomize Features=false\n\tRandomize Resources=false\n\tRandomize Goodies=true\nEndMap\n\n### Plot Info ###\n')
         for x in range(W):
             for y in range(H):
                 i = I(x, y)
@@ -2193,11 +2635,22 @@ def write_wbsave(path):
                     f.write('\tEuropeType=EUROPE_EAST\n')
                 elif PACIFIC[i]:
                     f.write('\tEuropeType=EUROPE_WEST\n')
+                if i in BONUS:
+                    f.write('\tBonusType=BONUS_%s\n' % BONUS[i])
                 if i in IMPROVEMENT:
                     f.write('\tImprovementType=%s\n' % IMPROVEMENT[i])
                 if feature[i]:
                     f.write('\tFeatureType=FEATURE_%s, FeatureVariety=0\n' % feature[i])
-                f.write('\tTerrainType=TERRAIN_%s\n\tPlotType=%d\nEndPlot\n' % (terrain[i], plot_type[i]))
+                f.write('\tTerrainType=TERRAIN_%s\n\tPlotType=%d\n' % (terrain[i], plot_type[i]))
+                if i in VILLAGES:      # a native village with its braves (the game skips its own native set-up in a scenario)
+                    t = VILLAGES[i]
+                    capital = CAPITALS.get(t) == i
+                    pop = (3 if NATIVE_KINDS[TRIBES[t][2]][2] else 2) + capital
+                    for _ in range(2 + capital):
+                        f.write('\tBeginUnit\n\t\tUnitType=UNIT_NATIVE, UnitOwner=%d\n\t\tProfession=PROFESSION_BRAVE\n\t\tDamage=0\n'
+                                '\t\tLevel=1, Experience=0\n\t\tFacingDirection=4\n\t\tUnitAIType=UNITAI_DEFENSIVE\n\tEndUnit\n' % tribe_pid[t])
+                    f.write('\tBeginCity\n\t\tCityOwner=%d\n\t\tCityPopulation=%d\n%s\tEndCity\n' % (tribe_pid[t], pop, '\t\tCitizenType=UNIT_NATIVE\n' * pop))
+                f.write('EndPlot\n')
         f.write('\n### Sign Info ###\n')
         for x, y, caption in SIGNS:
             f.write('BeginSign\n\tplotX=%d\n\tplotY=%d\n\tplayerType=-1\n\tcaption=%s\nEndSign\n' % (x, y, caption))
@@ -2222,3 +2675,6 @@ if __name__ == '__main__':
     print(sorted(Counter(terrain[i] for i in range(W * H) if land[i]).items(), key=lambda kv: -kv[1]))
     print(sorted(Counter(feature[i] for i in range(W * H) if feature[i]).items(), key=lambda kv: -kv[1]))
     print('peaks', sum(1 for i in range(W * H) if land[i] and plot_type[i] == 0), 'hills', sum(1 for i in range(W * H) if land[i] and plot_type[i] == 1))
+    print('resources', len(BONUS), sorted(Counter(BONUS.values()).items(), key=lambda kv: -kv[1]))
+    print('villages', len(VILLAGES), [(TRIBES[t][0], sum(1 for v in VILLAGES.values() if v == t), from_xy(homes[t] % W, homes[t] // W)) for t in range(len(TRIBES))])
+    print('colonial starts', [(i % W, i // W) for i in COLONIAL_STARTS])
