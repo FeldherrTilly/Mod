@@ -2418,15 +2418,16 @@ for i in range(W * H):
             if u >= 0 and u != t:
                 TRIBE_CONTACTS[t].add(u)
                 TRIBE_CONTACTS[u].add(t)
-# the colonial powers start off their own coast (in the Europe zone): France, England, Spain, Portugal, Netherlands,
-# Denmark, Sweden, Russia (the player order of eporue_players.txt)
-COLONIAL_HOMES = [(-6.0, 47.0), (-7.0, 51.0), (-10.5, 43.0), (-11.5, 39.0), (4.0, 54.5), (6.0, 57.5), (8.0, 63.5), (16.0, 70.5)]
-COLONIAL_STARTS = []
-for lon, la in COLONIAL_HOMES:
-    hx, hy = to_xy(lon, la)
-    best = min((math.hypot(i % W + 0.5 - hx, i // W + 0.5 - hy), i) for i in range(W * H)
-               if EUROPE[i] and i not in COLONIAL_STARTS and dland[i] >= 4)
-    COLONIAL_STARTS.append(best[1])
+# the colonial powers start in the Europe zone, spread evenly over the whole height of the east side, in the order of
+# their homes from south to north: Portugal (top, off Africa), Spain, France, England, Netherlands, Denmark, Sweden,
+# Russia (bottom, off Norway). Each start is the Europe plot nearest to land in its row band.
+COLONIAL_ORDER = [3, 2, 0, 1, 4, 5, 6, 7]     # player numbers of eporue_players.txt, top to bottom
+COLONIAL_STARTS = [None] * len(COLONIAL_ORDER)
+for k, p in enumerate(COLONIAL_ORDER):
+    ty = (H - 1) - 6 - k * (H - 13) / (len(COLONIAL_ORDER) - 1.0)
+    best = min((abs(i // W - ty) * 3 + dland[i], i) for i in range(W * H)
+               if EUROPE[i] and i % W >= W // 2 and dland[i] >= 4 and abs(i // W - ty) <= 4)
+    COLONIAL_STARTS[p] = best[1]
 
 
 WGLYPH = {'OCEAN': '.', 'COAST': '-', 'SHALLOW_COAST': '_'}
