@@ -2115,6 +2115,55 @@ for lo, la, name in ((12.0, 62.0, 'Scandinavia'), (-4.0, 40.0, 'Iberian Peninsul
 
 
 
+# ---------------------------------------------------------------- Mediterranean tropics (late, own random stream)
+# The warm shores of the Mediterranean become a jungle belt (savannah or marsh with jungle and tropical groves, mangroves
+# on wet coasts), behind it lies a belt of savannah. Peaks, deserts far from the sea, set pieces and special features stay.
+def river_side(x, y):
+    return I(x, y) in wofr or I(x, y) in nofr or (x > 0 and I(x - 1, y) in wofr) or (y + 1 < H and I(x, y + 1) in nofr)
+
+
+trng = random.Random(SEED * 7 + 97)
+TROP_NZ = Shifted(Noise(SEED * 1000 + 600))
+MED_WATER = []
+for x, y in ALL:
+    i = I(x, y)
+    lon, la = from_xy(x + 0.5, y + 0.5)
+    if ocean[i] and -5.6 < lon < 36.5 and 30.0 < la < 46.0 and not inside(SEAS['Black Sea'], x + 0.5, y + 0.5) \
+            and not (lon > 26.5 and la > 40.2):
+        MED_WATER.append(i)
+dmed = bfs_dist(MED_WATER, lambda j: land[j])
+TROP_KEEP = ('VOLCANO', 'CRATER', 'TAR_PIT', 'RIVER_FORD', 'FLOOD_PLAINS', 'OASIS', 'SALT_PAN', 'BOG', 'SWAMP')
+JUNGLE, SAVANNA_BELT = set(), set()
+for x, y in ALL:
+    i = I(x, y)
+    if not land[i] or plot_type[i] == 0 or i in SET_PIECES or i in IMPROVEMENT or i in HARDWOOD:
+        continue
+    f = feature[i] or ''
+    if f in TROP_KEEP or f.startswith('ROCK_FORMATIONS') or f.startswith('REMARKABLE'):
+        continue
+    la = real_lat(y)
+    d = dmed[i] + 1.8 * TROP_NZ.fbm(x, y, 3, 6) + max(0.0, la - 41.0) * 0.8      # ragged belts, thinner to the north
+    if terrain[i] in ('SNOW', 'TUNDRA', 'TAIGA') or la > 45.5:
+        continue
+    if terrain[i] == 'DESERT' and dmed[i] > 2:
+        continue                       # the Sahara stays desert
+    if d <= 2.2:
+        wet = plot_type[i] == 2 and (river_side(x, y) or any(ocean[I(nx, ny)] or lake[I(nx, ny)] for nx, ny in nbrs(x, y))) and trng.random() < 0.45
+        terrain[i] = 'MARSH' if wet else 'SAVANNAH'
+        coast = any(ocean[I(nx, ny)] for nx, ny in nbrs(x, y))
+        r = trng.random()
+        if terrain[i] == 'MARSH' and coast and r < 0.35:
+            feature[i] = 'MANGROVE'
+        else:
+            feature[i] = 'JUNGLE' if r < 0.6 else ('TROPICAL_GROVES' if r < 0.85 else None)
+        JUNGLE.add(i)
+    elif d <= 5.5:
+        terrain[i] = 'SAVANNAH'
+        r = trng.random()
+        feature[i] = 'TROPICAL_GROVES' if r < 0.2 else ('LUSHGRASS' if r < 0.3 and plot_type[i] == 2 and river_side(x, y) else None)
+        SAVANNA_BELT.add(i)
+
+
 # ---------------------------------------------------------------- resources: placed by the generator instead of the game
 # The rules of the game (CvPlot::canHaveBonus, CvMapGenerator::canPlaceBonusAt) are read from CIV4BonusInfos.xml, and the
 # amount per resource follows the game's formula. The spread is not even: every resource has its own large-scale noise
@@ -2156,11 +2205,9 @@ DEPOSITS = {
              (4.4, 50.4, 3, 6), (-5.8, 43.3, 3, 5), (-4.0, 55.9, 3, 5)],
     'IRON': [(20.2, 67.8, 4, 8), (15.0, 60.0, 4, 8), (6.0, 49.2, 3, 6), (14.9, 47.5, 3, 6), (-2.9, 43.3, 3, 6), (33.4, 47.9, 4, 6),
              (10.3, 42.8, 2, 5), (8.0, 50.9, 3, 5), (59.5, 57.0, 5, 6)],
-    'SILVER': [(10.5, 51.8, 3, 10), (13.0, 50.6, 3, 10), (15.3, 49.9, 3, 8), (11.7, 47.3, 3, 8), (9.6, 59.7, 3, 8), (-5.5, 38.2, 4, 8),
-               (24.0, 37.7, 2, 6), (18.9, 48.4, 3, 8), (8.5, 39.3, 2, 6)],
-    'GOLD': [(23.0, 46.3, 3, 10), (18.9, 48.7, 2, 8), (-3.9, 52.0, 2, 6), (-6.8, 42.5, 3, 8), (13.0, 47.1, 2, 6), (25.5, 68.5, 3, 6),
-             (33.0, 23.0, 4, 6)],
-    'GEMS': [(13.8, 50.5, 3, 8), (7.3, 49.7, 2, 8), (60.0, 57.0, 5, 8), (33.6, 29.0, 3, 6), (58.8, 36.2, 3, 8)],
+    'SILVER': [(10.5, 51.8, 3, 10), (13.0, 50.6, 3, 10), (15.3, 49.9, 3, 8), (11.7, 47.3, 3, 8), (-5.5, 38.2, 4, 8), (9.6, 59.7, 3, 8)],
+    'GOLD': [(23.0, 46.3, 3, 10), (18.9, 48.7, 2, 8), (-6.8, 42.5, 3, 8), (13.0, 47.1, 2, 6)],
+    'GEMS': [(13.8, 50.5, 3, 8), (7.3, 49.7, 2, 8), (58.8, 36.2, 3, 8)],
     'SALT': [(20.0, 50.0, 3, 8), (13.6, 47.6, 3, 8), (10.4, 53.2, 2, 6), (-2.5, 53.2, 2, 6), (12.0, 51.5, 2, 6), (35.5, 31.5, 2, 6),
              (-3.5, 24.0, 5, 4)],
     'STONE': [(10.1, 44.1, 2, 6), (-2.4, 50.5, 2, 4), (23.9, 38.1, 2, 4), (27.6, 40.6, 2, 4)],
@@ -2189,6 +2236,8 @@ GROUP_CHANCE = {'COAL': 0.6, 'IRON': 0.6, 'SILVER': 0.5, 'GOLD': 0.4, 'GEMS': 0.
 
 RICHNESS = 6.0                         # contrast of the shared rich/poor land noise (noise sd ~0.28)
 LAND_AMOUNT = 0.8                      # share of the game's amount on land: room for rich and empty stretches
+PRECIOUS = {'GOLD': 0.3, 'SILVER': 0.3, 'GEMS': 0.4}     # share of the game's amount: few, mostly at the real deposits
+NEIGHBOUR_SHARE = 0.04                 # now and then (share of the placements) a resource right next to another one
 brng = random.Random(SEED * 7 + 71)
 BONUS_INFOS = [b for b in read_bonus_infos(BONUS_XML) if not b['south']]      # Europe has no southern hemisphere
 BONUS_INFOS.sort(key=lambda b: b['order'])                                      # stable: XML order within one placement order
@@ -2198,10 +2247,6 @@ for comp in components([land[i] for i in range(W * H)], N8) + components([not la
     for x, y in comp:
         area_size[I(x, y)] = len(comp)
 NO_BONUS_FEATURES = ('VOLCANO', 'CRATER', 'TAR_PIT', 'RIVER_FORD')
-
-
-def river_side(x, y):
-    return I(x, y) in wofr or I(x, y) in nofr or (x > 0 and I(x - 1, y) in wofr) or (y + 1 < H and I(x, y + 1) in nofr)
 
 
 def can_have(b, i):
@@ -2231,23 +2276,41 @@ def can_have(b, i):
     return True
 
 
-def can_place(b, i):
+def can_place(b, i, mixed=False, same=False):
+    """mixed: another resource may lie next to it; same: the same resource may lie closer than its unique range."""
     x, y = i % W, i // W
-    if i in BONUS or any(BONUS.get(I(nx, ny), b['type']) != b['type'] for nx, ny in nbrs(x, y)):
+    if i in BONUS or (not mixed and any(BONUS.get(I(nx, ny), b['type']) != b['type'] for nx, ny in nbrs(x, y))):
         return False
-    r = b['unique']
+    r = 0 if same else b['unique']
     return not any(BONUS.get(I(nx, ny)) == b['type'] for nx in range(x - r, x + r + 1) for ny in range(y - r, y + r + 1)
                    if inb(nx, ny) and (nx, ny) != (x, y))
 
 
+def amount(b, ncands):
+    count = (b['const'] + sum(brng.randrange(r) for r in b['rands'] if r > 0)) * (ncands // b['tiles_per']) // 100
+    return int(round(count * PRECIOUS.get(b['type'], LAND_AMOUNT if land[CANDS[b['type']][0]] else 1.0)))
+
+
+CANDS = dict((b['type'], [i for i in range(W * H) if can_have(b, i)]) for b in BONUS_INFOS)
+BONUS_INFOS = [b for b in BONUS_INFOS if CANDS[b['type']] and b['tiles_per'] > 0]
+COUNTS = dict((b['type'], amount(b, len(CANDS[b['type']]))) for b in BONUS_INFOS)
+# the real deposits first (precious metals before the rest), so that iron does not take the Harz before silver
+by_type = dict((b['type'], b) for b in BONUS_INFOS)
+for t in sorted(DEPOSITS, key=lambda t: (t not in PRECIOUS, t)):
+    if t not in by_type:
+        continue
+    b = by_type[t]
+    for lo, la, r, m in DEPOSITS[t]:
+        dx, dy = to_xy(lo, la)
+        near = sorted((math.hypot(i % W + 0.5 - dx, i // W + 0.5 - dy) + brng.random(), i) for i in CANDS[t]
+                      if math.hypot(i % W + 0.5 - dx, i // W + 0.5 - dy) < r + 1 and can_place(b, i))
+        if near:
+            BONUS[near[0][1]] = t
+            COUNTS[t] -= 1
+
 RICH = Shifted(Noise(SEED * 1000 + 300))
 for k, b in enumerate(BONUS_INFOS):
-    cands = [i for i in range(W * H) if can_have(b, i)]
-    if not cands or b['tiles_per'] <= 0:
-        continue
-    count = (b['const'] + sum(brng.randrange(r) for r in b['rands'] if r > 0)) * (len(cands) // b['tiles_per']) // 100
-    if land[cands[0]]:
-        count = int(round(count * LAND_AMOUNT))
+    cands, count = CANDS[b['type']], COUNTS[b['type']]
     if count <= 0:
         continue
     prov = Shifted(Noise(SEED * 1000 + 400 + k))
@@ -2262,22 +2325,28 @@ for k, b in enumerate(BONUS_INFOS):
                 w *= 1 + m * (1 - d / r)
         weight[i] = w
     group = GROUP_CHANCE.get(b['type'].rstrip('_0123456789'), 0.3)
+    loose = int(count * NEIGHBOUR_SHARE + brng.random())      # placements that may touch another resource
     while count > 0 and weight:
         keys = list(weight)
         i = brng.choices(keys, [weight[j] for j in keys])[0]
         del weight[i]
         if not can_place(b, i):
-            continue
+            if loose <= 0 or not can_place(b, i, mixed=True):
+                continue
+            loose -= 1
         BONUS[i] = b['type']
         count -= 1
         x, y = i % W, i // W
         r = b['unique'] + 2
         near = [j for j in weight if max(abs(j % W - x), abs(j // W - y)) <= r]
         brng.shuffle(near)
-        for j in near:                 # a small group of the same resource around it
+        for j in near:                 # a small group of the same resource around it, now and then side by side
             if count <= 0 or brng.random() >= group:
                 break
-            if can_place(b, j):
+            ok = can_place(b, j)
+            if not ok and loose > 0 and can_place(b, j, mixed=True, same=True):
+                ok, loose = True, loose - 1
+            if ok:
                 BONUS[j] = b['type']
                 count -= 1
                 del weight[j]
