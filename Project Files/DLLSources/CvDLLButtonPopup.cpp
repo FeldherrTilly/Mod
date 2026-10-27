@@ -4202,7 +4202,7 @@ bool CvDLLButtonPopup::launchGotoMenuPopup(CvPopup* pPopup, CvPopupInfo &info)
 }
 // TAC - Goto Menu - koma13 - END
 
-// WTP: the job automation: the 8 best jobs for the colonist (one per colony and profession) to pick from
+// WTP: the job automation: the 12 best jobs for the colonist (one per colony and profession) to pick from
 bool CvDLLButtonPopup::launchAssignJobMenuPopup(CvPopup* pPopup, CvPopupInfo &info)
 {
 	const PlayerTypes ePlayer = GC.getGameINLINE().getActivePlayer();
@@ -4218,7 +4218,7 @@ bool CvDLLButtonPopup::launchAssignJobMenuPopup(CvPopup* pPopup, CvPopupInfo &in
 	}
 	std::vector<CvPlayerAI::HumanJob> aJobs;
 	std::vector<CvPlayerAI::HumanJob> aFoodJobs;
-	kPlayer.AI_humanFindJobs(*pUnit, aJobs, 8, &aFoodJobs);
+	kPlayer.AI_humanFindJobs(*pUnit, aJobs, 12, &aFoodJobs); // WTP (user 2026-10-27): 12 instead of 8
 	// food jobs in colonies short of food that are not among the best (marked)
 	for (uint i = 0; i < aFoodJobs.size(); ++i)
 	{

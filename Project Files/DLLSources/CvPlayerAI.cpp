@@ -24765,14 +24765,16 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 		aJobs.push_back(it->second);
 	}
 	std::stable_sort(aJobs.begin(), aJobs.end(), humanJobBetter);
-	// at most the 2 best jobs of each profession (a well paid one, like the student, would fill the list)
+	// at most the 2 best jobs of each profession (a well paid one, like the student, would fill the list); WTP (user 2026-10-27):
+	// only the best preacher job (cross jobs)
 	std::map<int, int> mapProfessionJobs;
 	// WTP: all jobs (MAX_INT: the job the player picked from the menu is looked up again) keep every profession, so that a
 	// food job or the expert's job the menu added after the 2 of its profession is found again
 	const bool bAllJobs = iMaxJobs == MAX_INT;
 	for (uint i = 0; i < aJobs.size() && !bAllJobs; )
 	{
-		if (++mapProfessionJobs[aJobs[i].eProfession] > 2)
+		const int iMaxPerProfession = ((YieldTypes)GC.getProfessionInfo(aJobs[i].eProfession).getYieldsProduced(0) == YIELD_CROSSES) ? 1 : 2;
+		if (++mapProfessionJobs[aJobs[i].eProfession] > iMaxPerProfession)
 		{
 			aJobs.erase(aJobs.begin() + i);
 		}
