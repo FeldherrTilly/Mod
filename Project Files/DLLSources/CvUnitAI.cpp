@@ -24609,7 +24609,35 @@ bool CvUnitAI::AI_doAutoAssign()
 			{
 				return true;
 			}
-			// the job is gone: another one
+			// WTP (user 2026-10-27): the job is gone (e.g. the colony put a citizen on the plot meanwhile): the colonist stays in the
+			// colony it was sent to, in the same profession if there is such a job, else in its best job there; without a job there
+			// it joins as an ordinary citizen. It only goes elsewhere if it cannot join the colony at all.
+			{
+				std::vector<CvPlayerAI::HumanJob> aJobs;
+				kOwner.AI_humanFindJobs(*this, aJobs, MAX_INT);
+				int iHere = -1;
+				for (uint i = 0; i < aJobs.size(); ++i)
+				{
+					// (best first: the first one in this colony, or the first one of the same profession)
+					if (aJobs[i].iCityID == pCity->getID() && (iHere < 0 || (aJobs[i].eProfession == eProfession && aJobs[iHere].eProfession != eProfession)))
+					{
+						iHere = i;
+					}
+				}
+				if (iHere >= 0)
+				{
+					const CvPlayerAI::HumanJob& kJob = aJobs[iHere];
+					AI_setWfTask(WF_ASSIGN, kJob.iCityID, kJob.eProfession, kJob.iX, kJob.iY, kJob.iDisplaceID, -1);
+					getGroup()->setAutomateType(AUTOMATE_ASSIGN_JOB);
+					continue;
+				}
+				if (canJoinCity(plot(), false, true))
+				{
+					joinCity();
+					return true;
+				}
+			}
+			// the colony takes nobody: another job elsewhere
 			if (!AI_startAutoAssign())
 			{
 				return true; // (the automation is off already)
