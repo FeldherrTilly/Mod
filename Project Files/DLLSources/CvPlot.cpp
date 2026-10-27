@@ -3899,21 +3899,21 @@ bool CvPlot::isBesiegedCityRing(TeamTypes eTeam) const
 }
 
 // WTP: siege: the art the engine shows on this plot instead of its improvement (art only improvements, NO_IMPROVEMENT: none):
-// on every land plot beside a besieged city the siege works on the city side of the plot (trench, rampart, palisade, cannons;
-// together they give a ring around the city), with the camp of the besiegers where at least SIEGE_MIN_STACK_SIZE of their
-// soldiers stand; one improvement for each direction of the plot seen from the city; only if the active team sees the plot
+// on the 4 land plots straight beside a besieged city a battery on the city side of the plot (trench, rampart, palisade,
+// cannons), with the camp of the besiegers where at least SIEGE_MIN_STACK_SIZE of their soldiers stand; on the diagonal plots
+// only that camp (works there looked odd on hills); one improvement for each direction of the plot seen from the city; nothing
+// on peaks; only if the active team sees the plot
 ImprovementTypes CvPlot::getSiegeArt() const
 {
-	if (isWater() || isCity() || !isActiveVisible(false))
+	if (isWater() || isPeak() || isCity() || !isActiveVisible(false))
 	{
 		return NO_IMPROVEMENT;
 	}
-	static const char* const aszWorks[NUM_DIRECTION_TYPES] = {"IMPROVEMENT_SIEGE_WORKS_N", "IMPROVEMENT_SIEGE_WORKS_NE",
-		"IMPROVEMENT_SIEGE_WORKS_E", "IMPROVEMENT_SIEGE_WORKS_SE", "IMPROVEMENT_SIEGE_WORKS_S", "IMPROVEMENT_SIEGE_WORKS_SW",
-		"IMPROVEMENT_SIEGE_WORKS_W", "IMPROVEMENT_SIEGE_WORKS_NW"};
-	static const char* const aszCamps[NUM_DIRECTION_TYPES] = {"IMPROVEMENT_SIEGE_CAMP_N", "IMPROVEMENT_SIEGE_CAMP_NE",
-		"IMPROVEMENT_SIEGE_CAMP_E", "IMPROVEMENT_SIEGE_CAMP_SE", "IMPROVEMENT_SIEGE_CAMP_S", "IMPROVEMENT_SIEGE_CAMP_SW",
-		"IMPROVEMENT_SIEGE_CAMP_W", "IMPROVEMENT_SIEGE_CAMP_NW"};
+	static const char* const aszWorks[NUM_DIRECTION_TYPES] = {"IMPROVEMENT_SIEGE_WORKS_N", NULL, "IMPROVEMENT_SIEGE_WORKS_E", NULL,
+		"IMPROVEMENT_SIEGE_WORKS_S", NULL, "IMPROVEMENT_SIEGE_WORKS_W", NULL};
+	static const char* const aszCamps[NUM_DIRECTION_TYPES] = {"IMPROVEMENT_SIEGE_CAMP_N", "IMPROVEMENT_SIEGE_CAMP",
+		"IMPROVEMENT_SIEGE_CAMP_E", "IMPROVEMENT_SIEGE_CAMP", "IMPROVEMENT_SIEGE_CAMP_S", "IMPROVEMENT_SIEGE_CAMP",
+		"IMPROVEMENT_SIEGE_CAMP_W", "IMPROVEMENT_SIEGE_CAMP"};
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 	{
 		const CvPlot* pLoopPlot = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
@@ -3924,7 +3924,11 @@ ImprovementTypes CvPlot::getSiegeArt() const
 		}
 		const DirectionTypes eFromCity = directionXY(pLoopPlot, this);
 		const bool bCamp = CvCity::getSiegeStackSize(*this, GET_PLAYER(pCity->getBesieger()).getTeam(), pCity->getTeam()) >= GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE;
-		return (ImprovementTypes)GC.getInfoTypeForString(bCamp ? aszCamps[eFromCity] : aszWorks[eFromCity], true);
+		const char* szArt = bCamp ? aszCamps[eFromCity] : aszWorks[eFromCity];
+		if (szArt != NULL)
+		{
+			return (ImprovementTypes)GC.getInfoTypeForString(szArt, true);
+		}
 	}
 	return NO_IMPROVEMENT;
 }
