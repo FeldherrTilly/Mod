@@ -2377,6 +2377,11 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			if (!(pDefender->noDefensiveBonus()))
 			{
 				iModifier = pPlot->defenseModifier(pDefender->getTeam());
+				// WTP: siege: besieging soldiers get only half the defense bonus of the plot (as in CvUnit::maxCombatStr)
+				if (iModifier > 0 && pDefender->isBesieging(pPlot))
+				{
+					iModifier /= 2;
+				}
 
 				if (iModifier != 0)
 				{
