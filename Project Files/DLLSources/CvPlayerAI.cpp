@@ -24032,7 +24032,7 @@ bool CvPlayerAI::AI_isFirstColonySiteAllowed(const CvPlot& kPlot) const
 		return false;
 	}
 
-	// WTP: the first colonies of the Europeans are at least 12 plots apart (8 after 15 turns of searching)
+	// WTP: the first colonies of the Europeans are at least 16 plots apart (12 after 15 turns of searching)
 	const int iMinDistance = AI_firstColonyMinDistance();
 	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
 	{
@@ -24053,10 +24053,11 @@ bool CvPlayerAI::AI_isFirstColonySiteAllowed(const CvPlot& kPlot) const
 	return true;
 }
 
-// WTP: minimum distance between the first colonies of the Europeans: 12 plots, 8 after 15 turns of searching
+// WTP: minimum distance between the first colonies of the Europeans: 16 plots, 12 after 15 turns of searching (user 2026-10-27:
+// 12/8 was still too close)
 int CvPlayerAI::AI_firstColonyMinDistance()
 {
-	return (GC.getGameINLINE().getGameTurn() - GC.getGameINLINE().getStartTurn() >= 15) ? 8 : 12;
+	return (GC.getGameINLINE().getGameTurn() - GC.getGameINLINE().getStartTurn() >= 15) ? 12 : 16;
 }
 
 int CvPlayerAI::AI_firstCityFoundValue(const CvPlot& kPlot)

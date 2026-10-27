@@ -17401,7 +17401,7 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 	// on different sea routes made transports go back and forth for many turns
 	const CvPlot* const pCurrentTarget = (getGroup()->AI_getMissionAIType() == MISSIONAI_FOUND) ? getGroup()->AI_getMissionAIPlot() : NULL;
 
-	// WTP: first colonies: sites other Europeans are already heading for (closer than 12 plots, 8 after 15 turns) are taken;
+	// WTP: first colonies: sites other Europeans are already heading for (closer than 16 plots, 12 after 15 turns) are taken;
 	// otherwise all AIs race for the same best site and the losers have to start over
 	std::vector<const CvPlot*> aForeignFoundTargets;
 	if (bFirstCity)
