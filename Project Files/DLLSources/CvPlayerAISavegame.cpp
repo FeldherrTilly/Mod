@@ -221,6 +221,7 @@ void CvPlayerAI::AI_resetSavedData()
 	m_iTurnLastProductionDirty = defaultTurnLastProductionDirty;
 	m_iTurnLastManagedPop = defaultTurnLastManagedPop;
 	m_mapPioneerPlanTargets.clear();
+	m_iPioneerPlanDoneTurn = -1;
 	m_iMoveQueuePasses = defaultMoveQueuePasses;
 	m_iLastWave = defaultLastWave;
 	m_iWaveIndex = defaultWaveIndex;

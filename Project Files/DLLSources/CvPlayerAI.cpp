@@ -17062,6 +17062,18 @@ int CvPlayerAI::AI_pioneerPlanTarget(const CvUnit& kPioneer)
 	return (itOwn != m_mapPioneerPlanTargets.end()) ? itOwn->second : -1;
 }
 
+// WTP: pioneer plan (user 2026-10-27): true the first time in a turn that a pioneer finds no marked improvement left
+// (the player is told once per turn, not by every waiting pioneer)
+bool CvPlayerAI::AI_pioneerPlanDoneNotice()
+{
+	if (!getPioneerPlans().empty() || m_iPioneerPlanDoneTurn == GC.getGameINLINE().getGameTurn())
+	{
+		return false;
+	}
+	m_iPioneerPlanDoneTurn = GC.getGameINLINE().getGameTurn();
+	return true;
+}
+
 // TAC - AI More Immigrants - koma13 - START
 void CvPlayerAI::AI_hurryDocks()
 {

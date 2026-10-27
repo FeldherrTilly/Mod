@@ -585,8 +585,11 @@ protected:
 	int m_iMoveQueuePasses;
 	// WTP: pioneer plan: the plot (index) each pioneer with the automation AUTOMATE_PIONEER_PLAN works on (unit ID), not saved
 	std::map<int, int> m_mapPioneerPlanTargets;
+	// WTP: pioneer plan: the turn the player was told that nothing is marked any more (once per turn), not saved
+	int m_iPioneerPlanDoneTurn;
 	int AI_pioneerPlanTarget(const CvUnit& kPioneer);
 	void AI_clearPioneerPlanTarget(int iUnitID) { m_mapPioneerPlanTargets.erase(iUnitID); }
+	bool AI_pioneerPlanDoneNotice();
 
 	void AI_doTradeRoutes();
 	void AI_doCounter();
