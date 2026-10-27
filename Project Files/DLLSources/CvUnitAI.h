@@ -157,6 +157,13 @@ public:
 	void AI_setPatrolCenter(const CvPlot* pPlot);
 	bool AI_doPatrol();
 	bool AI_isPatrolTarget(const CvUnit& kTarget, const CvPlot& kPlot) const;
+	// WTP: treasure automation of a human player: a treasure (AUTOMATE_TREASURE) moves like the AI's treasures, a galleon or
+	// West Indiaman (AUTOMATE_TREASURE_SHIP) fetches the treasures waiting for a ship like the AI's transports and takes them
+	// to Europe; the ship keeps the role while the automation of its group is lost on the way to or from Europe
+	bool AI_isTreasureShip() const { return m_bTreasureShip; }
+	void AI_setTreasureShip(bool bNewValue) { m_bTreasureShip = bNewValue; }
+	void AI_treasureShipMove();
+	bool AI_treasureShipEurope();
 
 	// WTP: native trade automation of a human player's ship: it trades with the villages around its home colony (the nearest
 	// colony when the automation was switched on) and comes back there from Europe
@@ -200,6 +207,7 @@ protected:
 	int m_iTravelPickup; // WTP: transport to a city or plot: plot number of the port where the ship picks it up (-1: none)
 	int m_iPatrolCenter; // WTP: patrol: plot number of the plot it patrols around (-1: none)
 	int m_iPrivateBuild; // WTP: private pioneer: the build it was paid for (NO_BUILD: none)
+	bool m_bTreasureShip; // WTP: treasure automation (human): the ship fetches treasures
 	int m_iNativeTradeBuyTurn; // WTP: native trade ship: turn of its last purchase at a village
 	int m_iNativeTradeArriveTurn; // WTP: native trade ship: turn of its first move on the map after Europe (-1: not yet)
 	int m_iNativeTradeSlotsFullTurn; // WTP: native trade ship: turn all its cargo slots were taken (-1: not yet)
@@ -285,6 +293,7 @@ protected:
 	bool AI_sailToPreferredPort(bool bMove = true);
 	bool AI_sailToEurope(bool bMove = true);
 	CvPlot* AI_europeTreasureTarget(CvPlot*& pArrival, bool& bFar);
+	bool AI_treasureTransportMove(); // WTP: fetching treasures and taking them to Europe (AI transports, human treasure ships)
 	bool AI_sailToAfrica(bool bMove = true); /*** TRIANGLETRADE 10/28/08 by DPII ***/
 	bool AI_sailToPortRoyal(bool bMove = true); // R&R, ray, Port Royal
 
@@ -459,7 +468,7 @@ protected:
 	void AI_nativeTradeShipMove();
 	void AI_explorerShipMove();
 	bool AI_nativeTradeEurope();
-	bool AI_crossFromEurope();
+	bool AI_crossFromEurope(CvPlot* pArrival = NULL);
 	int AI_nativeTradeSell(CvWString* pszDeals = NULL);
 	int AI_nativeTradeBuy(CvWString* pszDeals = NULL);
 	bool AI_canTradeWithVillage(const CvCity& kCity) const;
@@ -547,7 +556,7 @@ protected:
 
 	bool AI_sailTo(const SailToHelper& sth, bool bMove, bool bIgnoreDanger = true);
 
-	void AI_sellYieldUnits(TradeLocationTypes eLocation);
+	void AI_sellYieldUnits(TradeLocationTypes eLocation, bool bTreasuresOnly = false);
 	void AI_unloadUnits(TradeLocationTypes eLocation);
 	void AI_automateSailTo(const SailToHelper& sth);
 	void AI_transportSettler();

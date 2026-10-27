@@ -2894,6 +2894,50 @@
 		<Hungarian>Az egység a jelenlegi helyétől 10 mezős körzetben járőrözik. Üldözi a szökött és lázadó rabszolgákat, bűnözőket, ellenséges bennszülötteket, vadállatokat, kalózokat és a háborús ellenségeket a határaikon kívül, de csak akkor támad, ha 5%-nál kisebb az esélye, hogy elpusztul. 95% erő alatt előbb a legközelebbi kolóniában gyógyul. Ha nincs célpont, bejárja a területet.</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_TREASURE</Tag>
+		<English>Automate Treasure</English>
+		<Portuguese>Automatizar tesouro</Portuguese>
+		<French>Automatiser le trésor</French>
+		<German>Schatz automatisieren</German>
+		<Italian>Automatizza tesoro</Italian>
+		<Spanish>Automatizar tesoro</Spanish>
+		<Russian>Автоматизировать сокровище</Russian>
+		<Hungarian>Kincs automatizálása</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_TREASURE_HELP</Tag>
+		<English>The treasure is handled like those of the computer players: it goes to the nearest own colony with a deep water harbour (merging with other treasures there) and waits for a ship with the automation Fetch Treasures. If you have no such ship that can carry it, the king transports it from a coastal colony with a harbour, for his commission.</English>
+		<Portuguese>O tesouro é tratado como os dos jogadores do computador: vai para a colônia própria mais próxima com porto de águas profundas (juntando-se aos outros tesouros de lá) e espera por um navio com a automação Buscar tesouros. Se você não tiver um navio assim que possa levá-lo, o rei o transporta a partir de uma colônia costeira com porto, pela comissão dele.</Portuguese>
+		<French>Le trésor est géré comme ceux des joueurs ordinateur : il se rend dans la colonie la plus proche dotée d'un port en eau profonde (où il fusionne avec les autres trésors) et y attend un navire avec l'automatisation Récupérer les trésors. Si vous n'avez aucun navire de ce type capable de le transporter, le roi le transporte depuis une colonie côtière dotée d'un port, contre sa commission.</French>
+		<German>Der Schatz wird wie die der Computerspieler behandelt: Er geht in die nächste eigene Kolonie mit Tiefwasserhafen (und vereinigt sich dort mit anderen Schätzen) und wartet auf ein Schiff mit der Automatik Schätze abholen. Habt Ihr kein solches Schiff, das ihn tragen kann, transportiert ihn der König aus einer Küstenkolonie mit Hafen, gegen seine Provision.</German>
+		<Italian>Il tesoro è gestito come quelli dei giocatori del computer: va nella colonia propria più vicina con un porto in acque profonde (unendosi agli altri tesori lì) e aspetta una nave con l'automazione Recupera tesori. Se non hai una nave del genere in grado di trasportarlo, il re lo trasporta da una colonia costiera con un porto, in cambio della sua commissione.</Italian>
+		<Spanish>El tesoro se gestiona como los de los jugadores del ordenador: va a la colonia propia más cercana con puerto de aguas profundas (uniéndose a los demás tesoros de allí) y espera un barco con la automatización Recoger tesoros. Si no tienes ningún barco así que pueda llevarlo, el rey lo transporta desde una colonia costera con puerto, a cambio de su comisión.</Spanish>
+		<Russian>Сокровище ведёт себя как сокровища компьютерных игроков: оно идёт в ближайшую свою колонию с глубоководной гаванью (объединяясь там с другими сокровищами) и ждёт корабль с автоматизацией «Забирать сокровища». Если у вас нет такого корабля, способного его увезти, король перевозит его из прибрежной колонии с гаванью за свою комиссию.</Russian>
+		<Hungarian>A kincset úgy kezeli a játék, mint a gépi játékosokét: a legközelebbi saját, mélyvízi kikötős kolóniába megy (ott egyesül a többi kinccsel), és egy Kincsek begyűjtése automatizálású hajóra vár. Ha nincs ilyen hajód, amely elvihetné, a király szállítja el egy kikötős tengerparti kolóniából, a jutalékáért.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_TREASURE_SHIP</Tag>
+		<English>Fetch Treasures</English>
+		<Portuguese>Buscar tesouros</Portuguese>
+		<French>Récupérer les trésors</French>
+		<German>Schätze abholen</German>
+		<Italian>Recupera tesori</Italian>
+		<Spanish>Recoger tesoros</Spanish>
+		<Russian>Забирать сокровища</Russian>
+		<Hungarian>Kincsek begyűjtése</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_TREASURE_SHIP_HELP</Tag>
+		<English>The ship fetches the treasures waiting for a ship (treasures with the automation Automate Treasure) like the transports of the computer players and takes them to Europe, where they are sold. From Europe it sails straight to the next waiting treasure; with none it waits in Europe. On the map with nothing to fetch it waits in the nearest own colony.</English>
+		<Portuguese>O navio busca os tesouros que esperam por um navio (tesouros com a automação Automatizar tesouro) como os transportes dos jogadores do computador e os leva para a Europa, onde são vendidos. Da Europa navega direto para o próximo tesouro à espera; sem nenhum, espera na Europa. No mapa, sem nada para buscar, espera na colônia própria mais próxima.</Portuguese>
+		<French>Le navire récupère les trésors qui attendent un navire (trésors avec l'automatisation Automatiser le trésor) comme les transports des joueurs ordinateur et les emmène en Europe, où ils sont vendus. Depuis l'Europe, il fait route directement vers le prochain trésor en attente ; s'il n'y en a aucun, il attend en Europe. Sur la carte, sans rien à récupérer, il attend dans la colonie la plus proche.</French>
+		<German>Das Schiff holt die Schätze, die auf ein Schiff warten (Schätze mit der Automatik Schatz automatisieren), wie die Transporter der Computerspieler ab und bringt sie nach Europa, wo sie verkauft werden. Von Europa fährt es direkt zum nächsten wartenden Schatz; gibt es keinen, wartet es in Europa. Auf der Karte wartet es ohne Schatz in der nächsten eigenen Kolonie.</German>
+		<Italian>La nave recupera i tesori che aspettano una nave (tesori con l'automazione Automatizza tesoro) come i trasporti dei giocatori del computer e li porta in Europa, dove vengono venduti. Dall'Europa salpa direttamente verso il prossimo tesoro in attesa; se non ce ne sono, aspetta in Europa. Sulla mappa, senza nulla da recuperare, aspetta nella colonia propria più vicina.</Italian>
+		<Spanish>El barco recoge los tesoros que esperan un barco (tesoros con la automatización Automatizar tesoro) como los transportes de los jugadores del ordenador y los lleva a Europa, donde se venden. Desde Europa navega directamente al siguiente tesoro en espera; si no hay ninguno, espera en Europa. En el mapa, sin nada que recoger, espera en la colonia propia más cercana.</Spanish>
+		<Russian>Корабль забирает сокровища, ожидающие корабль (сокровища с автоматизацией «Автоматизировать сокровище»), как транспорты компьютерных игроков, и отвозит их в Европу, где они продаются. Из Европы он плывёт прямо к следующему ожидающему сокровищу; если таких нет, ждёт в Европе. На карте, если забирать нечего, он ждёт в ближайшей своей колонии.</Russian>
+		<Hungarian>A hajó a gépi játékosok szállítóihoz hasonlóan begyűjti a hajóra váró kincseket (a Kincs automatizálása automatizálású kincseket), és Európába viszi őket, ahol eladják őket. Európából egyenesen a következő várakozó kincshez hajózik; ha nincs ilyen, Európában vár. A térképen, ha nincs mit begyűjteni, a legközelebbi saját kolóniában vár.</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_ACTION_AUTOMATE_FULL_HELP</Tag>
 		<English>Automate this unit</English>
 		<Portuguese>Automatizar unidade</Portuguese>

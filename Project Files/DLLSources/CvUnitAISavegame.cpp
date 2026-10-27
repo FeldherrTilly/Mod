@@ -24,6 +24,7 @@ const int defaultTravelShipID = -1;
 const int defaultTravelPickup = -1;
 const int defaultPatrolCenter = -1;
 const int defaultPrivateBuild = -1;
+const bool defaultTreasureShip = false;
 
 enum SavegameVariableTypes
 {
@@ -51,6 +52,7 @@ enum SavegameVariableTypes
 	UnitSaveAI_TravelPickup,
 	UnitSaveAI_PatrolCenter,
 	UnitSaveAI_PrivateBuild, // WTP
+	UnitSaveAI_TreasureShip, // WTP
 	NUM_SAVE_ENUM_VALUES,
 };
 
@@ -82,6 +84,7 @@ const char* getSavedEnumNameUnitAi(SavegameVariableTypes eType)
 	case UnitSaveAI_TravelPickup: return "UnitSaveAI_TravelPickup";
 	case UnitSaveAI_PatrolCenter: return "UnitSaveAI_PatrolCenter";
 	case UnitSaveAI_PrivateBuild: return "UnitSaveAI_PrivateBuild";
+	case UnitSaveAI_TreasureShip: return "UnitSaveAI_TreasureShip";
 
 }
 	FAssertMsg(0, "Missing case");
@@ -119,6 +122,7 @@ void CvUnitAI::AI_resetSavedData()
 	m_iTravelPickup = defaultTravelPickup;
 	m_iPatrolCenter = defaultPatrolCenter;
 	m_iPrivateBuild = defaultPrivateBuild;
+	m_bTreasureShip = defaultTreasureShip;
 }
 
 void CvUnitAI::read(CvSavegameReader reader)
@@ -165,6 +169,7 @@ void CvUnitAI::read(CvSavegameReader reader)
 		case UnitSaveAI_TravelPickup: reader.Read(m_iTravelPickup); break;
 		case UnitSaveAI_PatrolCenter: reader.Read(m_iPatrolCenter); break;
 		case UnitSaveAI_PrivateBuild: reader.Read(m_iPrivateBuild); break;
+		case UnitSaveAI_TreasureShip: reader.Read(m_bTreasureShip); break;
 		}
 	}
 	
@@ -208,5 +213,6 @@ void CvUnitAI::write(CvSavegameWriter writer)
 	writer.Write(UnitSaveAI_TravelPickup, m_iTravelPickup, defaultTravelPickup);
 	writer.Write(UnitSaveAI_PatrolCenter, m_iPatrolCenter, defaultPatrolCenter);
 	writer.Write(UnitSaveAI_PrivateBuild, m_iPrivateBuild, defaultPrivateBuild);
+	writer.Write(UnitSaveAI_TreasureShip, m_bTreasureShip, defaultTreasureShip);
 	writer.Write(UnitSaveAI_END);
 }

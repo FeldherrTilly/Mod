@@ -311,5 +311,43 @@
 			<bVisible>0</bVisible>
 			<Button>Art/Interface/Game Hud/Actions/private_pioneer_high_res.dds</Button>
 		</AutomateInfo>
+		<AutomateInfo>
+			<Type>AUTOMATE_TREASURE</Type>
+			<Description>TXT_KEY_ACTION_AUTOMATE_TREASURE</Description>
+			<Help>TXT_KEY_ACTION_AUTOMATE_TREASURE_HELP</Help>
+			<HotKey/>
+			<bAltDown>0</bAltDown>
+			<bShiftDown>0</bShiftDown>
+			<bCtrlDown>0</bCtrlDown>
+			<iHotKeyPriority>0</iHotKeyPriority>
+			<HotKeyAlt/>
+			<bAltDownAlt>0</bAltDownAlt>
+			<bShiftDownAlt>0</bShiftDownAlt>
+			<bCtrlDownAlt>0</bCtrlDownAlt>
+			<iHotKeyPriorityAlt>0</iHotKeyPriorityAlt>
+			<Command>COMMAND_AUTOMATE</Command>
+			<Automate>AUTOMATE_TREASURE</Automate>
+			<bVisible>1</bVisible>
+			<Button>Art/Interface/Game Hud/Actions/automate_treasure_high_res.dds</Button>
+		</AutomateInfo>
+		<AutomateInfo>
+			<Type>AUTOMATE_TREASURE_SHIP</Type>
+			<Description>TXT_KEY_ACTION_AUTOMATE_TREASURE_SHIP</Description>
+			<Help>TXT_KEY_ACTION_AUTOMATE_TREASURE_SHIP_HELP</Help>
+			<HotKey/>
+			<bAltDown>0</bAltDown>
+			<bShiftDown>0</bShiftDown>
+			<bCtrlDown>0</bCtrlDown>
+			<iHotKeyPriority>0</iHotKeyPriority>
+			<HotKeyAlt/>
+			<bAltDownAlt>0</bAltDownAlt>
+			<bShiftDownAlt>0</bShiftDownAlt>
+			<bCtrlDownAlt>0</bCtrlDownAlt>
+			<iHotKeyPriorityAlt>0</iHotKeyPriorityAlt>
+			<Command>COMMAND_AUTOMATE</Command>
+			<Automate>AUTOMATE_TREASURE_SHIP</Automate>
+			<bVisible>1</bVisible>
+			<Button>Art/Interface/Game Hud/Actions/automate_treasure_ship_high_res.dds</Button>
+		</AutomateInfo>
 	</AutomateInfos>
 </Civ4AutomateInfos>

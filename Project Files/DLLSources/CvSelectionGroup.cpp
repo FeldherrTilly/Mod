@@ -3636,6 +3636,16 @@ void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue, bool bImplicit)
 		{
 			static_cast<CvUnitAI*>(getHeadUnit())->AI_setPatrolCenter(getHeadUnit()->plot());
 		}
+		// WTP: treasure automation of a ship: it keeps the role when the automation of the group is lost on the way to or from
+		// Europe (implicit), and drops it when switched off or to another automation
+		if (eNewValue == AUTOMATE_TREASURE_SHIP && getHeadUnit() != NULL)
+		{
+			static_cast<CvUnitAI*>(getHeadUnit())->AI_setTreasureShip(true);
+		}
+		else if (eOldValue == AUTOMATE_TREASURE_SHIP && (eNewValue != NO_AUTOMATE || !bImplicit) && getHeadUnit() != NULL)
+		{
+			static_cast<CvUnitAI*>(getHeadUnit())->AI_setTreasureShip(false);
+		}
 		// WTP: transport to a city or plot: switched off, the unit drops its journey
 		if (eOldValue == AUTOMATE_TRAVEL && !bImplicit && getHeadUnit() != NULL
 			&& static_cast<CvUnitAI*>(getHeadUnit())->AI_getWfTask() == CvUnitAI::WF_TRAVEL)

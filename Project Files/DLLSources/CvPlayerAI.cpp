@@ -1237,6 +1237,9 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 		// units are collected first as buying goods creates units
 		std::vector<CvUnitAI*> apTraders;
 		std::vector<CvUnitAI*> apBack;
+		// WTP: the same for the ships with the treasure automation (they sell the treasures and sail to a waiting one)
+		std::vector<CvUnitAI*> apTreasureShips;
+		std::vector<CvUnitAI*> apTreasureShipsBack;
 		for (pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 		{
 			CvUnitAI* const pTrader = static_cast<CvUnitAI*>(pLoopUnit);
@@ -1250,6 +1253,18 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 			{
 				apBack.push_back(pTrader);
 			}
+			else if (pTrader->AI_isTreasureShip())
+			{
+				if (pLoopUnit->getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE)
+				{
+					apTreasureShips.push_back(pTrader);
+				}
+				else if (pLoopUnit->isOnMap_() && pLoopUnit->getGroup() != NULL && pLoopUnit->getGroup()->getNumUnits() == 1
+					&& pLoopUnit->getGroup()->getAutomateType() == NO_AUTOMATE)
+				{
+					apTreasureShipsBack.push_back(pTrader);
+				}
+			}
 		}
 		for (uint i = 0; i < apTraders.size(); ++i)
 		{
@@ -1258,6 +1273,14 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 		for (uint i = 0; i < apBack.size(); ++i)
 		{
 			apBack[i]->getGroup()->setAutomateType(AUTOMATE_NATIVE_TRADE);
+		}
+		for (uint i = 0; i < apTreasureShips.size(); ++i)
+		{
+			apTreasureShips[i]->AI_treasureShipEurope();
+		}
+		for (uint i = 0; i < apTreasureShipsBack.size(); ++i)
+		{
+			apTreasureShipsBack[i]->getGroup()->setAutomateType(AUTOMATE_TREASURE_SHIP);
 		}
 		// WTP: units on their way to a port for a transport (transport to a city or plot, job automation): their ship is
 		// chosen again now that the ships have their moves back, one unit after the other (each counts the tours before)
@@ -7183,6 +7206,11 @@ bool CvPlayerAI::AI_hasSeaTransport(const CvUnit* pCargo) const
 	{
 		if (pLoopUnit != pCargo && pLoopUnit->getDomainType() == DOMAIN_SEA)
 		{
+			// WTP: a human player's treasures count only his ships with the treasure automation
+			if (isHuman() && pCargo->getUnitInfo().isTreasure() && !static_cast<CvUnitAI*>(pLoopUnit)->AI_isTreasureShip())
+			{
+				continue;
+			}
 			if (pLoopUnit->cargoSpace() >= pCargo->getUnitInfo().getRequiredTransportSize())
 			{
 				return true;

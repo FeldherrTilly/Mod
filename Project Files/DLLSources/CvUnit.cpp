@@ -4854,6 +4854,27 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 		}
 		break;
 
+	// WTP: treasure automation: a human player's treasure on the map (not aboard a ship)
+	case AUTOMATE_TREASURE:
+		if (!isHuman() || !m_pUnitInfo->isTreasure() || !isOnMap_() || isCargo())
+		{
+			return false;
+		}
+		break;
+
+	// WTP: treasure automation: a human player's merchant ship on the map that can carry treasures (galleon, West Indiaman)
+	case AUTOMATE_TREASURE_SHIP:
+		{
+			const UnitTypes eTreasure = kOwner.getUnitType(UNITCLASS_TREASURE);
+			if (!isHuman() || isNative() || getDomainType() != DOMAIN_SEA || !isOnMap_() || getUnitInfo().isGatherBoat()
+				|| getUnitInfo().getDefaultUnitAIType() != UNITAI_TRANSPORT_SEA || eTreasure == NO_UNIT
+				|| cargoSpace() < GC.getUnitInfo(eTreasure).getRequiredTransportSize() || kOwner.getNumCities() == 0 || !kOwner.canTradeWithEurope())
+			{
+				return false;
+			}
+		}
+		break;
+
 	// WTP: native trade automation: merchant ships (no warships, no fishing or whaling boats) of a colonial player with a colony
 	case AUTOMATE_NATIVE_TRADE:
 		if (getDomainType() != DOMAIN_SEA || cargoSpace() == 0 || getUnitInfo().isGatherBoat() || getUnitInfo().getDefaultUnitAIType() != UNITAI_TRANSPORT_SEA

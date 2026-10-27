@@ -219,6 +219,13 @@ bool CvUnitAI::AI_update()
 					getGroup()->setAutomateType(NO_AUTOMATE);
 				}
 				break;
+			// WTP: treasure automation of a human player: the treasure moves like the AI's, the ship fetches treasures
+			case AUTOMATE_TREASURE:
+				AI_treasureMove();
+				break;
+			case AUTOMATE_TREASURE_SHIP:
+				AI_treasureShipMove();
+				break;
 			// WTP: transport to a city or plot of a human player's land unit
 			case AUTOMATE_TRAVEL:
 				if (!AI_doTravel() && getGroup() != NULL)
@@ -2600,8 +2607,10 @@ void CvUnitAI::AI_treasureMove()
 		}
 		// R&R, ray , Native Treasures - END
 
-		// WTP: from 8 waiting treasures the king transports them too, even with a galleon (it could not keep up)
-		if (!GET_PLAYER(getOwnerINLINE()).AI_hasSeaTransport(this) || bAtWar || GET_PLAYER(getOwnerINLINE()).AI_totalUnitAIs(UNITAI_TREASURE) >= 8)
+		// WTP: from 8 waiting treasures the king transports them too, even with a galleon (it could not keep up); a human
+		// player's treasure (treasure automation) only when he has no ship with the treasure automation that can carry it
+		if (isHuman() ? !GET_PLAYER(getOwnerINLINE()).AI_hasSeaTransport(this)
+			: (!GET_PLAYER(getOwnerINLINE()).AI_hasSeaTransport(this) || bAtWar || GET_PLAYER(getOwnerINLINE()).AI_totalUnitAIs(UNITAI_TREASURE) >= 8))
 		{
 			if (canKingTransport())
 			{
@@ -5805,28 +5814,9 @@ void CvUnitAI::AI_transportSeaMove()
 			}
 		}
 
-		// WTP (user 2026-10-24): treasures right before the sail state. A ship carrying treasures collects those waiting
-		// nearby (within 6 turns), then sails to Europe; a ship without passengers fetches waiting treasures (an empty one
-		// wherever they wait, one with goods aboard within 10 turns). Only ships that can carry treasures respond.
-		if (getUnitAICargo(UNITAI_TREASURE) > 0)
+		// WTP (user 2026-10-24): treasures right before the sail state
+		if (AI_treasureTransportMove())
 		{
-			if (!isFull() && AI_respondToPickup(6, UNITAI_TREASURE))
-			{
-				s_szWtpShipReason = "more treasures nearby";
-				AI_setUnitAIState(UNITAI_STATE_PICKUP);
-				return;
-			}
-			if (AI_sailToEurope())
-			{
-				s_szWtpShipReason = "treasures to Europe";
-				return;
-			}
-		}
-		else if (!hasAnyUnitInCargo() && !isFull() && kOwner.AI_totalUnitAIs(UNITAI_TREASURE) > 0
-			&& AI_respondToPickup(bEmpty ? MAX_INT : 10, UNITAI_TREASURE))
-		{
-			s_szWtpShipReason = bEmpty ? "treasure pickup" : "treasure pickup with goods aboard";
-			AI_setUnitAIState(UNITAI_STATE_PICKUP);
 			return;
 		}
 
@@ -7918,6 +7908,102 @@ CvPlot* CvUnitAI::AI_europeTreasureTarget(CvPlot*& pArrival, bool& bFar)
 		}
 	}
 	return pBest;
+}
+
+// WTP (user 2026-10-24): treasures right before the sail state of the AI's transports, and the treasure automation of a human
+// player's ship. A ship carrying treasures collects those waiting nearby (within 6 turns), then sails to Europe; a ship without
+// passengers fetches waiting treasures (an empty one wherever they wait, one with goods aboard within 10 turns). Only ships that
+// can carry treasures respond.
+bool CvUnitAI::AI_treasureTransportMove()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const bool bEmpty = !getGroup()->hasCargo();
+	if (getUnitAICargo(UNITAI_TREASURE) > 0)
+	{
+		if (!isFull() && AI_respondToPickup(6, UNITAI_TREASURE))
+		{
+			s_szWtpShipReason = "more treasures nearby";
+			AI_setUnitAIState(UNITAI_STATE_PICKUP);
+			return true;
+		}
+		if (AI_sailToEurope())
+		{
+			s_szWtpShipReason = "treasures to Europe";
+			return true;
+		}
+	}
+	else if (!hasAnyUnitInCargo() && !isFull() && kOwner.AI_totalUnitAIs(UNITAI_TREASURE) > 0
+		&& AI_respondToPickup(bEmpty ? MAX_INT : 10, UNITAI_TREASURE))
+	{
+		s_szWtpShipReason = bEmpty ? "treasure pickup" : "treasure pickup with goods aboard";
+		AI_setUnitAIState(UNITAI_STATE_PICKUP);
+		return true;
+	}
+	return false;
+}
+
+// WTP: treasure automation of a human player's ship on the map: it fetches the treasures waiting for a ship and takes them to
+// Europe like the AI's transports; with nothing to fetch it waits in the nearest own colony it can reach. Passengers the
+// player put aboard (it takes none itself) get off in an own colony, as a ship with passengers fetches no treasures.
+void CvUnitAI::AI_treasureShipMove()
+{
+	const CvCity* const pHere = plot()->getPlotCity();
+	if (pHere != NULL && pHere->getOwnerINLINE() == getOwnerINLINE() && hasAnyUnitInCargo())
+	{
+		AI_unloadPassengers(true);
+	}
+	if (AI_treasureTransportMove())
+	{
+		return;
+	}
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	if (pHere != NULL && pHere->getOwnerINLINE() == getOwnerINLINE())
+	{
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
+	}
+	const CvCity* pNearest = NULL;
+	int iBestTurns = MAX_INT;
+	int iLoop;
+	for (CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kOwner.nextCity(&iLoop))
+	{
+		int iPathTurns;
+		if (pLoopCity->isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN()) && CvPlayerAI::AI_shipCanReachCity(getUnitType(), *pLoopCity)
+			&& generatePath(pLoopCity->plot(), 0, true, &iPathTurns) && iPathTurns < iBestTurns)
+		{
+			iBestTurns = iPathTurns;
+			pNearest = pLoopCity;
+		}
+	}
+	if (pNearest != NULL)
+	{
+		getGroup()->pushMission(MISSION_MOVE_TO, pNearest->getX_INLINE(), pNearest->getY_INLINE());
+		return;
+	}
+	getGroup()->pushMission(MISSION_SKIP);
+}
+
+// WTP: a human player's ship with the treasure automation in Europe (called at the start of the player's turn): it sells the
+// treasures aboard and sails to the most valuable treasure waiting for a ship that no other ship fetches (the AI's choice);
+// with none it waits in Europe
+bool CvUnitAI::AI_treasureShipEurope()
+{
+	if (!isHuman() || !AI_isTreasureShip() || getUnitTravelState() != UNIT_TRAVEL_STATE_IN_EUROPE || getUnitTravelTimer() > 0)
+	{
+		return false;
+	}
+	AI_sellYieldUnits(TRADE_LOCATION_EUROPE, true);
+	CvPlot* pArrival = NULL;
+	bool bFar = false;
+	const CvPlot* const pTreasure = AI_europeTreasureTarget(pArrival, bFar);
+	if (pTreasure == NULL || pArrival == NULL)
+	{
+		return false;
+	}
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d treasure ship %S sails from Europe for the treasure at %d,%d (arrives at %d,%d)",
+		getOwnerINLINE(), GET_PLAYER(getOwnerINLINE()).getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(),
+		pTreasure->getX_INLINE(), pTreasure->getY_INLINE(), pArrival->getX_INLINE(), pArrival->getY_INLINE());
+	return AI_crossFromEurope(pArrival);
 }
 
 bool CvUnitAI::AI_europe()
@@ -18863,16 +18949,17 @@ bool CvUnitAI::AI_nativeTradeEurope()
 }
 
 // WTP: leave Europe for the colonies like AI_europe does (the ship appears next to the colony AI_bestDestinationPlot names)
-bool CvUnitAI::AI_crossFromEurope()
+// WTP: pArrival: the plot the ship appears at (NULL: the home colony of the native trade ship or the best destination)
+bool CvUnitAI::AI_crossFromEurope(CvPlot* pArrival)
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	CvPlot* const pStartingPlot = kOwner.getStartingPlot();
 	if (kOwner.getNumCities() > 0)
 	{
-		CvPlot* pNewPlot = NULL;
+		CvPlot* pNewPlot = pArrival;
 		// WTP: the human native trade automation comes back to its home colony
 		const CvCity* const pHome = AI_isHumanNativeTrade() ? AI_nativeTradeHomeCity() : NULL;
-		if (pHome != NULL && pHome->plot()->isEuropeAccessable())
+		if (pNewPlot == NULL && pHome != NULL && pHome->plot()->isEuropeAccessable())
 		{
 			pNewPlot = findNearbyOceanPlot(*pHome->plot());
 		}
@@ -23153,7 +23240,8 @@ bool CvUnitAI::AI_moveToCity(bool bUnload, CvCity* pLoopCity)
 }
 //End TAC Whaling, ray
 
-void CvUnitAI::AI_sellYieldUnits(TradeLocationTypes eLocation)
+// WTP: bTreasuresOnly: only the treasures aboard (the goods of a human player's ship stay aboard)
+void CvUnitAI::AI_sellYieldUnits(TradeLocationTypes eLocation, bool bTreasuresOnly)
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	CvPlot* pPlot = plot();
@@ -23166,7 +23254,7 @@ void CvUnitAI::AI_sellYieldUnits(TradeLocationTypes eLocation)
 
 		if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this)
 		{
-			if (pLoopUnit->isGoods() || pLoopUnit->getUnitInfo().isTreasure())
+			if ((pLoopUnit->isGoods() && !bTreasuresOnly) || pLoopUnit->getUnitInfo().isTreasure())
 			{
 				const YieldTypes eYield = pLoopUnit->getYield();
 
