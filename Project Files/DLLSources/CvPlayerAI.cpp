@@ -22280,6 +22280,18 @@ int CvPlayerAI::AI_pioneerPlanTarget(const CvUnit& kPioneer)
 	return (itOwn != m_mapPioneerPlanTargets.end()) ? itOwn->second : -1;
 }
 
+// WTP: pioneer plan (user 2026-10-27): true the first time in a turn that a pioneer finds no marked improvement left
+// (the player is told once per turn, not by every waiting pioneer)
+bool CvPlayerAI::AI_pioneerPlanDoneNotice()
+{
+	if (!getPioneerPlans().empty() || m_iPioneerPlanDoneTurn == GC.getGameINLINE().getGameTurn())
+	{
+		return false;
+	}
+	m_iPioneerPlanDoneTurn = GC.getGameINLINE().getGameTurn();
+	return true;
+}
+
 // WTP: an immigrant on the docks the workforce plan wants as an expert: it has a job task the unit is an expert for
 // (bought for a job, or an expert immigrant the plan seated); free colonists and the like do not count
 bool CvPlayerAI::AI_isWantedExpertOnDock(const CvUnit& kUnit) const

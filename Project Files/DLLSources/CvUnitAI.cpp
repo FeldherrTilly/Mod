@@ -24296,6 +24296,12 @@ bool CvUnitAI::AI_doPioneerPlan()
 	const BuildTypes eBuild = (iPlotIndex >= 0) ? kOwner.getPioneerPlanBuild(iPlotIndex) : NO_BUILD;
 	if (pPlot == NULL || eBuild == NO_BUILD)
 	{
+		// nothing marked any more: the player is told (once per turn)
+		if (kOwner.AI_pioneerPlanDoneNotice())
+		{
+			CvWString szBuffer = gDLL->getText("TXT_KEY_PIONEER_PLAN_DONE", getNameKey());
+			gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, getButton(), COLOR_WARNING_TEXT, getX_INLINE(), getY_INLINE());
+		}
 		getGroup()->pushMission(MISSION_SKIP);
 		return false;
 	}
