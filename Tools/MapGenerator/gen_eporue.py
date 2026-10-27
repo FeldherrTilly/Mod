@@ -1865,8 +1865,8 @@ for x, y in ALL:
 
 # coastal water: deep coast along the shore, shallow coast in the sheltered or flat seas (North Sea, Baltic, Adriatic, Persian Gulf, ...)
 SHALLOW_BOXES = [(-4.0, 9.5, 51.0, 58.0), (-6.5, 2.5, 49.0, 51.2), (-6.5, -2.5, 52.0, 55.5), (11.0, 19.5, 42.5, 46.0), (33.0, 41.0, 44.5, 47.5),
-                 (47.0, 57.0, 24.0, 30.5), (31.0, 37.5, 22.0, 30.5), (8.0, 12.0, 52.5, 57.5), (23.0, 27.5, 38.0, 41.0)]
-SHALLOW_SEAS = [SEAS['Baltic'], SEAS['Kattegat'], SEAS['Persian Gulf'], SEAS['Red Sea']]
+                 (47.0, 57.0, 24.0, 30.5), (8.0, 12.0, 52.5, 57.5), (23.0, 27.5, 38.0, 41.0)]
+SHALLOW_SEAS = [SEAS['Baltic'], SEAS['Kattegat'], SEAS['Persian Gulf']]      # the Red Sea is a shipping route
 
 
 def north_baltic(x, y):           # North Sea, English Channel, Baltic
@@ -1933,7 +1933,7 @@ for i in range(W * H):
 deep = lambda i: ocean[i] and terrain[i] in ('OCEAN', 'COAST')
 lanes, isolated = 0, set()
 while True:
-    comps = sorted([c for c in components([deep(i) for i in range(W * H)], N8) if I(*c[0]) not in isolated], key=len)
+    comps = sorted([c for c in components([deep(i) for i in range(W * H)], N4) if I(*c[0]) not in isolated], key=len)
     if len(comps) <= 1:
         break
     src = [I(x, y) for x, y in comps[0]]
@@ -1946,7 +1946,7 @@ while True:
             break
         if c > dist[i]:
             continue
-        for nx, ny in nbrs(i % W, i // W):
+        for nx, ny in nbrs(i % W, i // W, N4):          # ships cannot pass between two land plots diagonally
             j = I(nx, ny)
             if not ocean[j]:
                 continue
@@ -2166,6 +2166,47 @@ for i in SUEZ:
         wofr.pop(I(x - 1, y), None)
     if y + 1 < H:
         nofr.pop(I(x, y + 1), None)
+# ship passages: the straits that join the seas are open for every ship - a chain of plots joined side by side (ships
+# cannot pass diagonally between two land plots), all normal coast or open ocean; land is taken away where needed
+PASSAGES = [((-8.5, 36.0), (0.0, 37.0)),         # Strait of Gibraltar
+            ((20.0, 34.0), (36.5, 24.5)),        # Mediterranean - strait - Red Sea
+            ((25.5, 39.5), (31.0, 43.0)),        # Dardanelles and Bosporus into the Black Sea
+            ((6.0, 57.0), (16.0, 55.5))]         # Skagerrak, Kattegat and the Sound into the Baltic
+PASSAGE_CUT = 0
+for (lo0, la0), (lo1, la1) in PASSAGES:
+    hx, hy = to_xy(lo0, la0)
+    src = min((math.hypot(i % W + 0.5 - hx, i // W + 0.5 - hy), i) for i in range(W * H) if ocean[i])[1]
+    hx, hy = to_xy(lo1, la1)
+    dst = min((math.hypot(i % W + 0.5 - hx, i // W + 0.5 - hy), i) for i in range(W * H) if ocean[i])[1]
+    dist, prev, pq = {src: 0.0}, {}, [(0.0, src)]
+    while pq:
+        c, i = heapq.heappop(pq)
+        if i == dst:
+            break
+        if c > dist[i]:
+            continue
+        for nx, ny in nbrs(i % W, i // W, N4):
+            j = I(nx, ny)
+            if ocean[j]:
+                step = 1.0 if terrain[j] in ('OCEAN', 'COAST', '') else 3.0
+            elif land[j] or large[j]:
+                step = 60.0 if plot_type[j] == 0 else 25.0
+            else:
+                step = 25.0
+            if c + step < dist.get(j, 1e9):
+                dist[j], prev[j] = c + step, i
+                heapq.heappush(pq, (c + step, j))
+    i = dst
+    while i in prev:
+        if not ocean[i]:
+            carve_water([(i % W, i // W)])
+            large[i] = lake[i] = False
+            IMPROVEMENT.pop(i, None)
+            PASSAGE_CUT += 1
+        if terrain[i] not in ('OCEAN', 'COAST'):
+            WATER_TERRAIN[i] = terrain[i] = 'COAST'
+        SHALLOW_WATER.discard(i)
+        i = prev[i]
 for comp in components(lake, N8):      # lakes the canal reaches become part of the sea (the Bitter Lakes)
     if any(ocean[I(nx, ny)] for x, y in comp for nx, ny in nbrs(x, y)):
         for x, y in comp:
@@ -2188,7 +2229,7 @@ for (lo0, la0), (lo1, la1) in zip(CURRENT_WAYPOINTS, CURRENT_WAYPOINTS[1:]):
             break
         if c > dist[i]:
             continue
-        for nx, ny in nbrs(i % W, i // W):
+        for nx, ny in nbrs(i % W, i // W, N4):
             j = I(nx, ny)
             if ocean[j] and c + 1 + 2.0 / dland[j] < dist.get(j, 1e9):     # keeps to the middle of the water
                 dist[j], prev[j] = c + 1 + 2.0 / dland[j], i
@@ -2257,8 +2298,11 @@ for x, y in ALL:
     elif d <= 5.5:                     # wooded savannah: coherent woods with clearings, thinner away from the coast
         terrain[i] = 'SAVANNAH'
         patch = 0.5 + 0.5 * TROP_NZ.fbm(x + 40, y, 3, 3)
-        if 0.55 * patch + 0.45 * trng.random() < 0.68 - 0.08 * (d - 2.2):
-            feature[i] = pick([(2, 'TROPICAL_GROVES'), (2, 'FOREST'), (1.5 if d < 3.5 else 0.3, 'JUNGLE')])
+        dens, woods = 0.68 - 0.08 * (d - 2.2), [(2, 'TROPICAL_GROVES'), (2, 'FOREST'), (1.5 if d < 3.5 else 0.3, 'JUNGLE')]
+        if la > 42.5:                  # southern France: mostly forest
+            dens, woods = 0.85, [(4, 'FOREST'), (1, 'TROPICAL_GROVES')]
+        if 0.55 * patch + 0.45 * trng.random() < dens:
+            feature[i] = pick(woods)
         else:
             feature[i] = 'LUSHGRASS' if plot_type[i] == 2 and river_side(x, y) and trng.random() < 0.3 else None
         SAVANNA_BELT.add(i)
@@ -2273,6 +2317,55 @@ for x, y in ALL:
         elif feature[i] not in ('SHRUB', 'LIGHT_FOREST', 'CACTUS_TREES') or terrain[i] not in FEATURE_TERRAINS.get(feature[i], ()):
             feature[i] = None
         BUSH_BELT.add(i)
+
+
+# hot lands (Sahara, Levant, Arabia, the south of Iberia): real transitions, as in the Fantasy New World:
+# savannah or grassland - prairie (plains) - shrubland - desert, never a wet plot right next to the desert. The green river
+# ribbons through the Sahara get drier at their edge: now and then shrubland in the second plot from the river.
+import re as _re
+_ftext = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'Assets', 'XML', 'Terrain', 'CIV4FeatureInfos.xml'), encoding='utf-8').read()
+FEATURE_OK = {}
+for _b in _re.findall(r'<FeatureInfo>(.*?)</FeatureInfo>', _ftext, _re.S):
+    _m = _re.search(r'<TerrainBooleans>(.*?)</TerrainBooleans>', _b, _re.S)
+    FEATURE_OK[_re.search(r'<Type>FEATURE_(\w+)<', _b).group(1)] = set(
+        t[8:] for t, v in _re.findall(r'<TerrainType>(\w+)</TerrainType>\s*<bTerrain>(\d)<', _m.group(1)) if v == '1') if _m else set()
+
+
+def set_dry_terrain(i, t):
+    terrain[i] = t
+    if feature[i] and terrain[i] not in FEATURE_OK.get(feature[i], {terrain[i]}):
+        feature[i] = 'SHRUB' if t == 'SHRUBLAND' and trng.random() < 0.3 else None
+
+
+sahara_rivers = [j for nm in ('Nile', 'Draa', 'Saoura', 'Igharghar', 'Mya', 'Zousfana') for j in RIVER_PATHS.get(nm, [])]
+driver = bfs_dist(sahara_rivers, lambda j: True)
+VALLEY_EDGE = set(i for i in VALLEY_GREEN if driver[i] == 2 and land[i] and plot_type[i] != 0)
+for i in sorted(VALLEY_EDGE):
+    if trng.random() < 0.35:
+        set_dry_terrain(i, 'SHRUBLAND')
+RANK = {'DESERT': 0, 'ROCK_STEPPES': 0, 'SHRUBLAND': 1, 'PLAINS': 2, 'SAVANNAH': 3, 'GRASS': 3, 'PLAINS_FERTILE': 3, 'MARSH': 3, 'WETLAND': 3}
+HOT = [i for i in range(W * H) if land[i] and plot_type[i] != 0 and real_lat(i // W) < 38.5 and terrain[i] in RANK]
+keep = (SET_PIECES - VALLEY_EDGE) | set(IMPROVEMENT)
+TRANSITIONS = 0
+for _ in range(6):
+    changed = 0
+    for i in HOT:
+        r = RANK[terrain[i]]
+        nb = [RANK[terrain[I(nx, ny)]] for nx, ny in nbrs(i % W, i // W) if land[I(nx, ny)] and terrain[I(nx, ny)] in RANK and plot_type[I(nx, ny)] != 0]
+        if not nb:
+            continue
+        if r == 3 and min(nb) <= 1 and i not in keep:
+            set_dry_terrain(i, 'PLAINS')                  # the wet side steps down to prairie
+            changed += 1
+        elif r == 2 and min(nb) == 0 and i not in keep and trng.random() < 0.4:
+            set_dry_terrain(i, 'SHRUBLAND')
+            changed += 1
+        elif r == 0 and max(nb) >= 2:
+            set_dry_terrain(i, 'SHRUBLAND')               # the desert edge becomes shrubland
+            changed += 1
+    TRANSITIONS += changed
+    if not changed:
+        break
 
 
 # Spain: more woods (holm oak, cork oak and pine) on the open land of the Iberian Peninsula
@@ -2374,7 +2467,10 @@ DEPOSITS = {
     'PEARLS': [(51.0, 26.0, 4, 10), (37.5, 23.5, 4, 6)],
     'PEARLS_2': [(51.0, 26.0, 4, 10), (37.5, 23.5, 4, 6)],
 }
-GROUP_CHANCE = {'COAL': 0.6, 'IRON': 0.6, 'SILVER': 0.5, 'GOLD': 0.4, 'GEMS': 0.4, 'SALT': 0.5, 'STONE': 0.5, 'GRAPES': 0.6,
+PLANTATION = ('TOBACCO', 'COTTON', 'SUGAR', 'INDIGO', 'COFFEE', 'COCOA', 'HEMP', 'FLAX', 'RED_PEPPER', 'VANILLA', 'COCA', 'YERBA')
+GROUP_CHANCE = {'TOBACCO': 0.7, 'COTTON': 0.7, 'SUGAR': 0.7, 'INDIGO': 0.65, 'COFFEE': 0.65, 'COCOA': 0.65, 'HEMP': 0.6, 'FLAX': 0.6,
+                'RED_PEPPER': 0.55, 'VANILLA': 0.55, 'COCA': 0.55, 'YERBA': 0.55, 'TIMBER': 0.2,
+                'COAL': 0.6, 'IRON': 0.6, 'SILVER': 0.5, 'GOLD': 0.4, 'GEMS': 0.4, 'SALT': 0.5, 'STONE': 0.5, 'GRAPES': 0.6,
                 'OLIVES': 0.6, 'FISH': 0.5, 'HIGH_SEA_FISH': 0.5, 'SHRIMP': 0.4, 'CRAB': 0.4}
 
 RICHNESS = 6.0                         # contrast of the shared rich/poor land noise (noise sd ~0.28)
@@ -2488,7 +2584,7 @@ for k, b in enumerate(BONUS_INFOS):
         for j in near:                 # a small group of the same resource around it, now and then side by side
             if count <= 0 or brng.random() >= group:
                 break
-            ok = can_place(b, j)
+            ok = can_place(b, j) or (b['type'] in PLANTATION and can_place(b, j, same=True))      # plantation goods side by side
             if not ok and loose > 0 and can_place(b, j, mixed=True, same=True):
                 ok, loose = True, loose - 1
             if ok:
