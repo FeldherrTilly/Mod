@@ -24767,7 +24767,10 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 	std::stable_sort(aJobs.begin(), aJobs.end(), humanJobBetter);
 	// at most the 2 best jobs of each profession (a well paid one, like the student, would fill the list)
 	std::map<int, int> mapProfessionJobs;
-	for (uint i = 0; i < aJobs.size(); )
+	// WTP: all jobs (MAX_INT: the job the player picked from the menu is looked up again) keep every profession, so that a
+	// food job or the expert's job the menu added after the 2 of its profession is found again
+	const bool bAllJobs = iMaxJobs == MAX_INT;
+	for (uint i = 0; i < aJobs.size() && !bAllJobs; )
 	{
 		if (++mapProfessionJobs[aJobs[i].eProfession] > 2)
 		{
@@ -24782,8 +24785,21 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 	{
 		aJobs.resize(iMaxJobs);
 	}
+	// all jobs: the expert's best job too (it may be kept from the list by food or happiness), unless its colony and profession are listed
+	if (bAllJobs && kBestExpertJob.iScore > 0)
+	{
+		bool bListed = false;
+		for (uint i = 0; i < aJobs.size() && !bListed; ++i)
+		{
+			bListed = aJobs[i].iCityID == kBestExpertJob.iCityID && aJobs[i].eProfession == kBestExpertJob.eProfession;
+		}
+		if (!bListed)
+		{
+			aJobs.push_back(kBestExpertJob);
+		}
+	}
 	// the expert's own trade: at least one job of it in the list (instead of the last one)
-	if (kBestExpertJob.iScore > 0 && iMaxJobs > 0)
+	else if (kBestExpertJob.iScore > 0 && iMaxJobs > 0)
 	{
 		bool bHasExpertJob = false;
 		for (uint i = 0; i < aJobs.size() && !bHasExpertJob; ++i)
