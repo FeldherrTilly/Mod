@@ -1178,7 +1178,7 @@ for x, y in ALL:
     if land[i] and terrain[i] in ('MARSH', 'WETLAND') and plot_type[i] == 2 and clay_rng.random() < 0.13 \
             and sum(1 for nx, ny in nbrs(x, y) if plot_type[I(nx, ny)] == 1) <= 1:
         plot_type[i] = 1
-CLAY_R = 7
+CLAY_R = 4                             # every plot within 4 plots of a clay hill (marsh, wetland or tundra hills)
 
 
 def is_clay(i):
@@ -1396,20 +1396,20 @@ FCH = {'FOREST': 'F', 'LIGHT_FOREST': 'F', 'THICKET': 'F', 'FOREST_EVERGREEN': '
        'LICHEN': ',', 'MOSS': ','}
 
 
-NORTH_SEA = (-4.5, 12.0, 50.8)        # lon from, lon to, lat from (to the map edge): North Sea and the sea off Norway
+
+
+def north_sea_coast(i):                # in the North Sea the zone keeps further off: its coasts may be up to 10 plots away
+    lon, la = from_xy(i % W + 0.5, i // W + 0.5)
+    return -4.5 <= lon <= 12.0 and la >= 51.0
 
 
 def europe_zone():
-    """Atlantic Europe plots: open sea at least 8 tiles from land (5 in the North Sea), joined to the east edge.
+    """Atlantic Europe plots: open sea at least 8 tiles from land, joined to the east edge.
 
-    The zone comes up to 8 tiles off every open Atlantic coast (5 off the North Sea coasts), but does not leak
-    through narrow straits into the Mediterranean, the Baltic or round the North Cape to the west."""
-    def min_dist(i):
-        lon, la = from_xy(i % W + 0.5, i // W + 0.5)
-        return 5 if NORTH_SEA[0] <= lon <= NORTH_SEA[1] and la >= NORTH_SEA[2] else 8
-
+    The zone comes up to 8 tiles off every open Atlantic coast (in bays such as the North Sea it may come up to 5),
+    but does not leak through narrow straits into the Mediterranean, the Baltic or round the North Cape to the west."""
     def open_sea(i):
-        return ocean[i] and i % W >= 48 and dland[i] >= min_dist(i)
+        return ocean[i] and i % W >= 48 and dland[i] >= 8
     zone = [False] * (W * H)
     dq = deque(I(W - 1, y) for y in range(H) if open_sea(I(W - 1, y)))
     for i in dq:
@@ -1422,7 +1422,7 @@ def europe_zone():
                 zone[j] = True
                 dq.append(j)
     # bays and gulfs: the zone reaches in until the land of every open coast is at most 8 tiles from it; in a bay the
-    # zone takes the middle of the bay (the sea at least k tiles from land, k as large as possible). Distances run through
+    # zone takes the middle of the bay (the sea at least k tiles from land, k as large as possible, at least 5). Distances run through
     # water at least 3 tiles from land, so straits like Gibraltar and the Skagerrak stay closed.
     deep = [ocean[i] and dland[i] >= 3 for i in range(W * H)]
     coast = [i for i in range(W * H) if ocean[i] and dland[i] == 1 and i % W >= 48]
@@ -1433,12 +1433,13 @@ def europe_zone():
             cx, cy = c % W, c // W
             d = min([de[I(x, y)] + max(abs(x - cx), abs(y - cy)) for x in range(cx - 2, cx + 3) for y in range(cy - 2, cy + 3)
                      if inb(x, y) and deep[I(x, y)]] or [10 ** 6])
-            if 7 < d <= 16 and (worst is None or d > worst[0]):
-                worst = (d, cx, cy)
+            lim = 9 if north_sea_coast(c) else 7
+            if lim < d <= 16 and (worst is None or d > worst[0]):
+                worst = (d, cx, cy, lim)
         if worst is None:
             return zone
-        d, cx, cy = worst
-        for k in range(7, 2, -1):
+        d, cx, cy, lim = worst
+        for k in range(7, 4, -1):        # never closer than 5 plots to land
             near = set(i for i in range(W * H) if ocean[i] and dland[i] >= k and not zone[i]
                        and max(abs(i % W - cx), abs(i // W - cy)) <= 12)
             grown = set(i for i in near if any(zone[I(nx, ny)] for nx, ny in nbrs(i % W, i // W, N4)))
@@ -1450,12 +1451,12 @@ def europe_zone():
                     if j in near and j not in grown:
                         grown.add(j)
                         dq.append(j)
-            if k == 3 or any(max(abs(i % W - cx), abs(i // W - cy)) <= 7 for i in grown):
+            if k == 5 or any(max(abs(i % W - cx), abs(i // W - cy)) <= lim for i in grown):
                 break
         for i in grown:
             zone[i] = True
-        if not any(max(abs(i % W - cx), abs(i // W - cy)) <= 7 for i in grown):
-            coast = [c for c in coast if (c % W, c // W) != (cx, cy)]     # out of reach even at k = 3
+        if not any(max(abs(i % W - cx), abs(i // W - cy)) <= lim for i in grown):
+            coast = [c for c in coast if (c % W, c // W) != (cx, cy)]     # out of reach even at k = 5
 
 
 dland = bfs_dist([i for i in range(W * H) if not ocean[i]], lambda j: True)
@@ -1651,6 +1652,12 @@ def open_coast(x, y):
 
 hb_cands = [c for c in (open_coast(x, y) for x, y in ALL) if c]
 hb_rng.shuffle(hb_cands)
+FIXED_HARBOURS = [(-5.2, 37.0)]       # the bay of the Guadalquivir (Seville) is always carved first
+for lo, la in reversed(FIXED_HARBOURS):
+    fx, fy = to_xy(lo, la)
+    near = sorted((math.hypot(c[0] + 0.5 - fx, c[1] + 0.5 - fy), k) for k, c in enumerate(hb_cands))
+    if near and near[0][0] < 3:
+        hb_cands.insert(0, hb_cands.pop(near[0][1]))
 harbours = []
 for x, y, nx_, ny_ in hb_cands:
     if len(harbours) >= 3:
@@ -2138,7 +2145,7 @@ for lo, la, name in ((12.0, 62.0, 'Scandinavia'), (-4.0, 40.0, 'Iberian Peninsul
 
 
 # ---------------------------------------------------------------- Suez passage and the Mediterranean current
-# A canal of open sea joins the Mediterranean to the Red Sea. An ocean current (movement bonus arrows, which only fit on
+# A strait of open sea (three plots wide) joins the Mediterranean to the Red Sea. An ocean current (movement bonus arrows, which only fit on
 # TERRAIN_OCEAN) runs from the Atlantic through the Strait of Gibraltar, along the Mediterranean and through the canal into
 # the Red Sea; its plots become open ocean, so that every ship can pass.
 def nearest_water(lon, la):
@@ -2146,14 +2153,8 @@ def nearest_water(lon, la):
     return min((math.hypot(i % W + 0.5 - hx, i // W + 0.5 - hy), i) for i in range(W * H) if ocean[i])[1]
 
 
-SUEZ = []
-ax_, ay_ = to_xy(32.3, 31.7)
-bx_, by_ = to_xy(32.6, 29.6)
-for k in range(41):
-    gx, gy = int(ax_ + (bx_ - ax_) * k / 40.0), int(ay_ + (by_ - ay_) * k / 40.0)
-    i = I(gx, gy)
-    if land[i] and i not in SUEZ:
-        SUEZ.append(i)
+SUEZ_LINE = [to_xy(32.2, 32.0), to_xy(32.7, 29.2)]      # a straight strait, three plots wide, from the Mediterranean into the Red Sea
+SUEZ = [I(x, y) for x, y in ALL if land[I(x, y)] and poly_dist(x + 0.5, y + 0.5, SUEZ_LINE)[0] <= 1.4]
 for i in SUEZ:
     x, y = i % W, i // W
     land[i], ocean[i], large[i], lake[i], plot_type[i], feature[i] = False, True, False, False, 3, None
@@ -2241,8 +2242,8 @@ for x, y in ALL:
     d = dmed[i] + 1.8 * TROP_NZ.fbm(x, y, 3, 6) + max(0.0, la - 41.0) * 0.8      # ragged belts, thinner to the north
     if terrain[i] in ('SNOW', 'TUNDRA', 'TAIGA') or la > 45.5:
         continue
-    if terrain[i] == 'DESERT' and dmed[i] > 7:
-        continue                       # the inner Sahara stays desert
+    if terrain[i] == 'DESERT' and dmed[i] > 3:
+        continue                       # the Sahara stays desert, only its coast takes part
     if d <= 2.2:
         wet = plot_type[i] == 2 and (river_side(x, y) or any(ocean[I(nx, ny)] or lake[I(nx, ny)] for nx, ny in nbrs(x, y))) and trng.random() < 0.45
         terrain[i] = 'MARSH' if wet else 'SAVANNAH'
@@ -2261,17 +2262,48 @@ for x, y in ALL:
         else:
             feature[i] = 'LUSHGRASS' if plot_type[i] == 2 and river_side(x, y) and trng.random() < 0.3 else None
         SAVANNA_BELT.add(i)
-    elif d <= 8.5 and terrain[i] in ('DESERT', 'ROCK_STEPPES', 'PLAINS', 'SHRUBLAND'):
+    elif d <= 7.0 and terrain[i] in ('DESERT', 'ROCK_STEPPES', 'PLAINS', 'SHRUBLAND'):
         # dry bushland between the savannah and the desert (in the Fantasy New World: savannah - shrubland - desert)
         terrain[i] = 'PLAINS' if river_side(x, y) and terrain[i] == 'PLAINS' else 'SHRUBLAND'
         r = trng.random()
-        if r < 0.25:
+        if r < 0.15:
             feature[i] = 'SHRUB' if terrain[i] == 'SHRUBLAND' else 'LIGHT_FOREST'
-        elif r < 0.37:
+        elif r < 0.2:
             feature[i] = 'LIGHT_FOREST'
         elif feature[i] not in ('SHRUB', 'LIGHT_FOREST', 'CACTUS_TREES') or terrain[i] not in FEATURE_TERRAINS.get(feature[i], ()):
             feature[i] = None
         BUSH_BELT.add(i)
+
+
+# Spain: more woods (holm oak, cork oak and pine) on the open land of the Iberian Peninsula
+SPAIN_NZ = Shifted(Noise(SEED * 1000 + 700))
+SPAIN_WOODS = set()
+for x, y in ALL:
+    i = I(x, y)
+    lon, la = from_xy(x + 0.5, y + 0.5)
+    if not (-9.8 <= lon <= 3.4 and 35.95 <= la <= 43.9) or not land[i] or plot_type[i] == 0 or i in SET_PIECES or i in IMPROVEMENT:
+        continue
+    if feature[i] == 'TROPICAL_GROVES' and i in SAVANNA_BELT and trng.random() < 0.5:
+        feature[i] = 'FOREST'          # the wooded savannah of Spain: half of it real forest
+        SPAIN_WOODS.add(i)
+        continue
+    if feature[i]:
+        continue
+    patch = 0.5 + 0.5 * SPAIN_NZ.fbm(x, y, 3, 3)
+    if 0.55 * patch + 0.45 * trng.random() >= 0.72:
+        continue
+    t = terrain[i]
+    if t in ('GRASS', 'PLAINS_FERTILE'):
+        feature[i] = 'FOREST_EVERGREEN' if plot_type[i] == 1 and trng.random() < 0.5 else 'FOREST'
+    elif t == 'PLAINS':
+        feature[i] = 'FOREST' if trng.random() < 0.55 else 'LIGHT_FOREST'
+    elif t == 'SHRUBLAND':
+        feature[i] = 'LIGHT_FOREST'
+    elif t == 'SAVANNAH':
+        feature[i] = 'FOREST' if trng.random() < 0.6 else 'TROPICAL_GROVES'
+    else:
+        continue
+    SPAIN_WOODS.add(i)
 
 
 # ---------------------------------------------------------------- resources: placed by the generator instead of the game
