@@ -1088,6 +1088,7 @@ protected:
 	int m_iSlaveEmancipationCount;
 	int m_iSlaveEmancipationCooldownEndTurn;
 	int m_iMilitaryDismissTurn; // WTP: the turn in which no unit may be armed as a soldier (a unit was dismissed for lack of upkeep)
+	int m_iMilitaryShortTurn; // WTP: the last turn the gold did not cover the military upkeep (-1: never)
 	int m_iDomesticMarketIncome; // WTP: gold the domestic markets of the colonies brought in the player's last turn (saved)
 	int m_iTurnCrimeGold; // WTP: gold stolen in this turn because of low law (one message per turn, not saved)
 	int m_iTurnCultureGold; // WTP: gold earned in this turn through culture (entertainment buildings; not saved)

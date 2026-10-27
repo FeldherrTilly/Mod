@@ -2850,6 +2850,17 @@
 		<Hungarian>%s1 elbocsátva: nincs több arany a katonai fenntartásra.</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_MILITARY_UPKEEP_WARNING</Tag>
+		<English>Not enough gold for the military upkeep of %d1 gold! If it happens again within %d2 turns, units will be dismissed.</English>
+		<Portuguese>Ouro insuficiente para a manutenção militar de %d1 de ouro! Se isso acontecer de novo em até %d2 turnos, unidades serão dispensadas.</Portuguese>
+		<French>Pas assez d'or pour l'entretien militaire de %d1 pièces d'or ! Si cela se reproduit dans les %d2 tours, des unités seront renvoyées.</French>
+		<German>Nicht genug Gold für den Militärunterhalt von %d1 Gold! Passiert das innerhalb von %d2 Runden erneut, werden Einheiten entlassen.</German>
+		<Italian>Oro insufficiente per il mantenimento militare di %d1 oro! Se succede di nuovo entro %d2 turni, alcune unità verranno congedate.</Italian>
+		<Spanish>¡No hay oro suficiente para el mantenimiento militar de %d1 de oro! Si vuelve a ocurrir en %d2 turnos, se licenciarán unidades.</Spanish>
+		<Russian>Не хватает золота на содержание армии (%d1 золота)! Если это повторится в течение %d2 ходов, отряды будут уволены.</Russian>
+		<Hungarian>Nincs elég arany a(z) %d1 arany katonai fenntartásra! Ha %d2 körön belül újra megtörténik, egységeket bocsátanak el.</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_TITLE</Tag>
 		<English>Which job for %s1?</English>
 		<Portuguese>Qual trabalho para %s1?</Portuguese>
