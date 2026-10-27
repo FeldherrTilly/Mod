@@ -1844,7 +1844,8 @@ for x, y in ALL:
     n = sum(1 for nx, ny in nbrs(x, y) if plot_type[I(nx, ny)] == 0)
     chance = {0: 5, 1: 10, 2: 20}.get(n, 30 if n <= 4 else (45 if n <= 6 else 55))
     if xf_rng.random() * 100 < chance:
-        feature[i] = 'REMARKABLE_MOUNTAIN%d' % xf_rng.randint(1, 3)
+        r = xf_rng.random()            # 1: gold, 2: silver, 3: coal - gold and silver summits are rare
+        feature[i] = 'REMARKABLE_MOUNTAIN%d' % (1 if r < 0.07 else (2 if r < 0.14 else 3))
 
 # coastal water: deep coast along the shore, shallow coast in the sheltered or flat seas (North Sea, Baltic, Adriatic, Persian Gulf, ...)
 SHALLOW_BOXES = [(-4.0, 9.5, 51.0, 58.0), (-6.5, 2.5, 49.0, 51.2), (-6.5, -2.5, 52.0, 55.5), (11.0, 19.5, 42.5, 46.0), (33.0, 41.0, 44.5, 47.5),
@@ -2237,7 +2238,7 @@ GROUP_CHANCE = {'COAL': 0.6, 'IRON': 0.6, 'SILVER': 0.5, 'GOLD': 0.4, 'GEMS': 0.
 RICHNESS = 6.0                         # contrast of the shared rich/poor land noise (noise sd ~0.28)
 LAND_AMOUNT = 0.8                      # share of the game's amount on land: room for rich and empty stretches
 PRECIOUS = {'GOLD': 0.3, 'SILVER': 0.3, 'GEMS': 0.4}     # share of the game's amount: few, mostly at the real deposits
-NEIGHBOUR_SHARE = 0.04                 # now and then (share of the placements) a resource right next to another one
+NEIGHBOUR_SHARE = 0.10                 # now and then (share of the placements) a resource right next to another one
 brng = random.Random(SEED * 7 + 71)
 BONUS_INFOS = [b for b in read_bonus_infos(BONUS_XML) if not b['south']]      # Europe has no southern hemisphere
 BONUS_INFOS.sort(key=lambda b: b['order'])                                      # stable: XML order within one placement order
@@ -2302,7 +2303,7 @@ for t in sorted(DEPOSITS, key=lambda t: (t not in PRECIOUS, t)):
     b = by_type[t]
     for lo, la, r, m in DEPOSITS[t]:
         dx, dy = to_xy(lo, la)
-        near = sorted((math.hypot(i % W + 0.5 - dx, i // W + 0.5 - dy) + brng.random(), i) for i in CANDS[t]
+        near = sorted((math.hypot(i % W + 0.5 - dx, i // W + 0.5 - dy) + brng.random() + (3 if plot_type[i] == 0 else 0), i) for i in CANDS[t]
                       if math.hypot(i % W + 0.5 - dx, i // W + 0.5 - dy) < r + 1 and can_place(b, i))
         if near:
             BONUS[near[0][1]] = t
@@ -2323,6 +2324,8 @@ for k, b in enumerate(BONUS_INFOS):
             d = math.hypot(x + 0.5 - dx, y + 0.5 - dy)
             if d < r:
                 w *= 1 + m * (1 - d / r)
+        if plot_type[i] == 0 and b['type'] in PRECIOUS:
+            w *= 0.1                   # gold, silver and gems mostly in the hills, seldom on peaks
         weight[i] = w
     group = GROUP_CHANCE.get(b['type'].rstrip('_0123456789'), 0.3)
     loose = int(count * NEIGHBOUR_SHARE + brng.random())      # placements that may touch another resource
