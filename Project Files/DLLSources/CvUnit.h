@@ -1072,8 +1072,8 @@ protected:
 	UnitVariableMovementAbility m_movementAbility;
 
 	bool canAdvance(const CvPlot* pPlot, int iThreshold) const;
-	bool isBesieging(const CvPlot* pPlot) const; // WTP: siege
 public:
+	bool isBesieging(const CvPlot* pPlot) const; // WTP: siege
 	CvCity* getSiegeTargetCity() const; // WTP: siege
 	CvCity* getLiftSiegeCity() const; // WTP: siege
 protected:
