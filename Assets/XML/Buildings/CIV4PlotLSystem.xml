@@ -882,7 +882,7 @@
 			<Attribute Class="Scalar">NIF:Art/Structures/Improvements/Lodge/Lodge.nif</Attribute>
 			<Attribute Class="Scalar">bCutTrees:0</Attribute>
 			<Attribute Class="Scalar">fCenterCut:12</Attribute>
-			<Scale>0.25</Scale>
+			<Scale>0.35</Scale>
 		</ArtRef>
 	</LNode>
 	<LNode Name="Leaf_Large_Mine_4x4">
