@@ -159,9 +159,11 @@ def main():
 			shutil.copy2(src, dst)
 			copied += 1
 	removed = 0
+	# the ini the game writes for the play folder (named after it, e.g. WTP.ini) is not in the checkout but stays
+	own_ini = rel_key(os.path.basename(dst_root) + '.ini')
 	for rel in list(walk(dst_root)):
 		key = rel_key(rel)
-		if key == 'assets/' + MANIFEST.lower() or (key.startswith('assets/' + PAK_PREFIX.lower()) and key.endswith('.fpk')):
+		if key == own_ini or key == 'assets/' + MANIFEST.lower() or (key.startswith('assets/' + PAK_PREFIX.lower()) and key.endswith('.fpk')):
 			continue
 		if key not in wanted:
 			os.remove(os.path.join(dst_root, rel))
