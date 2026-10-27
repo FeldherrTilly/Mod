@@ -75,7 +75,16 @@ def _pw_inv(knots, t):
             return a + (t - fa) * (b - a) / (fb - fa)
 
 
+BRITISH_SHIFT = (-2.4, 1.0)            # the British Isles move away from the continent (lon, lat), so that open sea fits in between
+
+
+def british(lon, lat):
+    return (lat >= 49.9 and lon <= -2.0) or (lat >= 50.1 and lon <= 1.3)
+
+
 def to_xy(lon, lat):
+    if british(lon, lat):
+        lon, lat = lon + BRITISH_SHIFT[0], lat + BRITISH_SHIFT[1]
     return (_pw(LON_KN, lon), _pw(LAT_KN, lat))
 
 
@@ -99,7 +108,7 @@ def P(pts):
     return [to_xy(lo, la) for lo, la in pts]
 
 
-# mainland: Spain, France, Britain's channel coast, Scandinavia, Russia (cut at the left edge), Balkans, Italy, Anatolia, Levant
+# mainland: Spain, France, Scandinavia, Russia (cut at the left edge), Balkans, Italy, Anatolia, Levant
 MAINLAND = P([
     (-5.6, 36.0), (-6.3, 36.5), (-7.4, 37.2), (-9.0, 37.0), (-9.4, 38.5), (-8.8, 40.2), (-8.7, 41.8), (-9.3, 43.0), (-8.0, 43.7),
     (-5.5, 43.6), (-3.0, 43.4), (-1.8, 43.4), (-1.2, 44.5), (-1.2, 46.0), (-2.2, 47.2), (-4.4, 47.8), (-4.8, 48.4), (-3.0, 48.8),
@@ -949,7 +958,7 @@ for name, path in RIVER_PATHS.items():
 VALLEY_GREEN = set()
 green_rng = random.Random(SEED * 7 + 97)        # now and then a desert plot stays on the river bank
 for i in [j for nm in ('Nile', 'Draa', 'Saoura', 'Igharghar', 'Mya', 'Zousfana') for j in RIVER_PATHS.get(nm, [])]:      # green ribbon through the desert
-    for nx, ny in nbrs(i % W, i // W):
+    for nx, ny in [(i % W + dx, i // W + dy) for dx in range(-2, 3) for dy in range(-2, 3) if inb(i % W + dx, i // W + dy)]:     # two plots wide
         j = I(nx, ny)
         if land[j] and plot_type[j] == 2 and j not in DELTA and terrain[j] in ('DESERT', 'ROCK_STEPPES', 'SHRUBLAND') and green_rng.random() > 0.2:
             terrain[j] = 'SAVANNAH' if T[j] >= 0.8 else 'PLAINS'
@@ -1853,6 +1862,16 @@ SHALLOW_BOXES = [(-4.0, 9.5, 51.0, 58.0), (-6.5, 2.5, 49.0, 51.2), (-6.5, -2.5, 
 SHALLOW_SEAS = [SEAS['Baltic'], SEAS['Kattegat'], SEAS['Persian Gulf'], SEAS['Red Sea']]
 
 
+def north_baltic(x, y):           # North Sea, English Channel, Baltic
+    lon, la = from_xy(x + 0.5, y + 0.5)
+    return (-4.0 <= lon <= 12.5 and 51.0 <= la <= 59.5) or (-7.0 <= lon <= 2.5 and 48.8 <= la <= 51.2) or any(inside(SEAS[k], x + 0.5, y + 0.5) for k in ('Baltic', 'Kattegat'))
+
+
+def danish_straits(x, y):
+    lon, la = from_xy(x + 0.5, y + 0.5)
+    return 8.0 <= lon <= 13.0 and 54.3 <= la <= 58.3
+
+
 def shallow_zone(x, y):
     lon, la = from_xy(x + 0.5, y + 0.5)
     if any(a <= lon <= b and c <= la <= d for a, b, c, d in SHALLOW_BOXES):
@@ -1888,7 +1907,9 @@ for x, y in ALL:
         n = NZ[16].fbm(x, y, 2, 4)
         if any(large[I(nx, ny)] or lake[I(nx, ny)] for nx, ny in nbrs(x, y)):
             d = 1
-        if d == 1:
+        if north_baltic(x, y):         # North Sea, Baltic and the passage between them: mostly normal coast for the ships
+            t = 'OCEAN' if d >= 3 else ('SHALLOW_COAST' if d == 1 and n > 0.3 and not danish_straits(x, y) else 'COAST')
+        elif d == 1:
             t = 'SHALLOW_COAST' if (shallow_zone(x, y) and n > -0.25) or (shelter > 0.5 and n > 0.0) else 'COAST'
         elif d == 2 and shallow_zone(x, y) and n > 0.05:
             t = 'SHALLOW_COAST'
@@ -2116,6 +2137,80 @@ for lo, la, name in ((12.0, 62.0, 'Scandinavia'), (-4.0, 40.0, 'Iberian Peninsul
 
 
 
+# ---------------------------------------------------------------- Suez passage and the Mediterranean current
+# A canal of open sea joins the Mediterranean to the Red Sea. An ocean current (movement bonus arrows, which only fit on
+# TERRAIN_OCEAN) runs from the Atlantic through the Strait of Gibraltar, along the Mediterranean and through the canal into
+# the Red Sea; its plots become open ocean, so that every ship can pass.
+def nearest_water(lon, la):
+    hx, hy = to_xy(lon, la)
+    return min((math.hypot(i % W + 0.5 - hx, i // W + 0.5 - hy), i) for i in range(W * H) if ocean[i])[1]
+
+
+SUEZ = []
+ax_, ay_ = to_xy(32.3, 31.7)
+bx_, by_ = to_xy(32.6, 29.6)
+for k in range(41):
+    gx, gy = int(ax_ + (bx_ - ax_) * k / 40.0), int(ay_ + (by_ - ay_) * k / 40.0)
+    i = I(gx, gy)
+    if land[i] and i not in SUEZ:
+        SUEZ.append(i)
+for i in SUEZ:
+    x, y = i % W, i // W
+    land[i], ocean[i], large[i], lake[i], plot_type[i], feature[i] = False, True, False, False, 3, None
+    WATER_TERRAIN[i] = terrain[i] = 'OCEAN'
+    IMPROVEMENT.pop(i, None)
+    wofr.pop(i, None)                  # no edge rivers along the canal
+    nofr.pop(i, None)
+    if x > 0:
+        wofr.pop(I(x - 1, y), None)
+    if y + 1 < H:
+        nofr.pop(I(x, y + 1), None)
+for comp in components(lake, N8):      # lakes the canal reaches become part of the sea (the Bitter Lakes)
+    if any(ocean[I(nx, ny)] for x, y in comp for nx, ny in nbrs(x, y)):
+        for x, y in comp:
+            i = I(x, y)
+            lake[i], ocean[i], feature[i] = False, True, None
+            WATER_TERRAIN[i] = terrain[i] = 'COAST'
+dland = bfs_dist([i for i in range(W * H) if not ocean[i]], lambda j: True)
+
+CURRENT_WAYPOINTS = [(-8.5, 36.0), (-5.6, 35.95), (-3.0, 36.1), (1.0, 37.2), (5.0, 37.8), (8.8, 38.2), (11.6, 37.0), (14.5, 35.5),
+                     (18.5, 34.6), (22.5, 34.3), (26.5, 34.4), (30.0, 32.8), (32.3, 31.7), (32.6, 29.6), (33.6, 27.8), (35.5, 26.0),
+                     (37.5, 23.6)]
+ARROW_DIRS = ['E', 'NE', 'N', 'NW', 'W', 'SW', 'S', 'SE']
+CURRENT = []
+for (lo0, la0), (lo1, la1) in zip(CURRENT_WAYPOINTS, CURRENT_WAYPOINTS[1:]):
+    src, dst = nearest_water(lo0, la0), nearest_water(lo1, la1)
+    dist, prev, pq = {src: 0.0}, {}, [(0.0, src)]
+    while pq:
+        c, i = heapq.heappop(pq)
+        if i == dst:
+            break
+        if c > dist[i]:
+            continue
+        for nx, ny in nbrs(i % W, i // W):
+            j = I(nx, ny)
+            if ocean[j] and c + 1 + 2.0 / dland[j] < dist.get(j, 1e9):     # keeps to the middle of the water
+                dist[j], prev[j] = c + 1 + 2.0 / dland[j], i
+                heapq.heappush(pq, (dist[j], j))
+    seg, i = [], dst
+    while i != src and i in prev:
+        seg.append(i)
+        i = prev[i]
+    seg.append(src)
+    for i in reversed(seg):
+        if not CURRENT or CURRENT[-1] != i:
+            CURRENT.append(i)
+for k, i in enumerate(CURRENT):
+    if EUROPE[i] or PACIFIC[i]:
+        continue
+    j = CURRENT[min(k + 2, len(CURRENT) - 1)] if k + 1 < len(CURRENT) else i
+    p = CURRENT[max(k - 1, 0)]
+    dx, dy = j % W - p % W, j // W - p // W
+    WATER_TERRAIN[i] = terrain[i] = 'OCEAN'
+    SHALLOW_WATER.discard(i)
+    feature[i] = 'ARROW_' + ARROW_DIRS[int(round(math.atan2(dy, dx) / (math.pi / 4))) % 8]
+
+
 # ---------------------------------------------------------------- Mediterranean tropics (late, own random stream)
 # The warm shores of the Mediterranean become a jungle belt (savannah or marsh with jungle and tropical groves, mangroves
 # on wet coasts), behind it lies a belt of savannah. Peaks, deserts far from the sea, set pieces and special features stay.
@@ -2134,7 +2229,7 @@ for x, y in ALL:
         MED_WATER.append(i)
 dmed = bfs_dist(MED_WATER, lambda j: land[j])
 TROP_KEEP = ('VOLCANO', 'CRATER', 'TAR_PIT', 'RIVER_FORD', 'FLOOD_PLAINS', 'OASIS', 'SALT_PAN', 'BOG', 'SWAMP')
-JUNGLE, SAVANNA_BELT = set(), set()
+JUNGLE, SAVANNA_BELT, BUSH_BELT = set(), set(), set()
 for x, y in ALL:
     i = I(x, y)
     if not land[i] or plot_type[i] == 0 or i in SET_PIECES or i in IMPROVEMENT or i in HARDWOOD:
@@ -2146,8 +2241,8 @@ for x, y in ALL:
     d = dmed[i] + 1.8 * TROP_NZ.fbm(x, y, 3, 6) + max(0.0, la - 41.0) * 0.8      # ragged belts, thinner to the north
     if terrain[i] in ('SNOW', 'TUNDRA', 'TAIGA') or la > 45.5:
         continue
-    if terrain[i] == 'DESERT' and dmed[i] > 2:
-        continue                       # the Sahara stays desert
+    if terrain[i] == 'DESERT' and dmed[i] > 7:
+        continue                       # the inner Sahara stays desert
     if d <= 2.2:
         wet = plot_type[i] == 2 and (river_side(x, y) or any(ocean[I(nx, ny)] or lake[I(nx, ny)] for nx, ny in nbrs(x, y))) and trng.random() < 0.45
         terrain[i] = 'MARSH' if wet else 'SAVANNAH'
@@ -2158,11 +2253,25 @@ for x, y in ALL:
         else:
             feature[i] = 'JUNGLE' if r < 0.6 else ('TROPICAL_GROVES' if r < 0.85 else None)
         JUNGLE.add(i)
-    elif d <= 5.5:
+    elif d <= 5.5:                     # wooded savannah: coherent woods with clearings, thinner away from the coast
         terrain[i] = 'SAVANNAH'
-        r = trng.random()
-        feature[i] = 'TROPICAL_GROVES' if r < 0.2 else ('LUSHGRASS' if r < 0.3 and plot_type[i] == 2 and river_side(x, y) else None)
+        patch = 0.5 + 0.5 * TROP_NZ.fbm(x + 40, y, 3, 3)
+        if 0.55 * patch + 0.45 * trng.random() < 0.68 - 0.08 * (d - 2.2):
+            feature[i] = pick([(2, 'TROPICAL_GROVES'), (2, 'FOREST'), (1.5 if d < 3.5 else 0.3, 'JUNGLE')])
+        else:
+            feature[i] = 'LUSHGRASS' if plot_type[i] == 2 and river_side(x, y) and trng.random() < 0.3 else None
         SAVANNA_BELT.add(i)
+    elif d <= 8.5 and terrain[i] in ('DESERT', 'ROCK_STEPPES', 'PLAINS', 'SHRUBLAND'):
+        # dry bushland between the savannah and the desert (in the Fantasy New World: savannah - shrubland - desert)
+        terrain[i] = 'PLAINS' if river_side(x, y) and terrain[i] == 'PLAINS' else 'SHRUBLAND'
+        r = trng.random()
+        if r < 0.25:
+            feature[i] = 'SHRUB' if terrain[i] == 'SHRUBLAND' else 'LIGHT_FOREST'
+        elif r < 0.37:
+            feature[i] = 'LIGHT_FOREST'
+        elif feature[i] not in ('SHRUB', 'LIGHT_FOREST', 'CACTUS_TREES') or terrain[i] not in FEATURE_TERRAINS.get(feature[i], ()):
+            feature[i] = None
+        BUSH_BELT.add(i)
 
 
 # ---------------------------------------------------------------- resources: placed by the generator instead of the game
@@ -2206,7 +2315,8 @@ DEPOSITS = {
              (4.4, 50.4, 3, 6), (-5.8, 43.3, 3, 5), (-4.0, 55.9, 3, 5)],
     'IRON': [(20.2, 67.8, 4, 8), (15.0, 60.0, 4, 8), (6.0, 49.2, 3, 6), (14.9, 47.5, 3, 6), (-2.9, 43.3, 3, 6), (33.4, 47.9, 4, 6),
              (10.3, 42.8, 2, 5), (8.0, 50.9, 3, 5), (59.5, 57.0, 5, 6)],
-    'SILVER': [(10.5, 51.8, 3, 10), (13.0, 50.6, 3, 10), (15.3, 49.9, 3, 8), (11.7, 47.3, 3, 8), (-5.5, 38.2, 4, 8), (9.6, 59.7, 3, 8)],
+    'SILVER': [(10.5, 51.8, 3, 10), (11.7, 47.3, 3, 8), (-5.5, 38.2, 4, 8), (9.6, 59.7, 3, 8), (16.6, 59.9, 3, 8), (24.0, 37.7, 2, 6),
+               (8.5, 39.3, 2, 6), (18.9, 48.4, 3, 8), (2.5, 45.5, 3, 6)],
     'GOLD': [(23.0, 46.3, 3, 10), (18.9, 48.7, 2, 8), (-6.8, 42.5, 3, 8), (13.0, 47.1, 2, 6)],
     'GEMS': [(13.8, 50.5, 3, 8), (7.3, 49.7, 2, 8), (58.8, 36.2, 3, 8)],
     'SALT': [(20.0, 50.0, 3, 8), (13.6, 47.6, 3, 8), (10.4, 53.2, 2, 6), (-2.5, 53.2, 2, 6), (12.0, 51.5, 2, 6), (35.5, 31.5, 2, 6),
@@ -2572,6 +2682,8 @@ def write_preview(path):
                     col = (200, 40, 20)
                 if ('FOREST' in f or f in ('JUNGLE', 'TROPICAL_GROVES', 'MANGROVE')) and (sx % 3 == 1 and sy % 3 == 1):
                     col = (20, 80, 30) if f in ('DENSE_FOREST', 'JUNGLE') else (30, 100, 40)
+                if f.startswith('ARROW') and 3 <= sx <= 4 and 3 <= sy <= 4:
+                    col = (230, 230, 255)
                 if f == 'RIVER_FORD' and sy in (3, 4):
                     col = (170, 140, 90)
                 if f in ('REEF', 'STONE_REEF', 'PEARL_REEF') and 2 <= sx <= 5 and 2 <= sy <= 5:
