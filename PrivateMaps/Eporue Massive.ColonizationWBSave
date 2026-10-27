@@ -539,7 +539,7 @@ BeginPlayer
 	ArtStyle=ARTSTYLE_FRANCE
 	PlayableCiv=1
 	StartingGold=100
-	StartingX=82, StartingY=61
+	StartingX=92, StartingY=86
 	StartingEra=ERA_DISCOVERY
 	RandomStartLocation=false
 	Handicap=HANDICAP_EXPLORER
@@ -556,7 +556,7 @@ BeginPlayer
 	ArtStyle=ARTSTYLE_ENGLAND
 	PlayableCiv=1
 	StartingGold=100
-	StartingX=88, StartingY=53
+	StartingX=94, StartingY=70
 	StartingEra=ERA_DISCOVERY
 	RandomStartLocation=false
 	Handicap=HANDICAP_EXPLORER
@@ -573,7 +573,7 @@ BeginPlayer
 	ArtStyle=ARTSTYLE_SPAIN
 	PlayableCiv=1
 	StartingGold=100
-	StartingX=91, StartingY=76
+	StartingX=101, StartingY=102
 	StartingEra=ERA_DISCOVERY
 	RandomStartLocation=false
 	Handicap=HANDICAP_EXPLORER
@@ -590,7 +590,7 @@ BeginPlayer
 	ArtStyle=ARTSTYLE_PORTUGAL
 	PlayableCiv=1
 	StartingGold=100
-	StartingX=92, StartingY=83
+	StartingX=68, StartingY=118
 	StartingEra=ERA_DISCOVERY
 	RandomStartLocation=false
 	Handicap=HANDICAP_EXPLORER
@@ -607,7 +607,7 @@ BeginPlayer
 	ArtStyle=ARTSTYLE_DUTCH
 	PlayableCiv=1
 	StartingGold=100
-	StartingX=67, StartingY=35
+	StartingX=88, StartingY=54
 	StartingEra=ERA_DISCOVERY
 	RandomStartLocation=false
 	Handicap=HANDICAP_EXPLORER
@@ -624,7 +624,7 @@ BeginPlayer
 	ArtStyle=ARTSTYLE_DENMARK
 	PlayableCiv=1
 	StartingGold=100
-	StartingX=65, StartingY=31
+	StartingX=70, StartingY=37
 	StartingEra=ERA_DISCOVERY
 	RandomStartLocation=false
 	Handicap=HANDICAP_EXPLORER
@@ -641,7 +641,7 @@ BeginPlayer
 	ArtStyle=ARTSTYLE_DENMARK
 	PlayableCiv=1
 	StartingGold=100
-	StartingX=61, StartingY=13
+	StartingX=70, StartingY=22
 	StartingEra=ERA_DISCOVERY
 	RandomStartLocation=false
 	Handicap=HANDICAP_EXPLORER
@@ -658,7 +658,7 @@ BeginPlayer
 	ArtStyle=ARTSTYLE_RUSSIA
 	PlayableCiv=1
 	StartingGold=100
-	StartingX=51, StartingY=1
+	StartingX=56, StartingY=6
 	StartingEra=ERA_DISCOVERY
 	RandomStartLocation=false
 	Handicap=HANDICAP_EXPLORER
