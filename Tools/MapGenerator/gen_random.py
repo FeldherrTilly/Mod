@@ -2064,6 +2064,27 @@ for mass in components([land[i] or large[i] for i in range(W * H)]):
                 carved += 1
             i = prev[i]
 
+# ---------------------------------------------------------------- east coast foreland
+# No mountains right on the east coast: a peak needs at least two land plots in front of it towards the east
+# (straight or diagonal), else it is worn down to a hill. Ships from Europe arrive on this side.
+def east_foreland():
+    n = 0
+    for x, y in ALL:
+        i = I(x, y)
+        if plot_type[i] != 0:
+            continue
+        if any(ocean[I(x + dx, y + dy)] for dx in (1, 2) for dy in (-1, 0, 1) if inb(x + dx, y + dy)):
+            plot_type[i] = 1
+            if terrain[i] == 'SNOW' and T[i] > 0.15:
+                terrain[i] = 'TUNDRA'
+            if (feature[i] or '').startswith('REMARKABLE'):
+                feature[i] = None
+            n += 1
+    return n
+
+
+east_peaks_worn = east_foreland()
+
 # ---------------------------------------------------------------- features
 FEATURE_TERRAINS = {
     'FOREST': {'GRASS', 'SAVANNAH', 'PLAINS', 'PLAINS_FERTILE'},
@@ -2964,6 +2985,7 @@ for _b in _re.findall(r'<FeatureInfo>(.*?)</FeatureInfo>', _fx, _re.S):
     _tb = _re.search(r'<TerrainBooleans>(.*?)</TerrainBooleans>', _b, _re.S)
     _ok = set(a[8:] for a, v in _re.findall(r'<TerrainType>(\w+)</TerrainType>\s*<bTerrain>(\d)', _tb.group(1)) if v == '1') if _tb else set()
     COAST_RULE[_re.search(r'<Type>FEATURE_(\w+)</Type>', _b).group(1)] = (_g('bNoCoast'), _g('bOnlyCoastalLand'), _ok)
+east_peaks_worn += east_foreland()            # the late coves may have opened new coast in front of a peak
 fixed_features = 0
 for x, y in ALL:
     i = I(x, y)
@@ -2989,7 +3011,7 @@ for comp in components([ocean[i] and not large[i] for i in range(W * H)]):
                 feature[j] = None
             HARBOUR_WATER.discard(j)
         small_seas += 1
-print('final checks: features fixed', fixed_features, 'small seas turned into lakes', small_seas)
+print('final checks: east coast peaks worn to hills', east_peaks_worn, 'features fixed', fixed_features, 'small seas turned into lakes', small_seas)
 
 # ---------------------------------------------------------------- output
 os.makedirs(OUT, exist_ok=True)
