@@ -425,7 +425,7 @@ for x, y in cands:
 LAGOON, BARRIER = set(), set()
 best = None
 for y0 in range(3, H - 16):
-    for ln in (13, 11, 9):
+    for ln in (8, 7, 6):
         rows = list(range(y0, y0 + ln))
         if not all(20 <= lat(y) <= 48 for y in rows):
             continue
@@ -587,7 +587,7 @@ cands = [(x, y) for x, y in ALL if land[I(x, y)] and dcoast[I(x, y)] >= 4
 mrng.shuffle(cands)
 minis = []
 for x, y in cands:
-    if len(minis) >= 18:
+    if len(minis) >= 26:
         break
     if any(math.hypot(x - mx, y - my) < 9 for mx, my in minis) or in_basin(x, y, 8):
         continue
@@ -606,19 +606,19 @@ if SALT_BASIN:                                 # mountain arcs closing the salt 
         RANGES.append(dict(pts=arc, w=0.8, h=0.95, passes=[poly_len(arc) * ps]))
 # old, worn-down chains (the remains of collisions long past) break up the wide plains far from the young ranges
 EAST_RANGES = []
-cands = [(x, y) for x, y in ALL if land[I(x, y)] and dcoast[I(x, y)] >= 3 and range_dist(x, y) > 7 and not in_alti(x, y, 3) and not in_basin(x, y, 8)]
+cands = [(x, y) for x, y in ALL if land[I(x, y)] and dcoast[I(x, y)] >= 3 and range_dist(x, y) > 5 and not in_alti(x, y, 3) and not in_basin(x, y, 8)]
 mrng.shuffle(cands)
 for x, y in cands:
-    if len(EAST_RANGES) >= 7:
+    if len(EAST_RANGES) >= 13:
         break
-    if any(math.hypot(x - R['pts'][1][0], y - R['pts'][1][1]) < 13 for R in EAST_RANGES) or range_dist(x, y) <= 7:
+    if any(math.hypot(x - R['pts'][1][0], y - R['pts'][1][1]) < 10 for R in EAST_RANGES) or range_dist(x, y) <= 5:
         continue
-    a, ln = mrng.random() * math.pi, mrng.uniform(3.5, 7.0)
+    a, ln = mrng.random() * math.pi, mrng.uniform(4.0, 9.0)
     pts = [(x + t * ln * math.cos(a) + mrng.uniform(-1, 1) * math.sin(a), y + t * ln * math.sin(a) - mrng.uniform(-1, 1) * math.cos(a))
            for t in (-1, -0.33, 0.33, 1)]
     if not all(inb(int(px), int(py)) and land[I(int(px), int(py))] for px, py in pts):
         continue
-    EAST_RANGES.append(dict(pts=pts, w=1.1, h=mrng.uniform(0.66, 0.86), passes=[poly_len(pts) * 0.6] if ln > 5 else [], kind='old'))
+    EAST_RANGES.append(dict(pts=pts, w=1.1, h=mrng.uniform(0.66, 0.86), passes=[poly_len(pts) * mrng.uniform(0.35, 0.65)] if ln > 5 else [], kind='old'))
 RANGES += EAST_RANGES
 # a caldera: a ring of volcanic mountains around a crater lake, on the flank of a cordillera or in an island arc
 CALDERA = None
@@ -1055,7 +1055,7 @@ for k in reversed(corder):
     if cdown[k] >= 0:
         cacc[cdown[k]] += cacc[k]
 
-RIVER_T = 3.0
+RIVER_T = 2.1
 
 
 def river_t(k):
@@ -1456,7 +1456,7 @@ for path in river_paths:                       # green ribbon through dry land
         for nx, ny in nbrs(i % W, i // W):
             j = I(nx, ny)
             if land[j] and plot_type[j] == 2 and j not in DELTA and terrain[j] in ('DESERT', 'ROCK_STEPPES', 'SHRUBLAND'):
-                terrain[j] = 'SAVANNAH' if T[j] >= 0.8 else 'PLAINS'
+                terrain[j] = 'PLAINS'
                 VALLEY_GREEN.add(j)
 orng = random.Random(SEED * 7 + 13)
 dry = ('DESERT', 'SHRUBLAND', 'ROCK_STEPPES')
@@ -1542,7 +1542,7 @@ if canyon:
             continue
         if d == 1 and i not in DELTA:
             plot_type[i] = 2
-            terrain[i] = 'SAVANNAH' if T[i] >= 0.8 else 'PLAINS'
+            terrain[i] = 'PLAINS'
             VALLEY_GREEN.add(i)
         elif d <= 4:
             # irregular wall: solid inner ridge, random bulges further out, passages stay open
@@ -2002,6 +2002,52 @@ for x, y in ALL:
     i = I(x, y)
     if land[i] and terrain[i] == 'SNOW' and abs(lat(y)) < 60 and any(lake[I(nx, ny)] for nx, ny in nbrs(x, y)):
         terrain[i] = 'TUNDRA'
+
+
+# terrain transitions: no hard jumps between neighbours. Lush or warm land next to desert, snow next to warm land,
+# tropical land next to the cold zones step one stage towards the other side (savannah, grass -> prairie,
+# marsh -> savannah or wetland, warm land at snow -> tundra) until no pair clashes any more
+WARMISH = {'GRASS', 'SAVANNAH', 'MARSH', 'PLAINS', 'PLAINS_FERTILE', 'SHRUBLAND', 'DESERT', 'WETLAND'}
+
+
+def soften(t, nb):
+    if 'SNOW' in nb and t in WARMISH:
+        return 'TUNDRA'
+    if 'DESERT' in nb:
+        if t in ('SAVANNAH', 'GRASS', 'PLAINS_FERTILE', 'MARSH', 'WETLAND'):
+            return 'PLAINS'
+        if t in ('TAIGA', 'TUNDRA'):
+            return 'ROCK_STEPPES'
+    if nb & {'TUNDRA', 'TAIGA'}:
+        if t == 'SAVANNAH':
+            return 'PLAINS'
+        if t == 'MARSH':
+            return 'WETLAND'
+    if t == 'MARSH' and nb & {'ROCK_STEPPES', 'SHRUBLAND'}:
+        return 'SAVANNAH'
+    return None
+
+
+def transitions():
+    n = 0
+    for _ in range(10):
+        changes = {}
+        for x, y in ALL:
+            i = I(x, y)
+            if not land[i] or not terrain[i]:
+                continue
+            new = soften(terrain[i], set(terrain[I(nx, ny)] for nx, ny in nbrs(x, y) if land[I(nx, ny)]))
+            if new:
+                changes[i] = new
+        if not changes:
+            break
+        for i, t in changes.items():
+            terrain[i] = t
+        n += len(changes)
+    return n
+
+
+softened = transitions()
 
 for x, y in ALL:
     i = I(x, y)
@@ -3002,6 +3048,7 @@ for _b in _re.findall(r'<FeatureInfo>(.*?)</FeatureInfo>', _fx, _re.S):
     _ok = set(a[8:] for a, v in _re.findall(r'<TerrainType>(\w+)</TerrainType>\s*<bTerrain>(\d)', _tb.group(1)) if v == '1') if _tb else set()
     COAST_RULE[_re.search(r'<Type>FEATURE_(\w+)</Type>', _b).group(1)] = (_g('bNoCoast'), _g('bOnlyCoastalLand'), _ok)
 east_peaks_worn += east_foreland()            # the late coves may have opened new coast in front of a peak
+softened += transitions()                      # the late shrubland -> desert change must not jump either
 fixed_features = 0
 for x, y in ALL:
     i = I(x, y)
@@ -3027,7 +3074,7 @@ for comp in components([ocean[i] and not large[i] for i in range(W * H)]):
                 feature[j] = None
             HARBOUR_WATER.discard(j)
         small_seas += 1
-print('final checks: east coast peaks worn to hills', east_peaks_worn, 'features fixed', fixed_features, 'small seas turned into lakes', small_seas)
+print('final checks: terrain transitions', softened, 'east coast peaks worn to hills', east_peaks_worn, 'features fixed', fixed_features, 'small seas turned into lakes', small_seas)
 
 # ---------------------------------------------------------------- resources: placed by the generator instead of the game
 # Same method as gen_eporue.py: the rules of the game (CvPlot::canHaveBonus, CvMapGenerator::canPlaceBonusAt) are read from
