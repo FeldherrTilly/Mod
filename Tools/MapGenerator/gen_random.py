@@ -1006,6 +1006,7 @@ for m in mouths:
 
 # ---------------------------------------------------------------- edge rivers (corner drainage)
 CW, CH = W + 1, H + 1
+HIGHLAND_WATER = 0.5                   # extra water per hill (x0.55) or peak plot: springs and snowmelt
 
 
 def C(i, j):
@@ -1050,7 +1051,10 @@ cacc = [0.0] * (CW * CH)
 for k in corder:
     if not outlet[k]:
         i, j = k % CW, k // CW
-        cacc[k] = sum(P[I(px, py)] for px, py in corner_plots(i, j)) / 4.0
+        # rain, plus springs and snowmelt in the hills and mountains: rivers rise in the highlands and carry
+        # their water far out into the drier lowlands
+        cacc[k] = sum(P[I(px, py)] + HIGHLAND_WATER * (1.0 if plot_type[I(px, py)] == 0 else (0.55 if plot_type[I(px, py)] == 1 else 0.0))
+                      for px, py in corner_plots(i, j)) / 4.0
 for k in reversed(corder):
     if cdown[k] >= 0:
         cacc[cdown[k]] += cacc[k]
@@ -1059,9 +1063,10 @@ RIVER_T = 2.1
 
 
 def river_t(k):
-    """Threshold for an edge river at corner k: wet land gets more small rivers, dry land fewer."""
+    """Threshold for an edge river at corner k: higher in wet land, so the many short streams there merge into fewer
+    rivers; the highland water (HIGHLAND_WATER) carries long rivers into the drier land."""
     ps = [P[I(px, py)] for px, py in corner_plots(k % CW, k // CW)]
-    return RIVER_T * max(0.55, min(1.15, 1.3 - 0.8 * sum(ps) / len(ps)))
+    return RIVER_T * max(0.85, min(1.25, 0.85 + 0.45 * sum(ps) / len(ps)))
 
 
 def n4_join(cells):
@@ -1154,6 +1159,14 @@ if volcano_island:
         else:
             nofr[I(min(i, i + di), j)] = 1 if di > 0 else 3
     VOLCANO_RIVER = len(best_path) - 1
+
+
+_rk = set(k for k in range(CW * CH) if not outlet[k] and cdown[k] >= 0 and cacc[k] >= river_t(k))
+_kids = Counter(cdown[k] for k in _rk)
+RIVER_SOURCES = [k for k in _rk if _kids[k] == 0]
+_pe = [P[i] for i in list(wofr) + list(nofr)]
+print('edge rivers: sources', len(RIVER_SOURCES), 'edges', len(_pe), 'mean length %.1f' % (len(_pe) / max(1, len(RIVER_SOURCES))),
+      'dry/mid/wet', sum(p < 0.35 for p in _pe), sum(0.35 <= p <= 0.6 for p in _pe), sum(p > 0.6 for p in _pe))
 
 
 def has_river(x, y):
