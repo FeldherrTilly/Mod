@@ -1408,7 +1408,7 @@ for x, y in ALL:
             b = 'PLAINS_FERTILE' if t < 0.57 else 'PLAINS'
         else:
             b = 'GRASS'
-    elif t < 0.80:
+    elif t < 0.83:                      # the hot band (savannah) only within about 19 degrees of the equator
         if m < 0.18:
             b = 'DESERT'
         elif m < 0.26:
@@ -1416,14 +1416,16 @@ for x, y in ALL:
         elif m < 0.42:
             b = 'PLAINS'
         elif m < 0.58:
-            b = 'GRASS' if NZ[14].fbm(x, y, 2, 5) > 0.2 else 'SAVANNAH'
+            b = 'GRASS' if NZ[14].fbm(x, y, 2, 5) > -0.05 else 'SAVANNAH'
         else:
-            b = 'GRASS' if t < 0.74 or NZ[14].fbm(x, y, 2, 5) > 0.15 else 'SAVANNAH'
+            b = 'GRASS' if t < 0.74 or NZ[14].fbm(x, y, 2, 5) > -0.1 else 'SAVANNAH'
     else:
         if m < 0.18:
             b = 'DESERT'
         elif m < 0.27:
             b = 'SHRUBLAND'
+        elif m < 0.38:
+            b = 'PLAINS'                # the dry edge of the tropics: open prairie, the savannah needs more rain
         else:
             b = 'SAVANNAH'
     # wet lowlands
