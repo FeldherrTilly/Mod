@@ -274,18 +274,28 @@ def free_water(x, y, r):
     return all(inb(x + dx, y + dy) and not land[I(x + dx, y + dy)] for dx in range(-r, r + 1) for dy in range(-r, r + 1))
 
 
-# the island sea: the warm sea most enclosed by land (like the Caribbean) gets the island world
+# the island sea: the warm sea off an east coast (land to the west, open sea towards the Atlantic and Europe in the
+# east) that is most enclosed by land, like the Caribbean, gets the island world
 ISLE_R = 12
 best = None
 for x, y in ALL:
     if not (-12 <= lat(y) <= 30) or not (MARGIN_W + 8 <= x <= W - MARGIN_E - 2) or not free_water(x, y, 2):
         continue
+    if not any(land[I(x - d, y + e)] for d in range(3, 15) for e in (-1, 0, 1) if inb(x - d, y + e)):
+        continue                                   # no coast to the west
+    if sum(1 for d in range(1, W - x) for e in (-1, 0, 1) if inb(x + d, y + e) and land[I(x + d, y + e)]) > 6:
+        continue                                   # land blocks the way to the Atlantic
     enc = sum(1 for dx in range(-ISLE_R, ISLE_R + 1, 2) for dy in range(-ISLE_R, ISLE_R + 1, 2)
               if dx * dx + dy * dy <= ISLE_R * ISLE_R and inb(x + dx, y + dy) and land[I(x + dx, y + dy)])
     sc = enc - 0.15 * abs(lat(y) - 15) + tect.random()
     if best is None or sc > best[0]:
         best = (sc, x, y)
-ISLE_SEA = (best[1], best[2]) if best else (W // 2, lat_y(15))
+if best:
+    ISLE_SEA = (best[1], best[2])
+else:                                              # no warm gulf: off the east coast at 15 degrees north
+    _y = lat_y(15)
+    _xs = [x for x in range(W - MARGIN_E) if land[I(x, _y)]]
+    ISLE_SEA = (min(W - MARGIN_E - 4, (max(_xs) if _xs else W // 2) + 7), _y)
 
 
 def in_isle_sea(x, y, r=ISLE_R):
@@ -1048,6 +1058,12 @@ for k in reversed(corder):
 RIVER_T = 3.0
 
 
+def river_t(k):
+    """Threshold for an edge river at corner k: wet land gets more small rivers, dry land fewer."""
+    ps = [P[I(px, py)] for px, py in corner_plots(k % CW, k // CW)]
+    return RIVER_T * max(0.55, min(1.15, 1.3 - 0.8 * sum(ps) / len(ps)))
+
+
 def n4_join(cells):
     """Drowned plots must touch the open water or each other along an edge, not only at a corner."""
     cells = set(cells)
@@ -1086,7 +1102,7 @@ def n4_join(cells):
 wofr = {}  # plot -> NS direction (river on east edge)
 nofr = {}  # plot -> WE direction (river on south edge)
 for k in range(CW * CH):
-    if outlet[k] or cdown[k] < 0 or cacc[k] < RIVER_T:
+    if outlet[k] or cdown[k] < 0 or cacc[k] < river_t(k):
         continue
     i, j = k % CW, k // CW
     d = cdown[k]
@@ -3013,6 +3029,154 @@ for comp in components([ocean[i] and not large[i] for i in range(W * H)]):
         small_seas += 1
 print('final checks: east coast peaks worn to hills', east_peaks_worn, 'features fixed', fixed_features, 'small seas turned into lakes', small_seas)
 
+# ---------------------------------------------------------------- resources: placed by the generator instead of the game
+# Same method as gen_eporue.py: the rules of the game (CvPlot::canHaveBonus, CvMapGenerator::canPlaceBonusAt) are read from
+# CIV4BonusInfos.xml, and the amount per resource follows the game's formula. The spread is not even: every resource has its
+# own large-scale noise (rich and poor provinces), there is a shared richness noise, and resources come in small groups.
+# Without real deposits the mountains take their place: ores, coal, salt and stone gather along the ranges.
+BONUS_XML = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'Assets', 'XML', 'Terrain', 'CIV4BonusInfos.xml')
+
+
+def read_bonus_infos(path):
+    text = open(path, encoding='utf-8').read()
+    infos = []
+    for b in _re.findall(r'<BonusInfo>(.*?)</BonusInfo>', text, _re.S):
+        def val(tag, default=0):
+            m = _re.search(r'<%s>(-?\d+)<' % tag, b)
+            return int(m.group(1)) if m else default
+
+        def bools(tag):
+            m = _re.search(r'<%s>(.*?)</%s>' % (tag, tag), b, _re.S)
+            if not m:
+                return set()
+            return set(k.split('_', 1)[1] for k, v in _re.findall(r'<(?:Terrain|Feature)Type>(\w+)</(?:Terrain|Feature)Type>\s*<b\w+>(\d)<', m.group(1)) if v == '1')
+        rands = _re.search(r'<Rands>(.*?)</Rands>', b, _re.S)
+        infos.append(dict(
+            type=_re.search(r'<Type>BONUS_(\w+)<', b).group(1), order=val('iPlacementOrder'), const=val('iConstAppearance'),
+            rands=[int(v) for v in _re.findall(r'>(\d+)<', rands.group(1))] if rands else [], tiles_per=val('iTilesPer'),
+            min_area=val('iMinAreaSize', -1), min_lat=val('iMinLatitude'), max_lat=val('iMaxLatitude', 90), unique=val('iUnique'),
+            hills=val('bHills') == 1, flat=val('bFlatlands') == 1, peaks=val('bPeaks') == 1, no_river=val('bNoRiverSide') == 1,
+            river_only=val('bRiverSideOnly') == 1, coastal=val('bCoastalLandOnly') == 1, whale=val('bWhalingboatWorkable') == 1,
+            south=val('bOnlySouthernHemisphere') == 1,
+            T=bools('TerrainBooleans'), F=bools('FeatureBooleans'), FT=bools('FeatureTerrainBooleans')))
+    return infos
+
+
+PLANTATION = ('TOBACCO', 'COTTON', 'SUGAR', 'INDIGO', 'COFFEE', 'COCOA', 'HEMP', 'FLAX', 'RED_PEPPER', 'VANILLA', 'COCA', 'YERBA')
+GROUP_CHANCE = {'TOBACCO': 0.7, 'COTTON': 0.7, 'SUGAR': 0.7, 'INDIGO': 0.65, 'COFFEE': 0.65, 'COCOA': 0.65, 'HEMP': 0.6, 'FLAX': 0.6,
+                'RED_PEPPER': 0.55, 'VANILLA': 0.55, 'COCA': 0.55, 'YERBA': 0.55, 'TIMBER': 0.2,
+                'COAL': 0.6, 'IRON': 0.6, 'SILVER': 0.5, 'GOLD': 0.4, 'GEMS': 0.4, 'SALT': 0.5, 'STONE': 0.5, 'GRAPES': 0.6,
+                'OLIVES': 0.6, 'FISH': 0.5, 'HIGH_SEA_FISH': 0.5, 'SHRIMP': 0.4, 'CRAB': 0.4}
+MOUNTAIN_GOODS = {'GOLD': 6.0, 'SILVER': 6.0, 'GEMS': 5.0, 'IRON': 4.0, 'COAL': 3.0, 'SALT': 2.0, 'STONE': 2.0, 'MINERALS': 3.0}
+
+RICHNESS = 4.0                         # contrast of the shared rich/poor land noise (noise sd ~0.28)
+PROVINCE = 2.8                         # contrast of the rich/poor noise of each resource
+GROUP_SCALE = 0.7                      # weakens GROUP_CHANCE: groups smaller and rarer, the spread more random
+LAND_AMOUNT = 0.8                      # share of the game's amount on land: room for rich and empty stretches
+PRECIOUS = {'GOLD': 0.5, 'SILVER': 0.5, 'GEMS': 0.6}     # share of the game's amount: few, mostly in the mountains
+NEIGHBOUR_SHARE = 0.10                 # now and then (share of the placements) a resource right next to another one
+brng = random.Random(SEED * 7 + 71)
+BONUS_INFOS = [b for b in read_bonus_infos(BONUS_XML)]
+BONUS_INFOS.sort(key=lambda b: b['order'])                                      # stable: XML order within one placement order
+BONUS = {}
+area_size = [0] * (W * H)
+for comp in components([land[i] for i in range(W * H)], N8) + components([not land[i] for i in range(W * H)], N8):
+    for x, y in comp:
+        area_size[I(x, y)] = len(comp)
+NO_BONUS_FEATURES = ('VOLCANO', 'CRATER', 'RIVER_FORD')
+
+
+def can_have(b, i):
+    x, y = i % W, i // W
+    t, f = terrain[i], feature[i]
+    if not t or i in IMPROVEMENT or f in NO_BONUS_FEATURES or europe[i] or pacific[i]:
+        return False
+    if plot_type[i] == 0 and not b['peaks']:
+        return False
+    if f:
+        if f not in b['F'] or t not in b['FT']:
+            return False
+    elif t not in b['T']:
+        return False
+    if (plot_type[i] == 1 and not b['hills']) or (plot_type[i] == 2 and not b['flat']):
+        return False
+    if land[i] and ((b['no_river'] and has_river(x, y)) or (b['river_only'] and not has_river(x, y))):
+        return False
+    if b['coastal'] and not (land[i] and any(ocean[I(nx, ny)] for nx, ny in nbrs(x, y))):
+        return False
+    if area_size[i] < b['min_area']:
+        return False
+    if not b['min_lat'] <= abs(lat(y)) <= b['max_lat'] or (b['south'] and lat(y) >= 0):
+        return False
+    if b['whale'] and any(terrain[I(nx, ny)] in ('COAST', 'SHALLOW_COAST') for nx, ny in nbrs(x, y)):
+        return False
+    return True
+
+
+def can_place(b, i, mixed=False, same=False):
+    """mixed: another resource may lie next to it; same: the same resource may lie closer than its unique range."""
+    x, y = i % W, i // W
+    if i in BONUS or (not mixed and any(BONUS.get(I(nx, ny), b['type']) != b['type'] for nx, ny in nbrs(x, y))):
+        return False
+    r = 0 if same else b['unique']
+    return not any(BONUS.get(I(nx, ny)) == b['type'] for nx in range(x - r, x + r + 1) for ny in range(y - r, y + r + 1)
+                   if inb(nx, ny) and (nx, ny) != (x, y))
+
+
+def amount(b, ncands):
+    count = (b['const'] + sum(brng.randrange(r) for r in b['rands'] if r > 0)) * (ncands // b['tiles_per']) // 100
+    return int(round(count * PRECIOUS.get(b['type'], LAND_AMOUNT if land[CANDS[b['type']][0]] else 1.0)))
+
+
+CANDS = dict((b['type'], [i for i in range(W * H) if can_have(b, i)]) for b in BONUS_INFOS)
+BONUS_INFOS = [b for b in BONUS_INFOS if CANDS[b['type']] and b['tiles_per'] > 0]
+COUNTS = dict((b['type'], amount(b, len(CANDS[b['type']]))) for b in BONUS_INFOS)
+# nearness to the mountains (0..1): ores and coal gather along the ranges and in the hills beside them
+MTN = blur([1.0 if plot_type[i] == 0 else (0.5 if plot_type[i] == 1 else 0.0) for i in range(W * H)], 2)
+RICH = Noise(SEED * 1000 + 300)
+for k, b in enumerate(BONUS_INFOS):
+    cands, count = CANDS[b['type']], COUNTS[b['type']]
+    if count <= 0:
+        continue
+    prov = Noise(SEED * 1000 + 400 + k)
+    mtn = MOUNTAIN_GOODS.get(b['type'].rstrip('_0123456789'), 0.0)
+    weight = {}
+    for i in cands:
+        x, y = i % W, i // W
+        w = math.exp(PROVINCE * prov.fbm(x, y, 3, 14) + (RICHNESS * RICH.fbm(x, y, 3, 10) if land[i] else 0.0))
+        if mtn:
+            w *= 1 + mtn * min(1.0, 2.0 * MTN[i])
+        if plot_type[i] == 0 and b['type'] in PRECIOUS:
+            w *= 0.1                   # gold, silver and gems mostly in the hills, seldom on peaks
+        weight[i] = w
+    group = GROUP_SCALE * GROUP_CHANCE.get(b['type'].rstrip('_0123456789'), 0.3)
+    loose = int(count * NEIGHBOUR_SHARE + brng.random())      # placements that may touch another resource
+    while count > 0 and weight:
+        keys = list(weight)
+        i = brng.choices(keys, [weight[j] for j in keys])[0]
+        del weight[i]
+        if not can_place(b, i):
+            if loose <= 0 or not can_place(b, i, mixed=True):
+                continue
+            loose -= 1
+        BONUS[i] = b['type']
+        count -= 1
+        x, y = i % W, i // W
+        r = b['unique'] + 2
+        near = [j for j in weight if max(abs(j % W - x), abs(j // W - y)) <= r]
+        brng.shuffle(near)
+        for j in near:                 # a small group of the same resource around it, now and then side by side
+            if count <= 0 or brng.random() >= group:
+                break
+            ok = can_place(b, j) or (b['type'] in PLANTATION and can_place(b, j, same=True))      # plantation goods side by side
+            if not ok and loose > 0 and can_place(b, j, mixed=True, same=True):
+                ok, loose = True, loose - 1
+            if ok:
+                BONUS[j] = b['type']
+                count -= 1
+                del weight[j]
+print('resources', len(BONUS), sorted(Counter(BONUS.values()).items(), key=lambda kv: -kv[1])[:25])
+
 # ---------------------------------------------------------------- output
 os.makedirs(OUT, exist_ok=True)
 wb = os.path.join(OUT, 'Random New World Massive.ColonizationWBSave')
@@ -3024,7 +3188,7 @@ with open(wb, 'w', newline='\r\n') as f:
     f.write('BeginMap\n\tgrid width=%d\n\tgrid height=%d\n\ttop latitude=%d\n\tbottom latitude=%d\n' % (W, H, TOP_LAT, BOTTOM_LAT))
     f.write('\twrap X=0\n\twrap Y=0\n\tworld size=WORLDSIZE_MASSIVE\n\tclimate=CLIMATE_TEMPERATE\n\tsealevel=SEALEVEL_MEDIUM\n')
     f.write('\tnum plots written=%d\n\tnum signs written=%d\n' % (W * H, len(SIGNS)))
-    f.write('\tRandomize Features=false\n\tRandomize Resources=true\n\tRandomize Goodies=true\nEndMap\n\n### Plot Info ###\n')
+    f.write('\tRandomize Features=false\n\tRandomize Resources=false\n\tRandomize Goodies=true\nEndMap\n\n### Plot Info ###\n')
     for x in range(W):
         for y in range(H):
             i = I(x, y)
@@ -3037,6 +3201,8 @@ with open(wb, 'w', newline='\r\n') as f:
                 f.write('\tEuropeType=EUROPE_EAST\n')
             elif pacific[i]:
                 f.write('\tEuropeType=EUROPE_WEST\n')
+            if i in BONUS:
+                f.write('\tBonusType=BONUS_%s\n' % BONUS[i])
             if i in IMPROVEMENT:
                 f.write('\tImprovementType=%s\n' % IMPROVEMENT[i])
             if feature[i]:
