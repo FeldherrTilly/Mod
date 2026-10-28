@@ -105,6 +105,11 @@
 		<Hungarian>Észak-Amerika keleti partvidéke (Hatalmas, 72x96): Új-Fundlandtól délre Floridáig, a Nagy-tavaktól keletre az Atlanti-óceánig. Kis térképként definiálva, ezért csak négy észak-amerikai Indián törzsnek vannak települései.</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_WORLDBUILDER_RANDOM_NEW_WORLD_DESC</Tag>
+		<English>Random New World (Huge, 60x100): new, generated continents from the arctic north to the temperate south. Plate tectonics shape the land: fold mountains, cordilleras with volcanoes, island arcs and rift lakes; climate zones and rain shadows follow height and prevailing winds. Large rivers, lakes and named landmarks. Random Natives, resources and goodies.</English>
+		<German>Zufällige Neue Welt (Riesig, 60x100): neue, erzeugte Kontinente vom arktischen Norden bis in den gemäßigten Süden. Plattentektonik formt das Land: Faltengebirge, Kordilleren mit Vulkanen, Inselbögen und Grabenseen; Klimazonen und Regenschatten folgen Höhe und vorherrschenden Winden. Große Flüsse, Seen und benannte Landmarken. Zufällige Ureinwohner, Ressourcen und Schatzfelder.</German>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_WORLDBUILDER_NEW_ENGLAND_DESC</Tag>
 		<English>New England (Standard, 30x70): Map of New England</English>
 		<Portuguese>Nova Inglaterra (Padrão, 30x70): Mapa da Nova Inglaterra</Portuguese>
