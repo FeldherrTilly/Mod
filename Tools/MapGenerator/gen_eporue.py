@@ -2473,7 +2473,9 @@ GROUP_CHANCE = {'TOBACCO': 0.7, 'COTTON': 0.7, 'SUGAR': 0.7, 'INDIGO': 0.65, 'CO
                 'COAL': 0.6, 'IRON': 0.6, 'SILVER': 0.5, 'GOLD': 0.4, 'GEMS': 0.4, 'SALT': 0.5, 'STONE': 0.5, 'GRAPES': 0.6,
                 'OLIVES': 0.6, 'FISH': 0.5, 'HIGH_SEA_FISH': 0.5, 'SHRIMP': 0.4, 'CRAB': 0.4}
 
-RICHNESS = 6.0                         # contrast of the shared rich/poor land noise (noise sd ~0.28)
+RICHNESS = 4.0                         # contrast of the shared rich/poor land noise (noise sd ~0.28)
+PROVINCE = 2.8                         # contrast of the rich/poor noise of each resource
+GROUP_SCALE = 0.7                      # weakens GROUP_CHANCE: groups smaller and rarer, the spread more random
 LAND_AMOUNT = 0.8                      # share of the game's amount on land: room for rich and empty stretches
 PRECIOUS = {'GOLD': 0.3, 'SILVER': 0.3, 'GEMS': 0.4}     # share of the game's amount: few, mostly at the real deposits
 NEIGHBOUR_SHARE = 0.10                 # now and then (share of the placements) a resource right next to another one
@@ -2557,7 +2559,7 @@ for k, b in enumerate(BONUS_INFOS):
     weight = {}
     for i in cands:
         x, y = i % W, i // W
-        w = math.exp(4.0 * prov.fbm(x, y, 3, 14) + (RICHNESS * RICH.fbm(x, y, 3, 10) if land[i] else 0.0))
+        w = math.exp(PROVINCE * prov.fbm(x, y, 3, 14) + (RICHNESS * RICH.fbm(x, y, 3, 10) if land[i] else 0.0))
         for dx, dy, r, m in deps:
             d = math.hypot(x + 0.5 - dx, y + 0.5 - dy)
             if d < r:
@@ -2565,7 +2567,7 @@ for k, b in enumerate(BONUS_INFOS):
         if plot_type[i] == 0 and b['type'] in PRECIOUS:
             w *= 0.1                   # gold, silver and gems mostly in the hills, seldom on peaks
         weight[i] = w
-    group = GROUP_CHANCE.get(b['type'].rstrip('_0123456789'), 0.3)
+    group = GROUP_SCALE * GROUP_CHANCE.get(b['type'].rstrip('_0123456789'), 0.3)
     loose = int(count * NEIGHBOUR_SHARE + brng.random())      # placements that may touch another resource
     while count > 0 and weight:
         keys = list(weight)
