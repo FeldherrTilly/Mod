@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from noise import Noise, poly_dist, poly_len, smoothstep, interp
 from png import write_png
 
-W, H = 60, 100
+W, H = 85, 137
 SEED = int(sys.argv[1]) if len(sys.argv) > 1 else 1
 OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(os.path.abspath(__file__)), 'out_random')
 rng = random.Random(SEED)
@@ -77,11 +77,11 @@ def blur(a, n=1):
 # rift valley with long lakes sinks in. The open sea in the east (Atlantic with the Europe plots) and in the
 # west (Pacific) stays free of land.
 tect = random.Random(SEED * 7 + 1)
-MARGIN_E, MARGIN_W = 13, 3          # open water for Europe (east) and the Pacific (west)
+MARGIN_E, MARGIN_W = 16, 4          # open water for Europe (east) and the Pacific (west)
 LAND_SHARE = 0.34                    # share of land plots on the whole map
 CONT_SHARE = 0.40                    # share of the map on continental plates (land and shelf)
 
-NPL = tect.randint(10, 12)
+NPL = tect.randint(15, 19)
 plates = []
 for _ in range(2000):
     if len(plates) >= NPL:
@@ -275,7 +275,7 @@ def free_water(x, y, r):
 
 
 # the island sea: the warm sea most enclosed by land (like the Caribbean) gets the island world
-ISLE_R = 10
+ISLE_R = 12
 best = None
 for x, y in ALL:
     if not (-12 <= lat(y) <= 30) or not (MARGIN_W + 8 <= x <= W - MARGIN_E - 2) or not free_water(x, y, 2):
@@ -337,7 +337,7 @@ for x, y in skerries:
 # island world in the island sea: two loose island arcs of settleable islands (~10 tiles) across it;
 # every island keeps at least two water tiles to any other land
 _a = crng.uniform(0, math.pi)
-ISLE_ARCS = [[(ISLE_SEA[0] + t * math.cos(_a) - o * math.sin(_a), ISLE_SEA[1] + t * math.sin(_a) + o * math.cos(_a)) for t in (-9, -3, 3, 9)]
+ISLE_ARCS = [[(ISLE_SEA[0] + t * math.cos(_a) - o * math.sin(_a), ISLE_SEA[1] + t * math.sin(_a) + o * math.cos(_a)) for t in (-11, -4, 4, 11)]
              for o in (-2.5, 2.5)]
 archipelago = []
 isle_cells = set()
@@ -389,7 +389,7 @@ for arc in ISLE_ARCS:
 for _ in range(60):
     centres.append((ISLE_SEA[0] + crng.randint(-ISLE_R, ISLE_R), ISLE_SEA[1] + crng.randint(-ISLE_R, ISLE_R)))
 for cx, cy in centres:
-    if len(archipelago) >= 6:
+    if len(archipelago) >= 9:
         break
     if inb(cx, cy) and not land[I(cx, cy)] and isle_free(cx, cy, set()):
         isle = grow_island(cx, cy, crng.choice([8, 9, 10, 10, 11, 12, 14]), 7)
@@ -402,7 +402,7 @@ cands = [(x, y) for x in range(MARGIN_W + 6, W - MARGIN_E - 1) for y in range(3,
          if not in_isle_sea(x, y, ISLE_R + 4) and free_water(x, y, 3) and not free_water(x, y, 8)]
 crng.shuffle(cands)
 for x, y in cands:
-    if len(SEA_ISLES) >= 7:
+    if len(SEA_ISLES) >= 11:
         break
     if any(math.hypot(x - c[0][0], y - c[0][1]) < 11 for c in SEA_ISLES) or not free_water(x, y, 3):
         continue
@@ -455,7 +455,7 @@ atolls = []
 cands = [(x, y) for x, y in ALL if in_isle_sea(x, y, ISLE_R + 3) and free_water(x, y, 2)]
 crng.shuffle(cands)
 for x, y in cands:
-    if len(atolls) >= 4:
+    if len(atolls) >= 6:
         break
     if all(max(abs(x - ax), abs(y - ay)) >= 5 for ax, ay in atolls):
         atolls.append((x, y))
@@ -577,7 +577,7 @@ cands = [(x, y) for x, y in ALL if land[I(x, y)] and dcoast[I(x, y)] >= 4
 mrng.shuffle(cands)
 minis = []
 for x, y in cands:
-    if len(minis) >= 10:
+    if len(minis) >= 18:
         break
     if any(math.hypot(x - mx, y - my) < 9 for mx, my in minis) or in_basin(x, y, 8):
         continue
@@ -599,7 +599,7 @@ EAST_RANGES = []
 cands = [(x, y) for x, y in ALL if land[I(x, y)] and dcoast[I(x, y)] >= 3 and range_dist(x, y) > 7 and not in_alti(x, y, 3) and not in_basin(x, y, 8)]
 mrng.shuffle(cands)
 for x, y in cands:
-    if len(EAST_RANGES) >= 4:
+    if len(EAST_RANGES) >= 7:
         break
     if any(math.hypot(x - R['pts'][1][0], y - R['pts'][1][1]) < 13 for R in EAST_RANGES) or range_dist(x, y) <= 7:
         continue
@@ -918,7 +918,7 @@ for x, y in ALL:
     if not land[i]:
         continue
     p1 = min(1.0, P1[i] / 0.14)
-    p2 = math.exp(-cost[i] / 14.0)
+    p2 = math.exp(-cost[i] / 19.0)                 # moisture reach from the sea, in tiles (grows with the map)
     near_lake = 0.12 if any(lake[I(nx, ny)] for nx, ny in nbrs(x, y)) else 0
     P[i] = max(0.0, interp(RAIN_LAT, abs(lat(y))) * (0.55 * p1 + 0.6 * p2) + near_lake + 0.06 * NZ[11].fbm(x, y, 3, 12))
 
@@ -963,11 +963,11 @@ for i in order:
 
 large = [False] * (W * H)
 mouths = sorted([i for i in order if ocean[down[i]] and land[i]], key=lambda i: -acc[i])
-LR_COUNT, LR_FRAC, LR_MAXLEN = 5, 0.33, 30
+LR_COUNT, LR_FRAC, LR_MAXLEN = 7, 0.33, 40
 river_paths = []
 used = 0
 for m in mouths:
-    if used >= LR_COUNT or acc[m] < 35:
+    if used >= LR_COUNT or acc[m] < 45:
         break
     if any(large[I(nx, ny)] for nx, ny in nbrs(m % W, m // W)):
         continue
@@ -1264,7 +1264,7 @@ for x, y in ALL:
         cands.append((x, y, -sea[0][0], -sea[0][1]))
 hb_rng.shuffle(cands)
 for x, y, nx_, ny_ in cands:
-    if len(harbours) >= 2:
+    if len(harbours) >= 3:
         break
     if any(math.hypot(x - hx, y - hy) < 14 for hx, hy, _, _ in harbours):
         continue
@@ -1296,7 +1296,7 @@ for x, y, nx_, ny_ in cands:
 # small coves: 3-5 water tiles cut into the coast, a natural anchorage for a coastal town
 coves = []
 for x, y, nx_, ny_ in cands:
-    if len(coves) >= 8:
+    if len(coves) >= 14:
         break
     if any(math.hypot(x - hx, y - hy) < 9 for hx, hy, _, _ in harbours) or any(math.hypot(x - cx, y - cy) < 7 for cx, cy, _, _ in coves):
         continue
@@ -1369,7 +1369,7 @@ for x, y in ALL:
         else:
             b = 'TAIGA' if t < 0.37 else 'GRASS'
     elif t < 0.66:
-        if m < 0.13:
+        if m < 0.17:
             b = 'DESERT'
         elif m < 0.25:
             b = 'ROCK_STEPPES' if elev[i] > 0.4 else 'SHRUBLAND'
@@ -1380,7 +1380,7 @@ for x, y in ALL:
         else:
             b = 'GRASS'
     elif t < 0.80:
-        if m < 0.14:
+        if m < 0.18:
             b = 'DESERT'
         elif m < 0.26:
             b = 'SHRUBLAND'
@@ -1391,7 +1391,7 @@ for x, y in ALL:
         else:
             b = 'GRASS' if t < 0.74 or NZ[14].fbm(x, y, 2, 5) > 0.15 else 'SAVANNAH'
     else:
-        if m < 0.14:
+        if m < 0.18:
             b = 'DESERT'
         elif m < 0.27:
             b = 'SHRUBLAND'
@@ -1417,7 +1417,7 @@ for x, y in ALL:
 for x, y in ALL:
     i = I(x, y)
     if land[i] and plot_type[i] != 0 and lat(y) > 18 and T[i] >= 0.5 and terrain[i] in ('SHRUBLAND', 'ROCK_STEPPES') \
-            and M[i] - 0.05 * smoothstep(18, 26, lat(y)) < 0.15 + 0.03 * NZ[13].fbm(x * 1.5, y * 1.5, 2, 3):
+            and M[i] - 0.05 * smoothstep(18, 26, lat(y)) < 0.18 + 0.03 * NZ[13].fbm(x * 1.5, y * 1.5, 2, 3):
         terrain[i] = 'DESERT'
 
 DELTA, VALLEY_GREEN, OASIS_RING = set(), set(), set()
@@ -1450,7 +1450,7 @@ cands = [(x, y) for x, y in ALL if terrain[I(x, y)] == 'DESERT' and plot_type[I(
 orng.shuffle(cands)
 oases = []
 for x, y in cands:
-    if len(oases) >= 5:
+    if len(oases) >= 7:
         break
     if all(math.hypot(x - ox, y - oy) >= 7 for ox, oy in oases):
         oases.append((x, y))
@@ -2319,7 +2319,7 @@ for x, y in basin_salt:
         salt_pans.append((x, y))
         feature[I(x, y)] = 'SALT_PAN'
 for x, y in salt:
-    if len(salt_pans) >= 4:
+    if len(salt_pans) >= 6:
         break
     if I(x, y) in SET_PIECES or (hidden_valley and math.hypot(x - hidden_valley[0], y - hidden_valley[1]) < 8):
         continue
@@ -2379,7 +2379,7 @@ seeds = [i for i in range(W * H) if feature[i] in WOODED and hardwood_kind(i)]
 hw_rng.shuffle(seeds)
 HARDWOOD, hw_centres = set(), []
 for c in seeds:
-    if len(hw_centres) >= 18:
+    if len(hw_centres) >= 30:
         break
     if any(max(abs(c % W - h % W), abs(c // W - h // W)) < 7 for h in hw_centres):
         continue
@@ -2570,7 +2570,7 @@ cands = [(x, y) for x, y in ALL if terrain[I(x, y)] in ('SHALLOW_COAST', 'COAST'
 rng.shuffle(cands)
 cands.sort(key=lambda p: terrain[I(*p)] != 'SHALLOW_COAST')
 for x, y in cands:
-    if len(pearls) >= 5:
+    if len(pearls) >= 8:
         break
     if all(math.hypot(x - px, y - py) >= 10 for px, py in pearls):
         pearls.append((x, y))
@@ -2648,7 +2648,7 @@ for x, y in ALL:
     cove_cands.append((x, y))
 cove_rng.shuffle(cove_cands)
 for x, y in cove_cands:
-    if len(SE_COVES) >= 3:
+    if len(SE_COVES) >= 5:
         break
     if any(abs(y - cy) < 6 for cx, cy in SE_COVES) or any(math.hypot(x - hx, y - hy) < 9 for hx, hy, _, _ in harbours):
         continue
@@ -2872,7 +2872,7 @@ for comp, name in zip(arctic, ('Prince Rupert Island', 'Bylot Island')):
 if archipelago:
     allc = [I(x, y) for isle in archipelago for x, y in isle]
     add_sign(by_dist(allc, *ISLE_SEA), 'Windward Isles')
-for (hx, hy, nx_, ny_), name in zip(harbours, ('Mercy Bay', 'Hope Sound')):
+for (hx, hy, nx_, ny_), name in zip(harbours, ('Mercy Bay', 'Hope Sound', 'Port Desire')):
     add_sign([(hx + 3 * nx_, hy + 3 * ny_), (hx + nx_, hy + ny_)], name)
 if fjords:
     add_sign([(fx + 2, fy) for fx, fy in fjords[1:]] + fjords, 'Markland Coast')
@@ -3015,14 +3015,14 @@ print('final checks: east coast peaks worn to hills', east_peaks_worn, 'features
 
 # ---------------------------------------------------------------- output
 os.makedirs(OUT, exist_ok=True)
-wb = os.path.join(OUT, 'Random New World Huge.ColonizationWBSave')
+wb = os.path.join(OUT, 'Random New World Massive.ColonizationWBSave')
 with open(wb, 'w', newline='\r\n') as f:
     f.write('Version=11\nBeginGame\n\tDescription=TXT_KEY_WORLDBUILDER_RANDOM_NEW_WORLD_DESC\n\tModPath=\n')
     f.write('\tWBNorthAmericanNative=1\n\tWBSouthAmericanNative=1\n\tWBCentralAmericanNative=1\nEndGame\n')
     for p in range(49):
         f.write('BeginPlayer\n\tTeam=%d\n\tLeaderType=NONE\n\tCivType=NONE\nEndPlayer\n' % p)
     f.write('BeginMap\n\tgrid width=%d\n\tgrid height=%d\n\ttop latitude=%d\n\tbottom latitude=%d\n' % (W, H, TOP_LAT, BOTTOM_LAT))
-    f.write('\twrap X=0\n\twrap Y=0\n\tworld size=WORLDSIZE_HUGE\n\tclimate=CLIMATE_TEMPERATE\n\tsealevel=SEALEVEL_MEDIUM\n')
+    f.write('\twrap X=0\n\twrap Y=0\n\tworld size=WORLDSIZE_MASSIVE\n\tclimate=CLIMATE_TEMPERATE\n\tsealevel=SEALEVEL_MEDIUM\n')
     f.write('\tnum plots written=%d\n\tnum signs written=%d\n' % (W * H, len(SIGNS)))
     f.write('\tRandomize Features=false\n\tRandomize Resources=true\n\tRandomize Goodies=true\nEndMap\n\n### Plot Info ###\n')
     for x in range(W):
