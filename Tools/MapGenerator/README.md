@@ -76,4 +76,10 @@ Writes `Random New World Massive.ColonizationWBSave`, `preview.png`, `heightmap.
 - East coast foreland: no peak may have sea within two plots to the east (straight or diagonal); such peaks are worn down to hills, before the features and once more after the late coves.
 - Final checks: features that a late carving put onto a new coast or a changed terrain are fixed (rules from `CIV4FeatureInfos.xml`); small water bodies cut off from the sea become lakes.
 
-`PrivateMaps/Random New World Massive.ColonizationWBSave` is seed 1; the map text key is `TXT_KEY_WORLDBUILDER_RANDOM_NEW_WORLD_DESC`. For another world, run the generator with a different seed and copy the file to `PrivateMaps/`.
+Two worlds are playable: `PrivateMaps/Random New World Massive.ColonizationWBSave` is seed 1, `PrivateMaps/Random New World 2 Massive.ColonizationWBSave` is seed 2; the map text key is `TXT_KEY_WORLDBUILDER_RANDOM_NEW_WORLD_DESC`. After each change to the generator, regenerate both with
+
+```
+python Tools/MapGenerator/publish_random.py     # runs gen_random.py and validate.py for seeds 1 and 2, copies both to PrivateMaps/
+```
+
+The previews of each seed are in `Tools/MapGenerator/out_random/seed1` and `seed2`. For another world, run the generator with a different seed and copy the file to `PrivateMaps/`.
