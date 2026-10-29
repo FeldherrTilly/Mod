@@ -4337,6 +4337,25 @@ int CvPlayerAI::AI_militaryHelp(PlayerTypes ePlayer, int& iNumUnits, UnitTypes& 
 	return kPlayer.getEuropeUnitBuyPrice(eUnit) * GC.getDefineINT("KING_BUY_UNIT_PRICE_MODIFIER") / 100;
 }
 
+// WTP: new price after one successful bargain when selling to natives. iBase is the first offer of the natives,
+// iIncrease the rise in per mille (random, trader bonus included). Below BARGAIN_SELL_SOFT_CAP_PERCENT of iBase the
+// price rises by iIncrease, above it each bargain only closes iIncrease / 2 per mille of the gap to
+// BARGAIN_SELL_MAX_PERCENT of iBase, so even endless bargaining never goes beyond that.
+static int bargainSellPrice(int iBase, int iPrice, int iIncrease)
+{
+	const int iSoftCap = iBase * GLOBAL_DEFINE_BARGAIN_SELL_SOFT_CAP_PERCENT / 100;
+	const int iMax = iBase * GLOBAL_DEFINE_BARGAIN_SELL_MAX_PERCENT / 100;
+	if (iPrice >= iMax)
+	{
+		return iPrice;
+	}
+	if (iPrice < iSoftCap)
+	{
+		return std::min(iSoftCap, iPrice * (1000 + iIncrease) / 1000);
+	}
+	return iPrice + std::max(1, (iMax - iPrice) * iIncrease / 2000);
+}
+
 bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory, CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter, const IDInfo& kTransport)
 {
 	FAssert(CxDesyncMonitor::isNeverSync());
@@ -4379,8 +4398,6 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeDat
 				{
 					randomPriceChange = priceIncreaseMax / 3;
 				}
-				int newPrice = oldPrice * (1000 + randomPriceChange) / 1000;
-
 				// R&R, ray, change for Trait Trader - START
 				// WTP, ray, also consider European Trait
 				int iTotalNativeTradeModifier = GET_PLAYER(getID()).getNativeTradeModifier() + kTradingPartner.getNativeTradeModifier();
@@ -4389,9 +4406,17 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeDat
 				{
 					iTotalNativeTradeModifier = GLOBAL_DEFINE_MAX_NATIVE_BARGAIN_MODIFIER;
 				}
-				// here we calculate the price
-				newPrice = newPrice * (100 + iTotalNativeTradeModifier) / 100;
+				// WTP: the trader bonus speeds up each bargain, the limits stay those of the first offer
+				randomPriceChange = randomPriceChange * (100 + iTotalNativeTradeModifier) / 100;
 				// R&R, ray, change for Trait Trader - END
+
+				// WTP: the first offer is what the natives would pay without bargaining
+				int iFirstOffer = AI_dealVal(ePlayer, pTheirList);
+				if (iFirstOffer <= 0)
+				{
+					iFirstOffer = oldPrice;
+				}
+				int newPrice = bargainSellPrice(iFirstOffer, oldPrice, randomPriceChange);
 
 				// R&R, ray, small correction to stop at max gold of player
 				int iGoldAvailable = this->AI_maxGoldTrade(ePlayer);
@@ -5440,7 +5465,8 @@ bool CvPlayerAI::AI_nativeSellProfit(YieldTypes eYield, int iAmount, const CvCit
 
 // WTP: the AI bargains once for a better price when it sells to natives (the bargaining of the diplomacy screen is
 // Python driven, the AI has no access to it). Same rules: the natives may refuse (they do not trade with us for some
-// turns and like us less), otherwise the price rises by 7 to 21% plus the trader bonus, never above what the tribe may pay.
+// turns and like us less), otherwise the price rises by 7 to 21% plus the trader bonus (bargainSellPrice), never above
+// what the tribe may pay.
 // Returns true if the price was raised. iPrice is the price in gold the natives pay for the whole deal.
 bool CvPlayerAI::AI_bargainWithNatives(PlayerTypes eNative, int& iPrice)
 {
@@ -5461,10 +5487,10 @@ bool CvPlayerAI::AI_bargainWithNatives(PlayerTypes eNative, int& iPrice)
 	}
 
 	const int iMaxIncrease = GLOBAL_DEFINE_PRICE_INCREASE_BARGAIN_SELL;
-	const int iIncrease = std::max(iMaxIncrease / 3, GC.getGameINLINE().getSorenRandNum(std::max(1, iMaxIncrease), "AI bargain sell price"));
 	const int iModifier = std::min(getNativeTradeModifier() + kNative.getNativeTradeModifier(), GLOBAL_DEFINE_MAX_NATIVE_BARGAIN_MODIFIER);
-	int iNewPrice = iPrice * (1000 + iIncrease) / 1000;
-	iNewPrice = iNewPrice * (100 + iModifier) / 100;
+	const int iIncrease = std::max(iMaxIncrease / 3, GC.getGameINLINE().getSorenRandNum(std::max(1, iMaxIncrease), "AI bargain sell price")) * (100 + iModifier) / 100;
+	// the AI bargains once, so iPrice is the first offer
+	int iNewPrice = bargainSellPrice(iPrice, iPrice, iIncrease);
 	iNewPrice = std::min(iNewPrice, kNative.AI_maxGoldTrade(getID()));
 	if (iNewPrice <= iPrice)
 	{
