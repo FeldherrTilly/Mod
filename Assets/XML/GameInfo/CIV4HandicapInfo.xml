@@ -545,7 +545,7 @@
 			<iAIRebelModifier>50</iAIRebelModifier>
 			<iAIGrowthPercent>95</iAIGrowthPercent>
 			<iAITrainPercent>90</iAITrainPercent>
-			<iAIConstructPercent>90</iAIConstructPercent>
+			<iAIConstructPercent>92</iAIConstructPercent>
 			<iAIUnitUpgradePercent>50</iAIUnitUpgradePercent>
 			<iAIHurryPercent>80</iAIHurryPercent>
 			<iAIImmigration>10</iAIImmigration>
@@ -717,7 +717,7 @@
 			<iAIRebelModifier>50</iAIRebelModifier>
 			<iAIGrowthPercent>88</iAIGrowthPercent>
 			<iAITrainPercent>75</iAITrainPercent>
-			<iAIConstructPercent>75</iAIConstructPercent>
+			<iAIConstructPercent>80</iAIConstructPercent>
 			<iAIUnitUpgradePercent>50</iAIUnitUpgradePercent>
 			<iAIHurryPercent>80</iAIHurryPercent>
 			<iAIImmigration>10</iAIImmigration>
@@ -889,7 +889,7 @@
 			<iAIRebelModifier>50</iAIRebelModifier>
 			<iAIGrowthPercent>80</iAIGrowthPercent>
 			<iAITrainPercent>60</iAITrainPercent>
-			<iAIConstructPercent>60</iAIConstructPercent>
+			<iAIConstructPercent>68</iAIConstructPercent>
 			<iAIUnitUpgradePercent>50</iAIUnitUpgradePercent>
 			<iAIHurryPercent>80</iAIHurryPercent>
 			<iAIImmigration>10</iAIImmigration>
@@ -1061,7 +1061,7 @@
 			<iAIRebelModifier>50</iAIRebelModifier>
 			<iAIGrowthPercent>75</iAIGrowthPercent>
 			<iAITrainPercent>50</iAITrainPercent>
-			<iAIConstructPercent>50</iAIConstructPercent>
+			<iAIConstructPercent>60</iAIConstructPercent>
 			<iAIUnitUpgradePercent>50</iAIUnitUpgradePercent>
 			<iAIHurryPercent>80</iAIHurryPercent>
 			<iAIImmigration>10</iAIImmigration>
