@@ -5254,7 +5254,7 @@ int CvCityAI::AI_calculateAlarm(PlayerTypes eIndex) const
 	return (iPositiveAlarm + iNegativeAlarm);
 }
 
-const int YIELD_BELLS_BASE_VALUE = 10;
+const int YIELD_BELLS_BASE_VALUE = 8;
 const int YIELD_HAMMERS_BASE_VALUE = 10;
 const int YIELD_TOOLS_BASE_VALUE = 10;
 
