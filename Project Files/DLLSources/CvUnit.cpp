@@ -8550,13 +8550,7 @@ bool CvUnit::build(BuildTypes eBuild)
 	OOS_LOG("CvUnit::build", getTypeStr(eBuild));
 	GET_PLAYER(getOwnerINLINE()).changeGold(-(GET_PLAYER(getOwnerINLINE()).getBuildCost(plot(), eBuild)));
 
-	// WTP: the first turn of a build counts twice, so a pioneer needs one turn less
-	int iWork = workRate(false);
-	if (plot()->getBuildProgress(eBuild) == 0)
-	{
-		iWork *= 2;
-	}
-	bFinished = plot()->changeBuildProgress(eBuild, iWork, getTeam());
+	bFinished = plot()->changeBuildProgress(eBuild, workRate(false), getTeam());
 
 	finishMoves(); // needs to be at bottom because movesLeft() can affect workRate()...
 

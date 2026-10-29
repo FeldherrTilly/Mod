@@ -94,7 +94,7 @@
 			<Type>BUILD_FARM</Type>
 			<Description>TXT_KEY_BUILD_FARM</Description>
 			<Help>TXT_KEY_BUILD_FARM_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>20</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
@@ -314,7 +314,7 @@
 			<Type>BUILD_WINDMILL</Type>
 			<Description>TXT_KEY_BUILD_WINDMILL</Description>
 			<Help>TXT_KEY_BUILD_WINDMILL_HELP</Help>
-			<iTime>1500</iTime>
+			<iTime>1300</iTime>
 			<iCost>30</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_WIND_MILL</ImprovementType>
@@ -534,7 +534,7 @@
 			<Type>BUILD_PLANTATION</Type>
 			<Description>TXT_KEY_BUILD_PLANTATION</Description>
 			<Help>TXT_KEY_BUILD_PLANTATION_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>40</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_PLANTATION</ImprovementType>
@@ -776,7 +776,7 @@
 			<Type>BUILD_LODGE</Type>
 			<Description>TXT_KEY_BUILD_LODGE</Description>
 			<Help>TXT_KEY_BUILD_LODGE_HELP</Help>
-			<iTime>800</iTime>
+			<iTime>600</iTime>
 			<iCost>20</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_LODGE</ImprovementType>
@@ -797,7 +797,7 @@
 			<Type>BUILD_SAWMILL</Type>
 			<Description>TXT_KEY_BUILD_SAWMILL</Description>
 			<Help>TXT_KEY_BUILD_SAWMILL_HELP</Help>
-			<iTime>1200</iTime>
+			<iTime>1000</iTime>
 			<iCost>30</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_LUMBERMILL</ImprovementType>
@@ -818,7 +818,7 @@
 			<Type>BUILD_TRAPPER_HUT</Type>
 			<Description>TXT_KEY_BUILD_TRAPPER_HUT</Description>
 			<Help>TXT_KEY_BUILD_TRAPPER_HUT_HELP</Help>
-			<iTime>800</iTime>
+			<iTime>600</iTime>
 			<iCost>20</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_TRAPPER_HUT</ImprovementType>
@@ -839,7 +839,7 @@
 			<Type>BUILD_MINE</Type>
 			<Description>TXT_KEY_BUILD_MINE</Description>
 			<Help>TXT_KEY_BUILD_MINE_HELP</Help>
-			<iTime>800</iTime>
+			<iTime>600</iTime>
 			<iCost>20</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_MINE</ImprovementType>
@@ -1070,7 +1070,7 @@
 			<Type>BUILD_IRONMILL</Type>
 			<Description>TXT_KEY_BUILD_IRONMILL</Description>
 			<Help>TXT_KEY_BUILD_IRONMILL_HELP</Help>
-			<iTime>1500</iTime>
+			<iTime>1300</iTime>
 			<iCost>30</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_IRON_MILL</ImprovementType>
@@ -1279,7 +1279,7 @@
 			<Type>BUILD_SUPPLY_DEPOT</Type>
 			<Description>TXT_KEY_BUILD_SUPPLY_DEPOT</Description>
 			<Help>TXT_KEY_BUILD_SUPPLY_DEPOT_HELP</Help>
-			<iTime>1500</iTime>
+			<iTime>1300</iTime>
 			<iCost>30</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_SUPPLY_DEPOT</ImprovementType>
@@ -1499,7 +1499,7 @@
 			<Type>BUILD_CANAL</Type>
 			<Description>TXT_KEY_BUILD_CANAL</Description>
 			<Help>TXT_KEY_BUILD_CANAL_HELP</Help>
-			<iTime>1500</iTime>
+			<iTime>1300</iTime>
 			<iCost>30</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_CANAL</ImprovementType>
@@ -1719,7 +1719,7 @@
 			<Type>BUILD_QUARRY</Type>
 			<Description>TXT_KEY_BUILD_QUARRY</Description>
 			<Help>TXT_KEY_BUILD_QUARRY_HELP</Help>
-			<iTime>800</iTime>
+			<iTime>600</iTime>
 			<iCost>20</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_QUARRY</ImprovementType>
@@ -1961,7 +1961,7 @@
 			<Type>BUILD_PEAT_PIT</Type>
 			<Description>TXT_KEY_BUILD_PEAT_PIT</Description>
 			<Help>TXT_KEY_BUILD_PEAT_PIT_HELP</Help>
-			<iTime>800</iTime>
+			<iTime>600</iTime>
 			<iCost>20</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_PEAT_PIT</ImprovementType>
@@ -2192,7 +2192,7 @@
 			<Type>BUILD_CLAY_PIT</Type>
 			<Description>TXT_KEY_BUILD_CLAY_PIT</Description>
 			<Help>TXT_KEY_BUILD_CLAY_PIT_HELP</Help>
-			<iTime>800</iTime>
+			<iTime>600</iTime>
 			<iCost>20</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_CLAY_PIT</ImprovementType>
@@ -2434,7 +2434,7 @@
 			<Type>BUILD_PASTURE</Type>
 			<Description>TXT_KEY_BUILD_PASTURE</Description>
 			<Help>TXT_KEY_BUILD_PASTURE_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>40</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_PASTURE</ImprovementType>
@@ -2632,7 +2632,7 @@
 			<Type>BUILD_PEN</Type>
 			<Description>TXT_KEY_BUILD_PEN</Description>
 			<Help>TXT_KEY_BUILD_PASTURE_PEN</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>40</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_PEN</ImprovementType>
@@ -2830,7 +2830,7 @@
 			<Type>BUILD_VINEYARD</Type>
 			<Description>TXT_KEY_BUILD_VINEYARD</Description>
 			<Help>TXT_KEY_BUILD_VINEYARD_HELP</Help>
-			<iTime>800</iTime>
+			<iTime>600</iTime>
 			<iCost>20</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_VINEYARD</ImprovementType>
@@ -3072,7 +3072,7 @@
 			<Type>BUILD_COLLECTORS_POST</Type>
 			<Description>TXT_KEY_BUILD_COLLECTORS_POST</Description>
 			<Help>TXT_KEY_BUILD_COLLECTORS_POST_HELP</Help>
-			<iTime>800</iTime>
+			<iTime>600</iTime>
 			<iCost>20</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_COLLECTORS_POST</ImprovementType>
@@ -3314,7 +3314,7 @@
 			<Type>BUILD_COLLECTORS_POST2</Type>
 			<Description>TXT_KEY_BUILD_COLLECTORS_POST2</Description>
 			<Help>TXT_KEY_BUILD_COLLECTORS_POST2_HELP</Help>
-			<iTime>800</iTime>
+			<iTime>600</iTime>
 			<iCost>20</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_COLLECTORS_POST2</ImprovementType>
@@ -3556,7 +3556,7 @@
 			<Type>BUILD_FRUIT_PLANTATION</Type>
 			<Description>TXT_KEY_BUILD_FRUIT_PLANTATION</Description>
 			<Help>TXT_KEY_BUILD_FRUIT_PLANTATION_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>20</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_FRUIT_PLANTATION</ImprovementType>
@@ -3940,7 +3940,7 @@
 			<Type>BUILD_FORT</Type>
 			<Description>TXT_KEY_BUILD_FORT</Description>
 			<Help>TXT_KEY_BUILD_FORT_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>300</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_FORT</ImprovementType>
@@ -4138,7 +4138,7 @@
 			<Type>BUILD_MONASTERY</Type>
 			<Description>TXT_KEY_BUILD_MONASTERY</Description>
 			<Help>TXT_KEY_BUILD_MONASTERY_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>100</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_MONASTERY</ImprovementType>
@@ -4336,7 +4336,7 @@
 			<Type>BUILD_RAFT_STATION</Type>
 			<Description>TXT_KEY_BUILD_RAFT_STATION</Description>
 			<Help>TXT_KEY_BUILD_RAFT_STATION_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>100</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_RAFT_STATION</ImprovementType>
@@ -4357,7 +4357,7 @@
 			<Type>BUILD_FISHING_NETS</Type>
 			<Description>TXT_KEY_BUILD_FISHING_NETS</Description>
 			<Help>TXT_KEY_BUILD_FISHING_NETS_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>100</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_FISHING_NETS</ImprovementType>
@@ -4378,7 +4378,7 @@
 			<Type>BUILD_HUNTERS_STAGE</Type>
 			<Description>TXT_KEY_BUILD_HUNTERS_STAGE</Description>
 			<Help>TXT_KEY_BUILD_HUNTERS_STAGE_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>100</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_HUNTERS_STAGE</ImprovementType>
@@ -4399,7 +4399,7 @@
 			<Type>BUILD_SALINA</Type>
 			<Description>TXT_KEY_BUILD_SALINA</Description>
 			<Help>TXT_KEY_BUILD_SALINA_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>100</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_SALINA</ImprovementType>
@@ -4432,7 +4432,7 @@
 			<Type>BUILD_DRAIN_MARSH</Type>
 			<Description>TXT_KEY_BUILD_DRAIN_MARSH</Description>
 			<Help>TXT_KEY_BUILD_DRAIN_MARSH_HELP</Help>
-			<iTime>2000</iTime>
+			<iTime>1800</iTime>
 			<iCost>200</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>NONE</ImprovementType>
@@ -4608,7 +4608,7 @@
 			<Type>BUILD_DRAIN_WETLAND</Type>
 			<Description>TXT_KEY_BUILD_DRAIN_WETLAND</Description>
 			<Help>TXT_KEY_BUILD_DRAIN_WETLAND_HELP</Help>
-			<iTime>2000</iTime>
+			<iTime>1800</iTime>
 			<iCost>200</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>NONE</ImprovementType>
@@ -4751,7 +4751,7 @@
 			<Type>BUILD_REFORESTATION_GRASS</Type>
 			<Description>TXT_KEY_BUILD_REFORESTATION_GRASS</Description>
 			<Help>TXT_KEY_BUILD_REFORESTATION_GRASS_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>100</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>NONE</ImprovementType>
@@ -4772,7 +4772,7 @@
 			<Type>BUILD_REFORESTATION_WETLAND</Type>
 			<Description>TXT_KEY_BUILD_REFORESTATION_GRASS</Description>
 			<Help>TXT_KEY_BUILD_REFORESTATION_GRASS_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>100</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>NONE</ImprovementType>
@@ -4793,7 +4793,7 @@
 			<Type>BUILD_REFORESTATION_PLAINS</Type>
 			<Description>TXT_KEY_BUILD_REFORESTATION_PLAINS</Description>
 			<Help>TXT_KEY_BUILD_REFORESTATION_PLAINS_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>100</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>NONE</ImprovementType>
@@ -4814,7 +4814,7 @@
 			<Type>BUILD_REFORESTATION_SHRUBLAND</Type>
 			<Description>TXT_KEY_BUILD_REFORESTATION_SHRUBLAND</Description>
 			<Help>TXT_KEY_BUILD_REFORESTATION_SHRUBLAND_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>100</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>NONE</ImprovementType>
@@ -4835,7 +4835,7 @@
 			<Type>BUILD_REFORESTATION_PLAINS_FERTILE</Type>
 			<Description>TXT_KEY_BUILD_REFORESTATION_PLAINS_FERTILE</Description>
 			<Help>TXT_KEY_BUILD_REFORESTATION_PLAINS_FERTILE_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>100</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>NONE</ImprovementType>
@@ -4856,7 +4856,7 @@
 			<Type>BUILD_REFORESTATION_MARSH</Type>
 			<Description>TXT_KEY_BUILD_REFORESTATION_MARSH</Description>
 			<Help>TXT_KEY_BUILD_REFORESTATION_MARSH_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>100</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>NONE</ImprovementType>
@@ -4877,7 +4877,7 @@
 			<Type>BUILD_REFORESTATION_SAVANNAH</Type>
 			<Description>TXT_KEY_BUILD_REFORESTATION_SAVANNAH</Description>
 			<Help>TXT_KEY_BUILD_REFORESTATION_SAVANNAH_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>100</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>NONE</ImprovementType>
@@ -4898,7 +4898,7 @@
 			<Type>BUILD_REFORESTATION_TUNDRA</Type>
 			<Description>TXT_KEY_BUILD_REFORESTATION_TUNDRA</Description>
 			<Help>TXT_KEY_BUILD_REFORESTATION_TUNDRA_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>100</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>NONE</ImprovementType>
@@ -4919,7 +4919,7 @@
 			<Type>BUILD_REFORESTATION_TAIGA</Type>
 			<Description>TXT_KEY_BUILD_REFORESTATION_TAIGA</Description>
 			<Help>TXT_KEY_BUILD_REFORESTATION_TAIGA_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>100</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>NONE</ImprovementType>
@@ -4940,7 +4940,7 @@
 			<Type>BUILD_DESERT_IRRIGATION</Type>
 			<Description>TXT_KEY_BUILD_DESERT_IRRIGATION</Description>
 			<Help>TXT_KEY_BUILD_DESERT_IRRIGATION_HELP</Help>
-			<iTime>1000</iTime>
+			<iTime>800</iTime>
 			<iCost>100</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>NONE</ImprovementType>
