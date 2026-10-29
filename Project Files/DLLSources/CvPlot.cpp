@@ -2795,6 +2795,11 @@ int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, int iNowExtra, int iThenExtra) 
 
 	iBuildLeft = getBuildTime(eBuild);
 
+	// WTP: the first turn of a build counts twice (CvUnit::build)
+	if (getBuildProgress(eBuild) == 0)
+	{
+		iBuildLeft -= (iNowBuildRate > 0) ? iNowBuildRate : iThenBuildRate;
+	}
 	iBuildLeft -= getBuildProgress(eBuild);
 	iBuildLeft -= iNowBuildRate;
 
