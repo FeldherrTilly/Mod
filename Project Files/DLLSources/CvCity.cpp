@@ -8806,6 +8806,7 @@ void CvCity::doNativeTradePost()
 
 		// calculate fixed gold
 		int calculatedNewGold = (iTotalVillageGold * iTotalModifier) / 100 / 100 / 100;
+		calculatedNewGold = calculatedNewGold * GLOBAL_DEFINE_TRADE_POST_GOLD_PERCENT / 100;
 		// make a random from double value, because meanvalue should be similar to calculated value
 		int doubleGoldValue = calculatedNewGold * 2;
 		int randomizedGoldToAdd = GC.getGameINLINE().getSorenRandNum(doubleGoldValue, "Randomized Trade Post Gold");

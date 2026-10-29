@@ -553,6 +553,16 @@
 		<iDefineIntVal>210</iDefineIntVal>
 	</Define>
 	<Define>
+		<!-- bargaining when selling to natives: up to this percent of the first offer the price rises by PRICE_INCREASE_BARGAIN_SELL per bargain -->
+		<DefineName>BARGAIN_SELL_SOFT_CAP_PERCENT</DefineName>
+		<iDefineIntVal>200</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- above the soft cap each bargain only closes a small part of the gap to this percent of the first offer, which is never exceeded -->
+		<DefineName>BARGAIN_SELL_MAX_PERCENT</DefineName>
+		<iDefineIntVal>350</iDefineIntVal>
+	</Define>
+	<Define>
 		<!-- a defended fort within this many plots of a native village blocks trade there for other players -->
 		<DefineName>FORT_TRADE_BLOCK_RANGE</DefineName>
 		<iDefineIntVal>2</iDefineIntVal>
@@ -1279,6 +1289,11 @@
 	<Define>
 		<DefineName>TRADE_POST_GOLD_PER_NATIVE</DefineName>
 		<iDefineIntVal>7</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- percent of the trade post gold (TRADE_POST_GOLD_PER_NATIVE) that is actually earned -->
+		<DefineName>TRADE_POST_GOLD_PERCENT</DefineName>
+		<iDefineIntVal>80</iDefineIntVal>
 	</Define>
 	<Define>
 		<DefineName>CHANCE_PENALTY_OTHER_TRADE_POST_ALREADY_EXISTS</DefineName>
