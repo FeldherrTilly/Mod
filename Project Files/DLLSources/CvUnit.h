@@ -181,7 +181,7 @@ public:
 	bool canUnloadAll() const;
 	void unloadAll();
 
-	bool canLearn() const;
+	bool canLearn(bool bIgnoreTradeBan = false) const;
 	void learn();
 	void doLiveAmongNatives();
 	void doLearn();

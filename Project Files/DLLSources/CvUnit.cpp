@@ -6401,7 +6401,7 @@ void CvUnit::unloadAll()
 	}
 }
 
-bool CvUnit::canLearn() const
+bool CvUnit::canLearn(bool bIgnoreTradeBan) const
 {
 	UnitTypes eUnitType = getLearnUnitType(plot());
 	if(eUnitType == NO_UNIT)
@@ -6430,7 +6430,7 @@ bool CvUnit::canLearn() const
 		if (!nativePlayer.isHuman())
 		{
 			int currentPlayerAttitude = nativePlayer.AI_getAttitude(getOwnerINLINE(), false);
-			if (currentPlayerAttitude == ATTITUDE_FURIOUS || nativePlayer.getTimeNoTrade(getOwnerINLINE()) > 0)
+			if (currentPlayerAttitude == ATTITUDE_FURIOUS || (!bIgnoreTradeBan && nativePlayer.getTimeNoTrade(getOwnerINLINE()) > 0))
 			{
 				return false;
 			}
@@ -6527,7 +6527,8 @@ void CvUnit::doLiveAmongNatives()
 
 void CvUnit::doLearn()
 {
-	if(!canLearn())
+	// a colonist already living among the natives finishes learning even if a trade ban started meanwhile
+	if(!canLearn(true))
 	{
 		return;
 	}
