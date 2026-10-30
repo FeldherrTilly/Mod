@@ -77,7 +77,8 @@ def blur(a, n=1):
 # rift valley with long lakes sinks in. The open sea in the east (Atlantic with the Europe plots) and in the
 # west (Pacific) stays free of land.
 tect = random.Random(SEED * 7 + 1)
-MARGIN_E, MARGIN_W = 16, 4          # open water for Europe (east) and the Pacific (west)
+MARGIN_E, MARGIN_W = 16, 8          # open water for Europe (east) and the Pacific (west)
+ARC_MAX_LEN = 10                    # volcanic island arcs between ocean plates are cut to this length
 LAND_SHARE = 0.34                    # share of land plots on the whole map
 CONT_SHARE = 0.40                    # share of the map on continental plates (land and shelf)
 
@@ -192,6 +193,8 @@ for (a, b), pa in sorted(border.items()):
         continue
     for pts in lines:
         pts = [(x, y) for x, y in pts if MARGIN_W + 2 <= x <= W - MARGIN_E - 1] if kind == 'arc' else pts
+        while kind == 'arc' and len(pts) > 2 and poly_len(pts) > ARC_MAX_LEN:   # keep the middle of the arc
+            pts = pts[1:] if len(pts) % 2 else pts[:-1]
         if len(pts) >= 2 and poly_len(pts) >= 5:
             RANGES.append(dict(pts=pts, w=w, h=h, passes=with_passes(poly_len(pts)), kind=kind))
 for pts in RIFTS:
@@ -277,6 +280,8 @@ def free_water(x, y, r):
 # the island sea: the warm sea off an east coast (land to the west, open sea towards the Atlantic and Europe in the
 # east) that is most enclosed by land, like the Caribbean, gets the island world
 ISLE_R = 12
+ISLE_GROUP_R = 7                                   # the islands, the volcano isle and the atolls stay this close together,
+                                                   # so they hide only a short stretch of coast from Europe
 best = None
 for x, y in ALL:
     if not (-12 <= lat(y) <= 30) or not (MARGIN_W + 8 <= x <= W - MARGIN_E - 2) or not free_water(x, y, 2):
@@ -344,10 +349,10 @@ for x, y in ALL:
 for x, y in skerries:
     land[I(x, y)] = True
 
-# island world in the island sea: two loose island arcs of settleable islands (~10 tiles) across it;
-# every island keeps at least two water tiles to any other land
+# island world in the island sea: a compact group of settleable islands (5-8 tiles) on two short arcs around its
+# centre; every island keeps at least two water tiles to any other land
 _a = crng.uniform(0, math.pi)
-ISLE_ARCS = [[(ISLE_SEA[0] + t * math.cos(_a) - o * math.sin(_a), ISLE_SEA[1] + t * math.sin(_a) + o * math.cos(_a)) for t in (-11, -4, 4, 11)]
+ISLE_ARCS = [[(ISLE_SEA[0] + t * math.cos(_a) - o * math.sin(_a), ISLE_SEA[1] + t * math.sin(_a) + o * math.cos(_a)) for t in (-6, -2, 2, 6)]
              for o in (-2.5, 2.5)]
 archipelago = []
 isle_cells = set()
@@ -380,11 +385,12 @@ def grow_island(cx, cy, size, min_size=1):
     return cells
 
 
-# volcanic island: a cone in the middle of a ~12 tile island
+# volcanic island: a cone in the middle of a ~9 tile island
 volcano_island, VOLCANO_ISLE = None, []
-for x, y in sorted([(x, y) for x in range(ISLE_SEA[0] - 9, ISLE_SEA[0] + 10) for y in range(ISLE_SEA[1] - 8, ISLE_SEA[1] + 9)
+for x, y in sorted([(x, y) for x in range(ISLE_SEA[0] - ISLE_GROUP_R, ISLE_SEA[0] + ISLE_GROUP_R + 1)
+                    for y in range(ISLE_SEA[1] - ISLE_GROUP_R, ISLE_SEA[1] + ISLE_GROUP_R + 1)
                     if free_water(x, y, 3)], key=lambda p: math.hypot(p[0] - ISLE_SEA[0] - 2, p[1] - ISLE_SEA[1])):
-    VOLCANO_ISLE = grow_island(x, y, 12, 9)
+    VOLCANO_ISLE = grow_island(x, y, 9, 7)
     if VOLCANO_ISLE:
         volcano_island = (x, y)
         break
@@ -396,13 +402,13 @@ for arc in ISLE_ARCS:
         for k in range(n):
             t = (k + crng.random() * 0.4) / n
             centres.append((int(round(ax + (bx - ax) * t + crng.uniform(-1, 1))), int(round(ay + (by - ay) * t + crng.uniform(-1, 1)))))
-for _ in range(60):
-    centres.append((ISLE_SEA[0] + crng.randint(-ISLE_R, ISLE_R), ISLE_SEA[1] + crng.randint(-ISLE_R, ISLE_R)))
+for _ in range(200):
+    centres.append((ISLE_SEA[0] + crng.randint(-ISLE_GROUP_R, ISLE_GROUP_R), ISLE_SEA[1] + crng.randint(-ISLE_GROUP_R, ISLE_GROUP_R)))
 for cx, cy in centres:
-    if len(archipelago) >= 9:
+    if len(archipelago) >= 5:
         break
     if inb(cx, cy) and not land[I(cx, cy)] and isle_free(cx, cy, set()):
-        isle = grow_island(cx, cy, crng.choice([8, 9, 10, 10, 11, 12, 14]), 7)
+        isle = grow_island(cx, cy, crng.choice([5, 6, 7, 7, 8]), 4)
         if isle:
             archipelago.append(isle)
 
@@ -462,12 +468,12 @@ if best:
 
 # coral atolls in the gaps of the warm inner sea
 atolls = []
-cands = [(x, y) for x, y in ALL if in_isle_sea(x, y, ISLE_R + 3) and free_water(x, y, 2)]
+cands = [(x, y) for x, y in ALL if in_isle_sea(x, y, ISLE_GROUP_R + 2) and free_water(x, y, 2)]
 crng.shuffle(cands)
 for x, y in cands:
-    if len(atolls) >= 6:
+    if len(atolls) >= 3:
         break
-    if all(max(abs(x - ax), abs(y - ay)) >= 5 for ax, ay in atolls):
+    if all(max(abs(x - ax), abs(y - ay)) >= 4 for ax, ay in atolls):
         atolls.append((x, y))
         land[I(x, y)] = True
 
@@ -2704,10 +2710,41 @@ for i in list(nofr):
     if not land[i] or y == 0 or not land[I(x, y - 1)]:
         del nofr[i]
 
-# Europe (east)
-dland = bfs_dist([i for i in range(W * H) if not ocean[i]], lambda j: True)
-europe = [ocean[i] and terrain[i] == 'OCEAN' and i % W >= W - MARGIN_E - 3 and dland[i] >= 5 for i in range(W * H)]
-pacific = [ocean[i] and terrain[i] == 'OCEAN' and i % W < MARGIN_W + 9 and dland[i] >= 5 for i in range(W * H)]
+# Europe: all open sea at least EUROPE_DIST tiles from the nearest land that is connected to the map edge through such
+# sea; it is flooded from the east edge (Atlantic, EUROPE_EAST) and the west edge (Pacific, EUROPE_WEST) at once, each
+# plot goes to the nearer edge. So the access follows the coast, and an island only pushes Europe back around itself.
+EUROPE_DIST = 7
+
+
+def europe_plots():
+    dl = bfs_dist([i for i in range(W * H) if not ocean[i]], lambda j: True)
+    open_sea = [ocean[i] and dl[i] >= EUROPE_DIST and terrain[i] in ('OCEAN', 'COAST') for i in range(W * H)]
+    side = [0] * (W * H)                         # 1 east, -1 west
+    dq = deque()
+    for y in range(H):
+        for x, s in ((W - 1, 1), (0, -1)):
+            i = I(x, y)
+            if open_sea[i] and not side[i]:
+                side[i] = s
+                dq.append(i)
+    while dq:
+        i = dq.popleft()
+        for qx, qy in nbrs(i % W, i // W, N4):
+            j = I(qx, qy)
+            if open_sea[j] and not side[j]:
+                side[j] = side[i]
+                dq.append(j)
+    east = [s == 1 for s in side]
+    west = [s == -1 for s in side]
+    for i in range(W * H):
+        if east[i] or west[i]:
+            terrain[i] = 'OCEAN'                     # Europe plots are open ocean
+            if feature[i] in ('KELP', 'SEAGRASS', 'REEF', 'STONE_REEF', 'PEARL_REEF'):
+                feature[i] = None
+    return dl, east, west
+
+
+dland, europe, pacific = europe_plots()
 
 # ---------------------------------------------------------------- Atlantic coves
 # three small coves on the east coasts in the south; carved last (own random stream) so the rest of the map stays as it was
@@ -3032,15 +3069,13 @@ for _, i in cands:
     if region_names[zone] and add_sign([i], region_names[zone].pop(0)):
         regions += 1
 
-# Europe: Atlantic (east) and Pacific (west), both at least five tiles from land
-dland = bfs_dist([i for i in range(W * H) if not ocean[i]], lambda j: True)
-europe = [ocean[i] and terrain[i] == 'OCEAN' and i % W >= W - MARGIN_E - 3 and dland[i] >= 5 for i in range(W * H)]
-pacific = [ocean[i] and terrain[i] == 'OCEAN' and i % W < MARGIN_W + 9 and dland[i] >= 5 for i in range(W * H)]
+# Europe: Atlantic (east) and Pacific (west), EUROPE_DIST tiles from land (europe_plots)
+dland, europe, pacific = europe_plots()
 for i in CARIB_EUROPE:
     europe[i] = True                         # narrow Atlantic strip inside the island sea
 # where the west coast runs close to the map edge, the outermost columns still open to the Pacific
 for y in range(H):
-    if not any(pacific[I(x, y)] for x in range(MARGIN_W + 9)):
+    if not any(pacific[I(x, y)] for x in range(W)):
         for x in (0, 1):
             i = I(x, y)
             if ocean[i] and feature[i] != 'ICE' and i not in HARBOUR_WATER:
@@ -3056,12 +3091,14 @@ for y in range(H):
 import re as _re
 _fx = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'Assets', 'XML', 'Terrain', 'CIV4FeatureInfos.xml'),
            encoding='utf8').read()
-COAST_RULE = {}
+COAST_RULE, RIVER_RULE = {}, set()
 for _b in _re.findall(r'<FeatureInfo>(.*?)</FeatureInfo>', _fx, _re.S):
     _g = lambda k: (_re.search('<' + k + r'>(\d)', _b) or [0, '0'])[1] == '1'
     _tb = _re.search(r'<TerrainBooleans>(.*?)</TerrainBooleans>', _b, _re.S)
     _ok = set(a[8:] for a, v in _re.findall(r'<TerrainType>(\w+)</TerrainType>\s*<bTerrain>(\d)', _tb.group(1)) if v == '1') if _tb else set()
     COAST_RULE[_re.search(r'<Type>FEATURE_(\w+)</Type>', _b).group(1)] = (_g('bNoCoast'), _g('bOnlyCoastalLand'), _ok)
+    if _g('bRequiresRiver'):
+        RIVER_RULE.add(_re.search(r'<Type>FEATURE_(\w+)</Type>', _b).group(1))
 east_peaks_worn += east_foreland()            # the late coves may have opened new coast in front of a peak
 softened += transitions()                      # the late shrubland -> desert change must not jump either
 fixed_features = 0
@@ -3073,6 +3110,10 @@ for x, y in ALL:
         fixed_features += 1
         continue
     if not f or not land[i]:
+        continue
+    if f in RIVER_RULE and not has_river(x, y):
+        feature[i] = None                      # a river edge next to a late coast was dropped
+        fixed_features += 1
         continue
     nocoast, onlycoast, _ = COAST_RULE.get(f, (False, False, None))
     coastal = any(ocean[I(nx, ny)] and not lake[I(nx, ny)] and not large[I(nx, ny)] for nx, ny in nbrs(x, y))
