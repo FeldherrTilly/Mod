@@ -20849,6 +20849,17 @@ bool CvPlayer::isProfessionValid(ProfessionTypes eProfession, UnitTypes eUnit) c
 		{
 			return false;
 		}
+
+		// WTP: natives employ no entertainers before turn 40
+		if (isNative() && GC.getGameINLINE().getGameTurn() < 40)
+		{
+			static const ProfessionTypes eEntertainer = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_ENTERTAINER");
+			if (eProfession == eEntertainer)
+			{
+				return false;
+			}
+		}
+
 		//TAC Whaling, ray
 		if (eUnit != NO_UNIT)
 		{
