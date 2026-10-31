@@ -2,6 +2,7 @@ Version=11
 BeginGame
 	Description=TXT_KEY_WORLDBUILDER_RANDOM_NEW_WORLD_DESC
 	ModPath=
+	Option=GAMEOPTION_TWO_PLOT_CITY_RADIUS
 	WBNorthAmericanNative=1
 	WBSouthAmericanNative=1
 	WBCentralAmericanNative=1
@@ -263,6 +264,7 @@ BeginMap
 	sealevel=SEALEVEL_MEDIUM
 	num plots written=11645
 	num signs written=49
+	City Catchment Radius=2
 	Randomize Features=false
 	Randomize Resources=false
 	Randomize Goodies=true
