@@ -2902,13 +2902,14 @@ for y in range(H):
 os.makedirs(OUT, exist_ok=True)
 wb = os.path.join(OUT, 'Fantasy New World Large.ColonizationWBSave')
 with open(wb, 'w', newline='\r\n') as f:
-    f.write('Version=11\nBeginGame\n\tDescription=TXT_KEY_WORLDBUILDER_FANTASY_NEW_WORLD_DESC\n\tModPath=\n')
+    f.write('Version=11\nBeginGame\n\tDescription=TXT_KEY_WORLDBUILDER_FANTASY_NEW_WORLD_DESC\n\tModPath=\n\tOption=GAMEOPTION_TWO_PLOT_CITY_RADIUS\n')
     f.write('\tWBNorthAmericanNative=1\n\tWBSouthAmericanNative=1\n\tWBCentralAmericanNative=1\nEndGame\n')
     for p in range(49):
         f.write('BeginPlayer\n\tTeam=%d\n\tLeaderType=NONE\n\tCivType=NONE\nEndPlayer\n' % p)
     f.write('BeginMap\n\tgrid width=%d\n\tgrid height=%d\n\ttop latitude=%d\n\tbottom latitude=%d\n' % (W, H, TOP_LAT, BOTTOM_LAT))
     f.write('\twrap X=0\n\twrap Y=0\n\tworld size=WORLDSIZE_HUGE\n\tclimate=CLIMATE_TEMPERATE\n\tsealevel=SEALEVEL_MEDIUM\n')
     f.write('\tnum plots written=%d\n\tnum signs written=%d\n' % (W * H, len(SIGNS)))
+    f.write('\tCity Catchment Radius=2\n')
     f.write('\tRandomize Features=false\n\tRandomize Resources=true\n\tRandomize Goodies=true\nEndMap\n\n### Plot Info ###\n')
     for x in range(W):
         for y in range(H):
