@@ -9,6 +9,8 @@ paks are rebuilt only when the art changed (or with --paks).
     python Tools/wtp_play.py --dll           copy only the DLL
     python Tools/wtp_play.py --paks          force a rebuild of the paks
     python Tools/wtp_play.py --target DIR    play folder (default: ../WTP next to the checkout)
+    python Tools/wtp_play.py --release --target DIR    a folder to hand out: with the DLLs setup.bat installs, the mod list
+                                             shows RELEASE_NAME, without RELEASE_SKIP_FILES
 
 FPK format (Civ4, version 4, read from the original Assets0.fpk): int32 version 4, "FPK_", byte 1, int32 file count; per file
 int32 name length, the name (lower case, backslashes, every byte + 1), padding to 4 bytes (first byte: the padding length,
@@ -31,6 +33,11 @@ SKIP_TOP = ('.git', '.claude', 'project files', 'tools', 'graphify-out', 'copy t
 SKIP_FILES = ('claude.md', '.gitignore', '.gitattributes', '.editorconfig')
 SKIP_EXT = ('.bak', '.pdb', '.xcf')
 
+RELEASE_NAME = 'WTP: Resettled'
+RELEASE_DESCRIPTION = 'AI, QoL, Balancing, Performance and Immersion for We the People'
+RELEASE_SKIP_FILES = ('privatemaps/americas gigantic - permanent (outdated).colonizationwbsave',)
+release = False
+
 
 def rel_key(rel):
 	return rel.replace('\\', '/').lower()
@@ -40,6 +47,10 @@ def is_skipped(rel):
 	key = rel_key(rel)
 	top = key.split('/')[0]
 	name = key.split('/')[-1]
+	if release and top == 'copy to colonization.exe':
+		return False
+	if release and key in RELEASE_SKIP_FILES:
+		return True
 	if top in SKIP_TOP or name in SKIP_FILES or name.startswith('profile output'):
 		return True
 	return any(key.endswith(ext) for ext in SKIP_EXT) or '.bak' in name
@@ -128,7 +139,10 @@ def main():
 	parser.add_argument('--target', default=None)
 	parser.add_argument('--dll', action='store_true', help='copy only the DLL')
 	parser.add_argument('--paks', action='store_true', help='rebuild the paks')
+	parser.add_argument('--release', action='store_true', help='a folder to hand out')
 	args = parser.parse_args()
+	global release
+	release = args.release
 
 	src_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 	dst_root = os.path.abspath(args.target or os.path.join(os.path.dirname(src_root), 'WTP'))
@@ -177,7 +191,10 @@ def main():
 		if 'Name = Mod\n' in text:
 			stat = os.stat(os.path.join(src_root, 'Mod.ini'))
 			with open(ini, 'w') as f:
-				f.write(text.replace('Name = Mod\n', 'Name = WTP (play)\n'))
+				if release:
+					f.write(text.replace('Name = Mod\n', 'Name = %s\n' % RELEASE_NAME).replace('Description = Generic Mod\n', 'Description = %s\n' % RELEASE_DESCRIPTION))
+				else:
+					f.write(text.replace('Name = Mod\n', 'Name = WTP (play)\n'))
 			# keeps the time of the original: no copy on the next run unless the original changes
 			os.utime(ini, (stat.st_atime, stat.st_mtime))
 
