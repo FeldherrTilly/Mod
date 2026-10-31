@@ -77,6 +77,9 @@ class CvTradeRoutesAdvisor:
 		self.SAVE_GROUP_ID = 12		
 		self.DELETE_GROUP_ID = 13
 		#R&R mod, vetiarvind, trade groups - END
+
+		# WTP: reserved routes (served only by the transports assigned to them, not by Automate Transport)
+		self.RESERVE_ID = 14
 		
 		
 	def interfaceScreen (self):
@@ -115,6 +118,7 @@ class CvTradeRoutesAdvisor:
 		
 		# Trade routes
 		self.ExistingRoutes, self.AssignedRoutes = [], {}
+		self.ReservedRoutes = {}
 		self.ExistingRoutes = list(self.player.getViableTradeRoutes(self.pTransport))
 		for pRoute in self.ExistingRoutes:
  			rid = pRoute.getID()
@@ -195,9 +199,9 @@ class CvTradeRoutesAdvisor:
 		#R&R mod, vetiarvind, trade groups - end
 		
 		self.BUTTON_SIZE = 24
-		self.BUTTON_X = self.PANEL_WIDTH - self.STANDARD_MARGIN - self.BUTTON_SIZE * 3 - 4
+		self.BUTTON_X = self.PANEL_WIDTH - self.STANDARD_MARGIN - self.BUTTON_SIZE * 4 - 6
 		self.BUTTON_Y = self.STANDARD_MARGIN / 4
-		self.BUTTON_WIDTH = self.BUTTON_SIZE * 3 + 8
+		self.BUTTON_WIDTH = self.BUTTON_SIZE * 4 + 10
 		self.BUTTON_HEIGHT = self.BUTTON_SIZE + 2
 		
 		# Set the background and exit button, and show the screen
@@ -348,6 +352,9 @@ class CvTradeRoutesAdvisor:
 		szColor = u"<color=255,255,255>"
 		if pRoute.getDestinationCity().iID == self.EUROPE_CITY:
 			szColor = u"<color=170,170,170>"
+		# WTP: reserved routes in gold
+		if self.isReserved(pRoute):
+			szColor = u"<color=255,200,50>"
 		
 		return szColor
 
@@ -428,6 +435,7 @@ class CvTradeRoutesAdvisor:
 			szLabel = u"%c" % CyGame().getSymbolID(FontSymbols.CHECKBOX_SELECTED_CHAR)
 		
 		self.getScreen().setTableText(self.TableNames[self.CURRENT_TABLE], 1, iRow, szLabel, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
+		self.updateButtons()
 		
 		
 	def getRouteByTableRow(self, iRow):
@@ -765,6 +773,10 @@ class CvTradeRoutesAdvisor:
 		
 		if self.CURRENT_TABLE in [self.EXISTING_ROUTES, self.LIMITED_ROUTES]:
 			screen.appendMultiListButton(self.szButtonPanel, szSelectButton, 0, WidgetTypes.WIDGET_GENERAL, self.SELECT_ID, -1, False)
+			szReserveButton = "Art/Interface/Screens/TradeRoutes/ReservedOff.dds"
+			if self.areCheckedRoutesReserved():
+				szReserveButton = "Art/Interface/Screens/TradeRoutes/Reserved.dds"
+			screen.appendMultiListButton(self.szButtonPanel, szReserveButton, 0, WidgetTypes.WIDGET_GENERAL, self.RESERVE_ID, -1, False)
 		elif self.CURRENT_TABLE == self.BUILDER_TABLE:
 			screen.appendMultiListButton(self.szButtonPanel, szRoutesButton, 0, WidgetTypes.WIDGET_GENERAL, self.ROUTES_ID, -1, False)
 			if self.isSelectionReady():
@@ -777,6 +789,37 @@ class CvTradeRoutesAdvisor:
 		screen.appendMultiListButton(self.szButtonPanel, szDangerButton, 0, WidgetTypes.WIDGET_GENERAL, self.DANGER_ID, -1, False)
 		screen.appendMultiListButton(self.szButtonPanel, szHelpButton, 0, WidgetTypes.WIDGET_PEDIA_DESCRIPTION, CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT, ConceptTypes.CONCEPT_TRADE_ROUTE, False)
 	
+	# WTP: reserved routes: the screen shows the new state at once, the game state follows with the network message
+	def isReserved(self, pRoute):
+		rid = pRoute.getID()
+		if rid in self.ReservedRoutes:
+			return self.ReservedRoutes[rid]
+		return pRoute.isReserved()
+
+	def getCheckedRoutes(self):
+		return [pRoute for pRoute in self.CurrentList if self.AssignedRoutes.get(pRoute.getID(), False)]
+
+	def areCheckedRoutesReserved(self):
+		lRoutes = self.getCheckedRoutes()
+		if lRoutes == []:
+			return False
+		for pRoute in lRoutes:
+			if not self.isReserved(pRoute):
+				return False
+		return True
+
+	# reserves the ticked routes; if all of them are reserved already, it releases them
+	def toggleReserved(self):
+		lRoutes = self.getCheckedRoutes()
+		if lRoutes == []:
+			return
+		bReserve = not self.areCheckedRoutesReserved()
+		for pRoute in lRoutes:
+			rid = pRoute.getID()
+			self.ReservedRoutes[rid] = bReserve
+			CyMessageControl().sendModNetMessage(752, self.player.getID(), rid, int(bReserve), 0)
+		self.routesTable(True)
+
 	def toggleSelect(self):
 		self.bSelected = not self.bSelected
 		for pRoute in self.CurrentList:
@@ -822,6 +865,8 @@ class CvTradeRoutesAdvisor:
 					self.toggleSelect()
 				elif inputClass.getData1() == self.DANGER_ID:
 					self.toggleDanger()
+				elif inputClass.getData1() == self.RESERVE_ID:
+					self.toggleReserved()
 				elif inputClass.getData1() == self.ROUTES_ID:
 					self.addSelection()
 				elif inputClass.getData1() == self.RETURN_ID:
@@ -905,6 +950,11 @@ class CvTradeRoutesAdvisor:
 					return localText.getText("TXT_KEY_TRADE_ROUTES_DESELECT_ROUTES_HELP", ())
 				else:
 					return localText.getText("TXT_KEY_TRADE_ROUTES_SELECT_ROUTES_HELP", ())
+			elif iData1 == self.RESERVE_ID:
+				if self.areCheckedRoutesReserved():
+					return localText.getText("TXT_KEY_TRADE_ROUTES_RELEASE_ROUTES_HELP", ())
+				else:
+					return localText.getText("TXT_KEY_TRADE_ROUTES_RESERVE_ROUTES_HELP", ())
 			elif iData1 == self.DANGER_ID:
 				if self.bDanger:
 					return localText.getText("TXT_KEY_TRADE_ROUTES_CANCEL_IGNORE_DANGER_HELP", ())

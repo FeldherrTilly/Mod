@@ -978,6 +978,12 @@ bool CvSelectionGroupAI::AI_tradeRoutes()
 			}
 			// transport feeder - end - Nightinggale
 
+			// WTP: reserved routes are served only by the transports assigned to them
+			if (isHuman() && pRoute->isReserved())
+			{
+				continue;
+			}
+
 			// traderoute fix - start - Nightinggale
 			if (isHuman() && (pRoute->getDestinationCity().eOwner != getOwnerINLINE() || (pRoute->getDestinationCity() == kEurope)))
 			{

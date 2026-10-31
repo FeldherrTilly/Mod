@@ -372,6 +372,15 @@ class CvEventManager:
 
 			return
 
+		# WTP: reserved trade route (iData3: route id, iData4: 1 reserves, 0 releases)
+		if (iData1 == 752):
+			iPlayer = iData2
+			if (iPlayer >= 0 and iPlayer < gc.getMAX_PLAYERS()):
+				pRoute = gc.getPlayer(iPlayer).getTradeRoute(iData3)
+				if (pRoute.getID() == iData3):
+					pRoute.setReserved(iData4 == 1)
+			return
+
 		# WTP: pioneer plan (iData5: build * 10 + priority, priority 0 removes the mark)
 		if (iData1 == 751):
 			iPlayer = iData2
