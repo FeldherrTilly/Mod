@@ -1867,7 +1867,8 @@ int routeValid(FAStarNode* parent, FAStarNode* node, int data, const void* point
 
 	ePlayer = ((PlayerTypes)(gDLL->getFAStarIFace()->GetInfo(finder)));
 
-	if (!(pNewPlot->isOwned()) || (pNewPlot->getTeam() == GET_PLAYER(ePlayer).getTeam()))
+	// WTP: also through the land of others we are at peace with (natives): the AI's pioneers build roads there
+	if (!(pNewPlot->isOwned()) || (pNewPlot->getTeam() == GET_PLAYER(ePlayer).getTeam()) || !atWar(pNewPlot->getTeam(), GET_PLAYER(ePlayer).getTeam()))
 	{
 		if (pNewPlot->getRouteType() == GET_PLAYER(ePlayer).getBestRoute(pNewPlot))
 		{

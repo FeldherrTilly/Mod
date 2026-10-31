@@ -1921,9 +1921,11 @@ void CvUnitAI::AI_workerMove()
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	CvCity* pCity = (plot()->getOwnerINLINE() == getOwnerINLINE()) ? plot()->getPlotCity() : NULL;
 	bool bDanger = GET_PLAYER(getOwnerINLINE()).AI_getUnitDanger(this, 2, false, false);
-	// WTP: in its own colony a pioneer waits only while an enemy is next to it; with enemies further away it goes on with the
-	// plots where no enemy is near (pioneers stood in their colony for up to 12 turns while an enemy was 2 plots away)
+	// WTP (user 2026-10-31): in its own colony a pioneer does not wait while enemies are near: it builds where none is (roads,
+	// improvement stages, the next colony; the paths avoid unsafe plots) and waits only if there is nothing (pioneers stood in
+	// their colony for up to 12 turns); in the field it retreats as before
 	bool bSafeWorkOnly = false;
+	CvCity* const pDangerCity = pCity;
 	if (bDanger)
 	{
 		if (pCity != NULL)
@@ -1935,7 +1937,7 @@ void CvUnitAI::AI_workerMove()
 				return;
 			}
 		}
-		bSafeWorkOnly = pCity != NULL && !isCargo() && kOwner.AI_getUnitDanger(this, 1, false, false) == 0;
+		bSafeWorkOnly = pCity != NULL && !isCargo();
 		if (!bSafeWorkOnly)
 		{
 			if (AI_retreatToCity())
@@ -2042,11 +2044,17 @@ void CvUnitAI::AI_workerMove()
 		return;
 	}
 
-	// WTP: with an enemy near its colony only the plots without danger (the stages and roads above), else it waits there
+	// WTP: with enemies near its colony only plots without danger: the roads and stages above, else the next colony (not this
+	// one); with nothing it waits there
 	if (bSafeWorkOnly)
 	{
+		if (AI_nextCityToImprove(pDangerCity))
+		{
+			AI_logPioneer("danger near its colony: improves another colony");
+			return;
+		}
 		getGroup()->pushMission(MISSION_SKIP);
-		AI_logPioneer("danger near its colony: waits there");
+		AI_logPioneer("danger near its colony: nothing safe to build, waits there");
 		return;
 	}
 
@@ -20834,7 +20842,8 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity* pCity)
 
 			if (iValue > 0)
 			{
-				if (AI_bestCityBuild(pLoopCity, &pPlot, &eBuild, NULL, this))
+				if (AI_bestCityBuild(pLoopCity, &pPlot, &eBuild, NULL, this)
+					&& GET_PLAYER(getOwnerINLINE()).AI_getPlotDanger(pPlot, 2, false) == 0) // WTP: not a plot an enemy is near
 				{
 					FAssert(pPlot != NULL);
 					FAssert(eBuild != NO_BUILD);
@@ -21232,13 +21241,14 @@ bool CvUnitAI::AI_routeCityNear(int iMaxDistance)
 		{
 			continue;
 		}
-		// WTP: the road itself must be buildable in safe territory (between colonies with native land in between the road
-		// mission found no way and ended at once, and the pioneer chose the same road again every turn)
-		if (generatePath(pLoopCity->plot(), MOVE_SAFE_TERRITORY, true)
-			&& getGroup()->generatePath(pLoopCity->plot(), pRouteToCity->plot(), MOVE_SAFE_TERRITORY, false))
+		// WTP: the road itself must be buildable; it may lead through the land of others (natives), not through the land of a
+		// player we are at war with (in safe territory only, between colonies with native land in between, the road mission
+		// found no way and ended at once, and the pioneer chose the same road again every turn)
+		if (generatePath(pLoopCity->plot(), MOVE_NO_ENEMY_TERRITORY, true)
+			&& getGroup()->generatePath(pLoopCity->plot(), pRouteToCity->plot(), MOVE_NO_ENEMY_TERRITORY, false))
 		{
-			getGroup()->pushMission(MISSION_MOVE_TO, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), MOVE_SAFE_TERRITORY, false, false, MISSIONAI_BUILD, pRouteToCity->plot());
-			getGroup()->pushMission(MISSION_ROUTE_TO, pRouteToCity->getX_INLINE(), pRouteToCity->getY_INLINE(), MOVE_SAFE_TERRITORY, (getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pRouteToCity->plot());
+			getGroup()->pushMission(MISSION_MOVE_TO, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_BUILD, pRouteToCity->plot());
+			getGroup()->pushMission(MISSION_ROUTE_TO, pRouteToCity->getX_INLINE(), pRouteToCity->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, (getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pRouteToCity->plot());
 			// (the road exists already or the mission failed at once: the next connection)
 			if (getGroup()->getLengthMissionQueue() > 0)
 			{
