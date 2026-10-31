@@ -18515,6 +18515,38 @@ namespace
 		return 0;
 	}
 
+	// WTP (user 2026-10-31): the goods dug out of mines and quarries
+	bool wfIsMineGood(YieldTypes eYield)
+	{
+		switch (eYield)
+		{
+		case YIELD_ORE:
+		case YIELD_COAL:
+		case YIELD_STONE:
+		case YIELD_CLAY:
+		case YIELD_PEAT:
+		case YIELD_RAW_SALT:
+		case YIELD_SILVER:
+		case YIELD_GOLD:
+		case YIELD_GEMS:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	// WTP (user 2026-10-31): a plot with a mine or quarry (of any size)
+	bool wfIsMinePlot(const CvPlot& kPlot)
+	{
+		const ImprovementTypes eImprovement = kPlot.getImprovementType();
+		if (eImprovement == NO_IMPROVEMENT)
+		{
+			return false;
+		}
+		const CvString szType(GC.getImprovementInfo(eImprovement).getType());
+		return szType.find("MINE") != std::string::npos || szType.find("QUARRY") != std::string::npos;
+	}
+
 	const int WF_LUMBER_GOLD = 500; // gold x100 of lumber the carpenters use (their input cost)
 	// WTP (user 2026-10-24): gold x100 a lumberjack earns for the lumber the carpenters lack: about the hammers it makes possible
 	// (at 5 gold, the price of exotic wood, an expert lumberjack in Sao Salvador cut exotic wood while the carpenters had 5 of
@@ -18857,6 +18889,10 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			int iBestFood = 0;
 			int iBestOther = 0;
 			int iBestLumber = 0;
+			// WTP (user 2026-10-31): a mine or quarry digs its goods, not other colonial goods (a slave picked coca on a coal
+			// mine while the smiths lacked ore): all its goods are alternatives, the plan chooses among them by their value now
+			const bool bMinePlot = wfIsMinePlot(*pLoopPlot);
+			std::vector<ProfessionTypes> aeMineJobs;
 			for (uint i = 0; i < aePlotProfessions.size(); ++i)
 			{
 				const ProfessionTypes eProfession = aePlotProfessions[i];
@@ -18868,6 +18904,10 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				if (iOutput <= 0)
 				{
 					continue;
+				}
+				if (bMinePlot && wfIsMineGood(eYield))
+				{
+					aeMineJobs.push_back(eProfession);
 				}
 				if (eYield == YIELD_FOOD)
 				{
@@ -18899,9 +18939,27 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			}
 			const CvUnit* const pWorker = pCity->getUnitWorkingPlot(pLoopPlot);
 			const ProfessionTypes eWorked = (pWorker != NULL) ? pWorker->getProfession() : NO_PROFESSION;
-			ProfessionTypes aeAlternatives[4] = { eBestFood, eBestOther, eBestLumber,
-				(eWorked != eBestFood && eWorked != eBestOther && eWorked != eBestLumber) ? eWorked : NO_PROFESSION };
-			for (int iAlt = 0; iAlt < 4; ++iAlt)
+			std::vector<ProfessionTypes> aeAlternatives;
+			aeAlternatives.push_back(eBestFood);
+			aeAlternatives.push_back(eBestLumber);
+			if (aeMineJobs.empty())
+			{
+				aeAlternatives.push_back(eBestOther);
+			}
+			else
+			{
+				aeAlternatives.insert(aeAlternatives.end(), aeMineJobs.begin(), aeMineJobs.end());
+			}
+			// the profession worked now, unless it is another colonial good on a mine
+			if (eWorked != NO_PROFESSION && std::find(aeAlternatives.begin(), aeAlternatives.end(), eWorked) == aeAlternatives.end())
+			{
+				const YieldTypes eWorkedYield = (YieldTypes)GC.getProfessionInfo(eWorked).getYieldsProduced(0);
+				if (aeMineJobs.empty() || eWorkedYield == YIELD_FOOD || eWorkedYield == YIELD_LUMBER)
+				{
+					aeAlternatives.push_back(eWorked);
+				}
+			}
+			for (uint iAlt = 0; iAlt < aeAlternatives.size(); ++iAlt)
 			{
 				const ProfessionTypes eProfession = aeAlternatives[iAlt];
 				if (eProfession == NO_PROFESSION || !GC.getProfessionInfo(eProfession).isWorkPlot())
@@ -19362,6 +19420,27 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			abHammerJob[aJobs[j].iCity] = true;
 		}
 	}
+	// WTP (user 2026-10-31): gold x100 of a mine good the smiths of a colony need: what the best of their goods sells for, per
+	// (colony, yield); 0: no building there uses it. Ore at its own low price kept the miners from the smiths' ore.
+	std::vector<int> aiMaterialGold(iNumCities * NUM_YIELD_TYPES, 0);
+	for (int j = 0; j < iNumJobs; ++j)
+	{
+		const WfJob& kJob = aJobs[j];
+		if (kJob.pPlot != NULL)
+		{
+			continue;
+		}
+		const CvProfessionInfo& kProfession = GC.getProfessionInfo(kJob.eProfession);
+		for (int k = 0; k < kProfession.getNumYieldsConsumed(); ++k)
+		{
+			const YieldTypes eInput = (YieldTypes)kProfession.getYieldsConsumed(k);
+			if (eInput != NO_YIELD && wfIsMineGood(eInput))
+			{
+				int& iMaterial = aiMaterialGold[kJob.iCity * NUM_YIELD_TYPES + eInput];
+				iMaterial = std::max(iMaterial, wfSellPrice(*kJob.pCity, kJob.eYield));
+			}
+		}
+	}
 
 	// 3. target plan: greedy, the best (worker, job) pair (or pair of a job and a food job, or of a carpenter and a lumberjack)
 	// first. The first carpenter of a colony (with its lumber) comes before all other jobs (a colony without hammers builds
@@ -19383,6 +19462,24 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		std::vector<WfCand> aLumber2(iNumCities, kBest);
 		std::vector<WfCand> aShort(iNumCities * 3, kBest);
 		std::vector<WfCand> aNoLumber(iNumCities * 2, kBest);
+		// WTP: per (colony, yield): a building job that uses this mine good is still free
+		std::vector<bool> abMaterialSlot(iNumCities * NUM_YIELD_TYPES, false);
+		for (int j = 0; j < iNumJobs; ++j)
+		{
+			if (aJobs[j].pPlot != NULL || !WF_IS_FREE_JOB(j))
+			{
+				continue;
+			}
+			const CvProfessionInfo& kFreeProfession = GC.getProfessionInfo(aJobs[j].eProfession);
+			for (int k = 0; k < kFreeProfession.getNumYieldsConsumed(); ++k)
+			{
+				const YieldTypes eInput = (YieldTypes)kFreeProfession.getYieldsConsumed(k);
+				if (eInput != NO_YIELD)
+				{
+					abMaterialSlot[aJobs[j].iCity * NUM_YIELD_TYPES + eInput] = true;
+				}
+			}
+		}
 		for (int w = 0; w < iNumWorkers; ++w)
 		{
 			const WfWorker& kWorker = aWorkers[w];
@@ -19436,6 +19533,20 @@ void CvPlayerAI::AI_doWorkforcePlan()
 					{
 						const int iForCarpenters = std::min(iNeed, iOutput);
 						iJobGold = std::max(iGold, iGold * (iOutput - iForCarpenters) / iOutput + iForCarpenters * WF_LUMBER_SHORT_GOLD);
+					}
+				}
+				// WTP (user 2026-10-31): a mine good the smiths lack (planned ones, or a free slot of theirs) is worth what they make of it
+				else if (kJob.pPlot != NULL && wfIsMineGood(kJob.eYield) && iOutput > 0)
+				{
+					const int iMaterialIndex = kJob.iCity * NUM_YIELD_TYPES + kJob.eYield;
+					if (aiMaterialGold[iMaterialIndex] > 0)
+					{
+						const int iNeed = kCity.aiUse[kJob.eYield] + (abMaterialSlot[iMaterialIndex] ? 3 : 0) - kCity.aiRaw[kJob.eYield];
+						if (iNeed > 0)
+						{
+							const int iForSmiths = std::min(iNeed, iOutput);
+							iJobGold = std::max(iGold, iGold * (iOutput - iForSmiths) / iOutput + iForSmiths * aiMaterialGold[iMaterialIndex]);
+						}
 					}
 				}
 				// the first carpenter of a colony is a must; expert carpenters, statesmen and preachers always work in their
