@@ -47,6 +47,10 @@ public:
 	// WTP: a reserved route is served only by the transports it is assigned to, never by Automate Transport (full)
 	bool isReserved() const;
 	void setReserved(bool bNewValue);
+	// WTP: a private route is made in the Trade Routes screen for transports: it leaves the export and import settings of
+	// the colonies alone, unloads without import limit and is never served by Automate Transport (full)
+	bool isPrivate() const;
+	void setPrivate(bool bNewValue);
 
 protected:
 	int m_iId;
@@ -54,6 +58,7 @@ protected:
 	IDInfo m_kDestinationCity;
 	YieldTypes m_eYield;
 	bool m_bReserved;
+	bool m_bPrivate;
 
 	void setActiveDirty();
 };

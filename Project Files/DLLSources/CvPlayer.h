@@ -697,7 +697,7 @@ public:
 	int getCultureHistory(int iTurn) const;
 	void updateCultureHistory(int iTurn, int iBestCulture);
 
-	int addTradeRoute(const IDInfo& kSource, const IDInfo& kDestination, YieldTypes eYield);
+	int addTradeRoute(const IDInfo& kSource, const IDInfo& kDestination, YieldTypes eYield, bool bPrivate = false); // WTP: bPrivate, see CvTradeRoute::isPrivate
 	bool editTradeRoute(int iId, const IDInfo& kSource, const IDInfo& kDestination, YieldTypes eYield);
 	bool removeTradeRoute(int iId, bool bRemoveImport = false); // auto traderoute - Nightinggale
 	CvTradeRoute* getTradeRoute(int iId) const;

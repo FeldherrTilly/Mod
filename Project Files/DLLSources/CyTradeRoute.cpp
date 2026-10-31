@@ -64,6 +64,11 @@ int CyTradeRoute::getImportAmount() const
 	return m_pTradeRoute ? m_pTradeRoute->getImportAmount() : -1;
 }
 
+bool CyTradeRoute::isPrivate() const
+{
+	return m_pTradeRoute ? m_pTradeRoute->isPrivate() : false;
+}
+
 bool CyTradeRoute::isReserved() const
 {
 	return m_pTradeRoute ? m_pTradeRoute->isReserved() : false;

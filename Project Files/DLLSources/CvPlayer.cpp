@@ -11240,7 +11240,7 @@ int CvPlayer::getCultureHistory(int iTurn) const
 }
 
 
-int CvPlayer::addTradeRoute(const IDInfo& kSource, const IDInfo& kDestination, YieldTypes eYield)
+int CvPlayer::addTradeRoute(const IDInfo& kSource, const IDInfo& kDestination, YieldTypes eYield, bool bPrivate)
 {
 	FAssert(eYield != NO_YIELD);
 
@@ -11266,7 +11266,8 @@ int CvPlayer::addTradeRoute(const IDInfo& kSource, const IDInfo& kDestination, Y
 		CvTradeRoute* pTradeRoute = it->second;
 		if (pTradeRoute->getSourceCity() == kSource
 			&& pTradeRoute->getDestinationCity() == kDestination
-			&& pTradeRoute->getYield() == eYield)
+			&& pTradeRoute->getYield() == eYield
+			&& pTradeRoute->isPrivate() == bPrivate) // WTP: a private route beside the public one of the same goods
 		{
 			return pTradeRoute->getID();
 		}
@@ -11274,14 +11275,26 @@ int CvPlayer::addTradeRoute(const IDInfo& kSource, const IDInfo& kDestination, Y
 
 	CvTradeRoute* pTradeRoute = m_tradeRoutes.addNew();
 	pTradeRoute->init(kSource, kDestination, eYield);
-	pSourceCity->addExport(eYield, false);
-	if (pDestinationCity != NULL)
+	// WTP: a private route leaves the export and import settings alone
+	if (bPrivate)
 	{
-		pDestinationCity->addImport(eYield, false);
+		pTradeRoute->setPrivate(true);
+	}
+	else
+	{
+		pSourceCity->addExport(eYield, false);
+		if (pDestinationCity != NULL)
+		{
+			pDestinationCity->addImport(eYield, false);
+		}
 	}
 	if (getID() == GC.getGameINLINE().getActivePlayer())
 	{
 		gDLL->getInterfaceIFace()->setDirty(Domestic_Advisor_DIRTY_BIT, true);
+		if (bPrivate)
+		{
+			gDLL->getInterfaceIFace()->setDirty(TradeRoutesAdvisor_DIRTY_BIT, true);
+		}
 	}
 
 	return pTradeRoute->getID();
@@ -11332,17 +11345,18 @@ bool CvPlayer::removeTradeRoute(int iId, bool bRemoveImport) // auto traderoute 
 
 	CvCity* pSourceCity = ::getCity(pTradeRoute->getSourceCity());
 	CvCity* pDestinationCity = ::getCity(pTradeRoute->getDestinationCity());
+	const bool bPrivate = pTradeRoute->isPrivate(); // WTP: a private route leaves the export and import settings alone
 	if(!m_tradeRoutes.removeById(iId))
 	{
 		return false;
 	}
 
-	if (pSourceCity != NULL)
+	if (pSourceCity != NULL && !bPrivate)
 	{
 		pSourceCity->updateExports();
 	}
 
-	if (pDestinationCity != NULL && bRemoveImport) // auto traderoute - Nightinggale
+	if (pDestinationCity != NULL && bRemoveImport && !bPrivate) // auto traderoute - Nightinggale
 	{
 		pDestinationCity->updateImports();
 	}
@@ -11350,6 +11364,7 @@ bool CvPlayer::removeTradeRoute(int iId, bool bRemoveImport) // auto traderoute 
 	if (getID() == GC.getGameINLINE().getActivePlayer())
 	{
 		gDLL->getInterfaceIFace()->setDirty(Domestic_Advisor_DIRTY_BIT, true);
+		gDLL->getInterfaceIFace()->setDirty(TradeRoutesAdvisor_DIRTY_BIT, true);
 	}
 
 	return true;

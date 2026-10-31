@@ -1182,6 +1182,18 @@ int CyPlayer::addTradeRoute(int iSourceCityOwner, int iSourceCityId, int iDestin
 	return m_pPlayer ? pointer(CREATE_ASSERT_DATA)->addTradeRoute(IDInfo((PlayerTypes)iSourceCityOwner, iSourceCityId), IDInfo((PlayerTypes)iDestinationCityOwner, iDestinationCityId), (YieldTypes) eYield) : -1;
 }
 
+// WTP: a private route between two colonies of the player (destination -1: Europe), see CvTradeRoute::isPrivate
+int CyPlayer::addPrivateTradeRoute(int iSourceCityId, int iDestinationCityId, int /*YieldTypes*/ eYield)
+{
+	if (m_pPlayer == NULL || m_pPlayer->getCity(iSourceCityId) == NULL
+		|| (iDestinationCityId != CvTradeRoute::EUROPE_CITY_ID && m_pPlayer->getCity(iDestinationCityId) == NULL))
+	{
+		return -1;
+	}
+	const PlayerTypes eOwner = m_pPlayer->getID();
+	return pointer(CREATE_ASSERT_DATA)->addTradeRoute(IDInfo(eOwner, iSourceCityId), IDInfo(eOwner, iDestinationCityId), (YieldTypes)eYield, true);
+}
+
 bool CyPlayer::removeTradeRoute(int iId)
 {
 	return m_pPlayer ? pointer(CREATE_ASSERT_DATA)->removeTradeRoute(iId) : false;

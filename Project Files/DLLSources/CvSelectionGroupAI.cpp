@@ -978,8 +978,8 @@ bool CvSelectionGroupAI::AI_tradeRoutes()
 			}
 			// transport feeder - end - Nightinggale
 
-			// WTP: reserved routes are served only by the transports assigned to them
-			if (isHuman() && pRoute->isReserved())
+			// WTP: reserved and private routes are served only by the transports assigned to them
+			if (pRoute->isPrivate() || (isHuman() && pRoute->isReserved()))
 			{
 				continue;
 			}
@@ -1120,7 +1120,8 @@ bool CvSelectionGroupAI::AI_tradeRoutes()
 
 				YieldTypes eYield = routes[i]->getYield();
 				int yieldsToUnload = aiYieldsLoaded[eYield];
-				if(pDestinationCity != NULL && pDestinationCity->getMaxImportAmount(eYield) > 0)
+				// WTP: a private route unloads without import limit
+				if(pDestinationCity != NULL && pDestinationCity->getMaxImportAmount(eYield) > 0 && !routes[i]->isPrivate())
 				{
 					int turnsToReach = 0;
 					generatePath(plot(), pDestinationCity->plot(), (bIgnoreDanger ? MOVE_IGNORE_DANGER : MOVE_NO_ENEMY_TERRITORY), true, &turnsToReach);
@@ -1173,7 +1174,8 @@ bool CvSelectionGroupAI::AI_tradeRoutes()
 				}
 			}
 			// R&R mod, vetiarvind, max yield import limit - start
-			if(pDestinationCity != NULL && pDestinationCity->getMaxImportAmount(eYield) > 0)
+			// WTP: a private route loads without import limit (see below)
+			if(pDestinationCity != NULL && pDestinationCity->getMaxImportAmount(eYield) > 0 && !routes[i]->isPrivate())
 			{
 				int turnsToReachToSource = 0, turnsToReachFromSourceToDest = 0;
 				// WTP: the paths are kept: source to this group once per source city of this call, source to destination
@@ -1240,6 +1242,11 @@ bool CvSelectionGroupAI::AI_tradeRoutes()
 				}
 
 				iAmount = estimateYieldsToLoad(pDestinationCity, iAmount, eYield, turnsRequired, aiYieldsLoaded[eYield]);
+			}
+			// WTP: a private route between colonies: no import limit, the route counts as viable
+			else if (pDestinationCity != NULL && routes[i]->isPrivate())
+			{
+				bNoRoute = false;
 			}
 			// Note that Europe has no import limit!
 			else if (pDestinationCity == NULL && routes[i]->getDestinationCity() == kEurope)
@@ -1388,7 +1395,7 @@ bool CvSelectionGroupAI::AI_tradeRoutes()
 
 					// R&R mod, vetiarvind, max yield import limit - start
 					int iOriginalAmount = iAmount;
-					const bool bDestinationHasImportLimit = pDestinationCity != NULL && pDestinationCity->getImportsLimit(eYield) > 0;
+					const bool bDestinationHasImportLimit = pDestinationCity != NULL && pDestinationCity->getImportsLimit(eYield) > 0 && !routes[i]->isPrivate(); // WTP: private: no limit
 					if (bDestinationHasImportLimit)
 					{
 						int turnsToReach = 0;

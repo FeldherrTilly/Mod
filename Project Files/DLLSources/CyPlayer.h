@@ -346,6 +346,7 @@ public:
 
 	int addTradeRoute(int iSourceCityOwner, int iSourceCityId, int iDestinationCityOwner, int iDestinationCityId, int /*YieldTypes*/ eYield);
 	bool removeTradeRoute(int iId);
+	int addPrivateTradeRoute(int iSourceCityId, int iDestinationCityId, int /*YieldTypes*/ eYield); // WTP
 	CyTradeRoute* getTradeRoute(int iId) const;
 	int getNumTradeRoutes() const;
 	CyTradeRoute* getTradeRouteByIndex(int iIndex) const;

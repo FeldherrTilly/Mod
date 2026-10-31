@@ -372,6 +372,22 @@ class CvEventManager:
 
 			return
 
+		# WTP: private trade route (iData3: source colony id, iData4: destination colony id or -1 for Europe, iData5: yield)
+		if (iData1 == 753):
+			iPlayer = iData2
+			if (iPlayer >= 0 and iPlayer < gc.getMAX_PLAYERS()):
+				gc.getPlayer(iPlayer).addPrivateTradeRoute(iData3, iData4, iData5)
+			return
+
+		# WTP: deletes a private trade route (iData3: route id)
+		if (iData1 == 754):
+			iPlayer = iData2
+			if (iPlayer >= 0 and iPlayer < gc.getMAX_PLAYERS()):
+				pRoute = gc.getPlayer(iPlayer).getTradeRoute(iData3)
+				if (pRoute.getID() == iData3 and pRoute.isPrivate()):
+					gc.getPlayer(iPlayer).removeTradeRoute(iData3)
+			return
+
 		# WTP: reserved trade route (iData3: route id, iData4: 1 reserves, 0 releases)
 		if (iData1 == 752):
 			iPlayer = iData2
