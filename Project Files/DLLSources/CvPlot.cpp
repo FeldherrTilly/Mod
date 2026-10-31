@@ -4837,7 +4837,8 @@ bool CvPlot::isValidDomainForAction(UnitTypes eUnit) const
 
 		// WTP, ray, Canal - START
 		// in Canals, which are actually on land plots, we do not want to have any Ships bigger than Coastal Ships or Fishing Boats
-		if (!isWater() && !kUnitInfo.getTerrainImpassable(TERRAIN_OCEAN) && !(kUnitInfo.isGatherBoat() && kUnitInfo.getHarbourSpaceNeeded() == 1) && getImprovementType() != NO_IMPROVEMENT && GC.getImprovementInfo(getImprovementType()).isCanal())
+		// WTP: ships that cannot sail to Europe count as coastal ships (see CvUnit::canMoveInto)
+		if (!isWater() && kUnitInfo.canSailToEurope() && !(kUnitInfo.isGatherBoat() && kUnitInfo.getHarbourSpaceNeeded() == 1) && getImprovementType() != NO_IMPROVEMENT && GC.getImprovementInfo(getImprovementType()).isCanal())
 		{
 			return false;
 		}
