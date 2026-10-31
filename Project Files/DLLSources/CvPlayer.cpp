@@ -21592,6 +21592,11 @@ void CvPlayer::buyLand(CvPlot* pPlot, bool bFree)
 	if (eOldOwner != NO_PLAYER)
 	{
 		pPlot->setCulture(eOldOwner, 0, false);
+		// WTP: bought land stays ours, native culture can't flip it back
+		if (GET_PLAYER(eOldOwner).isNative() && !isNative())
+		{
+			pPlot->setBoughtFromNatives(true);
+		}
 		if (!GET_TEAM(pPlot->getTeam()).isAtWar(getTeam()))
 		{
 			OOS_LOG("buy land war", pPlot->getTeam());

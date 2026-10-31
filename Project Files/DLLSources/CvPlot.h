@@ -340,6 +340,10 @@ public:
 	void setForceUnownedTimer(int iNewValue);
 	void changeForceUnownedTimer(int iChange);
 
+	// WTP: land bought from natives: native culture no longer counts on this plot
+	bool isBoughtFromNatives() const;
+	void setBoughtFromNatives(bool bNewValue);
+
 	int getCityRadiusCount() const;
 	int isCityRadius() const;
 	void changeCityRadiusCount(int iChange);
@@ -606,6 +610,7 @@ protected:
 	bool m_bPlotLayoutDirty:1;
 	bool m_bLayoutStateWorked:1;
 	bool m_bImpassable:1;
+	bool m_bBoughtFromNatives:1;
 	short m_eSiegeArt; // WTP: siege: the siege art shown (ImprovementTypes; not saved, only to notice changes)
 
 	PlotTypes m_ePlotType : 16;
