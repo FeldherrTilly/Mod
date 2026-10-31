@@ -394,6 +394,20 @@ void CvCity::kill()
 
 	removeTradeRoutes();
 
+	// WTP: private routes from or to this colony go with it (the export and import settings do not remove them)
+	{
+		CvPlayer& kOwner = GET_PLAYER(getOwnerINLINE());
+		std::vector<CvTradeRoute*> aRoutes;
+		kOwner.getTradeRoutes(aRoutes);
+		for (uint i = 0; i < aRoutes.size(); ++i)
+		{
+			if (aRoutes[i]->isPrivate() && (aRoutes[i]->getSourceCity() == getIDInfo() || aRoutes[i]->getDestinationCity() == getIDInfo()))
+			{
+				kOwner.removeTradeRoute(aRoutes[i]->getID());
+			}
+		}
+	}
+
 	if (isNative())
 	{
 		std::vector<CvUnit*> aUnits;
@@ -13549,7 +13563,7 @@ void CvCity::removeExport(YieldTypes eYield, bool bUpdateRoutes)
 				for (uint i = 0; i < aiRoutes.size(); ++i)
 				{
 					CvTradeRoute* pRoute = aiRoutes[i];
-					if (pRoute != NULL && pRoute->getSourceCity() == getIDInfo() && pRoute->getYield() == eYield)
+					if (pRoute != NULL && pRoute->getSourceCity() == getIDInfo() && pRoute->getYield() == eYield && !pRoute->isPrivate())
 					{
 						aiRouteIds.push_back(pRoute->getID());
 					}
@@ -13583,7 +13597,7 @@ void CvCity::updateExport(YieldTypes eYield)
 			for (uint i = 0; i < aiRoutes.size(); ++i)
 			{
 				CvTradeRoute* pRoute = aiRoutes[i];
-				if (pRoute != NULL && pRoute->getSourceCity() == getIDInfo() && pRoute->getYield() == eYield)
+				if (pRoute != NULL && pRoute->getSourceCity() == getIDInfo() && pRoute->getYield() == eYield && !pRoute->isPrivate())
 				{
 					++iExportCount;
 				}
@@ -13683,7 +13697,7 @@ void CvCity::removeImport(YieldTypes eYield, bool bUpdateRoutes)
 				for (uint i = 0; i < aiRoutes.size(); ++i)
 				{
 					CvTradeRoute* pRoute = aiRoutes[i];
-					if (pRoute != NULL && pRoute->getDestinationCity() == getIDInfo() && pRoute->getYield() == eYield)
+					if (pRoute != NULL && pRoute->getDestinationCity() == getIDInfo() && pRoute->getYield() == eYield && !pRoute->isPrivate())
 					{
 						aiRouteIds.push_back(pRoute->getID());
 					}
@@ -13717,7 +13731,7 @@ void CvCity::updateImport(YieldTypes eYield)
 			for (uint i = 0; i < aiRoutes.size(); ++i)
 			{
 				CvTradeRoute* pRoute = aiRoutes[i];
-				if (pRoute != NULL && pRoute->getDestinationCity() == getIDInfo() && pRoute->getYield() == eYield)
+				if (pRoute != NULL && pRoute->getDestinationCity() == getIDInfo() && pRoute->getYield() == eYield && !pRoute->isPrivate())
 				{
 					++iImportCount;
 				}

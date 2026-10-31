@@ -82,6 +82,9 @@ class CvTradeRoutesAdvisor:
 
 		# WTP: reserved routes (served only by the transports assigned to them, not by Automate Transport)
 		self.RESERVE_ID = 14
+		# WTP: private routes (made here, they leave the export and import settings of the colonies alone)
+		self.PRIVATE_ID = 16
+		self.DELETE_PRIVATE_ID = 17
 		
 		
 	def interfaceScreen (self):
@@ -124,6 +127,7 @@ class CvTradeRoutesAdvisor:
 		# WTP: (source id, destination id, yield) of the routes the last "add route" asked for; they get the tick of the builder row
 		self.PendingRoutes = []
 		self.bPendingAssigned = False
+		self.bPendingPrivate = False
 		self.ExistingRoutes = list(self.player.getViableTradeRoutes(self.pTransport))
 		for pRoute in self.ExistingRoutes:
  			rid = pRoute.getID()
@@ -204,9 +208,9 @@ class CvTradeRoutesAdvisor:
 		#R&R mod, vetiarvind, trade groups - end
 		
 		self.BUTTON_SIZE = 24
-		self.BUTTON_X = self.PANEL_WIDTH - self.STANDARD_MARGIN - self.BUTTON_SIZE * 4 - 6
+		self.BUTTON_X = self.PANEL_WIDTH - self.STANDARD_MARGIN - self.BUTTON_SIZE * 5 - 8
 		self.BUTTON_Y = self.STANDARD_MARGIN / 4
-		self.BUTTON_WIDTH = self.BUTTON_SIZE * 4 + 10
+		self.BUTTON_WIDTH = self.BUTTON_SIZE * 5 + 12
 		self.BUTTON_HEIGHT = self.BUTTON_SIZE + 2
 		
 		# Set the background and exit button, and show the screen
@@ -357,8 +361,10 @@ class CvTradeRoutesAdvisor:
 		szColor = u"<color=255,255,255>"
 		if pRoute.getDestinationCity().iID == self.EUROPE_CITY:
 			szColor = u"<color=170,170,170>"
-		# WTP: reserved routes in gold
-		if self.isReserved(pRoute):
+		# WTP: reserved routes in gold, private ones in blue
+		if pRoute.isPrivate():
+			szColor = u"<color=120,200,255>"
+		elif self.isReserved(pRoute):
 			szColor = u"<color=255,200,50>"
 		
 		return szColor
@@ -371,7 +377,7 @@ class CvTradeRoutesAdvisor:
 			if rid not in self.AssignedRoutes:
 				# WTP: the routes may come in over several updates (all yields): matched against the routes asked for
 				assigned = False
-				if (pRoute.getSourceCity().iID, pRoute.getDestinationCity().iID, pRoute.getYield()) in self.PendingRoutes:
+				if (pRoute.getSourceCity().iID, pRoute.getDestinationCity().iID, pRoute.getYield()) in self.PendingRoutes and pRoute.isPrivate() == self.bPendingPrivate:
 					assigned = self.bPendingAssigned
 				self.AssignedRoutes[rid] = assigned
 		
@@ -796,12 +802,17 @@ class CvTradeRoutesAdvisor:
 			if self.areCheckedRoutesReserved():
 				szReserveButton = "Art/Interface/Screens/TradeRoutes/Reserved.dds"
 			screen.appendMultiListButton(self.szButtonPanel, szReserveButton, 0, WidgetTypes.WIDGET_GENERAL, self.RESERVE_ID, -1, False)
+			screen.appendMultiListButton(self.szButtonPanel, "Art/Interface/Screens/TradeRoutes/Cancel.dds", 0, WidgetTypes.WIDGET_GENERAL, self.DELETE_PRIVATE_ID, -1, False)
 		elif self.CURRENT_TABLE == self.BUILDER_TABLE:
 			screen.appendMultiListButton(self.szButtonPanel, szRoutesButton, 0, WidgetTypes.WIDGET_GENERAL, self.ROUTES_ID, -1, False)
+			szPrivateButton = "Art/Interface/Screens/TradeRoutes/AddPrivateRoute.dds"
+			screen.appendMultiListButton(self.szButtonPanel, szPrivateButton, 0, WidgetTypes.WIDGET_GENERAL, self.PRIVATE_ID, -1, False)
 			if self.isSelectionReady():
 				screen.enableMultiListPulse(self.szButtonPanel, True, 0, 0)
+				screen.enableMultiListPulse(self.szButtonPanel, True, 0, 1)
 			else:
 				screen.disableMultiListButton(self.szButtonPanel, 0, 0, szRoutesButton)
+				screen.disableMultiListButton(self.szButtonPanel, 0, 1, szPrivateButton)
 		else:
 			screen.appendMultiListButton(self.szButtonPanel, szReturnButton, 0, WidgetTypes.WIDGET_GENERAL, self.RETURN_ID, -1, False)
 		
@@ -816,7 +827,31 @@ class CvTradeRoutesAdvisor:
 		return pRoute.isReserved()
 
 	def getCheckedRoutes(self):
-		return [pRoute for pRoute in self.CurrentList if self.AssignedRoutes.get(pRoute.getID(), False)]
+		return [pRoute for pRoute in self.CurrentList if self.AssignedRoutes.get(pRoute.getID(), False) and not pRoute.isPrivate()]
+
+	# WTP: private routes: deletes the ticked ones
+	def deleteCheckedPrivateRoutes(self):
+		for pRoute in self.CurrentList:
+			rid = pRoute.getID()
+			if pRoute.isPrivate() and self.AssignedRoutes.get(rid, False):
+				del self.AssignedRoutes[rid]
+				CyMessageControl().sendModNetMessage(754, self.player.getID(), rid, 0, 0)
+
+	# WTP: private routes for the selection (all yields: one per cargo yield); this transport gets them
+	def addPrivateSelection(self):
+		if not self.isSelectionReady():
+			return
+		lYields = [self.iYields]
+		if self.iYields == self.ALL_YIELDS:
+			lYields = self.YieldList
+		self.PendingRoutes = [(self.iExport, self.iImport, iYield) for iYield in lYields]
+		self.bPendingAssigned = True
+		self.bPendingPrivate = True
+		for pRoute in self.ExistingRoutes:
+			if pRoute.isPrivate() and (pRoute.getSourceCity().iID, pRoute.getDestinationCity().iID, pRoute.getYield()) in self.PendingRoutes:
+				self.AssignedRoutes[pRoute.getID()] = True
+		for iYield in lYields:
+			CyMessageControl().sendModNetMessage(753, self.player.getID(), self.iExport, self.iImport, iYield)
 
 	def areCheckedRoutesReserved(self):
 		lRoutes = self.getCheckedRoutes()
@@ -864,10 +899,11 @@ class CvTradeRoutesAdvisor:
 			lYields = self.YieldList
 		self.PendingRoutes = [(self.iExport, self.iImport, iYield) for iYield in lYields]
 		self.bPendingAssigned = self.bAssigned
+		self.bPendingPrivate = False
 		# routes that exist already get the tick at once (only new routes come with the update)
 		if self.bAssigned:
 			for pRoute in self.ExistingRoutes:
-				if (pRoute.getSourceCity().iID, pRoute.getDestinationCity().iID, pRoute.getYield()) in self.PendingRoutes:
+				if not pRoute.isPrivate() and (pRoute.getSourceCity().iID, pRoute.getDestinationCity().iID, pRoute.getYield()) in self.PendingRoutes:
 					self.AssignedRoutes[pRoute.getID()] = True
 		for iYield in lYields:
 			CyMessageControl().sendDoTask(self.iExport, TaskTypes.TASK_YIELD_EXPORT, iYield, True, False, False, False, False)
@@ -896,6 +932,10 @@ class CvTradeRoutesAdvisor:
 					self.toggleSelect()
 				elif inputClass.getData1() == self.DANGER_ID:
 					self.toggleDanger()
+				elif inputClass.getData1() == self.PRIVATE_ID:
+					self.addPrivateSelection()
+				elif inputClass.getData1() == self.DELETE_PRIVATE_ID:
+					self.deleteCheckedPrivateRoutes()
 				elif inputClass.getData1() == self.RESERVE_ID:
 					self.toggleReserved()
 				elif inputClass.getData1() == self.ROUTES_ID:
@@ -981,6 +1021,10 @@ class CvTradeRoutesAdvisor:
 					return localText.getText("TXT_KEY_TRADE_ROUTES_DESELECT_ROUTES_HELP", ())
 				else:
 					return localText.getText("TXT_KEY_TRADE_ROUTES_SELECT_ROUTES_HELP", ())
+			elif iData1 == self.PRIVATE_ID:
+				return localText.getText("TXT_KEY_TRADE_ROUTES_ADD_PRIVATE_HELP", ())
+			elif iData1 == self.DELETE_PRIVATE_ID:
+				return localText.getText("TXT_KEY_TRADE_ROUTES_DELETE_PRIVATE_HELP", ())
 			elif iData1 == self.RESERVE_ID:
 				if self.areCheckedRoutesReserved():
 					return localText.getText("TXT_KEY_TRADE_ROUTES_RELEASE_ROUTES_HELP", ())
@@ -1031,6 +1075,8 @@ class CvTradeRoutesAdvisor:
 		
 	def onClose(self) :
 		for iRoute, bAssigned in self.AssignedRoutes.iteritems():
+			if self.player.getTradeRoute(iRoute).getID() != iRoute: # WTP: the route was deleted meanwhile
+				continue
 			CyMessageControl().sendDoCommand(self.pTransport.getID(), CommandTypes.COMMAND_ASSIGN_TRADE_ROUTE, iRoute, bAssigned, False)
 		
 		return 0

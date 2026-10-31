@@ -475,6 +475,28 @@
 		<Hungarian>Minden áru: az útvonal hozzáadásakor a forráskolónia minden rakományárut exportál, a cél pedig importálja, áruként egy útvonal</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_TRADE_ROUTES_ADD_PRIVATE_HELP</Tag>
+		<English>Add as private route (blue): only this route for the chosen goods, the export and import settings of the colonies stay as they are. It unloads without import limit, Automate Transport never uses it, every transport can be assigned to it ([COLOR:140:255:40:255]&lt; Click &gt;[COLOR_REVERT])</English>
+		<Portuguese>Adicionar como rota privada (azul): só esta rota para as mercadorias escolhidas, as configurações de exportação e importação das colônias ficam como estão. Descarrega sem limite de importação, o Transporte automático nunca a usa, qualquer transporte pode ser atribuído a ela ([COLOR:140:255:40:255]&lt; Clique &gt;[COLOR_REVERT])</Portuguese>
+		<French>Ajouter comme route privée (bleue) : seulement cette route pour les marchandises choisies, les réglages d'exportation et d'importation des colonies restent inchangés. Elle décharge sans limite d'importation, le transport automatique ne l'utilise jamais, tout transport peut y être affecté ([COLOR:140:255:40:255]&lt; Cliquer &gt;[COLOR_REVERT])</French>
+		<German>Als private Route hinzufügen (blau): nur diese Route für die gewählten Waren, die Export- und Importeinstellungen der Kolonien bleiben wie sie sind. Sie entlädt ohne Importgrenze, der automatische Transport nutzt sie nie, jeder Transporter kann ihr zugewiesen werden ([COLOR:140:255:40:255]&lt; Anklicken &gt;[COLOR_REVERT])</German>
+		<Italian>Aggiungi come rotta privata (blu): solo questa rotta per le merci scelte, le impostazioni di esportazione e importazione delle colonie restano come sono. Scarica senza limite di importazione, il trasporto automatico non la usa mai, ogni trasporto può esservi assegnato ([COLOR:140:255:40:255]&lt; Clicca &gt;[COLOR_REVERT])</Italian>
+		<Spanish>Añadir como ruta privada (azul): solo esta ruta para las mercancías elegidas, los ajustes de exportación e importación de las colonias quedan como están. Descarga sin límite de importación, el transporte automático nunca la usa, cualquier transporte puede asignarse a ella ([COLOR:140:255:40:255]&lt; Clic &gt;[COLOR_REVERT])</Spanish>
+		<Russian>Добавить как частный маршрут (синий): только этот маршрут для выбранных товаров, настройки экспорта и импорта колоний не меняются. Он разгружается без лимита импорта, автоматический транспорт его не использует, на него можно назначить любой транспорт ([COLOR:140:255:40:255]Нажмите[COLOR_REVERT])</Russian>
+		<Hungarian>Hozzáadás magánútvonalként (kék): csak ez az útvonal a választott árukra, a kolóniák export- és importbeállításai nem változnak. Importkorlát nélkül rakodik ki, az automatikus szállítás sosem használja, bármely szállító hozzárendelhető ([COLOR:140:255:40:255]&lt; Klikk &gt;[COLOR_REVERT])</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRADE_ROUTES_DELETE_PRIVATE_HELP</Tag>
+		<English>Delete the ticked private routes (blue); other routes are not affected ([COLOR:140:255:40:255]&lt; Click &gt;[COLOR_REVERT])</English>
+		<Portuguese>Apagar as rotas privadas marcadas (azuis); as outras rotas não são afetadas ([COLOR:140:255:40:255]&lt; Clique &gt;[COLOR_REVERT])</Portuguese>
+		<French>Supprimer les routes privées cochées (bleues) ; les autres routes ne sont pas touchées ([COLOR:140:255:40:255]&lt; Cliquer &gt;[COLOR_REVERT])</French>
+		<German>Angehakte private Routen (blau) löschen; andere Routen bleiben unberührt ([COLOR:140:255:40:255]&lt; Anklicken &gt;[COLOR_REVERT])</German>
+		<Italian>Elimina le rotte private spuntate (blu); le altre rotte non cambiano ([COLOR:140:255:40:255]&lt; Clicca &gt;[COLOR_REVERT])</Italian>
+		<Spanish>Borrar las rutas privadas marcadas (azules); las demás rutas no cambian ([COLOR:140:255:40:255]&lt; Clic &gt;[COLOR_REVERT])</Spanish>
+		<Russian>Удалить отмеченные частные маршруты (синие); другие маршруты не затрагиваются ([COLOR:140:255:40:255]Нажмите[COLOR_REVERT])</Russian>
+		<Hungarian>A kipipált magánútvonalak (kék) törlése; a többi útvonal nem változik ([COLOR:140:255:40:255]&lt; Klikk &gt;[COLOR_REVERT])</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_TRADE_ROUTES_RESERVE_ROUTES_HELP</Tag>
 		<English>Reserve the ticked routes: only the transports assigned to them serve them, Automate Transport leaves them out. Reserved routes are shown in gold ([COLOR:140:255:40:255]&lt; Click &gt;[COLOR_REVERT])</English>
 		<Portuguese>Reservar as rotas marcadas: só os transportes atribuídos a elas as servem, o Transporte automático as ignora. As rotas reservadas aparecem em dourado ([COLOR:140:255:40:255]&lt; Clique &gt;[COLOR_REVERT])</Portuguese>

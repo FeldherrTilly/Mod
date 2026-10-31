@@ -25,5 +25,6 @@ void CyTradeRoutePythonInterface()
 		.def("getImportAmount", &CyTradeRoute::getImportAmount, "int ()")
 		.def("isReserved", &CyTradeRoute::isReserved, "bool ()") // WTP
 		.def("setReserved", &CyTradeRoute::setReserved, "void (bool bNewValue)") // WTP
+		.def("isPrivate", &CyTradeRoute::isPrivate, "bool ()") // WTP
 		;
 }

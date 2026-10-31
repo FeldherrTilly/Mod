@@ -60,6 +60,7 @@ void CyPlayerPythonInterface4(python::class_<CyPlayer>& x)
 		.def("clearDiploYieldAmounts", &CyPlayer::clearDiploYieldAmounts, "void ()")
 		.def("addTradeRoute", &CyPlayer::addTradeRoute, "int (int iSourceCityOwner, int iSourceCityId, int iDestinationCityOwner, int iDestinationCityId, int /*YieldTypes*/ eYield)")
 		.def("removeTradeRoute", &CyPlayer::removeTradeRoute, "bool (int iId)")
+		.def("addPrivateTradeRoute", &CyPlayer::addPrivateTradeRoute, "int (int iSourceCityId, int iDestinationCityId, int /*YieldTypes*/ eYield)") // WTP
 		.def("getTradeRoute", &CyPlayer::getTradeRoute, python::return_value_policy<python::manage_new_object>(), "CyTradeRoute (int iId)")
 		.def("getNumTradeRoutes", &CyPlayer::getNumTradeRoutes, "int ()")
 		.def("getTradeRouteByIndex", &CyPlayer::getTradeRouteByIndex, python::return_value_policy<python::manage_new_object>(), "CyTradeRoute (int iIndex)")
