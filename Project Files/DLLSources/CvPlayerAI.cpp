@@ -19237,7 +19237,7 @@ namespace
 		int iBlockedJob;
 		std::vector<int> aiRaw; // planned raw production per yield (center plot included)
 		std::vector<int> aiUse; // planned consumption per yield
-		std::vector<int> aiStock; // part of aiRaw that comes from the stock (a tenth of it), not from production
+		std::vector<int> aiStock; // part of aiRaw that comes from the stock (a fifth of it), not from production
 	};
 
 	struct WfCand
@@ -19613,7 +19613,7 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		}
 		for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
 		{
-			kCity.aiStock[eYield] = pCity->getYieldStored(eYield) / 10;
+			kCity.aiStock[eYield] = pCity->getYieldStored(eYield) / 5;
 			kCity.aiRaw[eYield] += kCity.aiStock[eYield];
 		}
 		aCities.push_back(kCity);
