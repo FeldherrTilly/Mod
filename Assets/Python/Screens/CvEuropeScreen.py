@@ -740,7 +740,7 @@ class CvEuropeScreen:
 							pCity, pPlot = self.CityPlotList[index][0], self.CityPlotList[index][1]
 							if pCity != None:
 								if pPlot == None:
-									pPlot = self.getBestCityPlot(pCity.plot()) 
+									pPlot = self.getBestCityPlot(pCity.plot(), transport)
 									self.CityPlotList[index] = [pCity, pPlot]
 								CyMessageControl().sendApplyEvent(CvUtil.EventDoEuropeScreen, EventContextTypes.EVENTCONTEXT_ALL, (SEND_TO_NEW_WORLD_CITY, inputClass.getData2(), pPlot.getX(), pPlot.getY(), pCity.plot().getX(), pCity.plot().getY(), -1, -1, -1))
 								CyMessageControl().sendDoCommand(inputClass.getData2(), CommandTypes.COMMAND_SAIL_TO_EUROPE, UnitTravelStates.UNIT_TRAVEL_STATE_FROM_EUROPE, -1, False)
@@ -1274,7 +1274,13 @@ class CvEuropeScreen:
 		return pCenterPlot
 	
 	
-	def getBestCityPlot (self, pCityPlot) :
+	def getBestCityPlot (self, pCityPlot, transport = None) :
+		# WTP: the Europe plot nearest by sea (the nearest one as the crow flies was taken if the way by sea was at most half the
+		# map width, so ships for a colony behind a cape came out on its far side)
+		if transport != None and not transport.isNone():
+			pArrival = transport.findEuropeArrivalPlot(pCityPlot)
+			if pArrival != None and not pArrival.isNone():
+				return pArrival
 		pBestPlot = self.getNextOceanPlot(pCityPlot, self.EuropePlotList)
 		iPath = self.getPathDistance(pBestPlot, pCityPlot)
 		

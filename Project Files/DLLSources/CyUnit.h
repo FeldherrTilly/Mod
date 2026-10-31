@@ -170,6 +170,7 @@ public:
 	bool at(int iX, int iY);
 	bool atPlot(CyPlot* pPlot);
 	CyPlot* plot();
+	CyPlot* findEuropeArrivalPlot(CyPlot* pTarget); // WTP
 	CyArea* area();
 	int getGameTurnCreated();
 	int getDamage();
