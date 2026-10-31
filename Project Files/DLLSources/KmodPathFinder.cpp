@@ -535,7 +535,17 @@ bool KmodPathFinder::ProcessNode()
 	ProcessNodesInternal pni(parent_node, child_nodes, settings, start_x, start_y, dest_x, dest_y, pno);
 	const int grainSize = 3; // 1 seems to result in too little work per task
 	const tbb::blocked_range<size_t> range = tbb::blocked_range<size_t>(0, child_nodes.size(), grainSize);
-	Threads::parallel_for(range, pni, tbb::auto_partitioner());
+	// WTP: MOVE_ATTACK_STACK computes the battle cost per plot in pathCost, and AI_localDefenceStrength writes the team's strength
+	// memory there (its first write resizes the vector): not from several threads (reproducible runtime error, a Swedish stack
+	// on its way to a native village)
+	if (settings.iFlags & MOVE_ATTACK_STACK)
+	{
+		pni(range);
+	}
+	else
+	{
+		Threads::parallel_for(range, pni, tbb::auto_partitioner());
+	}
 
 	for (size_t i=0; i<pno.size(); i++)
 	{
