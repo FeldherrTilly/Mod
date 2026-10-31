@@ -44,11 +44,16 @@ public:
 	int getDistanceBetweenCities() const;
 	int getImportAmount() const;
 
+	// WTP: a reserved route is served only by the transports it is assigned to, never by Automate Transport (full)
+	bool isReserved() const;
+	void setReserved(bool bNewValue);
+
 protected:
 	int m_iId;
 	IDInfo m_kSourceCity;
 	IDInfo m_kDestinationCity;
 	YieldTypes m_eYield;
+	bool m_bReserved;
 
 	void setActiveDirty();
 };

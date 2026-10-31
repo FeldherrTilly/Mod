@@ -453,6 +453,28 @@
 		<Hungarian>Vissza a szállítási útvonalak nézethez</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_TRADE_ROUTES_RESERVE_ROUTES_HELP</Tag>
+		<English>Reserve the ticked routes: only the transports assigned to them serve them, Automate Transport leaves them out. Reserved routes are shown in gold ([COLOR:140:255:40:255]&lt; Click &gt;[COLOR_REVERT])</English>
+		<Portuguese>Reservar as rotas marcadas: só os transportes atribuídos a elas as servem, o Transporte automático as ignora. As rotas reservadas aparecem em dourado ([COLOR:140:255:40:255]&lt; Clique &gt;[COLOR_REVERT])</Portuguese>
+		<French>Réserver les routes cochées : seuls les transports qui leur sont affectés les desservent, le transport automatique les ignore. Les routes réservées sont affichées en or ([COLOR:140:255:40:255]&lt; Cliquer &gt;[COLOR_REVERT])</French>
+		<German>Angehakte Routen reservieren: Nur die ihnen zugewiesenen Transporter fahren sie, der automatische Transport lässt sie aus. Reservierte Routen sind golden ([COLOR:140:255:40:255]&lt; Anklicken &gt;[COLOR_REVERT])</German>
+		<Italian>Riserva le rotte spuntate: le servono solo i trasporti assegnati, il trasporto automatico le esclude. Le rotte riservate sono mostrate in oro ([COLOR:140:255:40:255]&lt; Clicca &gt;[COLOR_REVERT])</Italian>
+		<Spanish>Reservar las rutas marcadas: solo las sirven los transportes asignados a ellas, el transporte automático las omite. Las rutas reservadas se muestran en dorado ([COLOR:140:255:40:255]&lt; Clic &gt;[COLOR_REVERT])</Spanish>
+		<Russian>Зарезервировать отмеченные маршруты: их обслуживают только назначенные на них транспорты, автоматический транспорт их пропускает. Зарезервированные маршруты показаны золотым ([COLOR:140:255:40:255]Нажмите[COLOR_REVERT])</Russian>
+		<Hungarian>A kipipált útvonalak lefoglalása: csak a hozzájuk rendelt szállítók járják őket, az automatikus szállítás kihagyja őket. A lefoglalt útvonalak aranyszínűek ([COLOR:140:255:40:255]&lt; Klikk &gt;[COLOR_REVERT])</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRADE_ROUTES_RELEASE_ROUTES_HELP</Tag>
+		<English>The ticked routes are reserved: release them for Automate Transport again ([COLOR:140:255:40:255]&lt; Click &gt;[COLOR_REVERT])</English>
+		<Portuguese>As rotas marcadas estão reservadas: liberá-las de novo para o Transporte automático ([COLOR:140:255:40:255]&lt; Clique &gt;[COLOR_REVERT])</Portuguese>
+		<French>Les routes cochées sont réservées : les rendre de nouveau au transport automatique ([COLOR:140:255:40:255]&lt; Cliquer &gt;[COLOR_REVERT])</French>
+		<German>Die angehakten Routen sind reserviert: wieder für den automatischen Transport freigeben ([COLOR:140:255:40:255]&lt; Anklicken &gt;[COLOR_REVERT])</German>
+		<Italian>Le rotte spuntate sono riservate: rendile di nuovo al trasporto automatico ([COLOR:140:255:40:255]&lt; Clicca &gt;[COLOR_REVERT])</Italian>
+		<Spanish>Las rutas marcadas están reservadas: liberarlas de nuevo para el transporte automático ([COLOR:140:255:40:255]&lt; Clic &gt;[COLOR_REVERT])</Spanish>
+		<Russian>Отмеченные маршруты зарезервированы: снова открыть их для автоматического транспорта ([COLOR:140:255:40:255]Нажмите[COLOR_REVERT])</Russian>
+		<Hungarian>A kipipált útvonalak le vannak foglalva: újra átadás az automatikus szállításnak ([COLOR:140:255:40:255]&lt; Klikk &gt;[COLOR_REVERT])</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_TRADE_ROUTES_IGNORE_DANGER_HELP</Tag>
 		<English>Unit does currently stop when an enemy comes into view ([COLOR:140:255:40:255]&lt; Click &gt;[COLOR_REVERT] to change)</English>
 		<Portuguese>A unidade atualmente para quando um inimigo aparece ([COLOR:140:255:40:255]&lt; Clique em &gt;[COLOR_REVERT] para mudar)</Portuguese>
