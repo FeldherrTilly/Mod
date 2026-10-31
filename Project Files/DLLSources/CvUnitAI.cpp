@@ -17395,6 +17395,7 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 	CvPlot* pBestFoundPlot = NULL;
 	bool bBestIsTransport = false;
 	bool bTransportPath = false;
+	int iBestPathTurns = 0;
 
 	std::vector<std::pair<int, std::pair<int, int> > > aCandidates; // WTP: (estimated value, (value, plot index))
 	// WTP: the site chosen before is kept unless another one is clearly better: switching between nearly equal sites
@@ -17427,6 +17428,7 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 	// WTP: own settlers keep their distance too: no site within 3 plots of another own settler's site (two settlers
 	// walked to neighbouring plots for many turns)
 	std::vector<const CvPlot*> aOwnFoundTargets;
+	static const ProfessionTypes eSettlerProfession = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_SETTLER");
 	{
 		int iUnitLoop;
 		for (CvUnit* pLoopUnit = kOwner.firstUnit(&iUnitLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iUnitLoop))
@@ -17458,6 +17460,21 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 				if (plotDistance(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), aOwnFoundTargets[iTarget]->getX_INLINE(), aOwnFoundTargets[iTarget]->getY_INLINE()) <= 3)
 				{
 					bTakenByOthers = true;
+				}
+			}
+			// WTP: a site another settler (ours or foreign) already stands on is taken (a Swedish settler reached a gold site
+			// a Dutch settler stood on and lost it the next turn)
+			if (!bTakenByOthers && pLoopPlot->getNumUnits() > 0 && pLoopPlot->isVisible(getTeam(), false))
+			{
+				CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
+				while (pUnitNode != NULL && !bTakenByOthers)
+				{
+					const CvUnit* const pLoopUnit = pLoopPlot->getUnitNodeLoop(pUnitNode);
+					if (pLoopUnit != NULL && pLoopUnit->getGroup() != getGroup() && !pLoopUnit->isCargo() && pLoopUnit->canFound(NULL)
+						&& (pLoopUnit->AI_getUnitAIType() == UNITAI_SETTLER || (eSettlerProfession != NO_PROFESSION && pLoopUnit->getProfession() == eSettlerProfession)))
+					{
+						bTakenByOthers = true;
+					}
 				}
 			}
 			if (!bTakenByOthers && canFound(pLoopPlot))
@@ -17543,7 +17560,31 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 				pBestPlot = atPlot(pLoopPlot) ? pLoopPlot : (bTransport ? pTransportUnit->getPathEndTurnPlot() : getPathEndTurnPlot());
 				pBestFoundPlot = pLoopPlot;
 				bBestIsTransport = bTransport;
+				iBestPathTurns = iPathTurns;
 			}
+		}
+	}
+
+	// WTP: a walk of more than 5 turns to a coastal site is made by ship (a Swedish settler walked 11 turns through forest
+	// and hills to a site 5 plots away): the settler waits for a transport if one of ours could sail there within 5 turns
+	// (estimated by distance; aboard, the site has to be reachable within 6 turns, see above)
+	if (pBestFoundPlot != NULL && !bBestIsTransport && !isCargo() && !bFirstCity && iBestPathTurns > 5 && pBestFoundPlot->isCoastalLand())
+	{
+		int iBestShipMoves = 0;
+		int iUnitLoop;
+		for (CvUnit* pLoopUnit = kOwner.firstUnit(&iUnitLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iUnitLoop))
+		{
+			if (pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && pLoopUnit->isOnMap() && pLoopUnit->cargoSpace() > 0)
+			{
+				iBestShipMoves = std::max(iBestShipMoves, pLoopUnit->baseMoves());
+			}
+		}
+		if (iBestShipMoves > 0 && plotDistance(getX_INLINE(), getY_INLINE(), pBestFoundPlot->getX_INLINE(), pBestFoundPlot->getY_INLINE()) <= 5 * iBestShipMoves
+			&& AI_requestPickup())
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler %S at %d,%d waits for a ship: the walk to %d,%d takes %d turns",
+				getNameAndProfession().GetCString(), getX_INLINE(), getY_INLINE(), pBestFoundPlot->getX_INLINE(), pBestFoundPlot->getY_INLINE(), iBestPathTurns);
+			return true;
 		}
 	}
 
@@ -20273,7 +20314,14 @@ bool CvUnitAI::AI_improveCity(CvCity* pCity)
 			if (canBuild(plot(), eBuild, true) && (!bNoWayRoads || GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(plot(), MISSIONAI_BUILD, getGroup()) == 0))
 			{
 				getGroup()->pushMission(MISSION_BUILD, eBuild, -1, 0, false, false, MISSIONAI_BUILD, plot());
-				return true;
+				// WTP: a build that cannot start (the mission is gone at once) is no task: a Swedish pioneer stood on its plot
+				// for 7 turns without a mission and tried nothing else
+				if (getGroup()->getLengthMissionQueue() > 0)
+				{
+					return true;
+				}
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "%S at %d,%d: %S does not start here (can build %d)", getName().GetCString(),
+					getX_INLINE(), getY_INLINE(), GC.getBuildInfo(eBuild).getDescription(), (int)canBuild(plot(), eBuild));
 			}
 		}
 	}
@@ -20329,7 +20377,14 @@ bool CvUnitAI::AI_improveCity(CvCity* pCity)
 		getGroup()->pushMission(eMission, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_BUILD, pBestPlot);
 		getGroup()->pushMission(MISSION_BUILD, eBestBuild, -1, 0, (getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pBestPlot);
 
-		return true;
+		// WTP: a build that cannot start is no task (see above)
+		if (getGroup()->getLengthMissionQueue() > 0)
+		{
+			return true;
+		}
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "%S at %d,%d: %S at %d,%d does not start (can build %d)", getName().GetCString(),
+			getX_INLINE(), getY_INLINE(), GC.getBuildInfo(eBestBuild).getDescription(), pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(),
+			(int)canBuild(pBestPlot, eBestBuild));
 	}
 
 	return false;
