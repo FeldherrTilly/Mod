@@ -1921,6 +1921,9 @@ void CvUnitAI::AI_workerMove()
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	CvCity* pCity = (plot()->getOwnerINLINE() == getOwnerINLINE()) ? plot()->getPlotCity() : NULL;
 	bool bDanger = GET_PLAYER(getOwnerINLINE()).AI_getUnitDanger(this, 2, false, false);
+	// WTP: in its own colony a pioneer waits only while an enemy is next to it; with enemies further away it goes on with the
+	// plots where no enemy is near (pioneers stood in their colony for up to 12 turns while an enemy was 2 plots away)
+	bool bSafeWorkOnly = false;
 	if (bDanger)
 	{
 		if (pCity != NULL)
@@ -1932,15 +1935,19 @@ void CvUnitAI::AI_workerMove()
 				return;
 			}
 		}
-		if (AI_retreatToCity())
+		bSafeWorkOnly = pCity != NULL && !isCargo() && kOwner.AI_getUnitDanger(this, 1, false, false) == 0;
+		if (!bSafeWorkOnly)
 		{
-			AI_logPioneer("danger: retreats to a colony");
-			return;
-		}
-		if (AI_safety())
-		{
-			AI_logPioneer("danger: to safety");
-			return;
+			if (AI_retreatToCity())
+			{
+				AI_logPioneer("danger: retreats to a colony");
+				return;
+			}
+			if (AI_safety())
+			{
+				AI_logPioneer("danger: to safety");
+				return;
+			}
 		}
 	}
 	// WTP: a surplus pioneer chosen by the player goes to its colony and joins it
@@ -2032,6 +2039,14 @@ void CvUnitAI::AI_workerMove()
 	if (GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned() && AI_wfImproveStages())
 	{
 		AI_logPioneer("improvement stages (resources, lumber, food)");
+		return;
+	}
+
+	// WTP: with an enemy near its colony only the plots without danger (the stages and roads above), else it waits there
+	if (bSafeWorkOnly)
+	{
+		getGroup()->pushMission(MISSION_SKIP);
+		AI_logPioneer("danger near its colony: waits there");
 		return;
 	}
 
@@ -21212,15 +21227,23 @@ bool CvUnitAI::AI_routeCityNear(int iMaxDistance)
 			|| plotDistance(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), pRouteToCity->getX_INLINE(), pRouteToCity->getY_INLINE()) > iMaxDistance
 			|| kOwner.AI_plotTargetMissionAIs(pRouteToCity->plot(), MISSIONAI_BUILD, getGroup()) > 0
 			|| (pRouteToCity->AI_getRouteToCity() == pLoopCity && kOwner.AI_plotTargetMissionAIs(pLoopCity->plot(), MISSIONAI_BUILD, getGroup()) > 0)
-			|| pLoopCity->plot()->isVisibleEnemyUnit(this) || pRouteToCity->plot()->isVisibleEnemyUnit(this))
+			|| pLoopCity->plot()->isVisibleEnemyUnit(this) || pRouteToCity->plot()->isVisibleEnemyUnit(this)
+			|| kOwner.AI_getPlotDanger(pLoopCity->plot(), 2, false) > 0 || kOwner.AI_getPlotDanger(pRouteToCity->plot(), 2, false) > 0)
 		{
 			continue;
 		}
-		if (generatePath(pLoopCity->plot(), MOVE_SAFE_TERRITORY, true))
+		// WTP: the road itself must be buildable in safe territory (between colonies with native land in between the road
+		// mission found no way and ended at once, and the pioneer chose the same road again every turn)
+		if (generatePath(pLoopCity->plot(), MOVE_SAFE_TERRITORY, true)
+			&& getGroup()->generatePath(pLoopCity->plot(), pRouteToCity->plot(), MOVE_SAFE_TERRITORY, false))
 		{
 			getGroup()->pushMission(MISSION_MOVE_TO, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), MOVE_SAFE_TERRITORY, false, false, MISSIONAI_BUILD, pRouteToCity->plot());
 			getGroup()->pushMission(MISSION_ROUTE_TO, pRouteToCity->getX_INLINE(), pRouteToCity->getY_INLINE(), MOVE_SAFE_TERRITORY, (getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pRouteToCity->plot());
-			return true;
+			// (the road exists already or the mission failed at once: the next connection)
+			if (getGroup()->getLengthMissionQueue() > 0)
+			{
+				return true;
+			}
 		}
 	}
 	return false;
@@ -21276,7 +21299,8 @@ bool CvUnitAI::AI_wfImproveStages()
 			}
 			CvPlot* const pLoopPlot = plotCity(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), eLoopCityPlot);
 			if (pLoopPlot == NULL || pLoopPlot->isWater() || pLoopPlot->area() != area() || pLoopPlot->getWorkingCity() != pLoopCity
-				|| pLoopPlot->isVisibleEnemyUnit(this) || kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_BUILD, getGroup()) > 0)
+				|| pLoopPlot->isVisibleEnemyUnit(this) || kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_BUILD, getGroup()) > 0
+				|| kOwner.AI_getPlotDanger(pLoopPlot, 2, false) > 0) // WTP: no plot an enemy is near
 			{
 				continue;
 			}
