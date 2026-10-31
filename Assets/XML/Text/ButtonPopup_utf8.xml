@@ -453,6 +453,28 @@
 		<Hungarian>Vissza a szállítási útvonalak nézethez</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_TRADE_ROUTES_ALL_YIELDS</Tag>
+		<English>All goods</English>
+		<Portuguese>Todas as mercadorias</Portuguese>
+		<French>Toutes les marchandises</French>
+		<German>Alle Waren</German>
+		<Italian>Tutte le merci</Italian>
+		<Spanish>Todas las mercancías</Spanish>
+		<Russian>Все товары</Russian>
+		<Hungarian>Minden áru</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRADE_ROUTES_ALL_YIELDS_HELP</Tag>
+		<English>All goods: adding the route sets the export of every cargo good in the source colony and its import in the destination, one route per good</English>
+		<Portuguese>Todas as mercadorias: ao adicionar a rota, a colônia de origem exporta todas as mercadorias de carga e o destino as importa, uma rota por mercadoria</Portuguese>
+		<French>Toutes les marchandises : ajouter la route règle l'exportation de chaque marchandise dans la colonie de départ et son importation à destination, une route par marchandise</French>
+		<German>Alle Waren: Beim Hinzufügen exportiert die Quellkolonie jede Frachtware und das Ziel importiert sie, eine Route pro Ware</German>
+		<Italian>Tutte le merci: aggiungendo la rotta, la colonia di partenza esporta ogni merce da carico e la destinazione la importa, una rotta per merce</Italian>
+		<Spanish>Todas las mercancías: al añadir la ruta, la colonia de origen exporta cada mercancía de carga y el destino la importa, una ruta por mercancía</Spanish>
+		<Russian>Все товары: при добавлении маршрута колония-источник экспортирует каждый грузовой товар, а пункт назначения импортирует его, по маршруту на товар</Russian>
+		<Hungarian>Minden áru: az útvonal hozzáadásakor a forráskolónia minden rakományárut exportál, a cél pedig importálja, áruként egy útvonal</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_TRADE_ROUTES_RESERVE_ROUTES_HELP</Tag>
 		<English>Reserve the ticked routes: only the transports assigned to them serve them, Automate Transport leaves them out. Reserved routes are shown in gold ([COLOR:140:255:40:255]&lt; Click &gt;[COLOR_REVERT])</English>
 		<Portuguese>Reservar as rotas marcadas: só os transportes atribuídos a elas as servem, o Transporte automático as ignora. As rotas reservadas aparecem em dourado ([COLOR:140:255:40:255]&lt; Clique &gt;[COLOR_REVERT])</Portuguese>

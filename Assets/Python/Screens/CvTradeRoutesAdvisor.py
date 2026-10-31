@@ -53,6 +53,8 @@ class CvTradeRoutesAdvisor:
 		
 		# Selection enums
 		self.NO_YIELD = -1
+		self.ALL_YIELDS = -2 # WTP: one export/import setting for every cargo yield
+		self.ALL_YIELDS_BOX = 999 # widget name suffix of its box in the yield table
 		self.EUROPE_CITY = -1
 		self.NO_CITY = -2
 		
@@ -119,6 +121,9 @@ class CvTradeRoutesAdvisor:
 		# Trade routes
 		self.ExistingRoutes, self.AssignedRoutes = [], {}
 		self.ReservedRoutes = {}
+		# WTP: (source id, destination id, yield) of the routes the last "add route" asked for; they get the tick of the builder row
+		self.PendingRoutes = []
+		self.bPendingAssigned = False
 		self.ExistingRoutes = list(self.player.getViableTradeRoutes(self.pTransport))
 		for pRoute in self.ExistingRoutes:
  			rid = pRoute.getID()
@@ -296,7 +301,7 @@ class CvTradeRoutesAdvisor:
 			self.CURRENT_TABLE = self.LIMITED_ROUTES
 			self.CurrentList = []
 			for pRoute in self.ExistingRoutes:
-				if self.iYields == self.NO_YIELD or self.iYields == pRoute.getYield():
+				if self.iYields in [self.NO_YIELD, self.ALL_YIELDS] or self.iYields == pRoute.getYield():
 					if self.iExport == self.NO_CITY or self.iExport == pRoute.getSourceCity().iID:
 						if self.iImport == self.NO_CITY or self.iImport == pRoute.getDestinationCity().iID:
 							self.CurrentList.append(pRoute)
@@ -364,11 +369,10 @@ class CvTradeRoutesAdvisor:
 		for pRoute in self.ExistingRoutes:
 			rid = pRoute.getID()
 			if rid not in self.AssignedRoutes:
+				# WTP: the routes may come in over several updates (all yields): matched against the routes asked for
 				assigned = False
-				if self.iYields == pRoute.getYield():
-					if self.iExport == pRoute.getSourceCity().iID:
-						if self.iImport == pRoute.getDestinationCity().iID:
-							assigned = self.bAssigned
+				if (pRoute.getSourceCity().iID, pRoute.getDestinationCity().iID, pRoute.getYield()) in self.PendingRoutes:
+					assigned = self.bPendingAssigned
 				self.AssignedRoutes[rid] = assigned
 		
 		self.bAssigned = False
@@ -385,7 +389,9 @@ class CvTradeRoutesAdvisor:
 		
 		szAssigned = u""
 		szYields = localText.getText("TXT_KEY_TRADE_ROUTES_MISSING_YIELD", ())
-		if self.iYields != self.NO_YIELD:
+		if self.iYields == self.ALL_YIELDS:
+			szYields = localText.getText("TXT_KEY_TRADE_ROUTES_ALL_YIELDS", ())
+		elif self.iYields != self.NO_YIELD:
 			szYields = u"<font=3>%c</font>" % gc.getYieldInfo(self.iYields).getChar()
 		szExport = localText.getText("TXT_KEY_TRADE_ROUTES_MISSING_CITY", ())
 		if self.iExport != self.NO_CITY:
@@ -467,8 +473,21 @@ class CvTradeRoutesAdvisor:
 			if (iYield % iRows) + 1 == iRows:
 				YIELD_X = 0
 				YIELD_Y += BOX_SIZE
-		
+
+		# WTP: all yields at once, in the next box
+		szAll = str(self.ALL_YIELDS_BOX)
+		screen.addDDSGFCAt(szTable + "Highlight" + szAll, szTable, "Art/Interface/Screens/TradeRoutes/BoxSelected.dds", YIELD_X, YIELD_Y, BOX_SIZE, BOX_SIZE, WidgetTypes.WIDGET_GENERAL, -1, -1, False)
+		screen.hide(szTable + "Highlight" + szAll)
+		screen.addDDSGFCAt(szTable + "Box" + szAll, szTable, ArtFileMgr.getInterfaceArtInfo("INTERFACE_EUROPE_BOX_PRICE").getPath(), YIELD_X, YIELD_Y, BOX_SIZE, BOX_SIZE, WidgetTypes.WIDGET_GENERAL, -1, -1, False)
+		screen.setImageButtonAt(szTable + "Selector" + szAll, szTable + "Box" + szAll, self.getYieldIcon(self.ALL_YIELDS), BOX_SIZE / 6, BOX_SIZE / 6, BOX_SIZE * 2 / 3, BOX_SIZE * 2 / 3, WidgetTypes.WIDGET_GENERAL, self.YIELD_LIST_ID, self.ALL_YIELDS)
+
 		self.updateButtons()
+
+	# WTP: the icon of a yield, or of all yields
+	def getYieldIcon(self, iYield):
+		if iYield == self.ALL_YIELDS:
+			return "Art/Interface/Screens/TradeRoutes/AllYields.dds"
+		return gc.getYieldInfo(iYield).getIcon()
 		
 	
 	def cityTable(self, bImport):
@@ -482,7 +501,7 @@ class CvTradeRoutesAdvisor:
 			
 		szTable = self.TableNames[self.CURRENT_TABLE]
 		szYieldHeader = u""
-		if self.iYields != self.NO_YIELD:
+		if self.iYields >= 0:
 			szYieldHeader = u"<font=3>%c</font>" % gc.getYieldInfo(self.iYields).getChar()
 			
 		screen.modifyLabel(self.szTitle, u"<font=3b>" + self.TableLabel[self.CURRENT_TABLE] + u"</font>", CvUtil.FONT_LEFT_JUSTIFY)
@@ -645,7 +664,7 @@ class CvTradeRoutesAdvisor:
 	def getRate(self, city):
 		szLabel = u"-"
 	
-		if self.iYields != self.NO_YIELD:
+		if self.iYields >= 0:
 			iRate = city.getYieldRate(self.iYields)
 			if iRate > 0:
 				szLabel = u"<color=63,255,63>+" + str(iRate) + u"</color>"
@@ -658,7 +677,7 @@ class CvTradeRoutesAdvisor:
 	def getExport(self, city):
 		szLabel = u"-"
 		
-		if self.iYields != self.NO_YIELD:
+		if self.iYields >= 0:
 			bExport = city.isExport(self.iYields)
 			bImport = city.isImport(self.iYields)
 			
@@ -703,7 +722,7 @@ class CvTradeRoutesAdvisor:
 		if self.iYields != self.NO_YIELD:
 			screen.hide(self.szPreviewYields + "Title")
 			screen.show(self.szPreviewYields + "Cancel")
-			screen.addDDSGFC(self.szPreviewYields, gc.getYieldInfo(self.iYields).getIcon(), self.PREVIEW_X + self.PREVIEW_WIDTH / 4, self.PREVIEW_Y + self.PREVIEW_HEIGHT / 4, self.PREVIEW_WIDTH / 2, self.PREVIEW_WIDTH / 2, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.addDDSGFC(self.szPreviewYields, self.getYieldIcon(self.iYields), self.PREVIEW_X + self.PREVIEW_WIDTH / 4, self.PREVIEW_Y + self.PREVIEW_HEIGHT / 4, self.PREVIEW_WIDTH / 2, self.PREVIEW_WIDTH / 2, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			screen.moveToFront(self.szPreviewYields + "Border" + str(0))
 		else:
 			screen.hide(self.szPreviewYields)
@@ -839,9 +858,21 @@ class CvTradeRoutesAdvisor:
 		if not self.isSelectionReady():
 			return
 			
-		CyMessageControl().sendDoTask(self.iExport, TaskTypes.TASK_YIELD_EXPORT, self.iYields, True, False, False, False, False)
-		if self.iImport > self.EUROPE_CITY:
-			CyMessageControl().sendDoTask(self.iImport, TaskTypes.TASK_YIELD_IMPORT, self.iYields, True, False, False, False, False)
+		# WTP: all yields: the export and import of every cargo yield
+		lYields = [self.iYields]
+		if self.iYields == self.ALL_YIELDS:
+			lYields = self.YieldList
+		self.PendingRoutes = [(self.iExport, self.iImport, iYield) for iYield in lYields]
+		self.bPendingAssigned = self.bAssigned
+		# routes that exist already get the tick at once (only new routes come with the update)
+		if self.bAssigned:
+			for pRoute in self.ExistingRoutes:
+				if (pRoute.getSourceCity().iID, pRoute.getDestinationCity().iID, pRoute.getYield()) in self.PendingRoutes:
+					self.AssignedRoutes[pRoute.getID()] = True
+		for iYield in lYields:
+			CyMessageControl().sendDoTask(self.iExport, TaskTypes.TASK_YIELD_EXPORT, iYield, True, False, False, False, False)
+			if self.iImport > self.EUROPE_CITY:
+				CyMessageControl().sendDoTask(self.iImport, TaskTypes.TASK_YIELD_IMPORT, iYield, True, False, False, False, False)
 				
 	
 	def isSelectionEmpty(self):
@@ -966,6 +997,8 @@ class CvTradeRoutesAdvisor:
 				return localText.getText("TXT_KEY_TRADE_ROUTES_RETURN_HELP", ())
 			elif iData1 == self.YIELD_TABLE_ID:
 				return localText.getText("TXT_KEY_TRADE_ROUTES_YIELD_HELP", ())
+			elif iData1 == self.YIELD_LIST_ID and iData2 == self.ALL_YIELDS:
+				return localText.getText("TXT_KEY_TRADE_ROUTES_ALL_YIELDS_HELP", ())
 			elif iData1 == self.EXPORT_TABLE_ID:
 				return localText.getText("TXT_KEY_TRADE_ROUTES_EXPORT_HELP", ())
 			elif iData1 == self.IMPORT_TABLE_ID:
