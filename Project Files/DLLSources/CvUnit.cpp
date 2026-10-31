@@ -4875,6 +4875,15 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 		}
 		break;
 
+	// WTP: native supply automation: a human player's coastal ship (cargo, no fishing or whaling boat) on the map
+	case AUTOMATE_NATIVE_SUPPLY:
+		if (!isHuman() || isNative() || getDomainType() != DOMAIN_SEA || !isOnMap_() || cargoSpace() == 0 || getUnitInfo().isGatherBoat()
+			|| getUnitInfo().getDefaultUnitAIType() != UNITAI_TRANSPORT_COAST || GET_PLAYER(getOwnerINLINE()).getNumCities() == 0)
+		{
+			return false;
+		}
+		break;
+
 	// WTP: native trade automation: merchant ships (no warships, no fishing or whaling boats) of a colonial player with a colony
 	case AUTOMATE_NATIVE_TRADE:
 		if (getDomainType() != DOMAIN_SEA || cargoSpace() == 0 || getUnitInfo().isGatherBoat() || getUnitInfo().getDefaultUnitAIType() != UNITAI_TRANSPORT_SEA

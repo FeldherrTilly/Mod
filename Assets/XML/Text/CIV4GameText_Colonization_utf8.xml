@@ -2960,6 +2960,39 @@
 		<Hungarian>A hajó a gépi játékosok szállítóihoz hasonlóan begyűjti a hajóra váró kincseket (a Kincs automatizálása automatizálású kincseket), és Európába viszi őket, ahol eladják őket. Európából egyenesen a következő várakozó kincshez hajózik; ha nincs ilyen, Európában vár. A térképen, ha nincs mit begyűjteni, a legközelebbi saját kolóniában vár.</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_NATIVE_SUPPLY</Tag>
+		<English>Native Supply Runs</English>
+		<Portuguese>Viagens de compra aos indígenas</Portuguese>
+		<French>Tournées d'achat chez les indigènes</French>
+		<German>Einkaufsfahrten zu den Indianern</German>
+		<Italian>Viaggi di acquisto dai nativi</Italian>
+		<Spanish>Viajes de compra a los indígenas</Spanish>
+		<Russian>Закупки у индейцев</Russian>
+		<Hungarian>Beszerzés a bennszülöttektől</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_NATIVE_SUPPLY_HELP</Tag>
+		<English>The coastal ship buys goods in the native villages around the nearest colony and brings them to that colony, then starts again. It sails home when all cargo slots are taken, no village is worth a visit or 10 turns after it left. It sells nothing and never sails to Europe.</English>
+		<Portuguese>O navio costeiro compra mercadorias nas aldeias indígenas em torno da colônia mais próxima e leva-as para essa colônia; depois recomeça. Volta para casa quando todos os espaços de carga estão ocupados, nenhuma aldeia vale a visita ou 10 turnos depois de partir. Não vende nada e nunca navega para a Europa.</Portuguese>
+		<French>Le navire côtier achète des marchandises dans les villages indigènes autour de la colonie la plus proche et les rapporte à cette colonie, puis recommence. Il rentre quand toutes ses cales sont occupées, quand aucun village ne vaut la visite ou 10 tours après son départ. Il ne vend rien et ne va jamais en Europe.</French>
+		<German>Das Küstenschiff kauft in den Indianerdörfern rund um die nächste Kolonie Waren und bringt sie in diese Kolonie, dann beginnt es von vorn. Es fährt heim, wenn alle Laderäume belegt sind, kein Dorf einen Besuch lohnt oder 10 Runden nach der Abfahrt. Es verkauft nichts und fährt nie nach Europa.</German>
+		<Italian>La nave costiera compra merci nei villaggi nativi intorno alla colonia più vicina e le porta in quella colonia, poi ricomincia. Torna a casa quando tutte le stive sono occupate, nessun villaggio vale la visita o 10 turni dopo la partenza. Non vende nulla e non va mai in Europa.</Italian>
+		<Spanish>El barco costero compra mercancías en las aldeas indígenas alrededor de la colonia más cercana y las lleva a esa colonia; luego vuelve a empezar. Regresa cuando todas las bodegas están ocupadas, ninguna aldea merece la visita o 10 turnos después de partir. No vende nada y nunca navega a Europa.</Spanish>
+		<Russian>Каботажное судно закупает товары в индейских деревнях вокруг ближайшей колонии и привозит их в эту колонию, затем начинает заново. Оно возвращается, когда все трюмы заняты, ни одна деревня не стоит визита или через 10 ходов после отплытия. Оно ничего не продаёт и никогда не плывёт в Европу.</Russian>
+		<Hungarian>A parti hajó árut vásárol a legközelebbi kolónia körüli bennszülött falvakban, elviszi azt a kolóniába, majd újrakezdi. Hazaindul, ha minden raktere megtelt, egyik falu sem éri meg a látogatást, vagy 10 körrel az indulás után. Semmit sem ad el, és soha nem hajózik Európába.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NATIVE_SUPPLY_REPORT_HOME</Tag>
+		<English>%s1 brings %s2 to %s3</English>
+		<Portuguese>%s1 leva %s2 para %s3</Portuguese>
+		<French>%s1 apporte %s2 à %s3</French>
+		<German>%s1 bringt %s2 nach %s3</German>
+		<Italian>%s1 porta %s2 a %s3</Italian>
+		<Spanish>%s1 lleva %s2 a %s3</Spanish>
+		<Russian>%s1 привозит %s2 в %s3</Russian>
+		<Hungarian>%s1 elviszi ide: %s3 - %s2</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_ACTION_AUTOMATE_FULL_HELP</Tag>
 		<English>Automate this unit</English>
 		<Portuguese>Automatizar unidade</Portuguese>

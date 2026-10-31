@@ -189,6 +189,10 @@ bool CvUnitAI::AI_update()
 				AI_workerSeaMove();
 				break;
 			//End TAC Whaling, ray
+			// WTP: native supply automation of a human player's coastal ship
+			case AUTOMATE_NATIVE_SUPPLY:
+				AI_nativeSupplyMove();
+				break;
 			// WTP: native trade automation of a human player's ship
 			case AUTOMATE_NATIVE_TRADE:
 				if (!AI_isNativeTradeShip() || AI_nativeTradeHomeCity() == NULL)
@@ -18574,7 +18578,8 @@ bool CvUnitAI::AI_isNativeVillageTargeted(const CvCity& kVillage) const
 	int iLoop;
 	for (CvUnit* pLoopUnit = GET_PLAYER(getOwnerINLINE()).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER(getOwnerINLINE()).nextUnit(&iLoop))
 	{
-		if (pLoopUnit == this || pLoopUnit->getDomainType() != DOMAIN_SEA || !pLoopUnit->isOnMap_() || !static_cast<CvUnitAI*>(pLoopUnit)->AI_isNativeTradeShip())
+		if (pLoopUnit == this || pLoopUnit->getDomainType() != DOMAIN_SEA || !pLoopUnit->isOnMap_()
+			|| (!static_cast<CvUnitAI*>(pLoopUnit)->AI_isNativeTradeShip() && !static_cast<CvUnitAI*>(pLoopUnit)->AI_isNativeSupplyShip()))
 		{
 			continue;
 		}
@@ -18605,7 +18610,7 @@ CvCity* CvUnitAI::AI_nativeTradeHomeCity() const
 
 bool CvUnitAI::AI_nativeTradeInHomeArea(const CvCity& kVillage) const
 {
-	if (!AI_isHumanNativeTrade())
+	if (!AI_isHumanNativeTrade() && !AI_isNativeSupplyShip())
 	{
 		return true;
 	}
@@ -18616,6 +18621,36 @@ bool CvUnitAI::AI_nativeTradeInHomeArea(const CvCity& kVillage) const
 // WTP: native trade automation switched on: the home colony is the nearest one the ship can reach (off the map: a port with
 // access to Europe, the best port first); the state follows where the ship is and what it carries
 void CvUnitAI::AI_startNativeTrade()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const bool bOnMap = isOnMap_();
+	CvCity* const pHome = AI_nativeTradeFindHome();
+	m_iNativeTradeHomeCityID = (pHome != NULL) ? pHome->getID() : -1;
+	m_iNativeTradeArriveTurn = -1;
+	m_iNativeTradeSlotsFullTurn = -1;
+
+	UnitAIStates eState = UNITAI_STATE_NATIVE_TRADE_BUY;
+	if (getUnitTravelState() == UNIT_TRAVEL_STATE_FROM_EUROPE)
+	{
+		eState = (getCargo() > 0) ? UNITAI_STATE_NATIVE_TRADE_SELL : UNITAI_STATE_NATIVE_TRADE_BUY;
+	}
+	else if (!bOnMap)
+	{
+		eState = UNITAI_STATE_NATIVE_TRADE_EUROPE;
+	}
+	else if (AI_nativeTradeCargoCount(true, NULL) > 0)
+	{
+		eState = UNITAI_STATE_NATIVE_TRADE_SELL;
+	}
+	AI_setUnitAIState(eState);
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S gets the native trade automation, home colony %S, state %d",
+		getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(),
+		pHome != NULL ? pHome->getName().GetCString() : L"-", (int)eState);
+}
+
+// WTP: the home colony of the native trade and supply automations: the nearest one the ship can reach (off the map: a port with
+// access to Europe, the best port first)
+CvCity* CvUnitAI::AI_nativeTradeFindHome() const
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	const bool bOnMap = isOnMap_();
@@ -18652,27 +18687,152 @@ void CvUnitAI::AI_startNativeTrade()
 			pHome = pLoopCity;
 		}
 	}
-	m_iNativeTradeHomeCityID = (pHome != NULL) ? pHome->getID() : -1;
-	m_iNativeTradeArriveTurn = -1;
-	m_iNativeTradeSlotsFullTurn = -1;
+	return pHome;
+}
 
-	UnitAIStates eState = UNITAI_STATE_NATIVE_TRADE_BUY;
-	if (getUnitTravelState() == UNIT_TRAVEL_STATE_FROM_EUROPE)
+// WTP: native supply automation switched on: the home colony is the nearest one the ship can reach
+void CvUnitAI::AI_startNativeSupply()
+{
+	CvCity* const pHome = AI_nativeTradeFindHome();
+	m_iNativeTradeHomeCityID = (pHome != NULL) ? pHome->getID() : -1;
+	m_iNativeTradeArriveTurn = GC.getGameINLINE().getGameTurn();
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native supply: Player %d (%S) turn %d %S gets the native supply automation, home colony %S",
+		getOwnerINLINE(), GET_PLAYER(getOwnerINLINE()).getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(),
+		pHome != NULL ? pHome->getName().GetCString() : L"-");
+}
+
+bool CvUnitAI::AI_isNativeSupplyShip() const
+{
+	return isHuman() && getGroup() != NULL && getGroup()->getAutomateType() == AUTOMATE_NATIVE_SUPPLY;
+}
+
+// WTP: native supply ship, called when it has no mission. In its home colony it puts the goods aboard ashore; then it visits
+// the villages around the colony (the same choice and purchases as the native trade ship) and brings the goods home when all
+// cargo slots are taken, no village is worth a visit or NATIVE_SUPPLY_TRIP_TURNS after it left
+void CvUnitAI::AI_nativeSupplyMove()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+
+	if (AI_retreatFromDanger())
 	{
-		eState = (getCargo() > 0) ? UNITAI_STATE_NATIVE_TRADE_SELL : UNITAI_STATE_NATIVE_TRADE_BUY;
+		s_szWtpShipReason = "native supply: flees danger";
+		return;
 	}
-	else if (!bOnMap)
+
+	CvCity* pHome = AI_nativeTradeHomeCity();
+	if (pHome == NULL)
 	{
-		eState = UNITAI_STATE_NATIVE_TRADE_EUROPE;
+		AI_startNativeSupply();
+		pHome = AI_nativeTradeHomeCity();
+		if (pHome == NULL)
+		{
+			s_szWtpShipReason = "native supply: no home colony";
+			getGroup()->pushMission(MISSION_SKIP);
+			return;
+		}
 	}
-	else if (AI_nativeTradeCargoCount(true, NULL) > 0)
+
+	CvCity* const pHere = plot()->getPlotCity();
+	if (pHere == pHome)
 	{
-		eState = UNITAI_STATE_NATIVE_TRADE_SELL;
+		// the goods aboard go into the colony
+		std::vector<CvUnit*> apGoods;
+		CvWString szGoods;
+		CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+		while (pUnitNode != NULL)
+		{
+			CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+			if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && pLoopUnit->isGoods() && pLoopUnit->canUnload())
+			{
+				apGoods.push_back(pLoopUnit);
+			}
+		}
+		for (uint i = 0; i < apGoods.size(); ++i)
+		{
+			if (!szGoods.empty())
+			{
+				szGoods += L", ";
+			}
+			szGoods += CvWString::format(L"%d %s", apGoods[i]->getYieldStored(), GC.getYieldInfo(apGoods[i]->getYield()).getDescription());
+			apGoods[i]->unload();
+		}
+		if (!szGoods.empty())
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native supply: Player %d (%S) turn %d %S brings %S to %S",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), szGoods.GetCString(), pHome->getName().GetCString());
+			if (isHuman())
+			{
+				CvWString szBuffer = gDLL->getText("TXT_KEY_NATIVE_SUPPLY_REPORT_HOME", getName().GetCString(), szGoods.GetCString(), pHome->getNameKey());
+				gDLL->UI().addPlayerMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, NULL, MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE, getX_INLINE(), getY_INLINE());
+			}
+		}
+		m_iNativeTradeArriveTurn = iTurn; // the trip starts here
 	}
-	AI_setUnitAIState(eState);
-	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S gets the native trade automation, home colony %S, state %d",
-		getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(),
-		pHome != NULL ? pHome->getName().GetCString() : L"-", (int)eState);
+
+	// buying in the village it reached
+	const bool bAtVillage = pHere != NULL && GET_PLAYER(pHere->getOwnerINLINE()).isNative();
+	if (bAtVillage && kOwner.AI_getNativeVillageVisitTurn(*pHere) != iTurn)
+	{
+		CvWString szBought;
+		const int iDeals = AI_nativeTradeBuy(&szBought);
+		kOwner.AI_setNativeVillageVisited(*pHere);
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native supply: Player %d (%S) turn %d %S visited %S to buy: %d deals, cargo %d/%d",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pHere->getName().GetCString(), iDeals, getCargo(), cargoSpace());
+		if (isHuman() && !szBought.empty())
+		{
+			const CvWString szNothing = gDLL->getText("TXT_KEY_NATIVE_TRADE_REPORT_NOTHING");
+			CvWString szBuffer = gDLL->getText("TXT_KEY_NATIVE_TRADE_REPORT_VILLAGE", getName().GetCString(), pHere->getNameKey(), szNothing.GetCString(), szBought.GetCString());
+			gDLL->UI().addPlayerMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, NULL, MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE, getX_INLINE(), getY_INLINE());
+		}
+	}
+
+	const int iGoods = AI_nativeTradeCargoCount(true, NULL);
+	const char* szHome = NULL;
+	if (iGoods > 0)
+	{
+		if (isFull())
+		{
+			szHome = "all cargo slots are taken";
+		}
+		else if (m_iNativeTradeArriveTurn >= 0 && iTurn - m_iNativeTradeArriveTurn >= NATIVE_SUPPLY_TRIP_TURNS)
+		{
+			szHome = "trip time is over (NATIVE_SUPPLY_TRIP_TURNS)";
+		}
+	}
+
+	if (szHome == NULL)
+	{
+		CvCity* const pTarget = AI_nativeTradeBuyVillage();
+		if (pTarget != NULL)
+		{
+			getGroup()->pushMission(MISSION_MOVE_TO, pTarget->getX_INLINE(), pTarget->getY_INLINE(), 0, false, false, MISSIONAI_TRANSPORT_SEA, pTarget->plot());
+			s_szWtpShipReason = "native supply: buys goods";
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native supply: Player %d (%S) turn %d %S sails to %S (%S) to buy, gold %d, cargo %d/%d",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pTarget->getName().GetCString(),
+				GET_PLAYER(pTarget->getOwnerINLINE()).getCivilizationDescription(0), kOwner.getGold(), getCargo(), cargoSpace());
+			return;
+		}
+		szHome = "no village worth a visit";
+	}
+
+	if (pHere == pHome)
+	{
+		s_szWtpShipReason = "native supply: waits at home";
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
+	}
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native supply: Player %d (%S) turn %d %S sails home to %S with %d goods units (%s)",
+		getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pHome->getName().GetCString(), iGoods, szHome);
+	s_szWtpShipReason = "native supply: brings goods home";
+	if (generatePath(pHome->plot(), 0, true))
+	{
+		getGroup()->pushMission(MISSION_MOVE_TO, pHome->getX_INLINE(), pHome->getY_INLINE(), 0, false, false, MISSIONAI_TRANSPORT_SEA, pHome->plot());
+	}
+	else
+	{
+		getGroup()->pushMission(MISSION_SKIP);
+	}
 }
 
 // WTP: a human player's ship with the native trade automation in Europe (called at the start of the player's turn)
@@ -19315,8 +19475,8 @@ CvCity* CvUnitAI::AI_nativeTradeBuyVillage(bool bDraw)
 	const CvPlot* pFrom = plot();
 	int iLoop;
 	CvCity* const pFirstColony = kOwner.firstCity(&iLoop);
-	// WTP: the human native trade automation chooses from its home colony
-	const CvCity* const pHome = AI_isHumanNativeTrade() ? AI_nativeTradeHomeCity() : NULL;
+	// WTP: the human native trade and supply automations choose from their home colony
+	const CvCity* const pHome = (AI_isHumanNativeTrade() || AI_isNativeSupplyShip()) ? AI_nativeTradeHomeCity() : NULL;
 	const bool bFirstTarget = pHome == NULL && !kOwner.AI_hasVisitedNativeVillage() && m_iNativeTradeBuyTurn < 0 && pFirstColony != NULL;
 	if (bFirstTarget)
 	{

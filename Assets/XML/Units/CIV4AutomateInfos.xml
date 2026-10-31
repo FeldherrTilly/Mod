@@ -349,5 +349,24 @@
 			<bVisible>1</bVisible>
 			<Button>Art/Interface/Game Hud/Actions/automate_treasure_ship_high_res.dds</Button>
 		</AutomateInfo>
+		<AutomateInfo>
+			<Type>AUTOMATE_NATIVE_SUPPLY</Type>
+			<Description>TXT_KEY_ACTION_AUTOMATE_NATIVE_SUPPLY</Description>
+			<Help>TXT_KEY_ACTION_AUTOMATE_NATIVE_SUPPLY_HELP</Help>
+			<HotKey/>
+			<bAltDown>0</bAltDown>
+			<bShiftDown>0</bShiftDown>
+			<bCtrlDown>0</bCtrlDown>
+			<iHotKeyPriority>0</iHotKeyPriority>
+			<HotKeyAlt/>
+			<bAltDownAlt>0</bAltDownAlt>
+			<bShiftDownAlt>0</bShiftDownAlt>
+			<bCtrlDownAlt>0</bCtrlDownAlt>
+			<iHotKeyPriorityAlt>0</iHotKeyPriorityAlt>
+			<Command>COMMAND_AUTOMATE</Command>
+			<Automate>AUTOMATE_NATIVE_SUPPLY</Automate>
+			<bVisible>1</bVisible>
+			<Button>Art/Interface/Game Hud/Actions/automate_native_supply_high_res.dds</Button>
+		</AutomateInfo>
 	</AutomateInfos>
 </Civ4AutomateInfos>

@@ -176,6 +176,14 @@ public:
 	CvCity* AI_nativeTradeHomeCity() const;
 	bool AI_nativeTradeInHomeArea(const CvCity& kVillage) const;
 	bool AI_humanNativeTradeEurope();
+	CvCity* AI_nativeTradeFindHome() const;
+	void AI_clearNativeTradeHome() { m_iNativeTradeHomeCityID = -1; }
+	// WTP: native supply automation of a human player's coastal ship (AUTOMATE_NATIVE_SUPPLY): it buys goods in the villages
+	// around its home colony (the nearest colony when switched on), brings them there and starts again; no trips to Europe
+	void AI_startNativeSupply();
+	bool AI_isNativeSupplyShip() const;
+	void AI_nativeSupplyMove();
+	static const int NATIVE_SUPPLY_TRIP_TURNS = 10; // WTP: the native supply ship brings what it has home this many turns after it left
 	// WTP: automatic job assignment of a human player's colonist
 	bool AI_startAutoAssign(int iCityID = -1, ProfessionTypes eProfession = NO_PROFESSION);
 	bool AI_doAutoAssign();
