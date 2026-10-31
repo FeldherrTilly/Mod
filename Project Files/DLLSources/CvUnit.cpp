@@ -8733,6 +8733,29 @@ void CvUnit::buyLandAfterAcquire()
 		GET_PLAYER(m_ePlayerToBuyLand).changeGold((m_iMoneyToBuyLand * GLOBAL_DEFINE_BUY_PLOT_SELLER_INCOME_PERCENT) / 100);
 		GET_PLAYER(getOwnerINLINE()).AI_changeGoldTradedTo(m_ePlayerToBuyLand, m_iMoneyToBuyLand);
 		GET_PLAYER(getOwnerINLINE()).changeGold(m_iMoneyToBuyLand * -1);
+
+		// WTP: paid land is treated like land bought when founding: the culture of the natives is gone and can't come back.
+		// The same plots as the price in doAcquireCheckNatives, the unit still stands in the conquered city
+		const CvCity* pCity = plot()->getPlotCity();
+		if (pCity != NULL)
+		{
+			const PlayerTypes eCityOwner = pCity->getOwnerINLINE();
+			for (int i = 0; i < NUM_CITY_PLOTS_1_PLOT; ++i)
+			{
+				CvPlot* pLoopPlot = ::plotCity(getX_INLINE(), getY_INLINE(), i);
+				if (pLoopPlot != NULL && pLoopPlot->isOwned() && !pLoopPlot->isCity())
+				{
+					const PlayerTypes eSeller = pLoopPlot->findHighestCulturePlayer();
+					if (eSeller != NO_PLAYER && GET_PLAYER(eSeller).isNative() && !GET_TEAM(GET_PLAYER(eSeller).getTeam()).isAtWar(getTeam()))
+					{
+						const int iCulture = std::max(pLoopPlot->getBuyCultureAmount(eCityOwner), pLoopPlot->getCulture(eSeller));
+						pLoopPlot->setBoughtFromNatives(true);
+						pLoopPlot->setCulture(eSeller, 0, false);
+						pLoopPlot->changeCulture(eCityOwner, iCulture, true);
+					}
+				}
+			}
+		}
 	}
 }
 //Ende ray18
