@@ -4273,7 +4273,16 @@ bool CvDLLButtonPopup::launchAssignJobMenuPopup(CvPopup* pPopup, CvPopupInfo &in
 		{
 			szJob += gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_HAPPINESS", kPlayer.AI_humanPlannedHappiness(*pCity, pUnit));
 		}
-		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, L"  " + szJob, kProfession.getButton(), kJob.iCityID * NUM_PROFESSION_TYPES + kJob.eProfession, WIDGET_GENERAL, pUnit->getID(), -1);
+		// WTP (user 2026-10-31): what the job really produces per turn, in front of the job
+		CvWString szOutput;
+		szOutput.Format(L"%d%c ", kJob.iOutput, GC.getYieldInfo(eJobYield).getChar());
+		if (kJob.iOutputFood > 0)
+		{
+			CvWString szFood;
+			szFood.Format(L"+%d%c ", kJob.iOutputFood, GC.getYieldInfo(YIELD_FOOD).getChar());
+			szOutput += szFood;
+		}
+		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, L"  " + szOutput + szJob, kProfession.getButton(), kJob.iCityID * NUM_PROFESSION_TYPES + kJob.eProfession, WIDGET_GENERAL, pUnit->getID(), -1);
 	}
 	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, L"  " + gDLL->getText("TXT_KEY_NEVER_MIND"), ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CANCEL")->getPath(), -1, WIDGET_GENERAL);
 	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, POPUPSTATE_IMMEDIATE);

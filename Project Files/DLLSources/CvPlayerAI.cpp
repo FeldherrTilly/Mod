@@ -24523,6 +24523,26 @@ namespace
 		}
 		return std::max(0, iGold) + iFood * WF_FOOD_GOLD;
 	}
+
+	// WTP: iAmount of eYield with the colony's yield modifier, as CvCity::getRawYieldProduced counts it (1 stays at least 1)
+	int wfModifiedOutput(const CvCity& kCity, YieldTypes eYield, int iAmount)
+	{
+		if (iAmount <= 0)
+		{
+			return 0;
+		}
+		const int iModified = iAmount * kCity.getBaseYieldRateModifier(eYield) / 100;
+		return (iAmount == 1) ? std::max(1, iModified) : iModified;
+	}
+
+	// WTP: fills what the job shows in the menu (HumanJob::iOutput, iOutputFood)
+	void wfSetJobOutput(CvPlayerAI::HumanJob& kJob, const CvCity& kCity, int iOutput)
+	{
+		const ProfessionTypes eProfession = kJob.eProfession;
+		const YieldTypes eYield = (YieldTypes)GC.getProfessionInfo(eProfession).getYieldsProduced(0);
+		kJob.iOutput = wfModifiedOutput(kCity, eYield, iOutput);
+		kJob.iOutputFood = (eYield == YIELD_FOOD) ? 0 : wfModifiedOutput(kCity, YIELD_FOOD, wfFoodOutput(eProfession, iOutput));
+	}
 }
 
 // WTP: colonists with the job automation on their way to kCity as new citizens (not replacing anybody)
@@ -24753,6 +24773,7 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 				kJob.iTurns = iCityTurns;
 				kJob.iGold = iValue / 100;
 				kJob.iFood = iFood;
+				wfSetJobOutput(kJob, *pCity, wfOutput(*pCity, eProfession, wfWorkingType(kUnitAI, eProfession, eColonist), pLoopPlot));
 				kJob.bFoodShortage = false;
 				kJob.bLowFood = pHolder == NULL && iFood <= 0 && iSpare < 2;
 				if (bExpert && iScore > kBestExpertJob.iScore)
@@ -24855,6 +24876,7 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 			kJob.iTurns = iCityTurns;
 			kJob.iGold = iValue / 100;
 			kJob.iFood = iFood;
+			wfSetJobOutput(kJob, *pCity, iOutput);
 			kJob.bFoodShortage = false;
 			kJob.bLowFood = pHolder == NULL && iFood <= 0 && iSpare < 2;
 			if (!bInput)
