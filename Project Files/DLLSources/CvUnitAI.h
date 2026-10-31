@@ -183,7 +183,6 @@ public:
 	void AI_startNativeSupply();
 	bool AI_isNativeSupplyShip() const;
 	void AI_nativeSupplyMove();
-	static const int NATIVE_SUPPLY_TRIP_TURNS = 10; // WTP: the native supply ship brings what it has home this many turns after it left
 	// WTP: automatic job assignment of a human player's colonist
 	bool AI_startAutoAssign(int iCityID = -1, ProfessionTypes eProfession = NO_PROFESSION);
 	bool AI_doAutoAssign();

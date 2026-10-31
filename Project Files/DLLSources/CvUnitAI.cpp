@@ -18615,7 +18615,9 @@ bool CvUnitAI::AI_nativeTradeInHomeArea(const CvCity& kVillage) const
 		return true;
 	}
 	const CvCity* const pHome = AI_nativeTradeHomeCity();
-	return pHome == NULL || plotDistance(pHome->getX_INLINE(), pHome->getY_INLINE(), kVillage.getX_INLINE(), kVillage.getY_INLINE()) <= NATIVE_TRADE_HOME_RANGE;
+	// WTP: the native supply automation has its own range (NATIVE_SUPPLY_HOME_RANGE in GlobalDefinesAlt.xml)
+	const int iRange = AI_isNativeSupplyShip() ? GC.getDefineINT("NATIVE_SUPPLY_HOME_RANGE") : NATIVE_TRADE_HOME_RANGE;
+	return pHome == NULL || plotDistance(pHome->getX_INLINE(), pHome->getY_INLINE(), kVillage.getX_INLINE(), kVillage.getY_INLINE()) <= iRange;
 }
 
 // WTP: native trade automation switched on: the home colony is the nearest one the ship can reach (off the map: a port with
@@ -18708,7 +18710,7 @@ bool CvUnitAI::AI_isNativeSupplyShip() const
 
 // WTP: native supply ship, called when it has no mission. In its home colony it puts the goods aboard ashore; then it visits
 // the villages around the colony (the same choice and purchases as the native trade ship) and brings the goods home when all
-// cargo slots are taken, no village is worth a visit or NATIVE_SUPPLY_TRIP_TURNS after it left
+// cargo slots are taken, no village is worth a visit or NATIVE_SUPPLY_TRIP_TURNS (GlobalDefinesAlt.xml) after it left
 void CvUnitAI::AI_nativeSupplyMove()
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
@@ -18795,7 +18797,7 @@ void CvUnitAI::AI_nativeSupplyMove()
 		{
 			szHome = "all cargo slots are taken";
 		}
-		else if (m_iNativeTradeArriveTurn >= 0 && iTurn - m_iNativeTradeArriveTurn >= NATIVE_SUPPLY_TRIP_TURNS)
+		else if (m_iNativeTradeArriveTurn >= 0 && iTurn - m_iNativeTradeArriveTurn >= GC.getDefineINT("NATIVE_SUPPLY_TRIP_TURNS"))
 		{
 			szHome = "trip time is over (NATIVE_SUPPLY_TRIP_TURNS)";
 		}
@@ -19516,7 +19518,8 @@ CvCity* CvUnitAI::AI_nativeTradeBuyVillage(bool bDraw)
 				continue;
 			}
 			int iPathTurns;
-			if (!generatePath(pCity->plot(), 0, true, &iPathTurns, 15))
+			// WTP: the native supply ship looks as far as its trip time (its range can be large)
+			if (!generatePath(pCity->plot(), 0, true, &iPathTurns, AI_isNativeSupplyShip() ? std::max(15, GC.getDefineINT("NATIVE_SUPPLY_TRIP_TURNS")) : 15))
 			{
 				continue;
 			}

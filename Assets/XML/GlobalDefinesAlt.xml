@@ -2008,4 +2008,14 @@
 		<DefineName>BOMBARD_ARTILLERY_PERCENT_8X</DefineName>
 		<iDefineIntVal>75</iDefineIntVal>
 	</Define>
+	<Define>
+		<!-- WTP: native supply automation (coastal ships): villages within this many plots of the home colony are visited -->
+		<DefineName>NATIVE_SUPPLY_HOME_RANGE</DefineName>
+		<iDefineIntVal>35</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- WTP: native supply automation: the ship brings its goods home this many turns after it left (also the longest trip to a village); the help text TXT_KEY_ACTION_AUTOMATE_NATIVE_SUPPLY_HELP names it -->
+		<DefineName>NATIVE_SUPPLY_TRIP_TURNS</DefineName>
+		<iDefineIntVal>20</iDefineIntVal>
+	</Define>
 </Civ4Defines>
