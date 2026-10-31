@@ -336,6 +336,7 @@ protected:
 	void AI_logPioneer(const char* szReason); // WTP
 
 	bool AI_requestPickup(int iMaxPath = MAX_INT);
+	void AI_wakeTransportForPickup(const CvPlot* pPickupPlot); // WTP
 	bool AI_respondToPickup(int iMaxPath = MAX_INT, UnitAITypes eUnitAI = NO_UNITAI, bool bAlongTheWay = false);
 
 	bool AI_pickupAdjacantUnits();

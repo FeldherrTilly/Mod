@@ -5936,6 +5936,32 @@ void CvUnitAI::AI_transportSeaMove()
 				return;
 			}
 
+			// WTP: outside a colony an empty transport waits beside a settler (within 3 plots) that is about to found its colony
+			// or has just lost its site: the settler may lose the site to another settler, and then the transport is there
+			// to take it on (a Swedish transport sailed home while the settler it had put ashore was stranded)
+			if (pCity == NULL)
+			{
+				int iUnitLoop;
+				for (CvUnit* pLoopUnit = kOwner.firstUnit(&iUnitLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iUnitLoop))
+				{
+					if (pLoopUnit->AI_getUnitAIType() != UNITAI_SETTLER || !pLoopUnit->isOnMap() || pLoopUnit->isCargo() || pLoopUnit->getGroup() == NULL
+						|| plotDistance(getX_INLINE(), getY_INLINE(), pLoopUnit->getX_INLINE(), pLoopUnit->getY_INLINE()) > 3)
+					{
+						continue;
+					}
+					const MissionAITypes eSettlerMissionAI = pLoopUnit->getGroup()->AI_getMissionAIType();
+					const CvPlot* const pSite = pLoopUnit->getGroup()->AI_getMissionAIPlot();
+					const bool bAboutToFound = eSettlerMissionAI == MISSIONAI_FOUND && pSite != NULL
+						&& plotDistance(pLoopUnit->getX_INLINE(), pLoopUnit->getY_INLINE(), pSite->getX_INLINE(), pSite->getY_INLINE()) <= 1;
+					if (bAboutToFound || eSettlerMissionAI == NO_MISSIONAI)
+					{
+						s_szWtpShipReason = "empty: waits beside a settler";
+						getGroup()->pushMission(MISSION_SKIP);
+						return;
+					}
+				}
+			}
+
 			if (AI_respondToPickup(5))
 			{
 				s_szWtpShipReason = "empty: pickup within 5 turns";
@@ -11304,6 +11330,8 @@ bool CvUnitAI::AI_requestPickup(int iMaxPath)
 
 	if (pBestPlot != NULL)
 	{
+		// WTP: a settler that starts to wait wakes an empty transport nearby (see AI_wakeTransportForPickup)
+		const bool bNewWait = getGroup()->AI_getMissionAIType() != MISSIONAI_AWAIT_PICKUP || getGroup()->AI_getMissionAIPlot() != pBestMissionPlot;
 		if (atPlot(pBestPlot))
 		{
 			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_AWAIT_PICKUP, pBestMissionPlot);
@@ -11312,9 +11340,57 @@ bool CvUnitAI::AI_requestPickup(int iMaxPath)
 		{
 			getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_AWAIT_PICKUP, pBestMissionPlot);
 		}
+		if (bNewWait && AI_getUnitAIType() == UNITAI_SETTLER)
+		{
+			AI_wakeTransportForPickup(pBestMissionPlot);
+		}
 		return true;
 	}
 	return false;
+}
+
+// WTP: a settler waiting for a ship: the nearest empty transport (within 5 turns) on a voyage that can wait (not to or from
+// Europe, not a native trade ship, not already picking up) drops its mission and plans anew; empty, it answers the settler's
+// pickup first. A Swedish transport sailed home empty while the settler it had put ashore was stranded behind it
+void CvUnitAI::AI_wakeTransportForPickup(const CvPlot* pPickupPlot)
+{
+	if (pPickupPlot == NULL || GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(const_cast<CvPlot*>(pPickupPlot), MISSIONAI_PICKUP, NULL, 0) > 0)
+	{
+		return;
+	}
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	CvUnit* pBest = NULL;
+	int iBestTurns = 6;
+	int iLoop;
+	for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
+	{
+		if (pLoopUnit->AI_getUnitAIType() != UNITAI_TRANSPORT_SEA || !pLoopUnit->isOnMap() || pLoopUnit->getGroup() == NULL || pLoopUnit->getGroup()->hasCargo()
+			|| pLoopUnit->cargoSpace() <= 0)
+		{
+			continue;
+		}
+		const UnitAIStates eState = pLoopUnit->AI_getUnitAIState();
+		const MissionAITypes eMissionAI = pLoopUnit->getGroup()->AI_getMissionAIType();
+		if (eState == UNITAI_STATE_NATIVE_TRADE_BUY || eState == UNITAI_STATE_NATIVE_TRADE_SELL || eState == UNITAI_STATE_NATIVE_TRADE_EUROPE
+			|| eMissionAI == MISSIONAI_PICKUP || eMissionAI == MISSIONAI_SAIL_TO_EUROPE || eMissionAI == MISSIONAI_SAIL_FROM_EUROPE)
+		{
+			continue;
+		}
+		int iTurns = 0;
+		if (pLoopUnit->generatePath(pPickupPlot, 0, false, &iTurns) && iTurns < iBestTurns)
+		{
+			iBestTurns = iTurns;
+			pBest = pLoopUnit;
+		}
+	}
+	if (pBest != NULL)
+	{
+		pBest->getGroup()->clearMissionQueue();
+		pBest->getGroup()->AI_setMissionAI(NO_MISSIONAI, NULL, NULL);
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S drops its voyage for settler %S waiting at %d,%d (%d turns)", getOwnerINLINE(),
+			kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pBest->getName().GetCString(), getNameAndProfession().GetCString(),
+			pPickupPlot->getX_INLINE(), pPickupPlot->getY_INLINE(), iBestTurns);
+	}
 }
 
 //This is very fast when no units need picking up.

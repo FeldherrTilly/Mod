@@ -19367,10 +19367,12 @@ namespace
 }
 
 // WTP: in peace the colonial AI uses its warships with cargo room as transports, all but the strongest one, which keeps
-// guarding the coast (sea goodies, pirates, sea animals). At war (or with war plans) they become warships again as soon as
+// guarding the coast (sea goodies, pirates, sea animals); before turn 60 no warship is kept back (the Swedes' only warship
+// explored the sea while 17 units waited in Europe). At war (or with war plans) they become warships again as soon as
 // they are empty
 void CvPlayerAI::AI_doPeaceWarships()
 {
+	const bool bGuardCoast = GC.getGameINLINE().getGameTurn() >= 60;
 	if (!AI_isWorkforcePlanned())
 	{
 		return;
@@ -19401,7 +19403,7 @@ void CvPlayerAI::AI_doPeaceWarships()
 			continue;
 		}
 		const bool bTransport = pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA;
-		const bool bWantTransport = !bWar && pLoopUnit != pStrongest;
+		const bool bWantTransport = !bWar && (pLoopUnit != pStrongest || !bGuardCoast);
 		if (bWantTransport && pLoopUnit->AI_getUnitAIType() == UNITAI_COMBAT_SEA)
 		{
 			pLoopUnit->AI_setUnitAIType(UNITAI_TRANSPORT_SEA);
