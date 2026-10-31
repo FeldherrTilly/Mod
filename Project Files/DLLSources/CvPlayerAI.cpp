@@ -24558,7 +24558,7 @@ bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTy
 // WTP: the best jobs for a human player's colonist (the best per colony and profession, best first, at most iMaxJobs): a free
 // plot or building slot in one of our colonies, or the job of a regular colonist in the expert's own trade (that colonist
 // makes room). Regular colonists only within 12 turns; the colony keeps 2 food to spare unless the job produces food; a
-// building job only if the colony produces its raw material. A new citizen only if the colony's unhappiness stays at most
+// building job only if the colony produces its raw material (the menu: or has some in stock). A new citizen only if the colony's unhappiness stays at most
 // 2 above its happiness with all colonists on their way there. The menu shows one job of the expert's own trade even in a colony
 // without its raw material if there is none with it. Value per turn (gold x100, wfHumanJobValue), less for a long way.
 // paFoodJobs: for slaves, indentured servants, petty criminals and expert farmers and fishermen also the best food job (net
@@ -24792,7 +24792,10 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 			for (int k = 0; k < kProfession.getNumYieldsConsumed() && bInput; ++k)
 			{
 				const YieldTypes eInput = (YieldTypes)kProfession.getYieldsConsumed(k);
-				bInput = eInput == NO_YIELD || pCity->calculateNetYield(eInput) + iFreed >= std::max(1, iOutput / 2);
+				bInput = eInput == NO_YIELD || pCity->calculateNetYield(eInput) + iFreed >= std::max(1, iOutput / 2)
+					// WTP (user 2026-10-31): the menu (and the job chosen there) is content with some raw material in stock, more
+					// is expected to be delivered; the automatic choice (iMaxJobs 1) wants the colony to produce it
+					|| (iMaxJobs != 1 && pCity->getYieldStored(eInput) > 0);
 			}
 			if (!bInput && !bExpert)
 			{
