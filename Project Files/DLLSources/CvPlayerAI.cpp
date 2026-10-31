@@ -1227,7 +1227,8 @@ void CvPlayerAI::AI_unitUpdate()
 							{
 								CvUnit* pUnit = pLoopCity->getPopulationUnitByIndex(i);
 
-								if (pUnit != NULL && pUnit->canHaveProfession(eProfession, false))
+								// WTP: (courageous) expert native traders never become settlers
+								if (pUnit != NULL && !pUnit->isExpertNativeTrader() && pUnit->canHaveProfession(eProfession, false))
 								{
 									int iValue = AI_professionSuitability(pUnit, eProfession, pLoopCity->plot());
 
@@ -9456,6 +9457,11 @@ void CvPlayerAI::AI_doProfessions()
 											{
 												continue;
 											}
+											// WTP: (courageous) expert native traders only leave as native traders
+											if (pUnit->isExpertNativeTrader() && GC.getProfessionInfo(eProfession).getNativeTradeRate() <= 0)
+											{
+												continue;
+											}
 											if (pUnit->canHaveProfession(eProfession, false) && (AI_professionSuitability(pUnit, eProfession, pLoopCity->plot()) > 100))
 											{
 												pLoopCity->removePopulationUnit(CREATE_ASSERT_DATA, pUnit, false, eProfession);
@@ -9499,7 +9505,8 @@ void CvPlayerAI::AI_doProfessions()
 							for (int i = 0; i < pLoopCity->getPopulation(); ++i)
 							{
 								CvUnit* pUnit = pLoopCity->getPopulationUnitByIndex(i);
-								if (pUnit != NULL)
+								// WTP: (courageous) expert native traders only leave as native traders
+								if (pUnit != NULL && (!pUnit->isExpertNativeTrader() || GC.getProfessionInfo(eProfession).getNativeTradeRate() > 0))
 								{
 									if (pUnit->canHaveProfession(eProfession, false))
 									{
@@ -17802,7 +17809,8 @@ void CvPlayerAI::AI_doCitizenRelocation()
 			CvUnitAI& kLoopAI = static_cast<CvUnitAI&>(*pLoopUnit);
 			const CvCity* const pHere = (pLoopUnit->isOnMap() && !pLoopUnit->isCargo() && pLoopUnit->plot() != NULL) ? pLoopUnit->plot()->getPlotCity() : NULL;
 			if (kLoopAI.AI_getWfTask() == CvUnitAI::WF_WAIT && pLoopUnit->AI_getUnitAIType() == UNITAI_COLONIST && pHere != NULL && pHere->getOwnerINLINE() == getID()
-				&& pLoopUnit->getUnitInfo().isFound() && pLoopUnit->AI_getIdealProfession() == NO_PROFESSION && pLoopUnit->canHaveProfession(eSettlerJob, false))
+				&& pLoopUnit->getUnitInfo().isFound() && pLoopUnit->AI_getIdealProfession() == NO_PROFESSION && !pLoopUnit->isExpertNativeTrader()
+				&& pLoopUnit->canHaveProfession(eSettlerJob, false))
 			{
 				pLoopUnit->setProfession(eSettlerJob);
 				kLoopAI.AI_clearWfTask();
@@ -17844,7 +17852,7 @@ void CvPlayerAI::AI_doCitizenRelocation()
 				CvUnit* const pCitizen = pLargest->getPopulationUnitByIndex(i);
 				// (the colonial AI's citizens are all locked by the workforce plan)
 				if (pCitizen == NULL || !pCitizen->getUnitInfo().isFound() || pCitizen->AI_getIdealProfession() != NO_PROFESSION
-					|| pCitizen->getProfession() == NO_PROFESSION)
+					|| pCitizen->isExpertNativeTrader() || pCitizen->getProfession() == NO_PROFESSION)
 				{
 					continue;
 				}
