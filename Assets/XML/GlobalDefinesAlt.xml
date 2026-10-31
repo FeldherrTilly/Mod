@@ -1794,4 +1794,9 @@
 		<DefineName>TRADE_DECAY_PRICE_CHANGE</DefineName>
 		<iDefineIntVal>128</iDefineIntVal>
 	</Define>
+	<Define>
+		<!-- WTP: the pirate ships of the barbarian player (Wild Animals) have at most this many moves -->
+		<DefineName>PIRATE_BARBARIAN_MOVES</DefineName>
+		<iDefineIntVal>7</iDefineIntVal>
+	</Define>
 </Civ4Defines>

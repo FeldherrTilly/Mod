@@ -82689,7 +82689,7 @@
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
 			<iMoves>11</iMoves>
-			<iNavalControlCost>2</iNavalControlCost>
+			<iNavalControlCost>1</iNavalControlCost>
 			<iNavalControlRadius>2</iNavalControlRadius>
 			<bCapturesCargo>1</bCapturesCargo>
 			<bCapturesShips>1</bCapturesShips>
@@ -83005,7 +83005,7 @@
 			<iImmigrationWeightDecay>0</iImmigrationWeightDecay>
 			<iMinAreaSize>20</iMinAreaSize>
 			<iMoves>11</iMoves>
-			<iNavalControlCost>2</iNavalControlCost>
+			<iNavalControlCost>1</iNavalControlCost>
 			<iNavalControlRadius>2</iNavalControlRadius>
 			<bCapturesCargo>1</bCapturesCargo>
 			<bCapturesShips>1</bCapturesShips>
