@@ -782,6 +782,7 @@ public:
 	void setUnitTravelState(UnitTravelStates eState, bool bShowEuropeScreen);
 
 	bool setSailEurope(EuropeTypes eEurope);
+	CvPlot* findEuropeArrivalPlot(const CvPlot& kTarget) const; // WTP: Europe plot nearest to kTarget by sea
 	bool canSailEurope(EuropeTypes eEurope) const;
 
 	void setHomeCity(CvCity* pNewValue);

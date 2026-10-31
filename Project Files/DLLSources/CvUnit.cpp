@@ -16657,6 +16657,72 @@ bool CvUnit::setSailEurope(EuropeTypes eEurope)
 	return false;
 }
 
+// WTP: the plot a ship coming from Europe arrives at for kTarget (a colony or a water plot): the Europe plot nearest by sea,
+// found by a flood over the water plots the ship can enter (diagonal steps as ships move), the nearest as the crow flies among
+// equally near ones. Every water plot is visited once at most and the flood stops at the first Europe plots. NULL if no Europe
+// plot is linked to kTarget by water. (The nearest plots as the crow flies were taken before: for a colony behind a cape they
+// were all on its far side.)
+CvPlot* CvUnit::findEuropeArrivalPlot(const CvPlot& kTarget) const
+{
+	CvMap& kMap = GC.getMap();
+	std::vector<int> aiDist(kMap.numPlotsINLINE(), -1);
+	std::vector<int> aiQueue;
+	aiQueue.reserve(1024);
+	const int iStart = kMap.plotNumINLINE(kTarget.getX_INLINE(), kTarget.getY_INLINE());
+	aiDist[iStart] = 0;
+	aiQueue.push_back(iStart);
+
+	CvPlot* pBestPlot = NULL;
+	int iBestDist = MAX_INT;
+	int iBestAir = MAX_INT;
+	for (uint iHead = 0; iHead < aiQueue.size(); ++iHead)
+	{
+		CvPlot* const pPlot = kMap.plotByIndexINLINE(aiQueue[iHead]);
+		const int iDist = aiDist[aiQueue[iHead]];
+		if (iDist > iBestDist)
+		{
+			break;
+		}
+		if ((iDist > 0 || kTarget.isWater()) && pPlot->isEurope() && pPlot->isRevealed(getTeam(), false) && pPlot->getTurnDamage() <= 0
+			&& canCrossOcean(pPlot, UNIT_TRAVEL_STATE_FROM_EUROPE) && !pPlot->isVisibleEnemyDefender(this))
+		{
+			const int iAir = plotDistance(kTarget.getX_INLINE(), kTarget.getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+			if (iAir < iBestAir)
+			{
+				iBestAir = iAir;
+				iBestDist = iDist;
+				pBestPlot = pPlot;
+			}
+			continue;
+		}
+		if (iBestDist != MAX_INT)
+		{
+			continue; // the plots as near as the Europe plot found are checked, no further plots
+		}
+		for (int iDir = 0; iDir < NUM_DIRECTION_TYPES; ++iDir)
+		{
+			CvPlot* const pAdjacent = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), (DirectionTypes)iDir);
+			if (pAdjacent == NULL || !pAdjacent->isWater())
+			{
+				continue;
+			}
+			const int iAdjacent = kMap.plotNumINLINE(pAdjacent->getX_INLINE(), pAdjacent->getY_INLINE());
+			if (aiDist[iAdjacent] >= 0 || pAdjacent->isImpassable() || m_pUnitInfo->getTerrainImpassable(pAdjacent->getTerrainType())
+				|| (pAdjacent->getFeatureType() != NO_FEATURE && m_pUnitInfo->getFeatureImpassable(pAdjacent->getFeatureType())))
+			{
+				continue;
+			}
+			if (pPlot->isWater() && !pPlot->isAdjacentWaterPassable(pAdjacent))
+			{
+				continue;
+			}
+			aiDist[iAdjacent] = iDist + 1;
+			aiQueue.push_back(iAdjacent);
+		}
+	}
+	return pBestPlot;
+}
+
 bool CvUnit::canSailEurope(EuropeTypes eEurope) const
 {
 	if (eEurope == NO_EUROPE)

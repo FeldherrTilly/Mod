@@ -628,6 +628,12 @@ bool CyUnit::atPlot(CyPlot* pPlot)
 {
 	return m_pUnit ? m_pUnit->atPlot(pPlot->getPlot()) : false;
 }
+// WTP: the Europe plot nearest to pTarget by sea (NULL plot if none)
+CyPlot* CyUnit::findEuropeArrivalPlot(CyPlot* pTarget)
+{
+	return new CyPlot((m_pUnit && pTarget && pTarget->getPlot()) ? m_pUnit->findEuropeArrivalPlot(*pTarget->getPlot()) : NULL);
+}
+
 CyPlot* CyUnit::plot()
 {
 	return m_pUnit ? new CyPlot(m_pUnit->plot()) : NULL;
