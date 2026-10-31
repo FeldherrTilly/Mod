@@ -3552,6 +3552,15 @@ void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue, bool bImplicit)
 		{
 			getHeadUnit()->AI_setUnitAIState(UNITAI_STATE_DEFAULT);
 		}
+		// WTP: native supply automation: the ship gets its home colony (the nearest one) and drops it when switched off
+		if (eNewValue == AUTOMATE_NATIVE_SUPPLY && getHeadUnit() != NULL)
+		{
+			static_cast<CvUnitAI*>(getHeadUnit())->AI_startNativeSupply();
+		}
+		else if (eOldValue == AUTOMATE_NATIVE_SUPPLY && eNewValue != AUTOMATE_NATIVE_TRADE && getHeadUnit() != NULL)
+		{
+			static_cast<CvUnitAI*>(getHeadUnit())->AI_clearNativeTradeHome();
+		}
 
 		// if canceling automation, cancel on cargo as well
 		if (eNewValue == NO_AUTOMATE)
