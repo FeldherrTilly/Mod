@@ -466,6 +466,8 @@ protected:
 	static const int NATIVE_TRADE_MUSKET_GOLD = 2500; // WTP: a tribe with more gold gets muskets from the native trade ship
 	static const int NATIVE_TRADE_MUSKET_MIN_PROFIT = 500; // WTP: a village gets the muskets only if it pays this much more than they cost in Europe
 	static const int NATIVE_TRADE_SELL_TURNS = 15; // WTP: the native trade ship takes unsold goods back to Europe this many turns after its arrival
+	static const int NATIVE_TRADE_ARRIVAL_TURNS = 8; // WTP: the native trade ship comes from Europe near a village it reaches within this many turns
+	CvPlot* AI_nativeTradeArrivalPlot(bool bMuskets, CvCity*& pVillage, int& iVillageTurns);
 	int AI_nativeMusketGold(PlayerTypes eNative) const;
 	int AI_nativeMusketMinPrice(int iAmount) const;
 	int AI_nativeTradeMusketsAboard() const;

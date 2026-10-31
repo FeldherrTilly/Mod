@@ -18854,6 +18854,7 @@ bool CvUnitAI::AI_nativeTradeEurope()
 		getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), kOwner.getGold() - iGoldBefore, kOwner.getGold(), kOwner.getNumEuropeUnits());
 
 	const bool bHuman = AI_isHumanNativeTrade();
+	CvPlot* pArrival = NULL;
 	if (kOwner.getNumCities() > 0)
 	{
 		// WTP: only experts the workforce plan wants for a job (not free colonists and the like: the other transports bring them)
@@ -18943,6 +18944,16 @@ bool CvUnitAI::AI_nativeTradeEurope()
 			if (!bBought && gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S cannot buy goods in Europe (gold %d), returns %s",
 				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), kOwner.getGold(), iLoaded > 0 ? "with the experts only" : "empty");
 			AI_setUnitAIState(bBought ? UNITAI_STATE_NATIVE_TRADE_SELL : UNITAI_STATE_NATIVE_TRADE_BUY);
+			// WTP: with goods and without passengers the ship appears near a village that buys them (else next to a colony)
+			if (bBought && !bHuman && iLoaded == 0)
+			{
+				CvCity* pVillage = NULL;
+				int iVillageTurns = 0;
+				pArrival = AI_nativeTradeArrivalPlot(bMuskets, pVillage, iVillageTurns);
+				if (pArrival != NULL && gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S comes from Europe to %d,%d near %S (%S, %d turns from there)",
+					getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pArrival->getX_INLINE(), pArrival->getY_INLINE(),
+					pVillage->getName().GetCString(), GET_PLAYER(pVillage->getOwnerINLINE()).getCivilizationDescription(0), iVillageTurns);
+			}
 		}
 	}
 
@@ -18957,7 +18968,82 @@ bool CvUnitAI::AI_nativeTradeEurope()
 	// a new round trip: its clock starts with the first move on the map
 	m_iNativeTradeArriveTurn = -1;
 	m_iNativeTradeSlotsFullTurn = -1;
-	return AI_crossFromEurope();
+	return AI_crossFromEurope(pArrival);
+}
+
+// WTP: native trade ship in Europe with goods for the natives: the plot it appears at coming from Europe, the Europe crossing
+// plot next to a village that buys the goods (muskets: of a tribe with more than NATIVE_TRADE_MUSKET_GOLD gold after the sales
+// of our other ships, AI_nativeMusketGold; Trade Goods: of a tribe with 2000 gold) from which the ship reaches the village
+// within NATIVE_TRADE_ARRIVAL_TURNS turns. Of the villages nearest to a crossing plot (air distance) the one of the fewest
+// path turns wins. NULL: none (the ship appears next to a colony as usual).
+CvPlot* CvUnitAI::AI_nativeTradeArrivalPlot(bool bMuskets, CvCity*& pVillage, int& iVillageTurns)
+{
+	static const int NATIVE_TRADE_ARRIVAL_CANDIDATES = 6;
+	pVillage = NULL;
+	iVillageTurns = 0;
+	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const YieldTypes eYield = bMuskets ? YIELD_MUSKETS : YIELD_TRADE_GOODS;
+
+	// the plots a ship can come from Europe to
+	std::vector<const CvPlot*> apCrossing;
+	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); ++iI)
+	{
+		const CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
+		if (!pLoopPlot->isImpassable() && pLoopPlot->isRevealed(getTeam(), false) && canCrossOcean(pLoopPlot, UNIT_TRAVEL_STATE_FROM_EUROPE))
+		{
+			apCrossing.push_back(pLoopPlot);
+		}
+	}
+	if (apCrossing.empty())
+	{
+		return NULL;
+	}
+
+	// the villages that buy the goods, by the air distance to their nearest crossing plot (ties: player and city ID)
+	std::vector<std::pair<std::pair<int, int>, CvCity*> > aVillages;
+	for (PlayerTypes eNative = FIRST_PLAYER; eNative < NUM_PLAYER_TYPES; ++eNative)
+	{
+		CvPlayerAI& kNative = GET_PLAYER(eNative);
+		if (!kNative.isAlive() || !kNative.isNative() || (bMuskets ? AI_nativeMusketGold(eNative) <= NATIVE_TRADE_MUSKET_GOLD : kNative.getGold() < 2000))
+		{
+			continue;
+		}
+		int iLoop;
+		for (CvCity* pCity = kNative.firstCity(&iLoop); pCity != NULL; pCity = kNative.nextCity(&iLoop))
+		{
+			if (!AI_canTradeWithVillage(*pCity) || !kOwner.AI_nativeCityBuys(eYield, *pCity))
+			{
+				continue;
+			}
+			int iDistance = MAX_INT;
+			for (uint i = 0; i < apCrossing.size(); ++i)
+			{
+				iDistance = std::min(iDistance, plotDistance(pCity->getX_INLINE(), pCity->getY_INLINE(), apCrossing[i]->getX_INLINE(), apCrossing[i]->getY_INLINE()));
+			}
+			aVillages.push_back(std::make_pair(std::make_pair(iDistance, eNative * 100000 + pCity->getID()), pCity));
+		}
+	}
+	std::sort(aVillages.begin(), aVillages.end());
+
+	CvPlot* pBestArrival = NULL;
+	int iBestTurns = NATIVE_TRADE_ARRIVAL_TURNS + 1;
+	for (uint i = 0; i < aVillages.size() && (int)i < NATIVE_TRADE_ARRIVAL_CANDIDATES; ++i)
+	{
+		CvCity* const pCity = aVillages[i].second;
+		CvPlot* const pCrossing = findNearbyOceanPlot(*pCity->plot());
+		int iPathTurns;
+		if (pCrossing != NULL && getGroup()->generatePath(pCrossing, pCity->plot(), 0, true, &iPathTurns) && iPathTurns < iBestTurns)
+		{
+			iBestTurns = iPathTurns;
+			pBestArrival = pCrossing;
+			pVillage = pCity;
+		}
+	}
+	if (pBestArrival != NULL)
+	{
+		iVillageTurns = iBestTurns;
+	}
+	return pBestArrival;
 }
 
 // WTP: leave Europe for the colonies like AI_europe does (the ship appears next to the colony AI_bestDestinationPlot names)
