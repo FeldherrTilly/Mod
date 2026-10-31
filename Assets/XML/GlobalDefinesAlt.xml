@@ -545,7 +545,7 @@
 	</Define>
 	<Define>
 		<DefineName>PRICE_INCREASE_BARGAIN_SELL</DefineName>
-		<iDefineIntVal>210</iDefineIntVal>
+		<iDefineIntVal>300</iDefineIntVal>
 	</Define>
 	<Define>
 		<!-- bargaining when selling to natives: up to this percent of the first offer the price rises by PRICE_INCREASE_BARGAIN_SELL per bargain -->
