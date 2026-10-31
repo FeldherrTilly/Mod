@@ -380,12 +380,21 @@ class CvEventManager:
 			return
 
 		# WTP: deletes a private trade route (iData3: route id)
-		if (iData1 == 754):
+		if (iData1 == 757):
 			iPlayer = iData2
 			if (iPlayer >= 0 and iPlayer < gc.getMAX_PLAYERS()):
 				pRoute = gc.getPlayer(iPlayer).getTradeRoute(iData3)
 				if (pRoute.getID() == iData3 and pRoute.isPrivate()):
 					gc.getPlayer(iPlayer).removeTradeRoute(iData3)
+			return
+
+		# WTP: the colony takes colonists of the job automation (iData3: city id, iData4: 1 on, 0 off)
+		if (iData1 == 758):
+			iPlayer = iData2
+			if (iPlayer >= 0 and iPlayer < gc.getMAX_PLAYERS()):
+				pCity = gc.getPlayer(iPlayer).getCity(iData3)
+				if (not pCity.isNone()):
+					pCity.setAutoAssignTarget(iData4 == 1)
 			return
 
 		# WTP: reserved trade route (iData3: route id, iData4: 1 reserves, 0 releases)

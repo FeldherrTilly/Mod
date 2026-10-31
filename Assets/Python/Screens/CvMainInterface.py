@@ -288,6 +288,7 @@ class CvMainInterface:
 	BUTTON_PIONEER_PLAN_BUILD = 752 # WTP: iData2 = the build
 	BUTTON_PIONEER_PLAN_PRIORITY = 753 # WTP: iData2 = the priority
 	BUTTON_PRIVATE_BUILD = 754 # WTP: private pioneer
+	BUTTON_AUTO_ASSIGN_TARGET = 755 # WTP: city screen: the colony takes colonists of the job automation
 	PRIVATE_BUILD_COST = 500 # WTP: as CvPlayer::startPrivateBuild
 	PRIVATE_BUILD_RANGE = 3 # WTP: as CvPlayer::startPrivateBuild
 
@@ -907,6 +908,10 @@ class CvMainInterface:
 
 		screen.setImageButton("LockCitizens", ArtFileMgr.getInterfaceArtInfo("INTERFACE_CITY_CITIZEN_LOCK").getPath(), CITIZEN_BAR_WIDTH - (SMALL_BUTTON_SIZE * 5), yResolution - BOTTOM_CENTER_HUD_HEIGHT - (STACK_BAR_HEIGHT * 2) - SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE * 2, SMALL_BUTTON_SIZE * 2, WidgetTypes.WIDGET_AUTOMATE_CITIZENS, 0, -1)
 		self.appendtoHideState(screen, "LockCitizens", HIDE_TYPE_CITY, HIDE_LEVEL_HIDE)
+
+		# WTP: the colony takes colonists of the job automation (Auto Assign Job); off by default
+		screen.setImageButton("AutoAssignTarget", "Art/Interface/Game Hud/Actions/auto_assign_target_off.dds", CITIZEN_BAR_WIDTH - (SMALL_BUTTON_SIZE * 7), yResolution - BOTTOM_CENTER_HUD_HEIGHT - (STACK_BAR_HEIGHT * 2) - SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE * 2, SMALL_BUTTON_SIZE * 2, WidgetTypes.WIDGET_GENERAL, self.BUTTON_AUTO_ASSIGN_TARGET, -1)
+		self.appendtoHideState(screen, "AutoAssignTarget", HIDE_TYPE_CITY, HIDE_LEVEL_HIDE)
 
 	# RESOURCE TABLE
 		screen.addScrollPanel("ResourceTable", u"", 0, yResolution - BOTTOM_CENTER_HUD_HEIGHT, xResolution, BOTTOM_CENTER_HUD_HEIGHT, PanelStyles.PANEL_STYLE_STANDARD, False, WidgetTypes.WIDGET_GENERAL, -1, -1 )
@@ -2516,6 +2521,9 @@ class CvMainInterface:
 	def updateCityScreen( self ):
 		screen = CyGInterfaceScreen("MainInterface", CvScreenEnums.MAIN_INTERFACE )
 		pHeadSelectedCity = CyInterface().getHeadSelectedCity()
+		# WTP: the switch for the job automation shows the colony's state
+		if pHeadSelectedCity:
+			self.drawAutoAssignTarget(pHeadSelectedCity.isAutoAssignTarget())
 
 		# Find out our resolution
 		xResolution = screen.getXResolution()
@@ -3763,6 +3771,9 @@ class CvMainInterface:
 			elif (inputClass.getButtonType() == WidgetTypes.WIDGET_GENERAL and inputClass.getData1() == self.BUTTON_PRIVATE_BUILD):
 				self.togglePrivateBuild()
 
+			elif (inputClass.getButtonType() == WidgetTypes.WIDGET_GENERAL and inputClass.getData1() == self.BUTTON_AUTO_ASSIGN_TARGET):
+				self.toggleAutoAssignTarget()
+
 			# WTP: pioneer plan: the improvement and the priority chosen
 			elif (inputClass.getButtonType() == WidgetTypes.WIDGET_GENERAL and inputClass.getData1() == self.BUTTON_PIONEER_PLAN_BUILD):
 				self.iPioneerPlanBuild = inputClass.getData2()
@@ -4018,6 +4029,24 @@ class CvMainInterface:
 		return
 
 	# Adds Mouse Over Help to General Widgets
+	# WTP: city screen: the colony takes colonists of the job automation (the screen shows the new state at once, the game state
+	# follows with the network message)
+	def drawAutoAssignTarget( self, bOn ):
+		screen = CyGInterfaceScreen("MainInterface", CvScreenEnums.MAIN_INTERFACE )
+		if bOn:
+			screen.changeImageButton("AutoAssignTarget", "Art/Interface/Game Hud/Actions/auto_assign_target_on.dds")
+		else:
+			screen.changeImageButton("AutoAssignTarget", "Art/Interface/Game Hud/Actions/auto_assign_target_off.dds")
+
+	def toggleAutoAssignTarget( self ):
+		pCity = CyInterface().getHeadSelectedCity()
+		iPlayer = CyGame().getActivePlayer()
+		if pCity is None or pCity.isNone() or pCity.getOwner() != iPlayer:
+			return
+		bOn = not pCity.isAutoAssignTarget()
+		CyMessageControl().sendModNetMessage(758, iPlayer, pCity.getID(), int(bOn), 0)
+		self.drawAutoAssignTarget(bOn)
+
 	def getWidgetHelp( self, argsList ):
 		iScreen, eWidgetType, iData1, iData2, bOption = argsList
 
@@ -4038,6 +4067,11 @@ class CvMainInterface:
 				return gc.getBuildInfo(iData2).getDescription()
 			elif iData1 == self.BUTTON_PRIVATE_BUILD:
 				return localText.getText("TXT_KEY_INTERFACE_PRIVATE_BUILD", (self.PRIVATE_BUILD_COST, self.PRIVATE_BUILD_RANGE))
+			elif iData1 == self.BUTTON_AUTO_ASSIGN_TARGET:
+				pCity = CyInterface().getHeadSelectedCity()
+				if pCity and pCity.isAutoAssignTarget():
+					return localText.getText("TXT_KEY_INTERFACE_AUTO_ASSIGN_TARGET_ON", ())
+				return localText.getText("TXT_KEY_INTERFACE_AUTO_ASSIGN_TARGET_OFF", ())
 			elif iData1 == VET_NEW_CAPACITY:
 				return localText.getText("TXT_KEY_NEW_STORAGE_CITY_SCREEN", ());
 			elif iData1 == NEW_HARBOUR_SYSTEM:

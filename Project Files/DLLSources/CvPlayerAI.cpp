@@ -24556,7 +24556,7 @@ bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTy
 }
 
 // WTP: the best jobs for a human player's colonist (the best per colony and profession, best first, at most iMaxJobs): a free
-// plot or building slot in one of our colonies, or the job of a regular colonist in the expert's own trade (that colonist
+// plot or building slot in one of our colonies switched on for it in the city screen (CvCity::isAutoAssignTarget), or the job of a regular colonist in the expert's own trade (that colonist
 // makes room). Regular colonists only within 12 turns; the colony keeps 2 food to spare unless the job produces food; a
 // building job only if the colony produces its raw material (the menu: or has some in stock). A new citizen only if the colony's unhappiness stays at most
 // 2 above its happiness with all colonists on their way there. The menu shows one job of the expert's own trade even in a colony
@@ -24645,7 +24645,8 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 	int iLoop;
 	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
 	{
-		if (AI_isWfUnreachable(kUnit.getID(), pCity->getID()))
+		// WTP (user 2026-10-31): only the colonies switched on in the city screen take colonists of the job automation
+		if (!pCity->isAutoAssignTarget() || AI_isWfUnreachable(kUnit.getID(), pCity->getID()))
 		{
 			continue;
 		}
