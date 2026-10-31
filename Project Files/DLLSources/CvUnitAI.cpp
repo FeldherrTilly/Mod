@@ -17506,10 +17506,10 @@ bool CvUnitAI::AI_tradeWithCity()
 // no weapons or horses to the natives and takes no passengers
 namespace
 {
-	const int NATIVE_TRADE_HOME_RANGE = 12;
+	const int NATIVE_TRADE_HOME_RANGE = 25;
 	// a village visited within this many turns is avoided: not chosen to buy from if there is another one, and each turn
 	// missing counts like one plot of distance when selling
-	const int NATIVE_TRADE_HUMAN_VISIT_TURNS = 20;
+	const int NATIVE_TRADE_HUMAN_VISIT_TURNS = 14;
 	const int NATIVE_TRADE_HUMAN_BUDGET = 1000;
 	const int NATIVE_TRADE_HUMAN_RESERVE = 500;
 
