@@ -16244,11 +16244,13 @@ YieldTypes CvUnit::getYieldUncached() const
 	return NO_YIELD;
 }
 
-// WTP: expert native traders should always found trade posts
+// WTP: expert native traders (and courageous native traders, UNITCLASS_SEASONED_TRADER) should always found trade posts
 bool CvUnit::isExpertNativeTrader() const
 {
 	static const UnitClassTypes eExpertTrader = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_EXPERT_TRADER");
-	return eExpertTrader != NO_UNITCLASS && getUnitClassType() == eExpertTrader;
+	static const UnitClassTypes eSeasonedTrader = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_SEASONED_TRADER");
+	const UnitClassTypes eClass = getUnitClassType();
+	return (eExpertTrader != NO_UNITCLASS && eClass == eExpertTrader) || (eSeasonedTrader != NO_UNITCLASS && eClass == eSeasonedTrader);
 }
 
 bool CvUnit::isGoods() const
