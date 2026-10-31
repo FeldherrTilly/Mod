@@ -917,7 +917,7 @@ public:
 	// TAC - short messages for immigration after fist - RAY
 	void doImmigrant(int iIndex, bool shortmessage);
 
-	void buyLand(CvPlot* pPlot, bool bFree);
+	bool buyLand(CvPlot* pPlot, bool bFree); // WTP: false: not enough gold
 
 	int getNumTradeMessages() const;
 	const wchar* getTradeMessage(int i) const;

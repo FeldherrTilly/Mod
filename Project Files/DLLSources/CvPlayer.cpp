@@ -21593,14 +21593,14 @@ void CvPlayer::doImmigrant(int iIndex, bool shortmessage)
 	}
 }
 
-void CvPlayer::buyLand(CvPlot* pPlot, bool bFree)
+bool CvPlayer::buyLand(CvPlot* pPlot, bool bFree)
 {
 	int iCulture = pPlot->getBuyCultureAmount(getID());
 	int iGoldCost = bFree ? 0 : pPlot->getBuyPrice(getID());
 
 	if (getGold() < iGoldCost)
 	{
-		return;
+		return false;
 	}
 
 	PlayerTypes eOldOwner = pPlot->getOwnerINLINE();
@@ -21623,6 +21623,7 @@ void CvPlayer::buyLand(CvPlot* pPlot, bool bFree)
 	OOS_LOG("buy land", iGoldCost);
 	pPlot->changeCulture(getID(), iCulture, true);
 	changeGold(-iGoldCost);
+	return true;
 }
 
 int CvPlayer::getNumTradeMessages() const

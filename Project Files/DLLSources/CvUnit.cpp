@@ -8751,6 +8751,7 @@ bool CvUnit::doFound(bool bBuyLand)
 
 	//first city takes land for free
 	bool bIsFirstCity = (GET_PLAYER(getOwnerINLINE()).getNumCities() == 0);
+	std::vector<CvPlot*> apBoughtFromNatives; // WTP
 	if (bBuyLand || bIsFirstCity)
 	{
 		for (int i = 0; i < NUM_CITY_PLOTS_1_PLOT; ++i) // R&R, ray, 2 Plot Radius
@@ -8763,7 +8764,10 @@ bool CvUnit::doFound(bool bBuyLand)
 					//don't buy land if at war, it will be taken
 					if (GET_PLAYER(pLoopPlot->getOwnerINLINE()).isNative() && !GET_TEAM(pLoopPlot->getTeam()).isAtWar(getTeam()))
 					{
-						GET_PLAYER(getOwnerINLINE()).buyLand(pLoopPlot, bIsFirstCity);
+						if (GET_PLAYER(getOwnerINLINE()).buyLand(pLoopPlot, bIsFirstCity))
+						{
+							apBoughtFromNatives.push_back(pLoopPlot);
+						}
 					}
 				}
 			}
@@ -8791,6 +8795,16 @@ bool CvUnit::doFound(bool bBuyLand)
 		FAssert(NULL != pCity);
 		if (NULL != pCity)
 		{
+			// WTP: bought land stays ours. Marked again now that the colony exists: without its culture range the buyer did not
+			// get the plot in buyLand, and the change of owner cleared the mark
+			for (uint i = 0; i < apBoughtFromNatives.size(); ++i)
+			{
+				if (apBoughtFromNatives[i]->getOwnerINLINE() == getOwnerINLINE())
+				{
+					apBoughtFromNatives[i]->setBoughtFromNatives(true);
+				}
+			}
+
 			pCity->addPopulationUnit(this, NO_PROFESSION);
 
 			//WTP, ray, Settler Professsion - START
