@@ -19392,7 +19392,27 @@ void CvPlayerAI::AI_doWorkforcePlan()
 						continue;
 					}
 					const int iValueAlt = aiGold[iT * iNumJobs + jj] + (aiFood[iT * iNumJobs + jj] - iConsumption) * WF_FOOD_GOLD;
-					if (iValueAlt >= iBestAlt && iValueAlt > 0)
+					// WTP (user 2026-11-01): the reservation takes the whole plot, so the job must be the best use of it: no other
+					// job there may be worth more for any colonist (an Expert Miner on its way changed to 32 gold of ore on a plot
+					// with 180 gold of silver, and the silver stayed in the ground)
+					bool bBestOfPlot = true;
+					for (int jPlot = 0; kAlt.iPlotKey >= 0 && jPlot < iNumJobs && bBestOfPlot; ++jPlot)
+					{
+						if (jPlot == jj || aJobs[jPlot].iPlotKey != kAlt.iPlotKey)
+						{
+							continue;
+						}
+						for (int iType = 0; iType < iNumTypes; ++iType)
+						{
+							const int iGoldThere = aiGold[iType * iNumJobs + jPlot];
+							if (iGoldThere > -1000000 && iGoldThere + (aiFood[iType * iNumJobs + jPlot] - iConsumption) * WF_FOOD_GOLD > iValueAlt)
+							{
+								bBestOfPlot = false;
+								break;
+							}
+						}
+					}
+					if (bBestOfPlot && iValueAlt >= iBestAlt && iValueAlt > 0)
 					{
 						iBestAlt = iValueAlt;
 						jUse = jj;
