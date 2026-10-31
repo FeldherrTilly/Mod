@@ -18293,6 +18293,14 @@ int CvUnitAI::AI_nativeTradeSell(CvWString* pszDeals)
 				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pCity->getName().GetCString(), iAmount, GC.getYieldInfo(eYield).getDescription());
 			continue;
 		}
+		// WTP: muskets only with a profit of NATIVE_TRADE_MUSKET_MIN_PROFIT over the Europe price (else the ship sails on)
+		if (eYield == YIELD_MUSKETS && iGold < AI_nativeMusketMinPrice(iAmount))
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trade: Player %d (%S) turn %d %S: %S offers only %d gold for %d %S (needs %d), sails on",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pCity->getName().GetCString(), iGold, iAmount,
+				GC.getYieldInfo(eYield).getDescription(), AI_nativeMusketMinPrice(iAmount));
+			continue;
+		}
 
 		// bargain once for this sale; if the natives take offence they sell nothing more to us for a while
 		const int iBasePrice = iGold;
@@ -18692,7 +18700,8 @@ void CvUnitAI::AI_nativeTradeShipMove()
 		}
 		else
 		{
-			// muskets go to the nearest village of a tribe with more than NATIVE_TRADE_MUSKET_GOLD gold (else to any village)
+			// muskets go to the nearest village that pays enough for them (AI_nativeMusketMinPrice), the other goods to any village;
+			// muskets nobody pays enough for go back to Europe
 			CvCity* const pFavourite = AI_nativeTradeBuyVillage(false);
 			CvCity* pTarget = AI_nativeTradeSellVillage(pFavourite, bMuskets);
 			if (pTarget == NULL && bMuskets)
@@ -18804,8 +18813,8 @@ void CvUnitAI::AI_nativeTradeShipMove()
 }
 
 // WTP: native trade ship in Europe: sells its goods, takes the experts the workforce plan wants if any wait at the dock and
-// fills the free cargo slots with Trade Goods (up to 300), or with 100 muskets if it knows a village of a tribe with more
-// than NATIVE_TRADE_MUSKET_GOLD gold that buys them (user 2026-10-24). No gold reserve applies to these purchases.
+// fills the free cargo slots with Trade Goods (up to 300), or with 100 muskets if it knows a village that pays the Europe
+// price plus NATIVE_TRADE_MUSKET_MIN_PROFIT for them (user 2026-10-24, 2026-10-31). No gold reserve applies to these purchases.
 bool CvUnitAI::AI_nativeTradeEurope()
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
@@ -18990,28 +18999,91 @@ bool CvUnitAI::AI_crossFromEurope(CvPlot* pArrival)
 	return true;
 }
 
-// WTP: the native trade ship knows a village it can trade with of a tribe with more than NATIVE_TRADE_MUSKET_GOLD gold that
-// buys muskets (it then takes muskets from Europe instead of Trade Goods)
+// WTP: the native trade ship knows a village it can trade with that buys muskets and pays the Europe price of 100 muskets
+// plus NATIVE_TRADE_MUSKET_MIN_PROFIT for them (it then takes muskets from Europe instead of Trade Goods)
 bool CvUnitAI::AI_knowsMusketVillage() const
 {
 	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const int iMinPrice = AI_nativeMusketMinPrice(100);
 	for (PlayerTypes eNative = FIRST_PLAYER; eNative < NUM_PLAYER_TYPES; ++eNative)
 	{
 		CvPlayerAI& kNative = GET_PLAYER(eNative);
-		if (!kNative.isAlive() || !kNative.isNative() || kNative.getGold() <= NATIVE_TRADE_MUSKET_GOLD)
+		if (!kNative.isAlive() || !kNative.isNative() || kNative.getGold() < iMinPrice)
 		{
 			continue;
 		}
 		int iLoop;
 		for (const CvCity* pCity = kNative.firstCity(&iLoop); pCity != NULL; pCity = kNative.nextCity(&iLoop))
 		{
-			if (AI_canTradeWithVillage(*pCity) && kOwner.AI_nativeCityBuys(YIELD_MUSKETS, *pCity))
+			if (AI_canTradeWithVillage(*pCity) && kOwner.AI_nativeCityBuys(YIELD_MUSKETS, *pCity) && AI_nativeMusketOffer(*pCity, 100) >= iMinPrice)
 			{
 				return true;
 			}
 		}
 	}
 	return false;
+}
+
+// WTP: what the village pays for iAmount muskets (before bargaining), out of the gold of the tribe less what our other
+// native trade ships take that head for one of its villages with muskets (the ships of the other players are not foreseeable)
+int CvUnitAI::AI_nativeMusketOffer(const CvCity& kVillage, int iAmount) const
+{
+	const CvPlayerAI& kNative = GET_PLAYER(kVillage.getOwnerINLINE());
+	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	int iReserved = 0;
+	int iLoop;
+	for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
+	{
+		if (pLoopUnit == this || pLoopUnit->getDomainType() != DOMAIN_SEA || !pLoopUnit->isOnMap_() || !static_cast<CvUnitAI*>(pLoopUnit)->AI_isNativeTradeShip())
+		{
+			continue;
+		}
+		const int iMuskets = static_cast<CvUnitAI*>(pLoopUnit)->AI_nativeTradeMusketsAboard();
+		if (iMuskets <= 0)
+		{
+			continue;
+		}
+		const CvPlot* pTargetPlot = (pLoopUnit->getGroup() != NULL) ? pLoopUnit->getGroup()->AI_getMissionAIPlot() : NULL;
+		if (pTargetPlot == NULL)
+		{
+			pTargetPlot = pLoopUnit->plot();
+		}
+		const CvCity* const pTarget = (pTargetPlot != NULL) ? pTargetPlot->getPlotCity() : NULL;
+		if (pTarget != NULL && pTarget->getOwnerINLINE() == kVillage.getOwnerINLINE())
+		{
+			iReserved += std::max(0, kNative.AI_nativeYieldTradeValue(YIELD_MUSKETS, iMuskets, true, pTarget));
+		}
+	}
+	const int iGold = std::min(kNative.getGold(), kNative.AI_maxGoldTrade(getOwnerINLINE())) - iReserved;
+	return std::max(0, std::min(kNative.AI_nativeYieldTradeValue(YIELD_MUSKETS, iAmount, true, &kVillage), iGold));
+}
+
+// WTP: the least a village has to pay for iAmount muskets: their Europe price plus NATIVE_TRADE_MUSKET_MIN_PROFIT
+int CvUnitAI::AI_nativeMusketMinPrice(int iAmount) const
+{
+	const PlayerTypes eParent = GET_PLAYER(getOwnerINLINE()).getParent();
+	const int iPrice = (eParent != NO_PLAYER) ? GET_PLAYER(eParent).getYieldSellPrice(YIELD_MUSKETS) : 0;
+	return iAmount * iPrice + NATIVE_TRADE_MUSKET_MIN_PROFIT;
+}
+
+// WTP: native trade ship: the muskets in its cargo
+int CvUnitAI::AI_nativeTradeMusketsAboard() const
+{
+	int iMuskets = 0;
+	if (plot() == NULL)
+	{
+		return 0;
+	}
+	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		const CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && pLoopUnit->isGoods() && pLoopUnit->getYield() == YIELD_MUSKETS)
+		{
+			iMuskets += pLoopUnit->getYieldStored();
+		}
+	}
+	return iMuskets;
 }
 
 // WTP: native trade ship: may it trade with this village at all (peace, not angry, no fort, known, reachable by this ship)?
@@ -19129,9 +19201,10 @@ CvCity* CvUnitAI::AI_nativeTradeBuyVillage(bool bDraw)
 }
 
 // WTP: native trade ship: the village to sell the goods aboard to. The tribe needs more than 2000 gold; the nearest one
-// to the reference wins: the village we buy from next (pFavourite, or our colonies), for muskets the colonies of the
-// colonial player the natives like least (a village that wants muskets wins among the near ones). Without such a tribe the
-// nearest village with gold at all is taken, except for muskets (NULL then).
+// to the reference wins: the village we buy from next (pFavourite, or our colonies). bMuskets: only the muskets count, the
+// village must pay their Europe price plus NATIVE_TRADE_MUSKET_MIN_PROFIT (AI_nativeMusketOffer) and the nearest one by path
+// turns wins (a village that wants muskets wins among the near ones). Without such a tribe the nearest village with gold
+// at all is taken, except for muskets (NULL then; without bMuskets the muskets aboard do not count).
 CvCity* CvUnitAI::AI_nativeTradeSellVillage(const CvCity* pFavourite, bool bMuskets)
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
@@ -19153,6 +19226,7 @@ CvCity* CvUnitAI::AI_nativeTradeSellVillage(const CvCity* pFavourite, bool bMusk
 	{
 		return NULL;
 	}
+	const int iMuskets = bMuskets ? AI_nativeTradeMusketsAboard() : 0;
 
 	CvCity* pBestCity = NULL;
 	int iBestDistance = MAX_INT;
@@ -19177,7 +19251,8 @@ CvCity* CvUnitAI::AI_nativeTradeSellVillage(const CvCity* pFavourite, bool bMusk
 			bool bBuys = false;
 			for (uint i = 0; i < aeCarried.size() && !bBuys; ++i)
 			{
-				bBuys = kOwner.AI_nativeCityBuys(aeCarried[i], *pCity) && (!bMuskets || aeCarried[i] == YIELD_MUSKETS);
+				// WTP: without bMuskets the muskets do not count (only a village that pays enough for them gets them)
+				bBuys = kOwner.AI_nativeCityBuys(aeCarried[i], *pCity) && (bMuskets == (aeCarried[i] == YIELD_MUSKETS));
 			}
 			const int iLastVisit = kOwner.AI_getNativeVillageVisitTurn(*pCity);
 			if (!bBuys || (iLastVisit >= 0 && iTurn - iLastVisit < 3))
@@ -19194,8 +19269,8 @@ CvCity* CvUnitAI::AI_nativeTradeSellVillage(const CvCity* pFavourite, bool bMusk
 			int iDistance = MAX_INT;
 			if (bMuskets)
 			{
-				// WTP: muskets go to the nearest village (path turns) of a tribe with more than NATIVE_TRADE_MUSKET_GOLD gold
-				if (kNative.getGold() <= NATIVE_TRADE_MUSKET_GOLD)
+				// WTP: muskets go to the nearest village (path turns) that pays their Europe price plus NATIVE_TRADE_MUSKET_MIN_PROFIT
+				if (AI_nativeMusketOffer(*pCity, iMuskets) < AI_nativeMusketMinPrice(iMuskets))
 				{
 					continue;
 				}
@@ -19215,7 +19290,7 @@ CvCity* CvUnitAI::AI_nativeTradeSellVillage(const CvCity* pFavourite, bool bMusk
 				iDistance += 20;
 			}
 
-			if (kNative.getGold() >= 2000)
+			if (bMuskets || kNative.getGold() >= 2000)
 			{
 				const bool bWantsMuskets = bMuskets && pCity->AI_getDesiredYield() == YIELD_MUSKETS;
 				// near villages (within 2 plots of the nearest) are told apart by wanting muskets
