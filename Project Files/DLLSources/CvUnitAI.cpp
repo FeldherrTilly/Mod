@@ -18702,18 +18702,21 @@ void CvUnitAI::AI_nativeTradeShipMove()
 		{
 			// muskets go to the nearest village of a tribe with more than NATIVE_TRADE_MUSKET_GOLD gold, the other goods to any
 			// village; muskets no such tribe is left for go back to Europe
-			CvCity* const pFavourite = AI_nativeTradeBuyVillage(false);
-			CvCity* pTarget = AI_nativeTradeSellVillage(pFavourite, bMuskets);
-			if (pTarget == NULL && bMuskets)
+			// WTP: NATIVE_TRADE_SELL_TURNS after its arrival from Europe the ship takes what is left back to Europe
+			const bool bSellTimeOver = iTurn - m_iNativeTradeArriveTurn >= NATIVE_TRADE_SELL_TURNS;
+			CvCity* const pFavourite = bSellTimeOver ? NULL : AI_nativeTradeBuyVillage(false);
+			CvCity* pTarget = bSellTimeOver ? NULL : AI_nativeTradeSellVillage(pFavourite, bMuskets);
+			if (pTarget == NULL && bMuskets && !bSellTimeOver)
 			{
 				pTarget = AI_nativeTradeSellVillage(pFavourite, false);
 			}
 			if (pTarget == NULL)
 			{
-				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S finds no village that buys its goods, sails back to Europe",
-					getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString());
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S %s, sails back to Europe with %d goods units",
+					getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(),
+					bSellTimeOver ? "is out of sale time (NATIVE_TRADE_SELL_TURNS)" : "finds no village that buys its goods", iGoods);
 				AI_setUnitAIState(UNITAI_STATE_NATIVE_TRADE_EUROPE);
-				s_szWtpShipReason = "native trade: no buyer for the goods";
+				s_szWtpShipReason = bSellTimeOver ? "native trade: sale time over" : "native trade: no buyer for the goods";
 				if (!AI_sailToEurope())
 				{
 					getGroup()->pushMission(MISSION_SKIP);
