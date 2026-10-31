@@ -17567,16 +17567,18 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 
 	// WTP: a walk of more than 5 turns to a coastal site is made by ship (a Swedish settler walked 11 turns through forest
 	// and hills to a site 5 plots away): the settler waits for a transport if one of ours could sail there within 5 turns
-	// (estimated by distance; aboard, the site has to be reachable within 6 turns, see above)
+	// (estimated by distance; aboard, the site has to be reachable within 6 turns, see above). One of the transports has to
+	// find a path to the site: a lake shore counts as coastal land, but no ship gets there
 	if (pBestFoundPlot != NULL && !bBestIsTransport && !isCargo() && !bFirstCity && iBestPathTurns > 5 && pBestFoundPlot->isCoastalLand())
 	{
 		int iBestShipMoves = 0;
 		int iUnitLoop;
 		for (CvUnit* pLoopUnit = kOwner.firstUnit(&iUnitLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iUnitLoop))
 		{
-			if (pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && pLoopUnit->isOnMap() && pLoopUnit->cargoSpace() > 0)
+			if (pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && pLoopUnit->isOnMap() && pLoopUnit->cargoSpace() > 0
+				&& pLoopUnit->baseMoves() > iBestShipMoves && pLoopUnit->generatePath(pBestFoundPlot, 0, false))
 			{
-				iBestShipMoves = std::max(iBestShipMoves, pLoopUnit->baseMoves());
+				iBestShipMoves = pLoopUnit->baseMoves();
 			}
 		}
 		if (iBestShipMoves > 0 && plotDistance(getX_INLINE(), getY_INLINE(), pBestFoundPlot->getX_INLINE(), pBestFoundPlot->getY_INLINE()) <= 5 * iBestShipMoves
