@@ -6134,7 +6134,7 @@ bool CvPlayerAI::AI_nativeSellProfit(YieldTypes eYield, int iAmount, const CvCit
 
 // WTP: the AI bargains once for a better price when it sells to natives (the bargaining of the diplomacy screen is
 // Python driven, the AI has no access to it). Same rules: the natives may refuse (they do not trade with us for some
-// turns and like us less), otherwise the price rises by 7 to 21% plus the trader bonus (bargainSellPrice), never above
+// turns and like us less), otherwise the price rises by 10 to 30% plus the trader bonus (bargainSellPrice), never above
 // what the tribe may pay.
 // Returns true if the price was raised. iPrice is the price in gold the natives pay for the whole deal.
 bool CvPlayerAI::AI_bargainWithNatives(PlayerTypes eNative, int& iPrice)
