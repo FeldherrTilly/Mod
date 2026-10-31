@@ -18348,11 +18348,11 @@ int CvPlayerAI::AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* pi
 			}
 			const int iOnFoot = itTo->second[GC.getMap().plotNumINLINE(pLanding->getX_INLINE(), pLanding->getY_INLINE())];
 			const std::map<int, std::vector<int> >::const_iterator itPort = m_mapWfLandCost.find(it->first.first);
-			if (iOnFoot == MAX_INT || itPort == m_mapWfLandCost.end() || itPort->second[iFrom] == MAX_INT)
+			if (iOnFoot == MAX_INT || itPort == m_mapWfLandCost.end() || wfLandCostFrom(itPort->second, kFrom, m_iWfLandMoves) == MAX_INT)
 			{
 				continue;
 			}
-			const int iTurns = (itPort->second[iFrom] + m_iWfLandMoves - 1) / m_iWfLandMoves + WF_SHIP_WAIT + it->second + (iOnFoot + m_iWfLandMoves - 1) / m_iWfLandMoves;
+			const int iTurns = (wfLandCostFrom(itPort->second, kFrom, m_iWfLandMoves) + m_iWfLandMoves - 1) / m_iWfLandMoves + WF_SHIP_WAIT + it->second + (iOnFoot + m_iWfLandMoves - 1) / m_iWfLandMoves;
 			if (iTurns < iShip)
 			{
 				iShip = iTurns;
