@@ -729,6 +729,8 @@ public:
 		int iTurns;
 		int iGold;
 		int iFood;
+		int iOutput; // WTP: what the job produces per turn of the profession's first yield, with the colony's yield modifier (menu)
+		int iOutputFood; // WTP: the same for food as its second yield (hunters, ...); 0 if the first yield is food (menu)
 		bool bFoodShortage; // a food job (net 3 food or more) in a colony short of food, for a worker who may be offered it
 		bool bLowFood; // WTP: a new citizen without food of its own where food is not to spare (offered with HUMAN_JOB_FOOD_STOCK stored)
 	};
