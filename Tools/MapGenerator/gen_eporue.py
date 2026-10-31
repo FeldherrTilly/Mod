@@ -2937,6 +2937,7 @@ def write_wbsave(path):
         f.write('BeginMap\n\tgrid width=%d\n\tgrid height=%d\n\ttop latitude=%d\n\tbottom latitude=%d\n' % (W, H, TOP_LAT, BOTTOM_LAT))
         f.write('\twrap X=0\n\twrap Y=0\n\tworld size=WORLDSIZE_MASSIVE\n\tclimate=CLIMATE_TEMPERATE\n\tsealevel=SEALEVEL_MEDIUM\n')
         f.write('\tnum plots written=%d\n\tnum signs written=%d\n' % (W * H, len(SIGNS)))
+        f.write('\tCity Catchment Radius=2\n')
         f.write('\tRandomize Features=false\n\tRandomize Resources=false\n\tRandomize Goodies=true\nEndMap\n\n### Plot Info ###\n')
         for x in range(W):
             for y in range(H):
