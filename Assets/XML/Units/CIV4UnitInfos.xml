@@ -77357,8 +77357,8 @@
 			<SpecialCargo>SPECIALUNIT_YIELD_CARGO</SpecialCargo>
 			<DomainCargo>DOMAIN_LAND</DomainCargo>
 			<iCargo>2</iCargo>
-			<iRequiredTransportSize>3</iRequiredTransportSize>
-			<iBerthSize>3</iBerthSize>
+			<iRequiredTransportSize>2</iRequiredTransportSize>
+			<iBerthSize>2</iBerthSize>
 			<iAsset>100</iAsset>
 			<iPower>0</iPower>
 			<iNativeLearnTime>-1</iNativeLearnTime>
