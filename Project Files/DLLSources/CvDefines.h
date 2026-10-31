@@ -35,6 +35,7 @@
 
 // R&R, ray, Natives raiding party - START
 #define MOVE_DIRECT_RAID									(0x00010000) // WTP : Changed value due to clashing with a K-Mod flag
+#define MOVE_NO_PEAK										(0x00020000) // WTP: no way over peaks without a road (units that may climb them: colonists going to their job)
 // R&R, ray, Natives raiding party - END
 
 #define RANDPLOT_LAND										(0x00000001)

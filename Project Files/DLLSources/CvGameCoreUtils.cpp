@@ -1456,6 +1456,10 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 		atWar(kFromPlot.getTeam(), pSelectionGroup->getHeadTeam()))
 		return FALSE;
 
+	// WTP: peaks with a road can be passed as usual
+	if ((iFlags & MOVE_NO_PEAK) && kFromPlot.isPeak() && kFromPlot.getRouteType() == NO_ROUTE)
+		return FALSE;
+
 	bool const bAIControl = pSelectionGroup->AI_isControlled();
 
 	if (bAIControl)
