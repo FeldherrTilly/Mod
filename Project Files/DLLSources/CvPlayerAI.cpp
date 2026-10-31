@@ -18203,6 +18203,33 @@ void CvPlayerAI::AI_wfUpdateTravel(const CvUnit& kColonist)
 // and sailing (the faster way; the ship only if it saves 2 turns). piPortCityID gets the port (-1: over land). MAX_INT if
 // there is no way (or no travel times yet)
 int CvPlayerAI::AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* piPortCityID) const
+// WTP: the land cost of the way from kFrom (see AI_wfUpdateTravel); a colonist on a peak without a road (it may climb peaks) is
+// not in the land costs: the way from the best land plot next to it, one plot's moves more (it stood there without a job)
+static int wfLandCostFrom(const std::vector<int>& aiCost, const CvPlot& kFrom, int iStepCost)
+{
+	const CvMap& kMap = GC.getMap();
+	const int iCost = aiCost[kMap.plotNumINLINE(kFrom.getX_INLINE(), kFrom.getY_INLINE())];
+	if (iCost != MAX_INT || !kFrom.isPeak() || kFrom.getRouteType() != NO_ROUTE)
+	{
+		return iCost;
+	}
+	int iBest = MAX_INT;
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		const CvPlot* const pAdjacent = plotDirection(kFrom.getX_INLINE(), kFrom.getY_INLINE(), (DirectionTypes)iI);
+		if (pAdjacent == NULL || pAdjacent->isWater())
+		{
+			continue;
+		}
+		const int iAdjacent = aiCost[kMap.plotNumINLINE(pAdjacent->getX_INLINE(), pAdjacent->getY_INLINE())];
+		if (iAdjacent != MAX_INT && iAdjacent + iStepCost < iBest)
+		{
+			iBest = iAdjacent + iStepCost;
+		}
+	}
+	return iBest;
+}
+
 {
 	// waiting for a transport and boarding
 	static const int WF_SHIP_WAIT = 3;
@@ -18213,9 +18240,9 @@ int CvPlayerAI::AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* pi
 	const int iFrom = GC.getMap().plotNumINLINE(kFrom.getX_INLINE(), kFrom.getY_INLINE());
 	int iLand = MAX_INT;
 	const std::map<int, std::vector<int> >::const_iterator itTo = m_mapWfLandCost.find(kTo.getID());
-	if (itTo != m_mapWfLandCost.end() && itTo->second[iFrom] != MAX_INT)
+	if (itTo != m_mapWfLandCost.end() && wfLandCostFrom(itTo->second, kFrom, m_iWfLandMoves) != MAX_INT)
 	{
-		iLand = (itTo->second[iFrom] + m_iWfLandMoves - 1) / m_iWfLandMoves;
+		iLand = (wfLandCostFrom(itTo->second, kFrom, m_iWfLandMoves) + m_iWfLandMoves - 1) / m_iWfLandMoves;
 	}
 	int iShip = MAX_INT;
 	int iPort = -1;
@@ -18226,11 +18253,11 @@ int CvPlayerAI::AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* pi
 			continue;
 		}
 		const std::map<int, std::vector<int> >::const_iterator itPort = m_mapWfLandCost.find(it->first.first);
-		if (itPort == m_mapWfLandCost.end() || itPort->second[iFrom] == MAX_INT)
+		if (itPort == m_mapWfLandCost.end() || wfLandCostFrom(itPort->second, kFrom, m_iWfLandMoves) == MAX_INT)
 		{
 			continue;
 		}
-		const int iTurns = (itPort->second[iFrom] + m_iWfLandMoves - 1) / m_iWfLandMoves + WF_SHIP_WAIT + it->second;
+		const int iTurns = (wfLandCostFrom(itPort->second, kFrom, m_iWfLandMoves) + m_iWfLandMoves - 1) / m_iWfLandMoves + WF_SHIP_WAIT + it->second;
 		if (iTurns < iShip)
 		{
 			iShip = iTurns;

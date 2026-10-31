@@ -5185,7 +5185,7 @@ bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget, CvCity* pPreferredPort)
 		return false;
 	}
 	const int iDistance = plotDistance(getX_INLINE(), getY_INLINE(), kTarget.getX_INLINE(), kTarget.getY_INLINE());
-	if (kOwner.AI_wfLearnWaitTurns(getID(), false) >= WF_MAX_SHIP_WAIT && generatePath(kTarget.plot(), MOVE_NO_ENEMY_TERRITORY, true))
+	if (kOwner.AI_wfLearnWaitTurns(getID(), false) >= WF_MAX_SHIP_WAIT && generatePath(kTarget.plot(), MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, true))
 	{
 		return false;
 	}
@@ -5195,11 +5195,11 @@ bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget, CvCity* pPreferredPort)
 	{
 		if (pPreferredPort != NULL)
 		{
-			if (!generatePath(pPreferredPort->plot(), MOVE_NO_ENEMY_TERRITORY, true))
+			if (!generatePath(pPreferredPort->plot(), MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, true))
 			{
 				return false;
 			}
-			getGroup()->pushMission(MISSION_MOVE_TO, pPreferredPort->getX_INLINE(), pPreferredPort->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_AWAIT_PICKUP, pPreferredPort->plot());
+			getGroup()->pushMission(MISSION_MOVE_TO, pPreferredPort->getX_INLINE(), pPreferredPort->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, false, false, MISSIONAI_AWAIT_PICKUP, pPreferredPort->plot());
 			return true;
 		}
 		// nearest own coastal colony (nearest ones by distance, then by path), clearly closer to us than the target
@@ -5223,7 +5223,7 @@ bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget, CvCity* pPreferredPort)
 		{
 			CvCity* const pLoopCity = kOwner.getCity(aPorts[i].second);
 			int iPathTurns;
-			if (pLoopCity != NULL && generatePath(pLoopCity->plot(), MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns) && iPathTurns < iBestTurns)
+			if (pLoopCity != NULL && generatePath(pLoopCity->plot(), MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, true, &iPathTurns) && iPathTurns < iBestTurns)
 			{
 				iBestTurns = iPathTurns;
 				pPort = pLoopCity;
@@ -5233,8 +5233,8 @@ bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget, CvCity* pPreferredPort)
 		{
 			return false;
 		}
-		generatePath(pPort->plot(), MOVE_NO_ENEMY_TERRITORY, true);
-		getGroup()->pushMission(MISSION_MOVE_TO, pPort->getX_INLINE(), pPort->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_AWAIT_PICKUP, pPort->plot());
+		generatePath(pPort->plot(), MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, true);
+		getGroup()->pushMission(MISSION_MOVE_TO, pPort->getX_INLINE(), pPort->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, false, false, MISSIONAI_AWAIT_PICKUP, pPort->plot());
 		return true;
 	}
 
@@ -23083,9 +23083,9 @@ bool CvUnitAI::AI_doWfTask()
 			getGroup()->pushMission(MISSION_SKIP);
 			return true;
 		}
-		if (generatePath(pVillage, MOVE_NO_ENEMY_TERRITORY, true))
+		if (generatePath(pVillage, MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, true))
 		{
-			getGroup()->pushMission(MISSION_MOVE_TO, pVillage->getX_INLINE(), pVillage->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_LEARN, pVillage);
+			getGroup()->pushMission(MISSION_MOVE_TO, pVillage->getX_INLINE(), pVillage->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, false, false, MISSIONAI_LEARN, pVillage);
 			return true;
 		}
 		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PLAN, getOwnerINLINE(), "WTP plan: Player %d (%S) %S cannot learn: no path to %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString(),
@@ -23162,6 +23162,12 @@ bool CvUnitAI::AI_doWfTask()
 		{
 			return true;
 		}
+		if (generatePath(pCity->plot(), MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, true))
+		{
+			getGroup()->pushMission(MISSION_MOVE_TO, pCity->getX_INLINE(), pCity->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, false, false, MISSIONAI_FOUND, pCity->plot());
+			return true;
+		}
+		// WTP: over peaks without a road only if there is no other way
 		if (generatePath(pCity->plot(), MOVE_NO_ENEMY_TERRITORY, true))
 		{
 			getGroup()->pushMission(MISSION_MOVE_TO, pCity->getX_INLINE(), pCity->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_FOUND, pCity->plot());
