@@ -24253,6 +24253,38 @@ bool CvPlayerAI::AI_isFirstColonySiteAllowed(const CvPlot& kPlot) const
 		return false;
 	}
 
+	// WTP (user 2026-11-01): and it lies within 15 plots of the way to Europe in the east, not only of the one on the Pacific coast.
+	// Always applies, unless the map has no way to Europe in the east at all (checked once per turn, this runs for every plot)
+	static const EuropeTypes eEuropeEast = (EuropeTypes)GC.getInfoTypeForString("EUROPE_EAST");
+	static int iEastCheckTurn = -1;
+	static bool bMapHasEast = false;
+	if (iEastCheckTurn != GC.getGameINLINE().getGameTurn())
+	{
+		iEastCheckTurn = GC.getGameINLINE().getGameTurn();
+		bMapHasEast = false;
+		for (int iI = 0; iI < GC.getMap().numPlotsINLINE() && !bMapHasEast; ++iI)
+		{
+			bMapHasEast = GC.getMap().plotByIndexINLINE(iI)->getEurope() == eEuropeEast;
+		}
+	}
+	if (bMapHasEast)
+	{
+		const int iMaxEastDistance = 15;
+		bool bNearEast = false;
+		for (int iDX = -iMaxEastDistance; iDX <= iMaxEastDistance && !bNearEast; ++iDX)
+		{
+			for (int iDY = -iMaxEastDistance; iDY <= iMaxEastDistance && !bNearEast; ++iDY)
+			{
+				const CvPlot* const pLoopPlot = plotXY(kPlot.getX_INLINE(), kPlot.getY_INLINE(), iDX, iDY);
+				bNearEast = pLoopPlot != NULL && pLoopPlot->getEurope() == eEuropeEast;
+			}
+		}
+		if (!bNearEast)
+		{
+			return false;
+		}
+	}
+
 	// not within 5 plots of the map edge (wrapping directions have no edge)
 	const CvMap& kMap = GC.getMap();
 	const int iEdgeDistance = bRelaxed ? 2 : 5;
