@@ -10281,6 +10281,12 @@ int CvUnit::baseMoves() const
 	}
 	// WTP, Faster Ships game option - END
 
+	// WTP: the pirate ships of the barbarian player (Wild Animals) are slower (PIRATE_BARBARIAN_MOVES in GlobalDefinesAlt.xml)
+	if (getDomainType() == DOMAIN_SEA && m_pUnitInfo->isHiddenNationality() && GC.getGameINLINE().isBarbarianPlayer(getOwnerINLINE()))
+	{
+		iBaseMoves = std::min(iBaseMoves, GC.getDefineINT("PIRATE_BARBARIAN_MOVES"));
+	}
+
 	return iBaseMoves;
 }
 
