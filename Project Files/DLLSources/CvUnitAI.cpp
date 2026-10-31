@@ -8572,8 +8572,17 @@ CvPlot* CvUnitAI::findNearbyOceanPlot(const CvPlot& kPlot) const
 	}
 	std::sort(aCandidates.begin(), aCandidates.end());
 	// the nearest 8, and on while none of them can be reached
-	for (uint i = 0; i < aCandidates.size() && (i < 8 || pBestPlot == NULL); ++i)
+	// WTP: and on while a plot further away could still be nearer by sea than the best one so far: its distance as the crow
+	// flies is within the turns of the best path (the nearest 8 of a colony behind a cape were all on its far side, the ships
+	// came from Europe there and sailed around the cape although a plot on the near side was much nearer by sea)
+	const int iPlotsPerTurn = std::max(1, baseMoves());
+	int iBestTurns = MAX_INT;
+	for (uint i = 0; i < aCandidates.size(); ++i)
 	{
+		if (pBestPlot != NULL && i >= 8 && (i >= 64 || aCandidates[i].first > iBestTurns * iPlotsPerTurn)) // at most 64 path searches
+		{
+			break;
+		}
 		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(aCandidates[i].second);
 		int iPathTurns;
 		if (getGroup()->generatePath(&kPlot, pLoopPlot, 0, true, &iPathTurns))
@@ -8585,6 +8594,7 @@ CvPlot* CvUnitAI::findNearbyOceanPlot(const CvPlot& kPlot) const
 			{
 				iBestValue = iValue;
 				pBestPlot = pLoopPlot;
+				iBestTurns = iPathTurns;
 			}
 		}
 	}

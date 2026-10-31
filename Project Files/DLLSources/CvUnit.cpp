@@ -16618,11 +16618,12 @@ bool CvUnit::setSailEurope(EuropeTypes eEurope)
 	}
 
 	CvPlayerAI& kLoopPlayer = GET_PLAYER(getOwnerINLINE());
+	// WTP: the best distance is kept over all plots (it was reset for every plot, so the last plot of the map won: the northernmost)
+	int iBestDistance = MAX_INT;
 	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
 	{
 		CvPlot* pPlot = GC.getMap().plotByIndexINLINE(iI);
 		int iAvgDistance = 0;
-		int iBestDistance = 100000;
 		if (pPlot->getEurope() == eEurope)
 		{
 			if (pPlot->isRevealed(getTeam(), false))
