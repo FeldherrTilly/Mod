@@ -20061,6 +20061,16 @@ void CvPlayerAI::AI_doWorkforcePlan()
 		}
 	}
 
+	// WTP: a building job has its input: stock, center plot or planned production cover at least half of its output. The same
+	// test wherever a job is given out (a carpenter refused here was rebooked to it aboard a ship without it, and back)
+	#define WF_JOB_HAS_INPUT(kInputCity, kInputProfession, iInputOutput, bResult) \
+		bResult = true; \
+		for (int kInput = 0; kInput < (kInputProfession).getNumYieldsConsumed() && bResult; ++kInput) \
+		{ \
+			const YieldTypes eInputYield = (YieldTypes)(kInputProfession).getYieldsConsumed(kInput); \
+			bResult = eInputYield == NO_YIELD || (kInputCity).aiRaw[eInputYield] - (kInputCity).aiUse[eInputYield] >= std::max(1, (iInputOutput) / 2); \
+		}
+
 	// assignment to the target plan
 	int iAssignWorker = -1;
 	int iAssignJob = -1;
@@ -20166,7 +20176,10 @@ void CvPlayerAI::AI_doWorkforcePlan()
 			// Master Carpenter waited in La Isabela for a ship to a 22 gold carpenter job while La Isabela's carpenter jobs
 			// were worth 92 gold); not from a resource of its trade
 			int jUse = j;
-			if (!kWorker.bLearning && !bThere && !bResource)
+			// WTP (user 2026-10-31): not aboard a ship on the map: the ship delivers it first (the plan counts the same travel time
+			// to every colony from a ship: Master Carpenters sailed back to the colony they had just left, again and again)
+			const bool bAboardOnMap = kWorker.pUnit->isCargo() && kWorker.pUnit->isOnMap();
+			if (!kWorker.bLearning && !bThere && !bResource && !bAboardOnMap)
 			{
 				const int iT = kWorker.iTypeIdx;
 				const int iEtaNow = aiEta[w * iNumCities + kJob.iCity];
@@ -20178,6 +20191,12 @@ void CvPlayerAI::AI_doWorkforcePlan()
 					const int iEtaAlt = aiEta[w * iNumCities + kAlt.iCity];
 					if (jj == j || kAlt.iHolder >= 0 || (kAlt.iPlotKey >= 0 && aiPlotTaken[kAlt.iPlotKey] >= 0) || !WF_GROUP_FREE(jj) || iEtaAlt > iEtaNow
 						|| aiGold[iT * iNumJobs + jj] <= -1000000 || !wfIsExpertFor(*kWorker.pUnit, kAlt.eProfession))
+					{
+						continue;
+					}
+					bool bAltInput;
+					WF_JOB_HAS_INPUT(aCities[kAlt.iCity], GC.getProfessionInfo(kAlt.eProfession), aiOutput[iT * iNumJobs + jj], bAltInput);
+					if (!bAltInput)
 					{
 						continue;
 					}
@@ -20321,12 +20340,8 @@ void CvPlayerAI::AI_doWorkforcePlan()
 				// a building job needs its input (stock, center plot or planned production); a carpenter without lumber may
 				// still be planned together with a lumberjack
 				const CvProfessionInfo& kProfession = GC.getProfessionInfo(kJob.eProfession);
-				bool bInput = true;
-				for (int k = 0; k < kProfession.getNumYieldsConsumed() && bInput; ++k)
-				{
-					const YieldTypes eIn = (YieldTypes)kProfession.getYieldsConsumed(k);
-					bInput = eIn == NO_YIELD || kCity.aiRaw[eIn] - kCity.aiUse[eIn] >= std::max(1, iOutput / 2);
-				}
+				bool bInput;
+				WF_JOB_HAS_INPUT(kCity, kProfession, iOutput, bInput);
 				if (!bInput && !bCarpenter)
 				{
 					continue;
