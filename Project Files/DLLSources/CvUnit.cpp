@@ -8764,7 +8764,7 @@ bool CvUnit::doFound(bool bBuyLand)
 					//don't buy land if at war, it will be taken
 					if (GET_PLAYER(pLoopPlot->getOwnerINLINE()).isNative() && !GET_TEAM(pLoopPlot->getTeam()).isAtWar(getTeam()))
 					{
-						if (GET_PLAYER(getOwnerINLINE()).buyLand(pLoopPlot, bIsFirstCity))
+						if (GET_PLAYER(getOwnerINLINE()).buyLand(pLoopPlot, bIsFirstCity) && !isNative())
 						{
 							apBoughtFromNatives.push_back(pLoopPlot);
 						}
