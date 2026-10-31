@@ -165,6 +165,8 @@ public:
 	void setBombarded(int iNewValue);
 	void setAllCitizensAutomated(bool bAutomated);
 	bool isProductionAutomated();
+	bool isAutoAssignTarget(); // WTP
+	void setAutoAssignTarget(bool bNewValue); // WTP
 	void setProductionAutomated(bool bNewValue);
 	bool isWallOverride() const;
 	void setWallOverride(bool bOverride);
