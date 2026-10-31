@@ -17507,6 +17507,9 @@ bool CvUnitAI::AI_tradeWithCity()
 namespace
 {
 	const int NATIVE_TRADE_HOME_RANGE = 12;
+	// a village visited within this many turns is avoided: not chosen to buy from if there is another one, and each turn
+	// missing counts like one plot of distance when selling
+	const int NATIVE_TRADE_HUMAN_VISIT_TURNS = 20;
 	const int NATIVE_TRADE_HUMAN_BUDGET = 1000;
 	const int NATIVE_TRADE_HUMAN_RESERVE = 500;
 
@@ -18638,7 +18641,10 @@ CvCity* CvUnitAI::AI_nativeTradeBuyVillage(bool bDraw)
 	CvCity* pBestCity = NULL;
 	int iBestWeight = 0;
 	// WTP: villages one of our ships visited in the last 8 turns only if there is no other one (a schooner went back to the
-	// village it had just bought everything from)
+	// village it had just bought everything from); the human automation avoids them for longer
+	const bool bHumanTrade = AI_isHumanNativeTrade();
+	const int iAvoidTurns = bHumanTrade ? NATIVE_TRADE_HUMAN_VISIT_TURNS : 8;
+	const int iFullWeightTurns = bHumanTrade ? 2 * NATIVE_TRADE_HUMAN_VISIT_TURNS : 25;
 	for (int iPass = 0; iPass < 2 && aCandidates.empty(); ++iPass)
 	for (PlayerTypes eNative = FIRST_PLAYER; eNative < NUM_PLAYER_TYPES; ++eNative)
 	{
@@ -18653,7 +18659,7 @@ CvCity* CvUnitAI::AI_nativeTradeBuyVillage(bool bDraw)
 			{
 				continue;
 			}
-			if (iPass == 0 && kOwner.AI_getNativeVillageVisitTurn(*pCity) >= 0 && iTurn - kOwner.AI_getNativeVillageVisitTurn(*pCity) < 8)
+			if (iPass == 0 && kOwner.AI_getNativeVillageVisitTurn(*pCity) >= 0 && iTurn - kOwner.AI_getNativeVillageVisitTurn(*pCity) < iAvoidTurns)
 			{
 				continue;
 			}
@@ -18668,7 +18674,7 @@ CvCity* CvUnitAI::AI_nativeTradeBuyVillage(bool bDraw)
 			const int iLastVisit = kOwner.AI_getNativeVillageVisitTurn(*pCity);
 			if (iLastVisit >= 0)
 			{
-				iWeight = iWeight * std::min(100, std::max(5, 100 * (iTurn - iLastVisit) / 25)) / 100;
+				iWeight = iWeight * std::min(100, std::max(5, 100 * (iTurn - iLastVisit) / iFullWeightTurns)) / 100;
 			}
 			// another of our native trade ships heads there (several ships around the same colonies went to the same villages)
 			if (AI_isNativeVillageTargeted(*pCity))
@@ -18797,6 +18803,11 @@ CvCity* CvUnitAI::AI_nativeTradeSellVillage(const CvCity* pFavourite, bool bMusk
 			if (iDistance < MAX_INT - 20 && AI_isNativeVillageTargeted(*pCity))
 			{
 				iDistance += 20;
+			}
+			// WTP: the human automation sold to the same few nearest villages again and again
+			if (AI_isHumanNativeTrade() && iLastVisit >= 0 && iTurn - iLastVisit < NATIVE_TRADE_HUMAN_VISIT_TURNS && iDistance < MAX_INT - NATIVE_TRADE_HUMAN_VISIT_TURNS)
+			{
+				iDistance += NATIVE_TRADE_HUMAN_VISIT_TURNS - (iTurn - iLastVisit);
 			}
 
 			if (bMuskets || kNative.getGold() >= 2000)
