@@ -24559,7 +24559,8 @@ bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTy
 // plot or building slot in one of our colonies, or the job of a regular colonist in the expert's own trade (that colonist
 // makes room). Regular colonists only within 12 turns; the colony keeps 2 food to spare unless the job produces food; a
 // building job only if the colony produces its raw material. A new citizen only if the colony's unhappiness stays at most
-// 2 above its happiness with all colonists on their way there. Value per turn (gold x100, wfHumanJobValue), less for a long way.
+// 2 above its happiness with all colonists on their way there. The menu shows one job of the expert's own trade even in a colony
+// without its raw material if there is none with it. Value per turn (gold x100, wfHumanJobValue), less for a long way.
 // paFoodJobs: for slaves, indentured servants, petty criminals and expert farmers and fishermen also the best food job (net
 // 3 food or more) in each colony short of food (less than +4 food with those on their way, storage below half the growth
 // threshold), the 3 best of them; such jobs are marked in aJobs too
@@ -24580,6 +24581,9 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 	// keep it from the list, and even if better paid jobs fill the list
 	HumanJob kBestExpertJob;
 	kBestExpertJob.iScore = 0;
+	// WTP (user 2026-10-31): the same in a colony that does not produce the raw material of the job
+	HumanJob kBestUnsuppliedExpertJob;
+	kBestUnsuppliedExpertJob.iScore = 0;
 	// colonies short of food, and whether this worker is offered food jobs there
 	std::set<int> aFoodShortCities;
 	const UnitClassTypes eUnitClass = (UnitClassTypes)kUnit.getUnitInfo().getUnitClassType();
@@ -24780,15 +24784,17 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 			{
 				continue;
 			}
-			// the raw material must be produced in the colony (the stock runs out)
+			// the raw material must be produced in the colony (the stock runs out; the colonist who makes room uses none any more).
+			// WTP (user 2026-10-31): without it the expert's own trade may still be offered (see kBestUnsuppliedExpertJob)
 			const int iOutput = wfOutput(*pCity, eProfession, wfWorkingType(kUnitAI, eProfession, eColonist), NULL);
+			const int iFreed = (pHolder != NULL) ? wfOutput(*pCity, eProfession, wfWorkingType(static_cast<const CvUnitAI&>(*pHolder), eProfession, eColonist), NULL) : 0;
 			bool bInput = true;
 			for (int k = 0; k < kProfession.getNumYieldsConsumed() && bInput; ++k)
 			{
 				const YieldTypes eInput = (YieldTypes)kProfession.getYieldsConsumed(k);
-				bInput = eInput == NO_YIELD || pCity->calculateNetYield(eInput) + (pHolder != NULL ? iOutput : 0) >= std::max(1, iOutput / 2);
+				bInput = eInput == NO_YIELD || pCity->calculateNetYield(eInput) + iFreed >= std::max(1, iOutput / 2);
 			}
-			if (!bInput)
+			if (!bInput && !bExpert)
 			{
 				continue;
 			}
@@ -24820,6 +24826,14 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 			kJob.iFood = iFood;
 			kJob.bFoodShortage = false;
 			kJob.bLowFood = pHolder == NULL && iFood <= 0 && iSpare < 2;
+			if (!bInput)
+			{
+				if (iScore > kBestUnsuppliedExpertJob.iScore)
+				{
+					kBestUnsuppliedExpertJob = kJob;
+				}
+				continue;
+			}
 			if (bExpert && iScore > kBestExpertJob.iScore)
 			{
 				kBestExpertJob = kJob;
@@ -24835,6 +24849,12 @@ void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJ
 				mapJobs[kKey] = kJob;
 			}
 		}
+	}
+	// the menu (not the automatic choice of the best job): a job of the expert's trade in a colony without its raw material
+	// if there is none with it
+	if (kBestExpertJob.iScore <= 0 && iMaxJobs != 1)
+	{
+		kBestExpertJob = kBestUnsuppliedExpertJob;
 	}
 	// food jobs in colonies short of food: net 3 food or more (a new citizen eats too), the best per colony
 	std::map<int, HumanJob> mapFoodJobs;
