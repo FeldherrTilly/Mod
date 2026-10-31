@@ -24113,8 +24113,9 @@ namespace
 // nearest coastal native village at peace), there aboard an automated transport, ashore on the target or the coastal land
 // plot near it the ship reaches (a colony, a village or any coastal plot) and on foot from there. Voyages of more than 20
 // plots count the time at sea twice (the fastest ship is preferred) and are not made by coastal transports; a ship comes
-// after the tour it has already (AI_travelShipApproach). The ship is taken if it saves 2 turns. pPickup, pDrop and iShipID
-// are NULL/-1 for the way on foot. Returns false if there is no way
+// after the tour it has already (AI_travelShipApproach). Half of the way on foot to the port counts extra when the ports
+// are compared. The ship is taken if it saves 2 turns. pPickup, pDrop and iShipID are NULL/-1 for the way on foot.
+// Returns false if there is no way
 bool CvUnitAI::AI_travelPlan(const CvPlot& kTarget, CvPlot*& pPickup, CvPlot*& pDrop, int& iShipID, int& iTurns)
 {
 	static const int TRAVEL_MAX_DROPS = 3;
@@ -24247,7 +24248,14 @@ bool CvUnitAI::AI_travelPlan(const CvPlot& kTarget, CvPlot*& pPickup, CvPlot*& p
 						continue;
 					}
 					const int iTotal = std::max(aPorts[p].first, iApproach) + iSail + aDrops[d].first;
-					const int iScore = iTotal + (bLong ? iSail : 0);
+					// (half of the way on foot to the port counts extra: a unit waits in its port unless walking saves real time)
+					const int iScore = iTotal + aPorts[p].first / 2 + (bLong ? iSail : 0);
+					if (gUnitLogLevel >= 1)
+					{
+						logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S could travel with %S from %d,%d, ashore at %d,%d: %d on foot to the port, ship there in %d, %d at sea, %d on foot from the landing plot: %d turns, score %d",
+							getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pShip->getName().GetCString(), pPort->getX_INLINE(), pPort->getY_INLINE(),
+							pLoopDrop->getX_INLINE(), pLoopDrop->getY_INLINE(), aPorts[p].first, iApproach, iSail, aDrops[d].first, iTotal, iScore);
+					}
 					if (iScore < iBestScore)
 					{
 						iBestScore = iScore;
@@ -24355,15 +24363,17 @@ void CvUnitAI::AI_setTravelPickup(const CvPlot* pPickup)
 	m_iTravelPickup = (pPickup != NULL) ? GC.getMap().plotNumINLINE(pPickup->getX_INLINE(), pPickup->getY_INLINE()) : -1;
 }
 
-// WTP: turns until kShip is in kPickup for this unit: it first puts its passengers ashore (travellers, colonists with the
-// job automation), then fetches and brings the other units whose plan names it, one after the other (those waiting in
-// kPickup as well come along with us if there is room). MAX_INT if it does not get there or has no room
+// WTP: turns until kShip is in kPickup with room for this unit, on the tour of AI_transportAutoAssignColonists: it puts its
+// passengers (travellers, colonists with the job automation) ashore, the nearest landing plot first, then sails to the
+// nearest port of the units whose plan names it, takes along all it has room for and puts them ashore in the same way
+// (those waiting in kPickup as well come along with us). MAX_INT if it does not get there or has no room
 int CvUnitAI::AI_travelShipApproach(const CvUnit& kShip, const CvPlot& kPickup) const
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	const int iBerth = getUnitInfo().getBerthSize();
 	int iSpace = kShip.cargoSpaceAvailable(getSpecialUnitType(), getDomainType());
-	std::vector<const CvUnitAI*> aAboard;
+	int iAboardBerths = 0;
+	std::vector<std::pair<CvPlot*, int> > aAboard; // (landing plot, berth)
 	std::vector<const CvUnitAI*> aFetch;
 	int iLoop;
 	for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
@@ -24375,64 +24385,117 @@ int CvUnitAI::AI_travelShipApproach(const CvUnit& kShip, const CvPlot& kPickup) 
 		}
 		if (pLoopUnit->getTransportUnit() == &kShip)
 		{
-			aAboard.push_back(pOther);
-			iSpace += pOther->getUnitInfo().getBerthSize(); // (room again once they are ashore)
+			iAboardBerths += pOther->getUnitInfo().getBerthSize(); // (room again once they are ashore)
+			aAboard.push_back(std::make_pair(pOther->AI_travelDrop(), pOther->getUnitInfo().getBerthSize()));
 		}
 		else if (pOther->AI_getTravelShipID() == kShip.getID() && !pLoopUnit->isCargo() && pOther->AI_travelPickup() != NULL && pOther->AI_travelDrop() != NULL)
 		{
 			aFetch.push_back(pOther);
 		}
 	}
-	if (iSpace < iBerth)
+	if (iSpace + iAboardBerths < iBerth)
 	{
 		return MAX_INT;
 	}
 	const CvPlot* pAt = kShip.plot();
 	int iTurns = 0;
-	for (uint i = 0; i < aAboard.size(); ++i)
+	for (;;)
 	{
-		CvPlot* const pDrop = aAboard[i]->AI_travelDrop();
-		int iSail;
-		CvPlot* const pShipPlot = (pDrop != NULL) ? travelShipPlot(kShip, *pAt, *pDrop, iSail) : NULL;
-		if (pShipPlot != NULL)
+		// in our port with room: we board (see AI_travelStep)
+		if (pAt == &kPickup && iSpace >= iBerth)
 		{
-			iTurns += iSail;
-			pAt = pShipPlot;
+			return iTurns;
 		}
-	}
-	int iShared = 0;
-	for (uint i = 0; i < aFetch.size(); ++i)
-	{
-		CvPlot* const pPort = aFetch[i]->AI_travelPickup();
-		const int iOtherBerth = aFetch[i]->getUnitInfo().getBerthSize();
-		if (pPort == &kPickup && iSpace - iShared - iOtherBerth >= iBerth)
+
+		// those aboard: to the nearest landing plot, all for it go ashore (no way to any: they go ashore in a colony)
+		if (!aAboard.empty())
 		{
-			iShared += iOtherBerth;
+			CvPlot* pBestDrop = NULL;
+			CvPlot* pBestShipPlot = NULL;
+			int iBestSail = MAX_INT;
+			for (uint i = 0; i < aAboard.size(); ++i)
+			{
+				int iSail;
+				CvPlot* const pShipPlot = (aAboard[i].first != NULL) ? travelShipPlot(kShip, *pAt, *aAboard[i].first, iSail) : NULL;
+				if (pShipPlot != NULL && iSail < iBestSail)
+				{
+					iBestSail = iSail;
+					pBestDrop = aAboard[i].first;
+					pBestShipPlot = pShipPlot;
+				}
+			}
+			if (pBestDrop != NULL)
+			{
+				iTurns += iBestSail;
+				pAt = pBestShipPlot;
+			}
+			for (uint i = aAboard.size(); i > 0; --i)
+			{
+				if (pBestDrop == NULL || aAboard[i - 1].first == pBestDrop)
+				{
+					iSpace += aAboard[i - 1].second;
+					aAboard.erase(aAboard.begin() + (i - 1));
+				}
+			}
 			continue;
 		}
-		int iToPort = 0;
-		if (pAt != pPort && !kShip.getGroup()->generatePath(pAt, pPort, MOVE_IGNORE_DANGER, false, &iToPort, -1, true))
-		{
-			continue;
-		}
-		int iSail;
-		CvPlot* const pShipPlot = travelShipPlot(kShip, *pPort, *aFetch[i]->AI_travelDrop(), iSail);
-		if (pShipPlot != NULL)
-		{
-			iTurns += iToPort + iSail;
-			pAt = pShipPlot;
-		}
-	}
-	if (pAt != &kPickup)
-	{
-		int iToUs;
-		if (!kShip.getGroup()->generatePath(pAt, &kPickup, MOVE_IGNORE_DANGER, false, &iToUs, -1, true))
+
+		// empty: to the nearest port, ours if another is not nearer
+		int iBestPortTurns = 0;
+		if (pAt != &kPickup && !kShip.getGroup()->generatePath(pAt, &kPickup, MOVE_IGNORE_DANGER, false, &iBestPortTurns, -1, true))
 		{
 			return MAX_INT;
 		}
-		iTurns += iToUs;
+		CvPlot* pBestPort = NULL;
+		for (uint i = 0; i < aFetch.size(); )
+		{
+			CvPlot* const pPort = aFetch[i]->AI_travelPickup();
+			int iToPort;
+			if (travelShipPlot(kShip, *pAt, *pPort, iToPort) != pPort)
+			{
+				aFetch.erase(aFetch.begin() + i);
+				continue;
+			}
+			if (iToPort < iBestPortTurns)
+			{
+				iBestPortTurns = iToPort;
+				pBestPort = pPort;
+			}
+			++i;
+		}
+		iTurns += iBestPortTurns;
+		if (pBestPort == NULL)
+		{
+			return iTurns;
+		}
+		pAt = pBestPort;
+
+		// all there it has room for come aboard, the others wait for its next visit (no room for any of them: they never board)
+		bool bLoaded = false;
+		for (uint i = 0; i < aFetch.size(); )
+		{
+			const int iOtherBerth = aFetch[i]->getUnitInfo().getBerthSize();
+			if (aFetch[i]->AI_travelPickup() == pBestPort && iSpace >= iOtherBerth)
+			{
+				iSpace -= iOtherBerth;
+				aAboard.push_back(std::make_pair(aFetch[i]->AI_travelDrop(), iOtherBerth));
+				aFetch.erase(aFetch.begin() + i);
+				bLoaded = true;
+				continue;
+			}
+			++i;
+		}
+		if (!bLoaded)
+		{
+			for (uint i = aFetch.size(); i > 0; --i)
+			{
+				if (aFetch[i - 1]->AI_travelPickup() == pBestPort)
+				{
+					aFetch.erase(aFetch.begin() + (i - 1));
+				}
+			}
+		}
 	}
-	return iTurns;
 }
 
 // WTP: a unit on its way to its port for a transport: its ship is chosen again at the end of the turn, when the ships have
