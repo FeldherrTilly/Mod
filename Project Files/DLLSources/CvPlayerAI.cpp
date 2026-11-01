@@ -688,6 +688,7 @@ void CvPlayerAI::AI_doSieges()
 	}
 	int iStacks = 0;
 	int iWagons = 0;
+	const CvUnit* pWagonStack = NULL;
 	int iLoop;
 	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 	{
@@ -704,6 +705,7 @@ void CvPlayerAI::AI_doSieges()
 			&& pLoopUnit->getGroup()->getNumUnits() >= GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE && static_cast<CvUnitAI*>(pLoopUnit)->AI_siegeArtilleryCount() > 0)
 		{
 			++iStacks;
+			pWagonStack = pLoopUnit;
 		}
 		CvCity* pCity = pLoopUnit->getSiegeTargetCity();
 		if (pCity != NULL && !AI_isSiegeThreatened(*pLoopUnit->plot(), *pCity))
@@ -714,6 +716,27 @@ void CvPlayerAI::AI_doSieges()
 	if (!isNative() && !isEurope() && GET_TEAM(getTeam()).getAnyWarPlanCount() > 0)
 	{
 		m_iSiegeWagonShortfall = std::max(0, iStacks - iWagons);
+		// the colony nearest to the stack starts a wagon train at once, it does not wait until it would choose a new production
+		if (pWagonStack != NULL && m_iSiegeWagonShortfall > AI_getNumTrainAIUnits(UNITAI_WAGON) && !AI_isEarlyPhaseActive())
+		{
+			CvCity* pBestCity = NULL;
+			int iBestDistance = MAX_INT;
+			int iCityLoop;
+			for (CvCity* pLoopCity = firstCity(&iCityLoop); pLoopCity != NULL; pLoopCity = nextCity(&iCityLoop))
+			{
+				const int iDistance = plotDistance(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), pWagonStack->getX_INLINE(), pWagonStack->getY_INLINE());
+				if (pLoopCity->area() == pWagonStack->area() && iDistance < iBestDistance && pLoopCity->AI().AI_bestUnitAI(UNITAI_WAGON) != NO_UNIT)
+				{
+					iBestDistance = iDistance;
+					pBestCity = pLoopCity;
+				}
+			}
+			if (pBestCity != NULL)
+			{
+				pBestCity->pushOrder(ORDER_TRAIN, pBestCity->AI().AI_bestUnitAI(UNITAI_WAGON), UNITAI_WAGON, false, false, false);
+				if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_MILITARY, getID(), "WTP wagon: %S starts a wagon train for stack #%d", pBestCity->getName().GetCString(), pWagonStack->getID());
+			}
+		}
 	}
 
 	// strong enemies near the largest own stack beside a city it besieges: the siege is given up
@@ -22480,6 +22503,19 @@ void CvPlayerAI::AI_setSavingGold()
 // WTP: keeps the gold for the cheapest urgent building (see CvCityAI::AI_isUrgentHurryBuilding); the colony hurries it in its turn
 bool CvPlayerAI::AI_doUrgentHurrySaving()
 {
+	int iWagonLoop;
+	for (CvCity* pLoopCity = firstCity(&iWagonLoop); pLoopCity != NULL; pLoopCity = nextCity(&iWagonLoop))
+	{
+		const int iWagonCost = pLoopCity->AI().AI_siegeWagonHurryCost();
+		if (iWagonCost >= 0)
+		{
+			AI_setSavingGold();
+			if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) saves for the wagon train of a stack in %S (%d gold, have %d)", getID(), getCivilizationDescription(0),
+				pLoopCity->getName().GetCString(), iWagonCost, getGold());
+			return true;
+		}
+	}
+
 	CvCity* pBestCity = NULL;
 	BuildingTypes eBestBuilding = NO_BUILDING;
 	int iBestCost = MAX_INT;
