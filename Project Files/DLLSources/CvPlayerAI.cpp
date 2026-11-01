@@ -2708,12 +2708,16 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 			// WTP: farther than iMaxDistance from the nearest own colony the value falls steadily, on any landmass. It
 			// used to be capped at 10 plots, and the distance to the primary colony did not count on another landmass,
 			// so an empty landmass 35 plots away was as good as a site next to the colonies.
+			// WTP: the distance is the mean of those to the nearest and to the first colony: colonies stay close to the heart of the
+			// empire instead of creeping away from it one by one
 			int iNearest = MAX_INT;
 			int iLoop;
 			for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 			{
 				iNearest = std::min(iNearest, plotDistance(iX, iY, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE()));
 			}
+			const CvCity* const pFirstCity = firstCity(&iLoop);
+			iNearest = (iNearest + plotDistance(iX, iY, pFirstCity->getX_INLINE(), pFirstCity->getY_INLINE())) / 2;
 			if (iNearest > iMaxDistance)
 			{
 				// factor = iMaxDistance / d, beyond iMaxDistance + 3 also * 3 / (d - iMaxDistance); the malus (1 - factor)
