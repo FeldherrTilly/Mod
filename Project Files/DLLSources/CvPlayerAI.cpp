@@ -10428,6 +10428,13 @@ void CvPlayerAI::AI_doEurope()
 		}
 		// WTP, Schmiddie, AI Minimum Fleet - END
 
+		// WTP: buildings whose predecessor is staffed and warehouses of full colonies only wait for their resources: nothing else
+		// is bought until they are hurried
+		if (AI_doUrgentHurrySaving())
+		{
+			return;
+		}
+
 		// WTP: enough ships to bring the people waiting in Europe come first; while saving for one, buy nothing else
 		if (AI_doTransportPurchase())
 		{
@@ -22679,6 +22686,34 @@ bool CvPlayerAI::AI_buyExpertForOpportunity()
 void CvPlayerAI::AI_setSavingGold()
 {
 	m_iSavingGoldTurn = GC.getGameINLINE().getGameTurn();
+}
+
+// WTP: keeps the gold for the cheapest urgent building (see CvCityAI::AI_isUrgentHurryBuilding); the colony hurries it in its turn
+bool CvPlayerAI::AI_doUrgentHurrySaving()
+{
+	CvCity* pBestCity = NULL;
+	BuildingTypes eBestBuilding = NO_BUILDING;
+	int iBestCost = MAX_INT;
+	int iLoop;
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	{
+		int iCost = MAX_INT;
+		const BuildingTypes eBuilding = pLoopCity->AI().AI_urgentHurryBuilding(iCost);
+		if (eBuilding != NO_BUILDING && iCost < iBestCost)
+		{
+			pBestCity = pLoopCity;
+			eBestBuilding = eBuilding;
+			iBestCost = iCost;
+		}
+	}
+	if (pBestCity == NULL)
+	{
+		return false;
+	}
+	AI_setSavingGold();
+	if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) saves for urgent building %S in %S (%d gold, have %d)", getID(), getCivilizationDescription(0),
+		GC.getBuildingInfo(eBestBuilding).getDescription(), pBestCity->getName().GetCString(), iBestCost, getGold());
+	return true;
 }
 
 bool CvPlayerAI::AI_isSavingGold() const

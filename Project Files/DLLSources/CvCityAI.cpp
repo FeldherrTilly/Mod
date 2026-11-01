@@ -2463,6 +2463,81 @@ void CvCityAI::AI_updateBestBuild()
 
 // Protected Functions...
 
+// WTP: a building that only waits for its hurried resources is urgent when people already work in its predecessor
+// (chapel and church, level 1 and level 2 of a production building) or when the storage is more than 80% full and it is
+// a warehouse. Not in the early game, whose strategies decide about the money alone
+bool CvCityAI::AI_isUrgentHurryBuilding(BuildingTypes eBuilding) const
+{
+	if (GET_PLAYER(getOwnerINLINE()).AI_isEarlyPhaseActive())
+	{
+		return false;
+	}
+	const CvBuildingInfo& kBuilding = GC.getBuildingInfo(eBuilding);
+	if (kBuilding.getYieldStorage() > 0 && getTotalYieldStored() * 100 > getMaxYieldCapacity() * 80)
+	{
+		return true;
+	}
+	const int iSpecialBuilding = kBuilding.getSpecialBuildingType();
+	if (iSpecialBuilding == NO_SPECIALBUILDING)
+	{
+		return false;
+	}
+	for (uint i = 0; i < m_aPopulationUnits.size(); ++i)
+	{
+		const ProfessionTypes eProfession = m_aPopulationUnits[i]->getProfession();
+		if (eProfession != NO_PROFESSION && GC.getProfessionInfo(eProfession).getSpecialBuilding() == iSpecialBuilding)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+// WTP: the cheapest urgent building this colony could hurry with enough gold, NO_BUILDING if there is none
+BuildingTypes CvCityAI::AI_urgentHurryBuilding(int& iCost)
+{
+	iCost = MAX_INT;
+	BuildingTypes eBest = NO_BUILDING;
+	HurryTypes eGoldHurry = NO_HURRY;
+	for (int i = FIRST_HURRY; i < GC.getNumHurryInfos() && eGoldHurry == NO_HURRY; ++i)
+	{
+		if (GC.getHurryInfo((HurryTypes)i).getGoldPerProduction() > 0)
+		{
+			eGoldHurry = (HurryTypes)i;
+		}
+	}
+	if (eGoldHurry == NO_HURRY)
+	{
+		return NO_BUILDING;
+	}
+	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	for (BuildingClassTypes eBuildingClass = FIRST_BUILDINGCLASS; eBuildingClass < NUM_BUILDINGCLASS_TYPES; ++eBuildingClass)
+	{
+		const BuildingTypes eLoopBuilding = GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eBuildingClass);
+		if (!canConstruct(eLoopBuilding) || getBuildingProduction(eLoopBuilding) < getYieldProductionNeeded(eLoopBuilding, YIELD_HAMMERS)
+			|| checkRequiredYields(ORDER_CONSTRUCT, eLoopBuilding, YIELD_HAMMERS) || !AI_isUrgentHurryBuilding(eLoopBuilding))
+		{
+			continue;
+		}
+		// the hurry functions only look at the current build
+		pushOrderInternal(eLoopBuilding);
+		// a resource Europe does not sell (boycott) would make the AI save for nothing
+		bool bPossible = canHurry(eGoldHurry, true);
+		for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_YIELD_TYPES && bPossible; ++eYield)
+		{
+			bPossible = !GC.getYieldInfo(eYield).isCargo() || getHurryYieldDeficit(eGoldHurry, eYield) <= 0 || kOwner.isYieldEuropeTradable(eYield);
+		}
+		const int iLoopCost = hurryGold(eGoldHurry);
+		popOrderInternal();
+		if (bPossible && iLoopCost < iCost)
+		{
+			iCost = iLoopCost;
+			eBest = eLoopBuilding;
+		}
+	}
+	return eBest;
+}
+
 void CvCityAI::AI_doHurry(bool bForce)
 {
 	PROFILE_FUNC();
@@ -2471,11 +2546,8 @@ void CvCityAI::AI_doHurry(bool bForce)
 	// Previously hurried builds must have been processed before considering another hurry
 	FAssert(!m_bHasHurried);
 
-	// WTP: no hurrying while the player saves for a transport, the colonial militia or the treasure galleon
-	if (!bForce && GET_PLAYER(getOwnerINLINE()).AI_isSavingGold())
-	{
-		return;
-	}
+	// WTP: while the player saves for a transport, the colonial militia or the treasure galleon only urgent buildings are hurried
+	const bool bSaving = !bForce && GET_PLAYER(getOwnerINLINE()).AI_isSavingGold();
 
 	// TODO: Cache this
 	HurryTypes eGoldHurry = NO_HURRY;
@@ -2492,6 +2564,7 @@ void CvCityAI::AI_doHurry(bool bForce)
 
 	typedef std::pair<int, BuildingTypes> BuildingHurryCost;
 	std::vector<BuildingHurryCost> buildingHurryCostList;
+	std::vector<BuildingHurryCost> urgentHurryCostList;
 
 	for (BuildingClassTypes eBuildingClass = FIRST_BUILDINGCLASS; eBuildingClass < NUM_BUILDINGCLASS_TYPES; ++eBuildingClass)
 	{
@@ -2511,14 +2584,24 @@ void CvCityAI::AI_doHurry(bool bForce)
 			// Need to push the order to make the hurry computation correct since only the current build is considered
 			pushOrderInternal(eLoopBuilding);
 			const int iHurryCost = hurryGold(eGoldHurry);
-			buildingHurryCostList.push_back(std::make_pair(iHurryCost, eLoopBuilding));
+			(AI_isUrgentHurryBuilding(eLoopBuilding) ? urgentHurryCostList : buildingHurryCostList).push_back(std::make_pair(iHurryCost, eLoopBuilding));
 			popOrderInternal();
 		}
 	}
 
-	if (!buildingHurryCostList.empty())
+	// WTP: urgent buildings first; a colony that cannot pay yet keeps its production while the player saves
+	if (bSaving)
 	{
-		const BuildingHurryCost bhc = *std::min_element(buildingHurryCostList.begin(), buildingHurryCostList.end());
+		buildingHurryCostList.clear();
+	}
+	const std::vector<BuildingHurryCost>& hurryCostList = urgentHurryCostList.empty() ? buildingHurryCostList : urgentHurryCostList;
+	if (!hurryCostList.empty())
+	{
+		const BuildingHurryCost bhc = *std::min_element(hurryCostList.begin(), hurryCostList.end());
+		if (bSaving && GET_PLAYER(getOwnerINLINE()).getGold() < bhc.first)
+		{
+			return;
+		}
 		const BuildingTypes eHurryBuilding = bhc.second;
 
 		// Need to push the order for the hurry functions to process the correct build
@@ -2552,7 +2635,7 @@ void CvCityAI::AI_doHurry(bool bForce)
 	}
 
 	// WTP: no units are hurried in the early game
-	if (GET_PLAYER(getOwnerINLINE()).AI_isEarlyPhaseActive())
+	if (bSaving || GET_PLAYER(getOwnerINLINE()).AI_isEarlyPhaseActive())
 	{
 		return;
 	}
