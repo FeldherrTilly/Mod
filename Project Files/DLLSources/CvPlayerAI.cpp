@@ -1263,9 +1263,21 @@ bool CvPlayerAI::AI_canBuySiegePowder(const CvCity& kCity, int iAmount) const
 	return getGold() >= GET_PLAYER(getParent()).getYieldSellPrice(YIELD_BLACK_POWDER) * iAmount + 300;
 }
 
+// WTP: siege: the gold needed to buy iAmount black powder, the reserve included
+int CvPlayerAI::AI_siegePowderGold(int iAmount) const
+{
+	return (getParent() != NO_PLAYER) ? GET_PLAYER(getParent()).getYieldSellPrice(YIELD_BLACK_POWDER) * iAmount + 300 : MAX_INT;
+}
+
+// WTP: siege: as much as the gold pays for, if that makes the wagon train ready to go
 void CvPlayerAI::AI_buySiegePowder(CvCity& kCity, int iAmount)
 {
-	if (!AI_canBuySiegePowder(kCity, iAmount))
+	if (iAmount <= 0 || !AI_isSiegePowderPort(kCity))
+	{
+		return;
+	}
+	iAmount = std::min(iAmount, (getGold() - 300) / std::max(1, GET_PLAYER(getParent()).getYieldSellPrice(YIELD_BLACK_POWDER)));
+	if (iAmount <= 0 || iAmount + kCity.getYieldStored(YIELD_BLACK_POWDER) < GLOBAL_DEFINE_SIEGE_AI_WAGON_MIN_POWDER)
 	{
 		return;
 	}
@@ -22513,10 +22525,23 @@ void CvPlayerAI::AI_setSavingGold()
 // WTP: keeps the gold for the cheapest urgent building (see CvCityAI::AI_isUrgentHurryBuilding); the colony hurries it in its turn
 bool CvPlayerAI::AI_doUrgentHurrySaving()
 {
+	// the powder of a waiting wagon train comes first
+	if (m_iSiegePowderTurn >= GC.getGameINLINE().getGameTurn() - 1 && getGold() < m_iSiegePowderGold)
+	{
+		AI_setSavingGold();
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) saves for the powder of a wagon train (%d gold, have %d)", getID(), getCivilizationDescription(0), m_iSiegePowderGold, getGold());
+		return true;
+	}
+
 	int iWagonLoop;
 	for (CvCity* pLoopCity = firstCity(&iWagonLoop); pLoopCity != NULL; pLoopCity = nextCity(&iWagonLoop))
 	{
 		const int iWagonCost = pLoopCity->AI().AI_siegeWagonHurryCost();
+		// with twice the cost the colony hurries it next turn anyway and the purchases go on
+		if (iWagonCost >= 0 && getGold() >= 2 * iWagonCost)
+		{
+			return false;
+		}
 		if (iWagonCost >= 0)
 		{
 			AI_setSavingGold();
