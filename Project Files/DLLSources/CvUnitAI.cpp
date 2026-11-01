@@ -1877,7 +1877,7 @@ void CvUnitAI::AI_logPioneer(const char* szReason)
 	}
 	const CvPlot* const pTarget = getGroup()->AI_getMissionAIPlot();
 	const CvCity* const pHome = getHomeCity();
-	logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "%S at %d,%d (home %S): %s -> %S%s", getName().GetCString(), getX_INLINE(), getY_INLINE(),
+	logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "%S #%d at %d,%d (home %S): %s -> %S%s", getName().GetCString(), getID(), getX_INLINE(), getY_INLINE(),
 		(pHome != NULL) ? pHome->getName().GetCString() : L"-", szReason, szMission.GetCString(),
 		(pTarget != NULL && pTarget != plot()) ? CvString::format(", target %d,%d", pTarget->getX_INLINE(), pTarget->getY_INLINE()).c_str() : "");
 }
@@ -1971,7 +1971,7 @@ void CvUnitAI::AI_workerMove()
 			const CvWString szCity = pCity->getName();
 			if (AI_betterJob())
 			{
-				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "%S takes a job in %S (better job)", getName().GetCString(), szCity.GetCString());
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "%S #%d takes a job in %S (better job)", getName().GetCString(), getID(), szCity.GetCString());
 				return;
 			}
 		}
@@ -19939,7 +19939,7 @@ bool CvUnitAI::AI_improveCity(CvCity* pCity)
 				{
 					return true;
 				}
-				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "%S at %d,%d: %S does not start here (can build %d)", getName().GetCString(),
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "%S #%d at %d,%d: %S does not start here (can build %d)", getName().GetCString(), getID(),
 					getX_INLINE(), getY_INLINE(), GC.getBuildInfo(eBuild).getDescription(), (int)canBuild(plot(), eBuild));
 			}
 		}
@@ -20001,7 +20001,7 @@ bool CvUnitAI::AI_improveCity(CvCity* pCity)
 		{
 			return true;
 		}
-		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "%S at %d,%d: %S at %d,%d does not start (can build %d)", getName().GetCString(),
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "%S #%d at %d,%d: %S at %d,%d does not start (can build %d)", getName().GetCString(), getID(),
 			getX_INLINE(), getY_INLINE(), GC.getBuildInfo(eBestBuild).getDescription(), pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(),
 			(int)canBuild(pBestPlot, eBestBuild));
 	}
