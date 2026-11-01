@@ -21721,6 +21721,19 @@ void CvPlayerAI::AI_setSavingGold()
 // WTP: keeps the gold for the cheapest urgent building (see CvCityAI::AI_isUrgentHurryBuilding); the colony hurries it in its turn
 bool CvPlayerAI::AI_doUrgentHurrySaving()
 {
+	// the powder of a waiting wagon train comes first
+	if (m_iSiegePowderTurn >= GC.getGameINLINE().getGameTurn() - 1 && getGold() < m_iSiegePowderGold)
+	{
+		AI_setSavingGold();
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) saves for the powder of a wagon train (%d gold, have %d)", getID(), getCivilizationDescription(0), m_iSiegePowderGold, getGold());
+		return true;
+	}
+
+		// with twice the cost the colony hurries it next turn anyway and the purchases go on
+		if (iWagonCost >= 0 && getGold() >= 2 * iWagonCost)
+		{
+			return false;
+		}
 	CvCity* pBestCity = NULL;
 	BuildingTypes eBestBuilding = NO_BUILDING;
 	int iBestCost = MAX_INT;
@@ -21736,7 +21749,8 @@ bool CvPlayerAI::AI_doUrgentHurrySaving()
 			iBestCost = iCost;
 		}
 	}
-	if (pBestCity == NULL)
+	// with twice the cost the colony hurries it next turn anyway and the purchases go on: they used to stop however rich the AI was
+	if (pBestCity == NULL || getGold() >= 2 * iBestCost)
 	{
 		return false;
 	}

@@ -15422,6 +15422,7 @@ bool CvUnitAI::AI_pillageAroundCity(CvCity* pTargetCity, int iBonusValueThreshol
 }
 
 // Returns true if a mission was pushed...
+				kOwner.AI_setSiegePowderGold(kOwner.AI_siegePowderGold(GLOBAL_DEFINE_SIEGE_AI_WAGON_MIN_POWDER - iPowder));
 bool CvUnitAI::AI_bombardCity()
 {
 	PROFILE_FUNC();
