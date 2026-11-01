@@ -23408,14 +23408,31 @@ bool CvPlayerAI::AI_doWarMilitaryPurchase()
 			}
 		}
 	}
-	const bool bSiegeArtillery = iOffensive >= GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE
-		&& iOffensiveArtillery < std::max(GLOBAL_DEFINE_SIEGE_AI_MIN_ARTILLERY, iOffensive / std::max(1, GLOBAL_DEFINE_SIEGE_AI_UNITS_PER_ARTILLERY));
+	// WTP: all artillery counts, whatever its task: only the offensive one used to count, so the AI kept buying more. Spare
+	// artillery in the colonies goes to the stacks first, and no more than this is bought at all
+	const int iArtilleryWanted = std::max(GLOBAL_DEFINE_SIEGE_AI_MIN_ARTILLERY, iOffensive / std::max(1, GLOBAL_DEFINE_SIEGE_AI_UNITS_PER_ARTILLERY));
+	const int iArtilleryTotal = aiCount[0] + aiCount[4];
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL && iOffensiveArtillery < iArtilleryWanted; pLoopUnit = nextUnit(&iLoop))
+	{
+		const CvCity* const pCity = pLoopUnit->plot()->getPlotCity();
+		if (pLoopUnit->isOnMap() && !pLoopUnit->isCargo() && pLoopUnit->isPowderArtillery() && pLoopUnit->AI_getUnitAIType() == UNITAI_DEFENSIVE
+			&& pCity != NULL && pCity->getOwnerINLINE() == getID() && pCity->AI().AI_numDefenders(false, true) > pCity->AI().AI_neededDefenders())
+		{
+			pLoopUnit->joinGroup(NULL);
+			pLoopUnit->AI_setUnitAIType(UNITAI_OFFENSIVE);
+			++iOffensiveArtillery;
+			if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_MILITARY, getID(), "WTP stack: artillery #%d in %S joins the attacking units", pLoopUnit->getID(), pCity->getName().GetCString());
+		}
+	}
+	const bool bSiegeArtillery = iOffensive >= GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE && iArtilleryTotal < iArtilleryWanted;
 
 	int iBest = -1;
 	int iBestPrice = 0;
 	for (int i = 0; i < NUM_WAR_TYPES; ++i)
 	{
 		if (aeUnit[i] == NO_UNIT || aeProfession[i] == NO_PROFESSION || !isProfessionValid(aeProfession[i], aeUnit[i]))
+			continue;
+		if ((i == 0 || i == 4) && iArtilleryTotal >= iArtilleryWanted)
 			continue;
 		int iPrice = getEuropeUnitBuyPrice(aeUnit[i]);
 		if (iPrice <= 0)

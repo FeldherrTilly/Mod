@@ -3282,9 +3282,29 @@ void CvUnitAI::AI_attackCityMove()
 		// with other offensive stacks, before it marches (not the natives and the king's troops; nor a player who cannot buy
 		// artillery and does not have enough)
 		const int iArtilleryNeeded = kOwner.AI_siegeArtilleryNeeded(getGroup()->getNumUnits());
-		if (!isNative() && !kOwner.isEurope() && iStepDistToTarget > 2 && AI_siegeArtilleryCount() < iArtilleryNeeded
-			&& (kOwner.canTradeWithEurope() || kOwner.AI_getSiegeArtilleryCount() >= iArtilleryNeeded))
+		// WTP: artillery alone does not march: it looks for a stack, however far away
+		if (!isNative() && !kOwner.isEurope() && iStepDistToTarget > 2 && AI_siegeArtilleryCount() == getGroup()->getNumUnits())
 		{
+			if (AI_groupMergeRange(UNITAI_OFFENSIVE, 30, false, true, bIgnoreFaster))
+			{
+				AI_logStack("artillery joins a stack");
+				return;
+			}
+			AI_logStack("artillery finds no stack");
+			if (plot()->isCity() && plot()->getOwnerINLINE() == getOwnerINLINE())
+			{
+				getGroup()->pushMission(MISSION_SKIP);
+				return;
+			}
+			if (AI_retreatToCity())
+			{
+				return;
+			}
+		}
+		// WTP: a stack only waits for artillery that is near: it used to wait without end for artillery that was never coming
+		if (!isNative() && !kOwner.isEurope() && iStepDistToTarget > 2 && AI_siegeArtilleryCount() < iArtilleryNeeded && AI_isSiegeArtilleryNear())
+		{
+			AI_logStack(CvString::format("waits for artillery (needs %d)", iArtilleryNeeded).c_str());
 			if (AI_groupMergeRange(UNITAI_OFFENSIVE, 8, false, true, bIgnoreFaster))
 			{
 				return;
@@ -15651,6 +15671,22 @@ int CvUnitAI::AI_siegeArtilleryCount() const
 		}
 	}
 	return iCount;
+}
+
+// WTP: siege: attacking artillery of another group within 8 plots
+bool CvUnitAI::AI_isSiegeArtilleryNear() const
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	int iLoop;
+	for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
+	{
+		if (pLoopUnit->isPowderArtillery() && pLoopUnit->AI_getUnitAIType() == UNITAI_OFFENSIVE && pLoopUnit->getGroup() != getGroup() && pLoopUnit->isOnMap() && !pLoopUnit->isCargo()
+			&& pLoopUnit->area() == area() && plotDistance(getX_INLINE(), getY_INLINE(), pLoopUnit->getX_INLINE(), pLoopUnit->getY_INLINE()) <= 8)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 // WTP: siege: this stack could besiege pCity from beside it: enough units that can besiege, at least as strong (unmodified
