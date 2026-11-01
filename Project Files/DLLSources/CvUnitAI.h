@@ -215,6 +215,8 @@ protected:
 	int m_iPatrolCenter; // WTP: patrol: plot number of the plot it patrols around (-1: none)
 	int m_iPrivateBuild; // WTP: private pioneer: the build it was paid for (NO_BUILD: none)
 	bool m_bTreasureShip; // WTP: treasure automation (human): the ship fetches treasures
+	int m_iFoundBlockedPlot; // WTP: settler: the site it could not move towards (not saved: after loading it tries again)
+	int m_iFoundBlockedTurn;
 	int m_iNativeTradeBuyTurn; // WTP: native trade ship: turn of its last purchase at a village
 	int m_iNativeTradeArriveTurn; // WTP: native trade ship: turn of its first move on the map after Europe (-1: not yet)
 	int m_iNativeTradeSlotsFullTurn; // WTP: native trade ship: turn all its cargo slots were taken (-1: not yet)

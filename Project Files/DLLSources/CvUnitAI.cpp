@@ -17556,7 +17556,8 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 		CvPlot* pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
 		if (pLoopPlot->isRevealed(getTeam(), false) && ((pTransportUnit != NULL) || AI_plotValid(pLoopPlot)))
 		{
-			bool bTakenByOthers = false;
+			// WTP: a site this settler could not move towards (see below) is left alone for 10 turns
+			bool bTakenByOthers = iI == m_iFoundBlockedPlot && GC.getGameINLINE().getGameTurn() - m_iFoundBlockedTurn < 10;
 			for (uint iTarget = 0; iTarget < aForeignFoundTargets.size(); ++iTarget)
 			{
 				if (plotDistance(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), aForeignFoundTargets[iTarget]->getX_INLINE(), aForeignFoundTargets[iTarget]->getY_INLINE()) < CvPlayerAI::AI_firstColonyMinDistance())
@@ -17727,7 +17728,39 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 			else
 			{
 				FAssert(!atPlot(pBestPlot));
+				const CvPlot* const pBefore = plot();
 				getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_FOUND, pBestFoundPlot);
+				// WTP: the move did nothing and the group can still move: without this the group tries again and again, stands
+				// there for good and its site keeps the other settlers away (three Portuguese units stood 3 plots from their site
+				// from turn 43 on). The settler leaves its group; alone it gives up the site for a while
+				if (!isDelayedDeath() && plot() == pBefore && getGroup()->headMissionQueueNode() == NULL && getGroup()->canAllMove())
+				{
+					const int iGroupUnits = getGroup()->getNumUnits();
+					if (gUnitLogLevel >= 1)
+					{
+						logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler %S at %d,%d can't move towards %d,%d (first stop %d,%d), group of %d:",
+							getNameAndProfession().GetCString(), getX_INLINE(), getY_INLINE(), pBestFoundPlot->getX_INLINE(), pBestFoundPlot->getY_INLINE(),
+							pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), iGroupUnits);
+						for (CLLNode<IDInfo>* pNode = getGroup()->headUnitNode(); pNode != NULL; pNode = getGroup()->nextUnitNode(pNode))
+						{
+							const CvUnit* const pMember = ::getUnit(pNode->m_data);
+							if (pMember != NULL)
+							{
+								logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler   group member %S, unit AI %d, moves %d", pMember->getNameAndProfession().GetCString(), (int)pMember->AI_getUnitAIType(), pMember->movesLeft());
+							}
+						}
+					}
+					if (iGroupUnits > 1)
+					{
+						joinGroup(NULL);
+					}
+					else
+					{
+						m_iFoundBlockedPlot = GC.getMap().plotNumINLINE(pBestFoundPlot->getX_INLINE(), pBestFoundPlot->getY_INLINE());
+						m_iFoundBlockedTurn = GC.getGameINLINE().getGameTurn();
+					}
+					getGroup()->pushMission(MISSION_SKIP);
+				}
 				return true;
 			}
 		}
