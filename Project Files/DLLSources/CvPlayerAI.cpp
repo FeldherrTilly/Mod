@@ -2711,7 +2711,7 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 				iValue /= iFactor + iMinDistance;
 			}
 
-			// WTP: a colony only 2 plots from any other city is allowed with reduced city distance, but a last resort:
+			// WTP: a colony only 2 plots from another colony is allowed with reduced city distance, but a last resort:
 			// the two share most of their plots
 			bool bCityTwoPlotsAway = false;
 			for (int iDX = -2; iDX <= 2 && !bCityTwoPlotsAway; ++iDX)
@@ -2719,7 +2719,7 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 				for (int iDY = -2; iDY <= 2 && !bCityTwoPlotsAway; ++iDY)
 				{
 					const CvPlot* const pNearPlot = plotXY(iX, iY, iDX, iDY);
-					bCityTwoPlotsAway = (iDX != 0 || iDY != 0) && pNearPlot != NULL && pNearPlot->isCity();
+					bCityTwoPlotsAway = (iDX != 0 || iDY != 0) && pNearPlot != NULL && pNearPlot->isCity() && !GET_PLAYER(pNearPlot->getOwnerINLINE()).isNative();
 				}
 			}
 			if (bCityTwoPlotsAway)
