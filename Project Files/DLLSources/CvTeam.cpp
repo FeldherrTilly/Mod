@@ -525,9 +525,22 @@ bool CvTeam::canChangeWarPeace(TeamTypes eTeam) const
 }
 
 
+// WTP: AI colonies attacked natives far too early and spent their money on soldiers instead of experts. A war the natives
+// declare themselves is not affected
+bool CvTeam::isNativeWarTooEarly(TeamTypes eTeam) const
+{
+	static const int NATIVE_WAR_FIRST_TURN = 80;
+	return GC.getGameINLINE().getGameTurn() < NATIVE_WAR_FIRST_TURN && !isHuman() && hasColonialPlayer() && GET_TEAM(eTeam).hasNativePlayer();
+}
+
 bool CvTeam::canDeclareWar(TeamTypes eTeam) const
 {
 	if (eTeam == getID())
+	{
+		return false;
+	}
+
+	if (isNativeWarTooEarly(eTeam))
 	{
 		return false;
 	}

@@ -102,6 +102,7 @@ public:
 	bool isHuman() const;
 	bool hasNativePlayer() const;
 	bool hasColonialPlayer() const;
+	bool isNativeWarTooEarly(TeamTypes eTeam) const; // WTP: AI colonies plan no war against natives before turn 80
 	bool hasEuropePlayer() const;
 	bool isBarbarian() const;
 	PlayerTypes getLeaderID() const;
