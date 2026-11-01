@@ -15966,6 +15966,7 @@ bool CvUnitAI::AI_siegeSupply()
 			{
 				if (pLoopUnit->getYield() != YIELD_BLACK_POWDER)
 				{
+					if (gUnitLogLevel >= 1) logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP wagon #%d at %d,%d: carries goods, no powder supply", getID(), getX_INLINE(), getY_INLINE());
 					return false;
 				}
 				iPowder += pLoopUnit->getYieldStored();
@@ -16000,6 +16001,7 @@ bool CvUnitAI::AI_siegeSupply()
 	}
 	if (pStack == NULL)
 	{
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP wagon #%d at %d,%d: no stack to follow (%d units, with artillery, needed)", getID(), getX_INLINE(), getY_INLINE(), GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE);
 		return false;
 	}
 
@@ -16038,13 +16040,16 @@ bool CvUnitAI::AI_siegeSupply()
 			}
 			if (pBestCity == NULL)
 			{
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP wagon #%d at %d,%d: no colony has or can buy powder", getID(), getX_INLINE(), getY_INLINE());
 				return false;
 			}
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP wagon #%d at %d,%d: fetches powder in %S for stack #%d", getID(), getX_INLINE(), getY_INLINE(), pBestCity->getName().GetCString(), pStack->getID());
 			getGroup()->pushMission(MISSION_MOVE_TO, pBestCity->getX_INLINE(), pBestCity->getY_INLINE(), 0, false, false, MISSIONAI_TRANSPORT, pBestCity->plot());
 			return true;
 		}
 	}
 
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP wagon #%d at %d,%d: follows stack #%d at %d,%d with %d powder", getID(), getX_INLINE(), getY_INLINE(), pStack->getID(), pStack->getX_INLINE(), pStack->getY_INLINE(), iPowder);
 	if (atPlot(pStack->plot()))
 	{
 		getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_SHADOW, NULL, pStack);
