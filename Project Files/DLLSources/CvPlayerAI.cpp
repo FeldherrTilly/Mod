@@ -2509,8 +2509,15 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 		// old normal logic - not considering special cases for Large Rivers without direct Ocean Plots - for all Cities after first city
 		else
 		{
-			iValue *= 150; // increased preference for coastal cities generally
-			iValue /= 100;
+			// WTP: at a lake without a way to the sea only a quarter of the bonus: the AI founded at lakes and left the coast empty
+			bool bSeaAccess = isNative();
+			for (int iDirection = 0; iDirection < NUM_DIRECTION_TYPES && !bSeaAccess; ++iDirection)
+			{
+				const CvPlot* const pAdjacentPlot = plotDirection(iX, iY, (DirectionTypes)iDirection);
+				bSeaAccess = pAdjacentPlot != NULL && pAdjacentPlot->isWater() && pAdjacentPlot->isEuropeAccessable();
+			}
+			iValue *= bSeaAccess ? 12 : 9; // increased preference for coastal cities generally
+			iValue /= 8;
 		}
 		//WTP, ray, Large Rivers - END
 	}
