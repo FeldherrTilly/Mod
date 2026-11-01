@@ -2509,6 +2509,12 @@ void CvTeamAI::AI_doWar()
 		if (GET_TEAM((TeamTypes)iI).isAlive())
 		{
 			WarPlanTypes eWarPlan = AI_getWarPlan((TeamTypes)iI);
+			// WTP: a plan from an older savegame
+			if (eWarPlan != NO_WARPLAN && !isAtWar((TeamTypes)iI) && isNativeWarTooEarly((TeamTypes)iI))
+			{
+				AI_setWarPlan((TeamTypes)iI, NO_WARPLAN);
+				continue;
+			}
 			if (eWarPlan != NO_WARPLAN)
 			{
 				int iTimeModifier = 100;
