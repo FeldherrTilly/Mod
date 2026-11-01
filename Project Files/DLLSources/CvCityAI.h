@@ -214,6 +214,7 @@ public:
 	void AI_doSettlerProfessionCheat();
 
 	void AI_doHurry(bool bForce = false);
+	int AI_siegeWagonHurryCost() const;
 	bool AI_isUrgentHurryBuilding(BuildingTypes eBuilding) const;
 	BuildingTypes AI_urgentHurryBuilding(int& iCost);
 	bool canHaveCitizenProfession(const CvUnit& kUnit, ProfessionTypes eProfession, bool bBumpOther) const;
