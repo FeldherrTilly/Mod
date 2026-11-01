@@ -1701,6 +1701,22 @@ void CvUnitAI::AI_settlerMove()
 		return;
 	}
 
+	// WTP (user 2026-11-01): an expert for bells, crosses or hammers does not stay a settler. In an own colony it puts the
+	// settler profession down, elsewhere the workforce plan gives it a job
+	if (AI_isNeverSettler())
+	{
+		const ProfessionTypes eDefault = GC.getCivilizationInfo(getCivilizationType()).getDefaultProfession();
+		CvCity* const pHere = plot()->getPlotCity();
+		if (!isCargo() && pHere != NULL && pHere->getOwnerINLINE() == getOwnerINLINE() && getProfession() != eDefault && canHaveProfession(eDefault, false))
+		{
+			setProfession(eDefault);
+		}
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler %S at %d,%d is an expert that must not found: becomes a colonist again", getNameAndProfession().GetCString(), getX_INLINE(), getY_INLINE());
+		AI_setUnitAIType(UNITAI_COLONIST);
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
+	}
+
 	// WTP: a settler that cannot found (e.g. a missionary given the settler AI) becomes a colonist again or changes
 	// its profession in an own colony; it used to stand around for many turns
 	if (!isNative() && !canFound(NULL))
@@ -5433,6 +5449,17 @@ void CvUnitAI::AI_transportSettler()
 const char* CvUnitAI::s_szWtpShipReason = "other";
 const char* CvUnitAI::s_szSettlerStep = "";
 
+// WTP: experts for bells, crosses and hammers stay in their trade (not by unit type: the student job makes a free colonist an expert)
+bool CvUnitAI::AI_isNeverSettler() const
+{
+	const ProfessionTypes eIdeal = AI_getIdealProfession();
+	if (eIdeal == NO_PROFESSION || GC.getProfessionInfo(eIdeal).getNumYieldsProduced() <= 0)
+	{
+		return false;
+	}
+	const int iYield = GC.getProfessionInfo(eIdeal).getYieldsProduced(0);
+	return iYield == YIELD_BELLS || iYield == YIELD_CROSSES || iYield == YIELD_HAMMERS;
+}
 
 // WTP: the settler log names the site of every settler each time it moves and whether it can found there
 void CvUnitAI::AI_logSettler()
@@ -10044,7 +10071,8 @@ bool CvUnitAI::AI_changeUnitAIType(int iMinMultiplier)
 				{
 					ProfessionTypes eLoopProfession = (ProfessionTypes)iProfession;
 
-					if (canHaveProfession(eLoopProfession, false, plot()))
+					// WTP (user 2026-11-01): experts for bells, crosses and hammers never become settlers
+					if (canHaveProfession(eLoopProfession, false, plot()) && !(eLoopUnitAI == UNITAI_SETTLER && AI_isNeverSettler()))
 					{
 						int iProfessionValue = kOwner.AI_professionValue(eLoopProfession, eLoopUnitAI);
 						if (iProfessionValue > 0)
