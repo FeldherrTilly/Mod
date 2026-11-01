@@ -1656,7 +1656,7 @@ void CvUnitAI::AI_colonistMove()
 		return;
 	}
 
-	const bool bDanger = GET_PLAYER(getOwnerINLINE()).AI_getPlotDanger(plot(), 2) > 0;
+	const bool bDanger = GET_PLAYER(getOwnerINLINE()).AI_getPlotDanger(plot(), 2, true, false, true) > 0;
 
 	if (bDanger && plot()->getOwnerINLINE() != getOwnerINLINE())
 	{
@@ -17806,7 +17806,7 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 				}
 				// WTP: the ship finds a path to a site where the settler may not land: a settler has no path to a plot with an
 				// enemy within 2 plots (isPlotSafe). The ship arrived, the settler chose another site, the ship sailed there...
-				if (bValid && !bOverdue && iPathTurns <= 2 && kOwner.AI_getPlotDanger(pLoopPlot, 2, false) > 0)
+				if (bValid && !bOverdue && iPathTurns <= 2 && kOwner.AI_getPlotDanger(pLoopPlot, 2, false, false, true) > 0)
 				{
 					bValid = false;
 					bLandingDanger = true;
@@ -17822,9 +17822,9 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 				{
 					if (gUnitLogLevel >= 1)
 					{
-						logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler %S at %d,%d cannot land at %d,%d: can enter %d, enemy within 2 plots %d, enemy on the plot %d, owner %d, at sea since turn %d",
+						logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler %S at %d,%d cannot land at %d,%d: can enter %d, hostile tribe or colony within 2 plots %d, enemy on the plot %d, goody %d, owner %d, at sea since turn %d",
 							getNameAndProfession().GetCString(), getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), (int)canMoveInto(*pLoopPlot),
-							kOwner.AI_getPlotDanger(pLoopPlot, 2, false), (int)pLoopPlot->isVisibleEnemyUnit(this), (int)pLoopPlot->getOwnerINLINE(), m_iSettlerAboardTurn);
+							kOwner.AI_getPlotDanger(pLoopPlot, 2, false, false, true), (int)pLoopPlot->isVisibleEnemyUnit(this), (int)pLoopPlot->isGoody(), (int)pLoopPlot->getOwnerINLINE(), m_iSettlerAboardTurn);
 					}
 					AI_blockFoundSite(aCandidates[iCandidate].second.second);
 				}

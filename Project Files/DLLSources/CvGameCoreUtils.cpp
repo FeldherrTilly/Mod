@@ -830,7 +830,8 @@ namespace
 
 			if (kGroup.getDomainType() == DOMAIN_LAND)
 			{
-				if (kPlayer.AI_getPlotDanger(pPlot, 2, false) > 0)
+				// WTP: only hostile tribes and colonies count: animals and hostile natives are too weak
+				if (kPlayer.AI_getPlotDanger(pPlot, 2, false, false, true) > 0)
 					return false;
 			}
 		}
