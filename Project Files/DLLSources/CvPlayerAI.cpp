@@ -1263,6 +1263,12 @@ bool CvPlayerAI::AI_canBuySiegePowder(const CvCity& kCity, int iAmount) const
 	return getGold() >= GET_PLAYER(getParent()).getYieldSellPrice(YIELD_BLACK_POWDER) * iAmount + 300;
 }
 
+void CvPlayerAI::AI_setSiegePowderGold(int iGold)
+{
+	m_iSiegePowderGold = iGold;
+	m_iSiegePowderTurn = GC.getGameINLINE().getGameTurn();
+}
+
 // WTP: siege: the gold needed to buy iAmount black powder, the reserve included
 int CvPlayerAI::AI_siegePowderGold(int iAmount) const
 {
