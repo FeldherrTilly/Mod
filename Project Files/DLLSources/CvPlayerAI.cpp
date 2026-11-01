@@ -303,6 +303,35 @@ void CvPlayerAI::AI_logStatusSummary()
 	}
 	logWTP(WTP_LOG_STATUS, getID(), "WTP status:   unitAIs (type:count)%s", szUnitAIs.c_str());
 
+	// every attacking stack with its wagon train, and every wagon train during a war
+	int iStackLoop;
+	for (CvUnit* pStack = firstUnit(&iStackLoop); pStack != NULL; pStack = nextUnit(&iStackLoop))
+	{
+		if (!pStack->isOnMap() || pStack->isCargo() || !pStack->isGroupHead())
+		{
+			continue;
+		}
+		if (pStack->AI_getUnitAIType() == UNITAI_OFFENSIVE)
+		{
+			int iWagon = -1;
+			int iWagonLoop;
+			for (CvUnit* pWagon = firstUnit(&iWagonLoop); pWagon != NULL && iWagon < 0; pWagon = nextUnit(&iWagonLoop))
+			{
+				if (pWagon->AI_getUnitAIType() == UNITAI_WAGON && pWagon->getGroup()->AI_getMissionAIType() == MISSIONAI_SHADOW && pWagon->getGroup()->AI_getMissionAIUnit() == pStack)
+				{
+					iWagon = pWagon->getID();
+				}
+			}
+			logWTP(WTP_LOG_MILITARY, getID(), "WTP stack status: #%d at %d,%d: %d units, %d artillery, missionAI %d, wagon train %d", pStack->getID(), pStack->getX_INLINE(), pStack->getY_INLINE(),
+				pStack->getGroup()->getNumUnits(), static_cast<CvUnitAI*>(pStack)->AI_siegeArtilleryCount(), (int)pStack->getGroup()->AI_getMissionAIType(), iWagon);
+		}
+		else if (pStack->AI_getUnitAIType() == UNITAI_WAGON && GET_TEAM(getTeam()).getAnyWarPlanCount() > 0)
+		{
+			logWTP(WTP_LOG_MILITARY, getID(), "WTP wagon status: #%d at %d,%d: missionAI %d, %d cargo", pStack->getID(), pStack->getX_INLINE(), pStack->getY_INLINE(),
+				(int)pStack->getGroup()->AI_getMissionAIType(), pStack->getCargo());
+		}
+	}
+
 	int iLoop;
 	for (CvArea* pArea = GC.getMap().firstArea(&iLoop); pArea != NULL; pArea = GC.getMap().nextArea(&iLoop))
 	{

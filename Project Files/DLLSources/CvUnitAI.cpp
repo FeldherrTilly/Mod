@@ -3087,6 +3087,17 @@ void CvUnitAI::AI_offensiveMove()
 	return;
 }
 
+// WTP: the decisions of the colonial attacking stacks in the military log
+void CvUnitAI::AI_logStack(const char* szReason)
+{
+	if (gUnitLogLevel < 1 || !isGroupHead() || GET_PLAYER(getOwnerINLINE()).getParent() == NO_PLAYER)
+	{
+		return;
+	}
+	logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP stack #%d at %d,%d (%d units, %d artillery): %s", getID(), getX_INLINE(), getY_INLINE(),
+		getGroup()->getNumUnits(), AI_siegeArtilleryCount(), szReason);
+}
+
 // TAC - AI Attack City - koma13, jdog5000(BBAI) - START
 void CvUnitAI::AI_attackCityMove()
 {
@@ -3216,6 +3227,7 @@ void CvUnitAI::AI_attackCityMove()
 
 	if (AI_guardCity(false))
 	{
+		AI_logStack("guards a colony");
 		if( bReadyToAttack && (eAreaAIType != AREAAI_DEFENSIVE))
 		{
 			CvSelectionGroup* pOldGroup = getGroup();
@@ -3251,9 +3263,14 @@ void CvUnitAI::AI_attackCityMove()
 		pTargetCity = AI_pickTargetCity(0, MAX_INT, bHuntBarbs);
 	}
 
+	if (pTargetCity == NULL)
+	{
+		AI_logStack("no target colony");
+	}
 	if( pTargetCity != NULL )
 	{
 		int iStepDistToTarget = stepDistance(pTargetCity->getX_INLINE(), pTargetCity->getY_INLINE(), getX_INLINE(), getY_INLINE());
+		AI_logStack(CvString::format("target %S, %d plots away", pTargetCity->getName().GetCString(), iStepDistToTarget).c_str());
 		int iAttackRatio = 120;
 
 		if( isNative() )
@@ -3295,6 +3312,11 @@ void CvUnitAI::AI_attackCityMove()
 			iDefenseModifier /= 20;
 			iComparePostBombard *= 100 + std::max(0, iDefenseModifier);
 			iComparePostBombard /= 100;
+		}
+
+		if (pTargetCity->isVisible(getTeam(), false))
+		{
+			AI_logStack(CvString::format("compares %d with the target, needs %d", iComparePostBombard, iAttackRatio).c_str());
 		}
 
 		if( iStepDistToTarget <= 2 )
@@ -3446,6 +3468,7 @@ void CvUnitAI::AI_attackCityMove()
 			{
 				if( AI_goToTargetCity(0,4,pTargetCity) )
 				{
+					AI_logStack("marches to the target");
 					return;
 				}
 			}

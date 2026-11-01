@@ -301,6 +301,7 @@ protected:
 	bool AI_routeCityNear(int iMaxDistance);
 	bool AI_wfImproveStages(); // WTP
 	void AI_logPioneer(const char* szReason); // WTP
+	void AI_logStack(const char* szReason); // WTP
 
 	bool AI_requestPickup(int iMaxPath = MAX_INT);
 	void AI_wakeTransportForPickup(const CvPlot* pPickupPlot); // WTP
