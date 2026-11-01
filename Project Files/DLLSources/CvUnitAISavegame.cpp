@@ -101,6 +101,9 @@ void CvUnitAI::AI_resetSavedData()
 	m_iWfVillageY = defaultWfCoord;
 	m_iFoundBlockedPlot = -1;
 	m_iFoundBlockedTurn = -1;
+	m_iSettlerLogTurn = -1;
+	m_iSettlerLogCount = 0;
+	m_iSettlerSearchLogTurn = -1;
 	m_iNativeTradeBuyTurn = defaultNativeTradeBuyTurn;
 	m_iNativeTradeArriveTurn = defaultNativeTradeArriveTurn;
 	m_iNativeTradeSlotsFullTurn = defaultNativeTradeSlotsFullTurn;
