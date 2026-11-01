@@ -3408,6 +3408,22 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 				iValue /= iFactor + iMinDistance;
 			}
 
+			// WTP: a colony only 2 plots from any other city is allowed with reduced city distance, but a last resort:
+			// the two share most of their plots
+			bool bCityTwoPlotsAway = false;
+			for (int iDX = -2; iDX <= 2 && !bCityTwoPlotsAway; ++iDX)
+			{
+				for (int iDY = -2; iDY <= 2 && !bCityTwoPlotsAway; ++iDY)
+				{
+					const CvPlot* const pNearPlot = plotXY(iX, iY, iDX, iDY);
+					bCityTwoPlotsAway = (iDX != 0 || iDY != 0) && pNearPlot != NULL && pNearPlot->isCity();
+				}
+			}
+			if (bCityTwoPlotsAway)
+			{
+				iValue /= 3;
+			}
+
 			// WTP: farther than iMaxDistance from the nearest own colony the value falls steadily, on any landmass. It
 			// used to be capped at 10 plots, and the distance to the primary colony did not count on another landmass,
 			// so an empty landmass 35 plots away was as good as a site next to the colonies.
