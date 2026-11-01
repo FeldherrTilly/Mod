@@ -83,7 +83,7 @@ public:
 	ProfessionTypes AI_getOldProfession() const;
 	void AI_setOldProfession(ProfessionTypes eProfession);
 	ProfessionTypes AI_getIdealProfession() const;
-	bool AI_isNeverSettler() const; // WTP: experts for bells, crosses and hammers stay in their trade
+	bool AI_isUnwantedSettler() const; // WTP: experts for bells, crosses and hammers rather stay in their trade
 
 	bool AI_loadAdjacent(CvPlot* pPlot, bool bTestCity);
 	bool AI_allowedToJoin(const CvCity& kCity) const;
