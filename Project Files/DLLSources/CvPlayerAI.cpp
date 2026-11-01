@@ -3194,7 +3194,7 @@ CvCity* CvPlayerAI::AI_findTargetCity(CvArea* pArea)
 }
 
 
-int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves, bool bOffensive) const
+int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves, bool bOffensive, bool bCivilian) const
 {
 	PROFILE_FUNC();
 
@@ -3226,7 +3226,7 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves, boo
 				if (pLoopPlot->area() == pPlotArea)
 				{
 					iDistance = stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
-					if (atWar(pLoopPlot->getTeam(), getTeam()))
+					if (atWar(pLoopPlot->getTeam(), getTeam()) && !(bCivilian && GET_TEAM(pLoopPlot->getTeam()).isBarbarian()))
 					{
 						if (iDistance == 1)
 						{
@@ -3252,6 +3252,11 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves, boo
 
 						// Ignore animals
 						if (pLoopUnit->getUnitInfo().isAnimal())
+						{
+							continue;
+						}
+
+						if (bCivilian && (pLoopUnit->isBarbarian() || GET_PLAYER(pLoopUnit->getOwnerINLINE()).isBarbarian()))
 						{
 							continue;
 						}
@@ -3319,6 +3324,8 @@ int CvPlayerAI::AI_getUnitDanger(CvUnit* pUnit, int iRange, bool bTestMoves, boo
 	// Vanilla used the land plot in that case and that made the AI hide ships in native settlements to get away from dangerous land units
 	//    Nightinggale
 	CvArea* pTargetArea = pUnit->area();
+	// WTP: hostile natives are too weak to count for colonists and other land units without an escort
+	const bool bCivilian = pUnit->getDomainType() == DOMAIN_LAND && AI_needsProtection(pUnit->AI_getUnitAIType());
 
 	if (iRange == -1)
 	{
@@ -3336,7 +3343,7 @@ int CvPlayerAI::AI_getUnitDanger(CvUnit* pUnit, int iRange, bool bTestMoves, boo
 				if (pLoopPlot->area() == pTargetArea)
 				{
 					iDistance = stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
-					if (atWar(pLoopPlot->getTeam(), getTeam()))
+					if (atWar(pLoopPlot->getTeam(), getTeam()) && !(bCivilian && GET_TEAM(pLoopPlot->getTeam()).isBarbarian()))
 					{
 						if (iDistance == 1)
 						{
@@ -3361,6 +3368,9 @@ int CvPlayerAI::AI_getUnitDanger(CvUnit* pUnit, int iRange, bool bTestMoves, boo
 							{
 								// Ignore animals
 								if (pLoopUnit->getUnitInfo().isAnimal())
+									continue;
+
+								if (bCivilian && (pLoopUnit->isBarbarian() || GET_PLAYER(pLoopUnit->getOwnerINLINE()).isBarbarian()))
 									continue;
 
 								if (!(pLoopUnit->isInvisible(getTeam(), false)))
