@@ -833,6 +833,7 @@ public:
 	int AI_siegeArtilleryNeeded(int iGroupSize) const;
 	bool AI_isSiegeThreatened(const CvPlot& kStackPlot, const CvCity& kCity) const;
 	int AI_getSiegeArtilleryCount() const { return m_iSiegeArtilleryCount; }
+	enum { SIEGE_MAX_WAGONS = 2 }; // WTP: black powder wagon trains of a player, for its largest stacks
 	int AI_getSiegeWagonShortfall() const { return m_iSiegeWagonShortfall; }
 	CvCity* AI_getSiegeMusterCity() const;
 	CvPlot* AI_getSiegeMusterPlot() const;
