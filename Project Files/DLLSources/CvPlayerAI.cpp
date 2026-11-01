@@ -1243,10 +1243,15 @@ bool CvPlayerAI::AI_isSiegeThreatened(const CvPlot& kStackPlot, const CvCity& /*
 
 // WTP: siege: black powder for the wagon train of a stack can be bought into a coastal colony at the Europe price (keeping
 // 300 gold), unless enemy warships blockade its port
+bool CvPlayerAI::AI_isSiegePowderPort(const CvCity& kCity) const
+{
+	return getParent() != NO_PLAYER && canTradeWithEurope() && isYieldEuropeTradable(YIELD_BLACK_POWDER)
+		&& kCity.isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN()) && !kCity.isNavalBlockade();
+}
+
 bool CvPlayerAI::AI_canBuySiegePowder(const CvCity& kCity, int iAmount) const
 {
-	if (iAmount <= 0 || getParent() == NO_PLAYER || !canTradeWithEurope() || !isYieldEuropeTradable(YIELD_BLACK_POWDER)
-		|| !kCity.isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN()) || kCity.isNavalBlockade())
+	if (iAmount <= 0 || !AI_isSiegePowderPort(kCity))
 	{
 		return false;
 	}

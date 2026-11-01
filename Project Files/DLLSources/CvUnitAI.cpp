@@ -15844,15 +15844,32 @@ bool CvUnitAI::AI_siegeSupply()
 		CvCity* const pHere = plot()->getPlotCity();
 		if (pHere != NULL && pHere->getOwnerINLINE() == getOwnerINLINE())
 		{
-			const int iRoom = std::min(GLOBAL_DEFINE_SIEGE_AI_WAGON_POWDER - iPowder, getMaxLoadYieldAmount(YIELD_BLACK_POWDER));
+			// WTP: the free space, not getMaxLoadYieldAmount: that is limited by what the colony can export now, 0 in a colony
+			// without powder, so nothing was ever bought. The export limit does not apply to the powder of a stack either
+			const int iRoom = std::min(GLOBAL_DEFINE_SIEGE_AI_WAGON_POWDER - iPowder, getLoadYieldAmount(YIELD_BLACK_POWDER));
 			if (pHere->getYieldStored(YIELD_BLACK_POWDER) < iRoom)
 			{
 				kOwner.AI_buySiegePowder(*pHere, iRoom - pHere->getYieldStored(YIELD_BLACK_POWDER));
 			}
 			const int iLoad = std::min(iRoom, pHere->getYieldStored(YIELD_BLACK_POWDER));
-			if (iLoad > 0 && loadYieldAmount(YIELD_BLACK_POWDER, iLoad, false) > 0)
+			if (iLoad > 0 && canLoadYield(plot(), YIELD_BLACK_POWDER, false))
 			{
-				iPowder += iLoad;
+				CvUnit* const pPowder = pHere->createYieldUnit(YIELD_BLACK_POWDER, getOwnerINLINE(), iLoad);
+				if (pPowder != NULL)
+				{
+					pPowder->setTransportUnit(this);
+					groupTransportedYieldUnits(pPowder);
+					iPowder += iLoad;
+					if (gUnitLogLevel >= 1) logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP wagon #%d loads %d powder in %S", getID(), iLoad, pHere->getName().GetCString());
+				}
+			}
+			// in a port the wagon train waits until the powder can be paid: it would only go on carrying goods otherwise
+			if (iPowder < GLOBAL_DEFINE_SIEGE_AI_WAGON_MIN_POWDER && kOwner.AI_isSiegePowderPort(*pHere))
+			{
+				kOwner.AI_setSavingGold();
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP wagon #%d in %S waits for the gold for its powder (has %d powder, gold %d)", getID(), pHere->getName().GetCString(), iPowder, kOwner.getGold());
+				getGroup()->pushMission(MISSION_SKIP);
+				return true;
 			}
 		}
 		if (iPowder < GLOBAL_DEFINE_SIEGE_AI_WAGON_MIN_POWDER)
@@ -15864,7 +15881,7 @@ bool CvUnitAI::AI_siegeSupply()
 			{
 				int iTurns;
 				if (pLoopCity != pHere && (pLoopCity->getYieldStored(YIELD_BLACK_POWDER) >= GLOBAL_DEFINE_SIEGE_AI_WAGON_MIN_POWDER
-						|| kOwner.AI_canBuySiegePowder(*pLoopCity, GLOBAL_DEFINE_SIEGE_AI_WAGON_POWDER))
+						|| kOwner.AI_isSiegePowderPort(*pLoopCity))
 					&& generatePath(pLoopCity->plot(), 0, true, &iTurns) && iTurns < iBestTurns)
 				{
 					iBestTurns = iTurns;

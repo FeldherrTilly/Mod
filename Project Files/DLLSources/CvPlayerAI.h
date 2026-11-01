@@ -806,6 +806,7 @@ public:
 	int AI_siegeMusterStrengthPercent(const CvPlot& kMusterPlot, const CvPlot& kThreatPlot) const;
 	int AI_getSiegeMusterAttackTurn() const { return m_iSiegeMusterAttackTurn; }
 	void AI_setSiegeMusterAttackTurn(int iTurn) { m_iSiegeMusterAttackTurn = iTurn; }
+	bool AI_isSiegePowderPort(const CvCity& kCity) const;
 	bool AI_canBuySiegePowder(const CvCity& kCity, int iAmount) const;
 	void AI_buySiegePowder(CvCity& kCity, int iAmount);
 protected:
