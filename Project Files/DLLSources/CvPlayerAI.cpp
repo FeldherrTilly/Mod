@@ -3256,7 +3256,7 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves, boo
 							continue;
 						}
 
-						if (bCivilian && (pLoopUnit->isBarbarian() || GET_PLAYER(pLoopUnit->getOwnerINLINE()).isBarbarian()))
+						if (bCivilian && (pLoopUnit->isBarbarian() || GET_TEAM(pLoopUnit->getTeam()).isBarbarian()))
 						{
 							continue;
 						}
@@ -3370,7 +3370,7 @@ int CvPlayerAI::AI_getUnitDanger(CvUnit* pUnit, int iRange, bool bTestMoves, boo
 								if (pLoopUnit->getUnitInfo().isAnimal())
 									continue;
 
-								if (bCivilian && (pLoopUnit->isBarbarian() || GET_PLAYER(pLoopUnit->getOwnerINLINE()).isBarbarian()))
+								if (bCivilian && (pLoopUnit->isBarbarian() || GET_TEAM(pLoopUnit->getTeam()).isBarbarian()))
 									continue;
 
 								if (!(pLoopUnit->isInvisible(getTeam(), false)))
