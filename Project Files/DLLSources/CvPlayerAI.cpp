@@ -695,7 +695,8 @@ void CvPlayerAI::AI_doSieges()
 		{
 			++m_iSiegeArtilleryCount;
 		}
-		if (pLoopUnit->AI_getUnitAIType() == UNITAI_WAGON)
+		// WTP: a wagon train busy with goods is not free for the powder: all of them used to count, so no one was ever built
+		if (pLoopUnit->AI_getUnitAIType() == UNITAI_WAGON && (pLoopUnit->getGroup()->AI_getMissionAIType() == MISSIONAI_SHADOW || pLoopUnit->getCargo() == 0))
 		{
 			++iWagons;
 		}
