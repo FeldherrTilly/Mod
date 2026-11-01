@@ -788,6 +788,8 @@ protected:
 	int m_iWfIdleCount; // WTP: colonists without a job in the last plan (not saved)
 	int m_iSiegeArtilleryCount; // WTP: siege: own land artillery units, counted every turn (not saved)
 	int m_iSiegeWagonShortfall; // WTP: siege: attacking stacks with artillery minus wagon trains (not saved)
+	int m_iSiegePowderGold; // WTP: siege: gold a waiting wagon train needs for its powder (not saved)
+	int m_iSiegePowderTurn; // WTP: siege: the turn it asked for it (not saved)
 	std::set<int> m_setSiegeCounterIDs; // WTP: siege: offensive units made counter units against a siege stack (saved)
 	// WTP: siege: the counter units gather against the siege stack threatening the most valuable colony (AI_doWarDefense, every
 	// turn, not saved): the colony, the plot beside it where they gather and the plot of the siege stack (plot indices, -1: none)
@@ -835,6 +837,7 @@ public:
 	int AI_getSiegeArtilleryCount() const { return m_iSiegeArtilleryCount; }
 	enum { SIEGE_MAX_WAGONS = 2 }; // WTP: black powder wagon trains of a player, for its largest stacks
 	int AI_getSiegeWagonShortfall() const { return m_iSiegeWagonShortfall; }
+	void AI_setSiegePowderGold(int iGold) { m_iSiegePowderGold = iGold; m_iSiegePowderTurn = GC.getGameINLINE().getGameTurn(); }
 	CvCity* AI_getSiegeMusterCity() const;
 	CvPlot* AI_getSiegeMusterPlot() const;
 	CvPlot* AI_getSiegeMusterThreatPlot() const;
@@ -844,6 +847,7 @@ public:
 	bool AI_isSiegePowderPort(const CvCity& kCity) const;
 	bool AI_canBuySiegePowder(const CvCity& kCity, int iAmount) const;
 	void AI_buySiegePowder(CvCity& kCity, int iAmount);
+	int AI_siegePowderGold(int iAmount) const;
 protected:
 	void AI_doUnitAIWeights();
 	void AI_doEmotions();

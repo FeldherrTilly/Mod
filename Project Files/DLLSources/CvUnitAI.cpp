@@ -16054,6 +16054,7 @@ bool CvUnitAI::AI_siegeSupply()
 			if (iPowder < GLOBAL_DEFINE_SIEGE_AI_WAGON_MIN_POWDER && kOwner.AI_isSiegePowderPort(*pHere))
 			{
 				kOwner.AI_setSavingGold();
+				kOwner.AI_setSiegePowderGold(kOwner.AI_siegePowderGold(GLOBAL_DEFINE_SIEGE_AI_WAGON_MIN_POWDER - iPowder));
 				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP wagon #%d in %S waits for the gold for its powder (has %d powder, gold %d)", getID(), pHere->getName().GetCString(), iPowder, kOwner.getGold());
 				getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_SHADOW, NULL, pStack);
 				return true;

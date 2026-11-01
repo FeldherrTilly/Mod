@@ -249,6 +249,8 @@ void CvPlayerAI::AI_resetSavedData()
 	m_iSavingGoldTurn = -1;
 	m_iSiegeArtilleryCount = 0;
 	m_iSiegeWagonShortfall = 0;
+	m_iSiegePowderGold = 0;
+	m_iSiegePowderTurn = -1;
 	m_setSiegeCounterIDs.clear();
 	m_iSiegeMusterCityID = -1;
 	m_iSiegeMusterPlot = -1;
