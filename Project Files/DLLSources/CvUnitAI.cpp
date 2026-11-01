@@ -1773,6 +1773,14 @@ void CvUnitAI::AI_settlerMove()
 		}
 	}
 
+	// WTP: a settler that has reached its site founds there instead of leaving again because of an enemy nearby
+	if (canMove() && canFound(plot()) && getGroup()->AI_getMissionAIType() == MISSIONAI_FOUND && getGroup()->AI_getMissionAIPlot() == plot())
+	{
+		s_szSettlerStep = "founds on its site";
+		found();
+		return;
+	}
+
 	if (bDanger)
 	{
 		// Don't be so eager to join
@@ -5432,6 +5440,38 @@ void CvUnitAI::AI_transportSettler()
 // WTP: why a transport chose its target this turn (for the ship log)
 const char* CvUnitAI::s_szWtpShipReason = "other";
 const char* CvUnitAI::s_szSettlerStep = "";
+
+// WTP: a site this settler could not reach is left alone for 10 turns
+void CvUnitAI::AI_blockFoundSite(int iPlot)
+{
+	int iOldest = 0;
+	for (int iSite = 0; iSite < NUM_FOUND_BLOCKED_SITES; ++iSite)
+	{
+		if (m_aiFoundBlockedPlot[iSite] == iPlot)
+		{
+			iOldest = iSite;
+			break;
+		}
+		if (m_aiFoundBlockedTurn[iSite] < m_aiFoundBlockedTurn[iOldest])
+		{
+			iOldest = iSite;
+		}
+	}
+	m_aiFoundBlockedPlot[iOldest] = iPlot;
+	m_aiFoundBlockedTurn[iOldest] = GC.getGameINLINE().getGameTurn();
+}
+
+bool CvUnitAI::AI_isFoundSiteBlocked(int iPlot) const
+{
+	for (int iSite = 0; iSite < NUM_FOUND_BLOCKED_SITES; ++iSite)
+	{
+		if (m_aiFoundBlockedPlot[iSite] == iPlot && GC.getGameINLINE().getGameTurn() - m_aiFoundBlockedTurn[iSite] < 10)
+		{
+			return true;
+		}
+	}
+	return false;
+}
 
 // WTP: experts for bells, crosses and hammers rather stay in their trade; they may found, e.g. as the settler of the start
 // (not by unit type: the student job makes a free colonist an expert)
@@ -16691,6 +16731,18 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 	// WTP: the site chosen before is kept unless another one is clearly better: switching between nearly equal sites
 	// on different sea routes made transports go back and forth for many turns
 	const CvPlot* const pCurrentTarget = (getGroup()->AI_getMissionAIType() == MISSIONAI_FOUND) ? getGroup()->AI_getMissionAIPlot() : NULL;
+	// WTP: a settler that has been at sea for 10 turns stops looking for the best site: it lands at the next good one, in
+	// spite of enemies nearby, and stays with it (a Dutch settler went back and forth for 27 turns)
+	if (pTransportUnit == NULL)
+	{
+		m_iSettlerAboardTurn = -1;
+	}
+	else if (m_iSettlerAboardTurn < 0 && pTransportUnit->isOnMap())
+	{
+		m_iSettlerAboardTurn = GC.getGameINLINE().getGameTurn();
+	}
+	const bool bOverdue = m_iSettlerAboardTurn >= 0 && GC.getGameINLINE().getGameTurn() - m_iSettlerAboardTurn >= 10;
+	const int iLandFlags = bOverdue ? MOVE_IGNORE_DANGER : 0;
 
 	// WTP: first colonies: sites other Europeans are already heading for (closer than 16 plots, 12 after 15 turns) are taken;
 	// otherwise all AIs race for the same best site and the losers have to start over
@@ -16737,7 +16789,7 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 		if (pLoopPlot->isRevealed(getTeam(), false) && ((pTransportUnit != NULL) || AI_plotValid(pLoopPlot)))
 		{
 			// WTP: a site this settler could not move towards (see below) is left alone for 10 turns
-			bool bTakenByOthers = iI == m_iFoundBlockedPlot && GC.getGameINLINE().getGameTurn() - m_iFoundBlockedTurn < 10;
+			bool bTakenByOthers = AI_isFoundSiteBlocked(iI);
 			iLogBlocked += bTakenByOthers ? 1 : 0;
 			for (uint iTarget = 0; iTarget < aForeignFoundTargets.size(); ++iTarget)
 			{
@@ -16779,7 +16831,7 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 			if (!bTakenByOthers && canFound(pLoopPlot))
 			{
 				int iValue = 0;
-				CvPlayerAI::s_szFoundValueReason = "rule of the unit or of a special site search";
+				CvPlayerAI::s_szFoundValueReason = "rule of a special site search";
 				if (bEarlyResourceSettler)
 					iValue = kOwner.AI_earlyResourceSiteValue(*pLoopPlot);
 				else if (bFirstCity)
@@ -16810,6 +16862,12 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 				else if (bSearchLog)
 				{
 					++iLogLow;
+					// the value of later colonies comes from a cache: the reason needs the search again, for a sample of the plots
+					if (bEarlyResourceSettler || bFirstCity || iLogLow > 30)
+					{
+						continue;
+					}
+					kOwner.AI_foundValue(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
 					uint iReason = 0;
 					while (iReason < aLogReasons.size() && aLogReasons[iReason].first != CvPlayerAI::s_szFoundValueReason)
 					{
@@ -16832,12 +16890,14 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 			getName().GetCString(), getX_INLINE(), getY_INLINE(), iMinValue, (int)bFirstCity, (int)bEarlyResourceSettler, (int)aCandidates.size(), iLogForeign, iLogOwn, iLogSettler, iLogBlocked, iLogCannotFound, iLogLow, iLogEnemy, iLogAimed);
 		for (uint iReason = 0; iReason < aLogReasons.size(); ++iReason)
 		{
-			logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler     value too low: %d plots: %s", aLogReasons[iReason].second, aLogReasons[iReason].first);
+			logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler     value too low, of the first 30: %d plots: %s", aLogReasons[iReason].second, aLogReasons[iReason].first);
 		}
 	}
-	for (uint iCandidate = 0; iCandidate < aCandidates.size() && iCandidate < 10; ++iCandidate)
+	int iEvaluated = 0; // sites with an enemy nearby do not use up the search for paths
+	for (uint iCandidate = 0; iCandidate < aCandidates.size() && iCandidate < 30 && iEvaluated < 10; ++iCandidate)
 	{
 		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(aCandidates[iCandidate].second.second);
+		bool bLandingDanger = false;
 		int iValue = aCandidates[iCandidate].second.first;
 		int iPathTurns = 0;
 		bool bValid = atPlot(pLoopPlot);
@@ -16861,32 +16921,50 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 				{
 					bValid = false;
 				}
+				// WTP: the ship finds a path to a site where the settler may not land: a settler has no path to a plot with an
+				// enemy within 2 plots (isPlotSafe). The ship arrived, the settler chose another site, the ship sailed there...
+				if (bValid && !bOverdue && iPathTurns <= 2 && kOwner.AI_getPlotDanger(pLoopPlot, 2, false) > 0)
+				{
+					bValid = false;
+					bLandingDanger = true;
+				}
 			}
 			else
 			{
 				// Due to the step <= 1 check, we know that we're adjacent to land. Check if we can move into the plot
 				//bValid = canMoveInto(pLoopPlot);
 
-				bValid = generatePath(pLoopPlot, 0, !bTransportPath, &iPathTurns);
+				bValid = generatePath(pLoopPlot, iLandFlags, !bTransportPath, &iPathTurns);
+				if (!bValid && pTransportUnit != NULL)
+				{
+					if (gUnitLogLevel >= 1)
+					{
+						logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler %S at %d,%d cannot land at %d,%d: can enter %d, enemy within 2 plots %d, enemy on the plot %d, owner %d, at sea since turn %d",
+							getNameAndProfession().GetCString(), getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), (int)canMoveInto(*pLoopPlot),
+							kOwner.AI_getPlotDanger(pLoopPlot, 2, false), (int)pLoopPlot->isVisibleEnemyUnit(this), (int)pLoopPlot->getOwnerINLINE(), m_iSettlerAboardTurn);
+					}
+					AI_blockFoundSite(aCandidates[iCandidate].second.second);
+				}
 			}
 			bTransportPath = bTransport;
 		}
+		iEvaluated += bLandingDanger ? 0 : 1;
 
 		if (bSearchLog)
 		{
 			logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler     candidate %d,%d value %d: %s, %d path turns%s", pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), iValue,
-				bValid ? "reachable" : "NOT reachable", iPathTurns, bTransport ? " by ship" : "");
+				bValid ? "reachable" : (bLandingDanger ? "enemy near the site" : "NOT reachable"), iPathTurns, bTransport ? " by ship" : "");
 		}
 
 		if (bValid)
 		{
 			iValue *= 10;
-			iValue /= 5 + iPathTurns;
+			iValue /= 5 + (bOverdue ? 3 : 1) * iPathTurns;
 			if (pLoopPlot == pCurrentTarget)
 			{
 				// WTP: on a ship the site is kept unless another one is 50% better: the path turns change with every
 				// move of the ship and an English settler switched between three sites every turn for 9 turns
-				iValue = (pTransportUnit != NULL) ? iValue * 3 / 2 : iValue * 5 / 4;
+				iValue = bOverdue ? iValue * 4 : ((pTransportUnit != NULL) ? iValue * 3 / 2 : iValue * 5 / 4);
 			}
 			if (iValue > iBestValue)
 			{
@@ -16930,6 +17008,11 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 			pBestFoundPlot != NULL ? pBestFoundPlot->getX_INLINE() : -1, pBestFoundPlot != NULL ? pBestFoundPlot->getY_INLINE() : -1,
 			pBestPlot != NULL ? pBestPlot->getX_INLINE() : -1, pBestPlot != NULL ? pBestPlot->getY_INLINE() : -1, iBestPathTurns, bBestIsTransport ? " by ship" : "");
 	}
+	if (gUnitLogLevel >= 1 && pTransportUnit != NULL && pCurrentTarget != NULL && pCurrentTarget != pBestFoundPlot)
+	{
+		logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler %S at %d,%d aboard changes its site from %d,%d to %d,%d (at sea since turn %d, in a hurry %d)", getName().GetCString(), getX_INLINE(), getY_INLINE(),
+			pCurrentTarget->getX_INLINE(), pCurrentTarget->getY_INLINE(), pBestFoundPlot != NULL ? pBestFoundPlot->getX_INLINE() : -1, pBestFoundPlot != NULL ? pBestFoundPlot->getY_INLINE() : -1, m_iSettlerAboardTurn, (int)bOverdue);
+	}
 	if ((pBestPlot != NULL) && (pBestFoundPlot != NULL))
 	{
 		if (bBestIsTransport)
@@ -16958,7 +17041,7 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 			{
 				FAssert(!atPlot(pBestPlot));
 				const CvPlot* const pBefore = plot();
-				getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_FOUND, pBestFoundPlot);
+				getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), iLandFlags, false, false, MISSIONAI_FOUND, pBestFoundPlot);
 				// WTP: the move did nothing and the group can still move: without this the group tries again and again, stands
 				// there for good and its site keeps the other settlers away (three Portuguese units stood 3 plots from their site
 				// from turn 43 on). The settler leaves its group; alone it gives up the site for a while
@@ -16985,8 +17068,7 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 					}
 					else
 					{
-						m_iFoundBlockedPlot = GC.getMap().plotNumINLINE(pBestFoundPlot->getX_INLINE(), pBestFoundPlot->getY_INLINE());
-						m_iFoundBlockedTurn = GC.getGameINLINE().getGameTurn();
+						AI_blockFoundSite(GC.getMap().plotNumINLINE(pBestFoundPlot->getX_INLINE(), pBestFoundPlot->getY_INLINE()));
 					}
 					getGroup()->pushMission(MISSION_SKIP);
 				}
