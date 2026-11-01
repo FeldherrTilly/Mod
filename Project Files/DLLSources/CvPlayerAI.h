@@ -775,7 +775,7 @@ protected:
 
 	void AI_doMilitaryStrategy();
 	void AI_doSuppressRevolution();
-	void AI_setSiegePowderGold(int iGold) { m_iSiegePowderGold = iGold; m_iSiegePowderTurn = GC.getGameINLINE().getGameTurn(); }
+	void AI_setSiegePowderGold(int iGold);
 	int AI_siegePowderGold(int iAmount) const;
 	void AI_doUnitAIWeights();
 	void AI_doEmotions();

@@ -645,6 +645,12 @@ void CvPlayerAI::AI_doTurnUnitsPre()
 }
 // WTP, Schmiddie, AI Fleet Modernization END
 
+void CvPlayerAI::AI_setSiegePowderGold(int iGold)
+{
+	m_iSiegePowderGold = iGold;
+	m_iSiegePowderTurn = GC.getGameINLINE().getGameTurn();
+}
+
 void CvPlayerAI::AI_doTurnUnitsPost()
 {
 #ifdef PROFILING_ENABLED
