@@ -15779,6 +15779,28 @@ static bool isSiegeSupplyStack(const CvUnit& kUnit)
 		&& kUnit.getGroup()->getNumUnits() >= GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE && static_cast<const CvUnitAI&>(kUnit).AI_siegeArtilleryCount() > 0;
 }
 
+// WTP: only the largest stacks get a wagon train: the rest of the wagon trains go on trading
+static bool isMainSiegeStack(const CvUnit& kStack)
+{
+	if (!isSiegeSupplyStack(kStack))
+	{
+		return false;
+	}
+	const int iSize = kStack.getGroup()->getNumUnits();
+	int iLarger = 0;
+	int iLoop;
+	CvPlayerAI& kOwner = GET_PLAYER(kStack.getOwnerINLINE());
+	for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
+	{
+		if (pLoopUnit != &kStack && isSiegeSupplyStack(*pLoopUnit)
+			&& (pLoopUnit->getGroup()->getNumUnits() > iSize || (pLoopUnit->getGroup()->getNumUnits() == iSize && pLoopUnit->getID() < kStack.getID())))
+		{
+			++iLarger;
+		}
+	}
+	return iLarger < CvPlayerAI::SIEGE_MAX_WAGONS;
+}
+
 // WTP: siege: during a war a wagon train carries black powder after an attacking stack with artillery (one wagon train per
 // stack), so that the artillery can reload on the stack's plot. It fetches SIEGE_AI_WAGON_POWDER in an own colony, which buys
 // it in Europe if need be (coastal colony, Europe price). Only an empty wagon train or one with black powder
@@ -15799,7 +15821,6 @@ bool CvUnitAI::AI_siegeSupply()
 			{
 				if (pLoopUnit->getYield() != YIELD_BLACK_POWDER)
 				{
-					if (gUnitLogLevel >= 1) logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP wagon #%d at %d,%d: carries goods, no powder supply", getID(), getX_INLINE(), getY_INLINE());
 					return false;
 				}
 				iPowder += pLoopUnit->getYieldStored();
@@ -15812,7 +15833,7 @@ bool CvUnitAI::AI_siegeSupply()
 	if (getGroup()->AI_getMissionAIType() == MISSIONAI_SHADOW)
 	{
 		CvUnit* const pOld = getGroup()->AI_getMissionAIUnit();
-		if (pOld != NULL && pOld->getOwnerINLINE() == getOwnerINLINE() && isSiegeSupplyStack(*pOld))
+		if (pOld != NULL && pOld->getOwnerINLINE() == getOwnerINLINE() && isMainSiegeStack(*pOld))
 		{
 			pStack = pOld;
 		}
@@ -15824,7 +15845,7 @@ bool CvUnitAI::AI_siegeSupply()
 		for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
 		{
 			int iTurns;
-			if (isSiegeSupplyStack(*pLoopUnit) && kOwner.AI_unitTargetMissionAIs(pLoopUnit, MISSIONAI_SHADOW, getGroup()) == 0
+			if (isMainSiegeStack(*pLoopUnit) && kOwner.AI_unitTargetMissionAIs(pLoopUnit, MISSIONAI_SHADOW, getGroup()) == 0
 				&& generatePath(pLoopUnit->plot(), 0, true, &iTurns) && iTurns < iBestTurns)
 			{
 				iBestTurns = iTurns;
@@ -15834,7 +15855,6 @@ bool CvUnitAI::AI_siegeSupply()
 	}
 	if (pStack == NULL)
 	{
-		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP wagon #%d at %d,%d: no stack to follow (%d units, with artillery, needed)", getID(), getX_INLINE(), getY_INLINE(), GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE);
 		return false;
 	}
 
@@ -15868,7 +15888,7 @@ bool CvUnitAI::AI_siegeSupply()
 			{
 				kOwner.AI_setSavingGold();
 				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP wagon #%d in %S waits for the gold for its powder (has %d powder, gold %d)", getID(), pHere->getName().GetCString(), iPowder, kOwner.getGold());
-				getGroup()->pushMission(MISSION_SKIP);
+				getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_SHADOW, NULL, pStack);
 				return true;
 			}
 		}
@@ -15894,7 +15914,8 @@ bool CvUnitAI::AI_siegeSupply()
 				return false;
 			}
 			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_MILITARY, getOwnerINLINE(), "WTP wagon #%d at %d,%d: fetches powder in %S for stack #%d", getID(), getX_INLINE(), getY_INLINE(), pBestCity->getName().GetCString(), pStack->getID());
-			getGroup()->pushMission(MISSION_MOVE_TO, pBestCity->getX_INLINE(), pBestCity->getY_INLINE(), 0, false, false, MISSIONAI_TRANSPORT, pBestCity->plot());
+			// the stack counts as taken while the wagon train fetches the powder: several used to go for one stack
+			getGroup()->pushMission(MISSION_MOVE_TO, pBestCity->getX_INLINE(), pBestCity->getY_INLINE(), 0, false, false, MISSIONAI_SHADOW, pBestCity->plot(), pStack);
 			return true;
 		}
 	}

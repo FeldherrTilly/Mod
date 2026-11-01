@@ -303,7 +303,7 @@ void CvPlayerAI::AI_logStatusSummary()
 	}
 	logWTP(WTP_LOG_STATUS, getID(), "WTP status:   unitAIs (type:count)%s", szUnitAIs.c_str());
 
-	// every attacking stack with its wagon train, and every wagon train during a war
+	// every attacking stack with its wagon train, and every black powder wagon train (not those that only trade)
 	int iStackLoop;
 	for (CvUnit* pStack = firstUnit(&iStackLoop); pStack != NULL; pStack = nextUnit(&iStackLoop))
 	{
@@ -325,7 +325,7 @@ void CvPlayerAI::AI_logStatusSummary()
 			logWTP(WTP_LOG_MILITARY, getID(), "WTP stack status: #%d at %d,%d: %d units, %d artillery, missionAI %d, wagon train %d", pStack->getID(), pStack->getX_INLINE(), pStack->getY_INLINE(),
 				pStack->getGroup()->getNumUnits(), static_cast<CvUnitAI*>(pStack)->AI_siegeArtilleryCount(), (int)pStack->getGroup()->AI_getMissionAIType(), iWagon);
 		}
-		else if (pStack->AI_getUnitAIType() == UNITAI_WAGON && GET_TEAM(getTeam()).getAnyWarPlanCount() > 0)
+		else if (pStack->AI_getUnitAIType() == UNITAI_WAGON && pStack->getGroup()->AI_getMissionAIType() == MISSIONAI_SHADOW)
 		{
 			logWTP(WTP_LOG_MILITARY, getID(), "WTP wagon status: #%d at %d,%d: missionAI %d, %d cargo", pStack->getID(), pStack->getX_INLINE(), pStack->getY_INLINE(),
 				(int)pStack->getGroup()->AI_getMissionAIType(), pStack->getCargo());
@@ -689,6 +689,7 @@ void CvPlayerAI::AI_doSieges()
 	int iStacks = 0;
 	int iWagons = 0;
 	const CvUnit* pWagonStack = NULL;
+	int iWagonStackSize = 0;
 	int iLoop;
 	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 	{
@@ -705,7 +706,11 @@ void CvPlayerAI::AI_doSieges()
 			&& pLoopUnit->getGroup()->getNumUnits() >= GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE && static_cast<CvUnitAI*>(pLoopUnit)->AI_siegeArtilleryCount() > 0)
 		{
 			++iStacks;
-			pWagonStack = pLoopUnit;
+			if (pLoopUnit->getGroup()->getNumUnits() > iWagonStackSize)
+			{
+				iWagonStackSize = pLoopUnit->getGroup()->getNumUnits();
+				pWagonStack = pLoopUnit;
+			}
 		}
 		CvCity* pCity = pLoopUnit->getSiegeTargetCity();
 		if (pCity != NULL && !AI_isSiegeThreatened(*pLoopUnit->plot(), *pCity))
@@ -715,7 +720,7 @@ void CvPlayerAI::AI_doSieges()
 	}
 	if (!isNative() && !isEurope() && GET_TEAM(getTeam()).getAnyWarPlanCount() > 0)
 	{
-		m_iSiegeWagonShortfall = std::max(0, iStacks - iWagons);
+		m_iSiegeWagonShortfall = std::max(0, std::min<int>(iStacks, SIEGE_MAX_WAGONS) - iWagons);
 		// the colony nearest to the stack starts a wagon train at once, it does not wait until it would choose a new production
 		if (pWagonStack != NULL && m_iSiegeWagonShortfall > AI_getNumTrainAIUnits(UNITAI_WAGON) && !AI_isEarlyPhaseActive())
 		{
