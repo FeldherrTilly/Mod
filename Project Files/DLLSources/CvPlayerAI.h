@@ -98,6 +98,7 @@ public:
 
 	int AI_estimatedColonistIncome(CvPlot* pPlot, CvUnit* pColonist);
 	int AI_foundValue(int iX, int iY, int iMinRivalRange = -1, bool bStartingLoc = false);
+	static const char* s_szFoundValueReason; // WTP: settler log: why the last AI_foundValue rejected its plot
 
 	int AI_foundValueNative(int iX, int iY, bool settleOnBonus = false) const;
 

@@ -1723,6 +1723,7 @@ void CvUnitAI::AI_settlerMove()
 {
 	PROFILE_FUNC();
 
+	s_szSettlerStep = "start";
 	const bool bDanger = GET_PLAYER(getOwnerINLINE()).AI_getUnitDanger(this, 2, false, false);
 	const int iMinFoundValue = (GC.getGame().getGameTurn() > 20) ? 1 : 2;
 	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
@@ -1766,10 +1767,12 @@ void CvUnitAI::AI_settlerMove()
 
 	if (isCargo())
 	{
+		s_szSettlerStep = "aboard: a site was chosen";
 		if (AI_found(iMinFoundValue, bFirstCityPhase))
 		{
 			return;
 		}
+		s_szSettlerStep = "aboard: no site, waits";
 
 		// If we cannot find any suitable city spot, disembark
 		// so that we don't needlessly occupy a cargo hold
@@ -1799,6 +1802,7 @@ void CvUnitAI::AI_settlerMove()
 			return;
 		}
 
+		s_szSettlerStep = "first colony: cannot found here, waits for pickup";
 		// Do not move; signal for pickup right here.
 		// (Avoid AI_requestPickup() if it would try to walk. Advertise the pickup explicitly.)
 		getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_AWAIT_PICKUP, plot());
@@ -1826,6 +1830,7 @@ void CvUnitAI::AI_settlerMove()
 		}
 		*/
 
+		s_szSettlerStep = "danger: retreats to a city";
 		if (AI_retreatToCity(false, MAX_INT, true))
 		{
 			return;
@@ -1834,6 +1839,7 @@ void CvUnitAI::AI_settlerMove()
 
 	if (!isCargo())
 	{
+		s_szSettlerStep = "walks: a site was chosen";
 		if (AI_found(iMinFoundValue))
 		{
 			return;
@@ -1843,11 +1849,13 @@ void CvUnitAI::AI_settlerMove()
 	// Settlers should always be on their way towards a spot to settle
 	// So if we get here, this is evidence that we may need to be picked
 	// up by a ship
+	s_szSettlerStep = "no site: asks for a ship";
 	if (AI_requestPickup())
 	{
 		return;
 	}
 
+	s_szSettlerStep = "no site, no ship: retreats to a city";
 	if (AI_retreatToCity())
 	{
 		return;
@@ -1855,15 +1863,18 @@ void CvUnitAI::AI_settlerMove()
 
 	if (canJoinCity(plot()))
 	{
+		s_szSettlerStep = "no site: joins the city";
 		joinCity();
 		return;
 	}
 
+	s_szSettlerStep = "no site: seeks safety";
 	if (AI_safety())
 	{
 		return;
 	}
 
+	s_szSettlerStep = "no site: skips the turn";
 	getGroup()->pushMission(MISSION_SKIP);
 	return;
 }
@@ -5597,6 +5608,8 @@ void CvUnitAI::AI_transportSettler()
 
 // WTP: why a transport chose its target this turn (for the ship log)
 const char* CvUnitAI::s_szWtpShipReason = "other";
+const char* CvUnitAI::s_szSettlerStep = "";
+
 
 // WTP: the settler log names the site of every settler each time it moves and whether it can found there
 void CvUnitAI::AI_logSettler()
@@ -5609,8 +5622,33 @@ void CvUnitAI::AI_logSettler()
 	CvSelectionGroup* const pGroup = getGroup();
 	const CvPlot* const pTarget = pGroup->AI_getMissionAIType() == MISSIONAI_FOUND ? pGroup->AI_getMissionAIPlot() : NULL;
 	const MissionTypes eMission = pGroup->headMissionQueueNode() != NULL ? pGroup->headMissionQueueNode()->m_data.eMissionType : NO_MISSION;
-	logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler %S at %d,%d%s moves %d, group %d units (all can move %d), mission %d, missionAI %d, site %d,%d%s, can found here %d, site value %d",
-		getNameAndProfession().GetCString(), getX_INLINE(), getY_INLINE(), isCargo() ? " (on a ship)" : "", (int)canMove(), pGroup->getNumUnits(), (int)pGroup->canAllMove(),
+	// a group that does not get on is updated up to 100 times per turn: its first lines and then every 25th
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+	if (m_iSettlerLogTurn != iTurn)
+	{
+		m_iSettlerLogTurn = iTurn;
+		m_iSettlerLogCount = 0;
+	}
+	++m_iSettlerLogCount;
+	if (m_iSettlerLogCount > 3 && m_iSettlerLogCount % 25 != 0)
+	{
+		return;
+	}
+	if (m_iSettlerLogCount == 1)
+	{
+		for (CLLNode<IDInfo>* pNode = pGroup->headUnitNode(); pNode != NULL; pNode = pGroup->nextUnitNode(pNode))
+		{
+			const CvUnit* const pMember = ::getUnit(pNode->m_data);
+			if (pMember != NULL && pGroup->getNumUnits() > 1)
+			{
+				logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler   group of %S: %S, unit AI %d, moves left %d", getName().GetCString(), pMember->getNameAndProfession().GetCString(), (int)pMember->AI_getUnitAIType(), pMember->movesLeft());
+			}
+		}
+		const int iValueHere = canFound(plot()) ? AI_foundValue(plot()) : 0;
+		logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler   %S here at %d,%d: can found %d, value %d (%s)", getName().GetCString(), getX_INLINE(), getY_INLINE(), (int)canFound(plot()), iValueHere, canFound(plot()) ? CvPlayerAI::s_szFoundValueReason : "no");
+	}
+	logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler %S at %d,%d%s update %d [%s] moves %d, group %d units (all can move %d), mission %d, missionAI %d, site %d,%d%s, can found here %d, site value %d",
+		getNameAndProfession().GetCString(), getX_INLINE(), getY_INLINE(), isCargo() ? " (on a ship)" : "", m_iSettlerLogCount, s_szSettlerStep, (int)canMove(), pGroup->getNumUnits(), (int)pGroup->canAllMove(),
 		(int)eMission, (int)pGroup->AI_getMissionAIType(), pTarget != NULL ? pTarget->getX_INLINE() : -1, pTarget != NULL ? pTarget->getY_INLINE() : -1,
 		(pTarget != NULL && atPlot(pTarget)) ? " (at the site)" : "", (int)canFound(plot()), pTarget != NULL ? AI_foundValue(const_cast<CvPlot*>(pTarget)) : -1);
 }
@@ -17508,6 +17546,14 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 	int iBestPathTurns = 0;
 
 	std::vector<std::pair<int, std::pair<int, int> > > aCandidates; // WTP: (estimated value, (value, plot index))
+	// WTP: settler log: why the sites were rejected, once per turn for each settler
+	const bool bSearchLog = gUnitLogLevel >= 1 && m_iSettlerSearchLogTurn != GC.getGameINLINE().getGameTurn();
+	if (bSearchLog)
+	{
+		m_iSettlerSearchLogTurn = GC.getGameINLINE().getGameTurn();
+	}
+	int iLogForeign = 0, iLogOwn = 0, iLogSettler = 0, iLogBlocked = 0, iLogCannotFound = 0, iLogLow = 0, iLogEnemy = 0, iLogAimed = 0;
+	std::vector<std::pair<const char*, int> > aLogReasons;
 	// WTP: the site chosen before is kept unless another one is clearly better: switching between nearly equal sites
 	// on different sea routes made transports go back and forth for many turns
 	const CvPlot* const pCurrentTarget = (getGroup()->AI_getMissionAIType() == MISSIONAI_FOUND) ? getGroup()->AI_getMissionAIPlot() : NULL;
@@ -17558,11 +17604,13 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 		{
 			// WTP: a site this settler could not move towards (see below) is left alone for 10 turns
 			bool bTakenByOthers = iI == m_iFoundBlockedPlot && GC.getGameINLINE().getGameTurn() - m_iFoundBlockedTurn < 10;
+			iLogBlocked += bTakenByOthers ? 1 : 0;
 			for (uint iTarget = 0; iTarget < aForeignFoundTargets.size(); ++iTarget)
 			{
 				if (plotDistance(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), aForeignFoundTargets[iTarget]->getX_INLINE(), aForeignFoundTargets[iTarget]->getY_INLINE()) < CvPlayerAI::AI_firstColonyMinDistance())
 				{
 					bTakenByOthers = true;
+					++iLogForeign;
 					break;
 				}
 			}
@@ -17571,6 +17619,7 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 				if (plotDistance(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), aOwnFoundTargets[iTarget]->getX_INLINE(), aOwnFoundTargets[iTarget]->getY_INLINE()) <= 3)
 				{
 					bTakenByOthers = true;
+					++iLogOwn;
 				}
 			}
 			// WTP: a site another settler (ours or foreign) already stands on is taken (a Swedish settler reached a gold site
@@ -17585,12 +17634,18 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 						&& (pLoopUnit->AI_getUnitAIType() == UNITAI_SETTLER || (eSettlerProfession != NO_PROFESSION && pLoopUnit->getProfession() == eSettlerProfession)))
 					{
 						bTakenByOthers = true;
+						++iLogSettler;
 					}
 				}
+			}
+			if (!bTakenByOthers && !canFound(pLoopPlot))
+			{
+				++iLogCannotFound;
 			}
 			if (!bTakenByOthers && canFound(pLoopPlot))
 			{
 				int iValue = 0;
+				CvPlayerAI::s_szFoundValueReason = "rule of the unit or of a special site search";
 				if (bEarlyResourceSettler)
 					iValue = kOwner.AI_earlyResourceSiteValue(*pLoopPlot);
 				else if (bFirstCity)
@@ -17602,6 +17657,7 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 				{
 					if (!(pLoopPlot->isVisibleEnemyUnit(this)))
 					{
+						iLogAimed += kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_FOUND, getGroup(), 0) == 0 ? 0 : 1;
 						if (kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_FOUND, getGroup(), 0) == 0)
 						{
 							// WTP: path finding for every valid site was very slow with many sites (relaxed first colony
@@ -17612,12 +17668,39 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 							aCandidates.push_back(std::make_pair(iKeep * iValue * 10 / (5 + iEstimatedTurns), std::make_pair(iValue, iI)));
 						}
 					}
+					else
+					{
+						++iLogEnemy;
+					}
+				}
+				else if (bSearchLog)
+				{
+					++iLogLow;
+					uint iReason = 0;
+					while (iReason < aLogReasons.size() && aLogReasons[iReason].first != CvPlayerAI::s_szFoundValueReason)
+					{
+						++iReason;
+					}
+					if (iReason == aLogReasons.size())
+					{
+						aLogReasons.push_back(std::make_pair(CvPlayerAI::s_szFoundValueReason, 0));
+					}
+					++aLogReasons[iReason].second;
 				}
 			}
 		}
 	}
 
 	std::sort(aCandidates.begin(), aCandidates.end(), std::greater<std::pair<int, std::pair<int, int> > >());
+	if (bSearchLog)
+	{
+		logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler   search of %S at %d,%d (min value %d, first colony %d, resource settler %d): candidates %d; rejected plots: near foreign settler target %d, within 3 of own settler target %d, other settler stands there %d, could not move there lately %d, cannot found %d, value too low %d, enemy there %d, own settler aims there %d",
+			getName().GetCString(), getX_INLINE(), getY_INLINE(), iMinValue, (int)bFirstCity, (int)bEarlyResourceSettler, (int)aCandidates.size(), iLogForeign, iLogOwn, iLogSettler, iLogBlocked, iLogCannotFound, iLogLow, iLogEnemy, iLogAimed);
+		for (uint iReason = 0; iReason < aLogReasons.size(); ++iReason)
+		{
+			logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler     value too low: %d plots: %s", aLogReasons[iReason].second, aLogReasons[iReason].first);
+		}
+	}
 	for (uint iCandidate = 0; iCandidate < aCandidates.size() && iCandidate < 10; ++iCandidate)
 	{
 		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(aCandidates[iCandidate].second.second);
@@ -17653,6 +17736,12 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 				bValid = generatePath(pLoopPlot, 0, !bTransportPath, &iPathTurns);
 			}
 			bTransportPath = bTransport;
+		}
+
+		if (bSearchLog)
+		{
+			logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler     candidate %d,%d value %d: %s, %d path turns%s", pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), iValue,
+				bValid ? "reachable" : "NOT reachable", iPathTurns, bTransport ? " by ship" : "");
 		}
 
 		if (bValid)
@@ -17701,6 +17790,12 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 		}
 	}
 
+	if (bSearchLog)
+	{
+		logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler   result of %S: site %d,%d, first stop %d,%d, %d path turns%s", getName().GetCString(),
+			pBestFoundPlot != NULL ? pBestFoundPlot->getX_INLINE() : -1, pBestFoundPlot != NULL ? pBestFoundPlot->getY_INLINE() : -1,
+			pBestPlot != NULL ? pBestPlot->getX_INLINE() : -1, pBestPlot != NULL ? pBestPlot->getY_INLINE() : -1, iBestPathTurns, bBestIsTransport ? " by ship" : "");
+	}
 	if ((pBestPlot != NULL) && (pBestFoundPlot != NULL))
 	{
 		if (bBestIsTransport)
@@ -17746,7 +17841,7 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 							const CvUnit* const pMember = ::getUnit(pNode->m_data);
 							if (pMember != NULL)
 							{
-								logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler   group member %S, unit AI %d, moves %d", pMember->getNameAndProfession().GetCString(), (int)pMember->AI_getUnitAIType(), pMember->movesLeft());
+								logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler   group member %S, unit AI %d, moves %d, can enter the first stop %d", pMember->getNameAndProfession().GetCString(), (int)pMember->AI_getUnitAIType(), pMember->movesLeft(), (int)pMember->canMoveInto(*pBestPlot));
 							}
 						}
 					}

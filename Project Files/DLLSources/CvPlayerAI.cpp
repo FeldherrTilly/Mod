@@ -2611,13 +2611,17 @@ int CvPlayerAI::AI_estimatedColonistIncome(CvPlot* pPlot, CvUnit* pColonist)
 }
 #endif
 
+const char* CvPlayerAI::s_szFoundValueReason = "";
+
 int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStartingLoc)
 {
 	PROFILE_FUNC();
 	CvPlot* pPlot = GC.getMap().plotINLINE(iX, iY);
+	s_szFoundValueReason = "has a value";
 
 	if (!canFound(Coordinates(iX, iY)))
 	{
+		s_szFoundValueReason = "player cannot found here";
 		return 0;
 	}
 
@@ -2634,6 +2638,7 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 	{
 		if (pPlot->calculateNatureYield(YIELD_FOOD, getTeam(), true) < GLOBAL_DEFINE_FOOD_CONSUMPTION_PER_POPULATION)
 		{
+				s_szFoundValueReason = "too little food on the city plot";
 				return 0;
 		}
 	}
@@ -2641,6 +2646,7 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 
 	if (!isNative() && !bStartingLoc && getNumCities() == 0 && !AI_isFirstColonySiteAllowed(*pPlot))
 	{
+		s_szFoundValueReason = "first colony rules";
 		return 0;
 	}
 
@@ -2675,6 +2681,7 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 		}
 		if (iLandPlots < 5 && !bPreciousBonus)
 		{
+			s_szFoundValueReason = "fewer than 5 land plots around";
 			return 0;
 		}
 	}
@@ -2737,6 +2744,7 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 			{
 				if (pPlot->getNearestEurope() == NO_EUROPE)
 				{
+					s_szFoundValueReason = "new landmass without way to Europe";
 					return 0;
 				}
 			}
@@ -2804,6 +2812,7 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 
 	if (iOwnedTiles > (NUM_CITY_PLOTS / 3))
 	{
+		s_szFoundValueReason = "too many plots owned by others";
 		return 0;
 	}
 
@@ -3079,6 +3088,7 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 
 	if (iTeammateTakenTiles > 1)
 	{
+		s_szFoundValueReason = "plots taken by a teammate";
 		return 0;
 	}
 
@@ -3351,6 +3361,7 @@ int CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStarting
 
 	if (iValue <= 0)
 	{
+		s_szFoundValueReason = "value at or below 0";
 		return 1;
 	}
 

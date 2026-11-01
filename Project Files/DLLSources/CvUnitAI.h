@@ -217,6 +217,9 @@ protected:
 	bool m_bTreasureShip; // WTP: treasure automation (human): the ship fetches treasures
 	int m_iFoundBlockedPlot; // WTP: settler: the site it could not move towards (not saved: after loading it tries again)
 	int m_iFoundBlockedTurn;
+	int m_iSettlerLogTurn; // WTP: settler log (not saved): the turn of the counts below
+	int m_iSettlerLogCount; // updates of this settler in that turn
+	int m_iSettlerSearchLogTurn; // the turn its site search was logged in
 	int m_iNativeTradeBuyTurn; // WTP: native trade ship: turn of its last purchase at a village
 	int m_iNativeTradeArriveTurn; // WTP: native trade ship: turn of its first move on the map after Europe (-1: not yet)
 	int m_iNativeTradeSlotsFullTurn; // WTP: native trade ship: turn all its cargo slots were taken (-1: not yet)
@@ -270,6 +273,7 @@ protected:
 	void AI_logShipTarget();
 	void AI_logSettler();
 	bool AI_sailForAfricaUnits();
+	static const char* s_szSettlerStep; // WTP: the branch of AI_settlerMove the settler ended in (settler log)
 	static const char* s_szWtpShipReason; // WTP: why a transport chose its target this turn (ship log)
 	void AI_transportCoastMove();
 	void AI_assaultSeaMove();
