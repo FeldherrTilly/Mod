@@ -83,6 +83,7 @@ public:
 	ProfessionTypes AI_getOldProfession() const;
 	void AI_setOldProfession(ProfessionTypes eProfession);
 	ProfessionTypes AI_getIdealProfession() const;
+	bool AI_isNeverSettler() const; // WTP: experts for bells, crosses and hammers stay in their trade
 
 	bool AI_loadAdjacent(CvPlot* pPlot, bool bTestCity);
 	bool AI_allowedToJoin(const CvCity& kCity) const;
@@ -221,7 +222,6 @@ protected:
 	void AI_transportSeaMove();
 	void AI_logShipTarget();
 	void AI_logSettler();
-	bool AI_isNeverSettler() const; // WTP: experts for bells, crosses and hammers stay in their trade
 	bool AI_sailForAfricaUnits();
 	static const char* s_szSettlerStep; // WTP: the branch of AI_settlerMove the settler ended in (settler log)
 	static const char* s_szWtpShipReason; // WTP: why a transport chose its target this turn (ship log)
