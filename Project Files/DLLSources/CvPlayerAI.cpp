@@ -10170,7 +10170,9 @@ void CvPlayerAI::AI_doProfessions()
 							{
 								CvUnit* pUnit = pLoopCity->getPopulationUnitByIndex(i);
 								// WTP: (courageous) expert native traders only leave as native traders
-								if (pUnit != NULL && (!pUnit->isExpertNativeTrader() || GC.getProfessionInfo(eProfession).getNativeTradeRate() > 0))
+								// WTP (user 2026-11-01): experts for bells, crosses and hammers never become settlers
+								if (pUnit != NULL && (!pUnit->isExpertNativeTrader() || GC.getProfessionInfo(eProfession).getNativeTradeRate() > 0)
+									&& !(eUnitAI == UNITAI_SETTLER && static_cast<const CvUnitAI*>(pUnit)->AI_isNeverSettler()))
 								{
 									if (pUnit->canHaveProfession(eProfession, false))
 									{
