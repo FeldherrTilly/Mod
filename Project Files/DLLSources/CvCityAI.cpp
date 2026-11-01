@@ -1284,6 +1284,13 @@ bool CvCityAI::AI_isProductionBuilding(BuildingTypes eBuilding, bool bMajorCity)
 }
 // TAC - AI Buildings - koma13 - END
 
+// WTP: the Wheelwright's Workshop and the level above it: the AI built them too early
+static bool isLateHammerBuilding(const CvBuildingInfo& kBuilding)
+{
+	static const int iHammers = GC.getInfoTypeForString("SPECIALBUILDING_HAMMERS");
+	return kBuilding.getSpecialBuildingType() == iHammers && kBuilding.getSpecialBuildingPriority() >= 2;
+}
+
 int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags) const
 {
 	//
@@ -1420,7 +1427,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags) const
 				}
 
 				//if ((eYieldProduced != NO_YIELD) && !kOwner.AI_isYieldFinalProduct(eYieldProduced) && (eYieldProduced != YIELD_HAMMERS) || bIsMajorCity)
-				if (((eYieldConsumed == NO_YIELD) && !bSpecialBuildingLimit) || bProductionBuilding || bIsBestPortCity)
+				// WTP: a colony that produces the raw material itself may always process it
+				const bool bLocalRawMaterial = eYieldConsumed != NO_YIELD && eYieldProduced != YIELD_HAMMERS && getRawYieldProduced(eYieldConsumed) > 0;
+				if (((eYieldConsumed == NO_YIELD) && !bSpecialBuildingLimit) || bProductionBuilding || bIsBestPortCity || bLocalRawMaterial)
 				// TAC - AI Buildings - koma13 - END
 				{
 					int iHighestOutput = kOwner.AI_highestProfessionOutput(eLoopProfession, this);
@@ -1483,6 +1492,12 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags) const
 										iTempValue *= iPercent;
 										iTempValue /= 100;
 									}
+								}
+								// WTP: production buildings for the resources of this colony come first (2 to 4 times the value)
+								if (bLocalRawMaterial)
+								{
+									iTempValue *= 200 + std::min(200, 10 * getRawYieldProduced(eYieldConsumed));
+									iTempValue /= 100;
 								}
 								if ((eYieldProduced == YIELD_HORSES))
 								{
@@ -1828,6 +1843,12 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags) const
 	{
 		iValue += kBuildingInfo.getAIWeight();
 
+		// WTP: as for the chosen production colony, in every colony with the raw material
+		if (!bProductionBuilding && eYieldConsumed != NO_YIELD && eYieldProduced != YIELD_HAMMERS && getRawYieldProduced(eYieldConsumed) > 0)
+		{
+			iValue += 100 + 10 * getRawYieldProduced(eYieldConsumed);
+		}
+
 		if (bProductionBuilding)
 		{
 			iValue += 100 + 10 * getRawYieldProduced(eYieldConsumed);
@@ -1858,6 +1879,11 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags) const
 			}
 			// WTP, ray, also check for available AI experts for Building Construction - END
 		}
+	}
+
+	if (isLateHammerBuilding(kBuildingInfo))
+	{
+		iValue /= 2;
 	}
 
 	//return iValue;
@@ -2447,6 +2473,10 @@ bool CvCityAI::AI_isUrgentHurryBuilding(BuildingTypes eBuilding) const
 		return false;
 	}
 	const CvBuildingInfo& kBuilding = GC.getBuildingInfo(eBuilding);
+	if (isLateHammerBuilding(kBuilding))
+	{
+		return false;
+	}
 	if (kBuilding.getYieldStorage() > 0 && getTotalYieldStored() * 100 > getMaxYieldCapacity() * 80)
 	{
 		return true;
