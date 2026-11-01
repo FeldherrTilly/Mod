@@ -1843,6 +1843,9 @@ void CvUnitAI::AI_settlerMove()
 
 // WTP: pioneer log: the reason of a pioneer's new task and the mission it got (build, road or move with its plot, target of
 // the mission AI); a pioneer keeps its mission over several turns, so each line is a new task
+// WTP: a pioneer is at most this many turns on its way to a task: English pioneers walked 45 plots to a colony for 70 turns
+static const int PIONEER_MAX_PATH_TURNS = 10;
+
 void CvUnitAI::AI_logPioneer(const char* szReason)
 {
 	if (gUnitLogLevel < 1 || isHuman())
@@ -19914,6 +19917,10 @@ bool CvUnitAI::AI_improveCity(CvCity* pCity)
 	const bool bNoWayRoads = GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned();
 	if (plot()->getWorkingCity() != pCity)
 	{
+		if (!generatePath(pCity->plot(), 0, true, NULL, PIONEER_MAX_PATH_TURNS))
+		{
+			return false;
+		}
 		if (canBuildRoute() && !bNoWayRoads)
 		{
 			getGroup()->pushMission(MISSION_ROUTE_TO, pCity->getX_INLINE(), pCity->getY_INLINE(), 0, false, false, MISSIONAI_BUILD, pCity->plot());
@@ -20204,7 +20211,10 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity* pCity)
 					    iValue *= 2;
 					}
 
-					generatePath(pPlot, 0, true, &iPathTurns);
+					if (!generatePath(pPlot, 0, true, &iPathTurns, PIONEER_MAX_PATH_TURNS))
+					{
+						continue;
+					}
 					iValue /= (iPathTurns + 1);
 
 					if (iValue > iBestValue)
@@ -20355,7 +20365,7 @@ bool CvUnitAI::AI_fortTerritory(bool bCanal)
 									if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_BUILD, getGroup(), 1/*3*/) == 0) //super forts - change 3 to 1
 									{
 										int iPathTurns;
-										if (generatePath(pLoopPlot, 0, true, &iPathTurns))
+										if (generatePath(pLoopPlot, 0, true, &iPathTurns, PIONEER_MAX_PATH_TURNS))
 										{
 
 											iValue = iPlotValue * 100; //iValue *= 1000; --original		// Super Forts *canal* *choke*
@@ -20593,7 +20603,7 @@ bool CvUnitAI::AI_routeCityNear(int iMaxDistance)
 		// WTP: the road itself must be buildable; it may lead through the land of others (natives), not through the land of a
 		// player we are at war with (in safe territory only, between colonies with native land in between, the road mission
 		// found no way and ended at once, and the pioneer chose the same road again every turn)
-		if (generatePath(pLoopCity->plot(), MOVE_NO_ENEMY_TERRITORY, true)
+		if (generatePath(pLoopCity->plot(), MOVE_NO_ENEMY_TERRITORY, true, NULL, PIONEER_MAX_PATH_TURNS)
 			&& getGroup()->generatePath(pLoopCity->plot(), pRouteToCity->plot(), MOVE_NO_ENEMY_TERRITORY, false))
 		{
 			getGroup()->pushMission(MISSION_MOVE_TO, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_BUILD, pRouteToCity->plot());
@@ -20707,6 +20717,11 @@ bool CvUnitAI::AI_wfImproveStages()
 					continue;
 				}
 				int iDistance = stepDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+				// out of reach even on roads
+				if (iDistance > 3 * PIONEER_MAX_PATH_TURNS * std::max(1, baseMoves()))
+				{
+					continue;
+				}
 				if (pLoopCity == pHome)
 				{
 					iDistance /= 2;
@@ -20721,12 +20736,13 @@ bool CvUnitAI::AI_wfImproveStages()
 		}
 	}
 	std::sort(aCandidates.begin(), aCandidates.end());
-	for (uint i = 0; i < aCandidates.size() && i < 8; ++i)
+	// (a stage out of reach: the next lower one; the search is limited, 24 plots are plenty)
+	for (uint i = 0; i < aCandidates.size() && i < 24; ++i)
 	{
 		const int k = aCandidates[i].second;
 		CvPlot* const pPlot = apPlots[k];
 		CvCity* const pCity = apCities[k];
-		if (!atPlot(pPlot) && !generatePath(pPlot, MOVE_NO_ENEMY_TERRITORY, true))
+		if (!atPlot(pPlot) && !generatePath(pPlot, MOVE_NO_ENEMY_TERRITORY, true, NULL, PIONEER_MAX_PATH_TURNS))
 		{
 			continue;
 		}
