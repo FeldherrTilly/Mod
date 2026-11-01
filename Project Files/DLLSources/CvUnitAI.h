@@ -216,8 +216,12 @@ protected:
 	int m_iPatrolCenter; // WTP: patrol: plot number of the plot it patrols around (-1: none)
 	int m_iPrivateBuild; // WTP: private pioneer: the build it was paid for (NO_BUILD: none)
 	bool m_bTreasureShip; // WTP: treasure automation (human): the ship fetches treasures
-	int m_iFoundBlockedPlot; // WTP: settler: the site it could not move towards (not saved: after loading it tries again)
-	int m_iFoundBlockedTurn;
+	enum { NUM_FOUND_BLOCKED_SITES = 4 };
+	int m_aiFoundBlockedPlot[NUM_FOUND_BLOCKED_SITES]; // WTP (not saved): sites this settler could not reach lately
+	int m_aiFoundBlockedTurn[NUM_FOUND_BLOCKED_SITES];
+	int m_iSettlerAboardTurn; // WTP (not saved): the turn this settler began to look for a site from a ship at sea
+	void AI_blockFoundSite(int iPlot);
+	bool AI_isFoundSiteBlocked(int iPlot) const;
 	int m_iSettlerLogTurn; // WTP: settler log (not saved): the turn of the counts below
 	int m_iSettlerLogCount; // updates of this settler in that turn
 	int m_iSettlerSearchLogTurn; // the turn its site search was logged in
