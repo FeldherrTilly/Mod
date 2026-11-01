@@ -1915,11 +1915,11 @@
 	</Define>
 	<Define>
 		<DefineName>SIEGE_AI_MIN_ARTILLERY</DefineName>
-		<iDefineIntVal>2</iDefineIntVal>
+		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 	<Define>
 		<DefineName>SIEGE_AI_MAX_ARTILLERY</DefineName>
-		<iDefineIntVal>4</iDefineIntVal>
+		<iDefineIntVal>2</iDefineIntVal>
 	</Define>
 	<Define>
 		<DefineName>SIEGE_AI_ABORT_ENEMY_PERCENT</DefineName>

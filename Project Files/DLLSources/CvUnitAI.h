@@ -451,6 +451,7 @@ protected:
 	bool AI_siegeSupply();
 public:
 	int AI_siegeArtilleryCount() const;
+	bool AI_isSiegeArtilleryNear() const;
 protected:
 	bool AI_cityAttack(int iRange, int iOddsThreshold, bool bFollow = false);
 	// TAC - AI Attack City - koma13 - START
