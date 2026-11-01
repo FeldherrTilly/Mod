@@ -512,6 +512,7 @@ public:
 	bool AI_doScoutPurchase(bool bExtra = false);
 	void AI_setSavingGold();
 	bool AI_isSavingGold() const;
+	bool AI_doUrgentHurrySaving();
 	void AI_doEquipPioneersInEurope();
 	bool AI_doNativeTraderPurchase();
 	bool AI_doNativeTradeShipPurchase();
