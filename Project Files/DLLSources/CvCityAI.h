@@ -154,6 +154,7 @@ public:
 	bool AI_canClearLumberFeature(const CvPlot* pPlot) const;
 	void AI_getYieldsTaughtNearby(bool* abYields) const; // WTP
 	int AI_projectedLumberWithout(const CvUnit* pUnit) const; // WTP
+	bool AI_isLumberShort(const CvUnit* pUnit) const; // WTP
 	int AI_nativeFoodSurplus() const; // WTP
 	bool AI_assignFreeJob(CvUnit& kUnit); // WTP
 

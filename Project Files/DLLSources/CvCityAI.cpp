@@ -4884,12 +4884,13 @@ int CvCityAI::AI_citizenProfessionValue(
 				}
 			}
 		}
-		// WTP: keep the lumber stock from falling below 30: a lumber job is wanted as long as the stock would drop
-		// below 30 within 5 turns without this worker (no flip-flopping around 30); only from 150 on it is worth less
+		// WTP: keep the lumber stock from running out: a lumber job is wanted while the city uses more lumber than it
+		// makes without this worker and the stock would drop below 30 within 5 turns (AI_isLumberShort; the worker's own
+		// lumber is left out, so no flip-flopping); only from 150 on it is worth less
 		else if (eY == YIELD_LUMBER)
 		{
 			// WTP: while lumber runs short only lumber is worth more (x4); other goods on forest plots keep their value
-			if (AI_projectedLumberWithout(pUnit) < 30)
+			if (AI_isLumberShort(pUnit))
 			{
 				combined *= 4;
 			}
@@ -4949,7 +4950,7 @@ int CvCityAI::AI_citizenProfessionValue(
 		{
 			const YieldTypes eY = yieldsOut.yields[0].eYield;
 			// additive, so better lumber plots stay ahead; statesmen get 1.2 H, preachers 2 H
-			if (eY == YIELD_LUMBER && yieldsOut.yields[0].iAmount >= 3 && AI_projectedLumberWithout(pUnit) < 30)
+			if (eY == YIELD_LUMBER && yieldsOut.yields[0].iAmount >= 3 && AI_isLumberShort(pUnit))
 			{
 				combined = branchless::max(combined, 0) + AI_hammerJobMinValue() * 5 / 4;
 			}
@@ -5416,6 +5417,14 @@ int CvCityAI::AI_nativeFoodSurplus() const
 }
 
 // WTP: lumber stock in 5 turns if this unit does not cut lumber (its current lumber output is taken out)
+// WTP: lumber runs short: without this worker's lumber the city uses more lumber than it makes, and the stock would
+// drop below 30 within 5 turns
+bool CvCityAI::AI_isLumberShort(const CvUnit* pUnit) const
+{
+	const int iProjected = AI_projectedLumberWithout(pUnit);
+	return iProjected < getYieldStored(YIELD_LUMBER) && iProjected < 30;
+}
+
 int CvCityAI::AI_projectedLumberWithout(const CvUnit* pUnit) const
 {
 	int iFlow = getRawYieldProduced(YIELD_LUMBER) - getRawYieldConsumed(YIELD_LUMBER);

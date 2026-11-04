@@ -339,7 +339,7 @@ void CyGame::setMapClickMode(bool bNewValue)
 {
 	if (m_pGame)
 	{
-		m_pGame->setMapClickMode(bNewValue);
+		pointer(CREATE_ASSERT_DATA)->setMapClickMode(bNewValue);
 	}
 }
 
