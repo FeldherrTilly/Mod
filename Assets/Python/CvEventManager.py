@@ -934,6 +934,10 @@ class CvEventManager:
 		if ( px!=-1 and py!=-1 and not interfaceConsumed and (eventType == self.EventLButtonDown or eventType == self.EventRButtonDown) ):
 			if CvScreensInterface.mainInterface.handleMapClick(eventType == self.EventLButtonDown, px, py):
 				return 1
+		# WTP: a double click in a map mode would select the units of the plot; the mode swallows it (its first click
+		# already did the action)
+		if ( px!=-1 and py!=-1 and not interfaceConsumed and eventType == self.EventLcButtonDblClick and CvScreensInterface.mainInterface.isMapClickMode() and not CyInterface().isCityScreenUp() ):
+			return 1
 		if ( px!=-1 and py!=-1 ):
 			if ( eventType == self.EventLButtonDown ):
 				if (self.bAllowCheats and self.bCtrl and self.bAlt and CyMap().plot(px,py).isCity() and not interfaceConsumed):

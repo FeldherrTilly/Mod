@@ -99,6 +99,7 @@ public:
 	void setScoreDirty(bool bNewValue);
 	bool isDebugMode() const;
 	void toggleDebugMode();
+	void setMapClickMode(bool bNewValue); // WTP
 	int getPitbossTurnTime();
 	void setPitbossTurnTime(int iHours);
 	bool isHotSeat();
