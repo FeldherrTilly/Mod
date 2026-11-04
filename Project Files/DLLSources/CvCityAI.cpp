@@ -4888,9 +4888,10 @@ int CvCityAI::AI_citizenProfessionValue(
 		// below 50 within 5 turns without this worker (no flip-flopping around 50); only from 150 on it is worth less
 		else if (eY == YIELD_LUMBER)
 		{
+			// WTP: while lumber runs short only lumber is worth more (x4); other goods on forest plots keep their value
 			if (AI_projectedLumberWithout(pUnit) < 50)
 			{
-				combined *= 2;
+				combined *= 4;
 			}
 			else if (getYieldStored(YIELD_LUMBER) >= 150)
 			{
@@ -4900,17 +4901,6 @@ int CvCityAI::AI_citizenProfessionValue(
 		else if (AI_getNeededYield(eY) > getYieldStored(eY))
 		{
 			combined *= 3;
-		}
-
-		// WTP: while lumber runs short, a plot that can give lumber is not used for other goods (e.g. exotic wood
-		// instead of lumber while the carpenters have nothing to work with). A resource for this good on the plot is
-		// exempt: otherwise an expert (e.g. a tobacco planter on tobacco in a forest) skipped its resource bonus for
-		// an ordinary plot of the same good
-		if (eY != YIELD_LUMBER && eY != YIELD_FOOD && pPlot != NULL && pPlot->calculateBestNatureYield(YIELD_LUMBER, getTeam()) >= 3
-			&& !(pPlot->getBonusType() != NO_BONUS && GC.getBonusInfo(pPlot->getBonusType()).getYieldChange(eY) > 0)
-			&& AI_projectedLumberWithout(pUnit) < 50)
-		{
-			combined /= 4;
 		}
 	}
 
