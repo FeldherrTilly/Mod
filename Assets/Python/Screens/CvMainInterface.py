@@ -3956,6 +3956,9 @@ class CvMainInterface:
 
 	# WTP: a click on the map while territorial influence or the pioneer plan is on: the mode takes it (no unit is selected
 	# or moved). Returns True if the click was taken.
+	def isMapClickMode(self):
+		return self.bTerritorialInfluenceMode or self.bPioneerPlanMode or self.bPrivateBuildMode
+
 	def handleMapClick(self, bLeft, iX, iY):
 
 		if not self.bTerritorialInfluenceMode and not self.bPioneerPlanMode and not self.bPrivateBuildMode:
@@ -4024,6 +4027,12 @@ class CvMainInterface:
 
 	# Updates the Screen
 	def update( self, fDelta ):
+		# WTP: while a map mode takes the clicks, the DLL selects no unit by the automatic unit cycling, and a unit
+		# selected anyway is deselected (a right click would move it)
+		bMapClickMode = self.isMapClickMode()
+		CyGame().setMapClickMode(bMapClickMode)
+		if bMapClickMode and not CyInterface().isCityScreenUp() and CyInterface().getHeadSelectedUnit() is not None:
+			CyInterface().clearSelectionList()
 		self.updateTerritorialInfluenceEditor()
 		self.updatePioneerPlanEditor()
 		return
