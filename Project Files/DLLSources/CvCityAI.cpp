@@ -4823,12 +4823,12 @@ int CvCityAI::AI_citizenProfessionValue(
 				}
 			}
 		}
-		// WTP: keep the lumber stock from falling below 50: a lumber job is wanted as long as the stock would drop
-		// below 50 within 5 turns without this worker (no flip-flopping around 50); only from 150 on it is worth less
+		// WTP: keep the lumber stock from falling below 30: a lumber job is wanted as long as the stock would drop
+		// below 30 within 5 turns without this worker (no flip-flopping around 30); only from 150 on it is worth less
 		else if (eY == YIELD_LUMBER)
 		{
 			// WTP: while lumber runs short only lumber is worth more (x4); other goods on forest plots keep their value
-			if (AI_projectedLumberWithout(pUnit) < 50)
+			if (AI_projectedLumberWithout(pUnit) < 30)
 			{
 				combined *= 4;
 			}
@@ -4888,7 +4888,7 @@ int CvCityAI::AI_citizenProfessionValue(
 		{
 			const YieldTypes eY = yieldsOut.yields[0].eYield;
 			// additive, so better lumber plots stay ahead; statesmen get 1.2 H, preachers 2 H
-			if (eY == YIELD_LUMBER && yieldsOut.yields[0].iAmount >= 3 && AI_projectedLumberWithout(pUnit) < 50)
+			if (eY == YIELD_LUMBER && yieldsOut.yields[0].iAmount >= 3 && AI_projectedLumberWithout(pUnit) < 30)
 			{
 				combined = branchless::max(combined, 0) + AI_hammerJobMinValue() * 5 / 4;
 			}
