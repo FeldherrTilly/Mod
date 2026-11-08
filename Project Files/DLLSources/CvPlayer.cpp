@@ -42,6 +42,24 @@
 #include <map>
 #include <vector>
 
+// Performance: the quest texts of the human players are refreshed whenever trade counters change.
+// The refresh is expensive (python calls) and the price decay at the start of a king's turn changes the counters
+// of every yield. Defer the refresh during the price decay and do it once afterwards.
+static int s_iQuestRefreshSuppress = 0;
+static bool s_bQuestRefreshPending = false;
+
+static void refreshQuestMessagesOfHumanPlayers()
+{
+	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
+	{
+		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
+		if (kPlayer.isAlive() && kPlayer.isHuman())
+		{
+			kPlayer.refreshQuestMessages();
+		}
+	}
+}
+
 // Public Functions...
 
 CvPlayer::CvPlayer()
@@ -2335,9 +2353,16 @@ void CvPlayer::doTurn()
 
 	verifyCivics();
 	if (isEurope()) {
+		s_iQuestRefreshSuppress++;
 		doPrices();
 		doAfricaPrices(); // R&R, ray, Africa
 		doPortRoyalPrices(); // R&R, ray, Port Royal
+		s_iQuestRefreshSuppress--;
+		if (s_iQuestRefreshSuppress == 0 && s_bQuestRefreshPending)
+		{
+			s_bQuestRefreshPending = false;
+			refreshQuestMessagesOfHumanPlayers();
+		}
 		doTaxRaises();
 	}
 	EXTRA_POWER_CHECK
@@ -19280,13 +19305,13 @@ void CvPlayer::changeYieldTradedTaxCounter(TradeLocationTypes eLocation, YieldTy
 		}
 	}
 
-	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
+	if (s_iQuestRefreshSuppress > 0)
 	{
-		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-		if (kPlayer.isAlive() && kPlayer.isHuman())
-		{
-			kPlayer.refreshQuestMessages();
-		}
+		s_bQuestRefreshPending = true;
+	}
+	else
+	{
+		refreshQuestMessagesOfHumanPlayers();
 	}
 }
 

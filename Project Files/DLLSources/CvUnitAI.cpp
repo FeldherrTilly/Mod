@@ -2,6 +2,8 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvUnitAI.h"
+#include <algorithm>
+#include <vector>
 #include "CvMap.h"
 #include "CvArea.h"
 #include "CvPlot.h"
@@ -32,6 +34,44 @@
 #define MOVE_PRIORITY_MEDIUM		1000
 #define MOVE_PRIORITY_LOW			500
 #define MOVE_PRIORITY_MIN			1
+
+// Performance helpers: rate candidates cheaply first and only run (expensive) path searches
+// for the most promising ones. Ties are broken by plot coordinates to stay deterministic (multiplayer sync).
+struct AIPathCandidate
+{
+	int iValue;		// rating (higher is better) or distance (lower is better), depending on the comparator
+	int iBase;		// original value before path dependent modifiers
+	CvPlot* pPlot;
+};
+
+static bool AIPathCandidateBetter(const AIPathCandidate& kA, const AIPathCandidate& kB)
+{
+	if (kA.iValue != kB.iValue)
+	{
+		return kA.iValue > kB.iValue;
+	}
+	if (kA.pPlot->getY_INLINE() != kB.pPlot->getY_INLINE())
+	{
+		return kA.pPlot->getY_INLINE() < kB.pPlot->getY_INLINE();
+	}
+	return kA.pPlot->getX_INLINE() < kB.pPlot->getX_INLINE();
+}
+
+static bool AIPathCandidateCloser(const AIPathCandidate& kA, const AIPathCandidate& kB)
+{
+	if (kA.iValue != kB.iValue)
+	{
+		return kA.iValue < kB.iValue;
+	}
+	if (kA.pPlot->getY_INLINE() != kB.pPlot->getY_INLINE())
+	{
+		return kA.pPlot->getY_INLINE() < kB.pPlot->getY_INLINE();
+	}
+	return kA.pPlot->getX_INLINE() < kB.pPlot->getX_INLINE();
+}
+
+// Number of explore targets that get a path search per unit and turn
+static const int AI_MAX_EXPLORE_PATH_SEARCHES = 10;
 
 // Public Functions...
 
@@ -1401,7 +1441,8 @@ void CvUnitAI::AI_FleeingMove()
 			{
 				if (!pAdjacentPlot->isVisibleEnemyUnit(this) && !pAdjacentPlot->isCity())
 				{
-					if (generatePath(pAdjacentPlot, 0, true))
+					// Performance: fleeing is a single step to an adjacent plot, which doesn't need a path search
+					if (canMoveInto(*pAdjacentPlot))
 					{
 						iValue = 0;
 						iRand = 100;
@@ -1410,7 +1451,7 @@ void CvUnitAI::AI_FleeingMove()
 						if (iValue > iBestValue)
 						{
 							iBestValue = iValue;
-							pBestPlot = getPathEndTurnPlot();
+							pBestPlot = pAdjacentPlot;
 						}
 					}
 				}
@@ -1584,11 +1625,9 @@ void CvUnitAI::AI_settlerMove()
 
 	if (isNative())
 	{
+		// Performance: native settlers only look within 10 plots. The former search of the whole map
+		// took a considerable part of the turn time with many native settlers.
 		if (AI_foundRange(10))
-		{
-			return;
-		}
-		if (AI_found())
 		{
 			return;
 		}
@@ -1597,6 +1636,8 @@ void CvUnitAI::AI_settlerMove()
 			AI_setUnitAIType(UNITAI_DEFENSIVE);
 			return;
 		}
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
 	}
 
 	if (isCargo())
@@ -7124,18 +7165,42 @@ bool CvUnitAI::AI_sailTo(const SailToHelper& sth, bool bMove, bool bIgnoreDanger
 	int iBestDelayedTotal = INT_MAX;
 	int iBestDelayedRemainingMoves = INT_MAX;
 
-	// Loop over candidate Europe plots.
+	// Performance: Collect the candidate Europe plots first and sort them by distance.
+	// Path searches are expensive and the nearest plots are almost always the best choice,
+	// so only the nearest ones get a path search.
+	std::vector<AIPathCandidate> aEuropeCandidates;
 	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
 	{
-		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
-		if (!pLoopPlot->isRevealed(getTeam(), false))
+		CvPlot* const pCandidatePlot = GC.getMap().plotByIndexINLINE(iI);
+		if (!pCandidatePlot->isRevealed(getTeam(), false))
 			continue;
-		if (!pLoopPlot->isEurope())
+		if (!pCandidatePlot->isEurope())
 			continue;
-		if (pLoopPlot->isVisibleEnemyDefender(this))
+		if (pCandidatePlot->isVisibleEnemyDefender(this))
 			continue;
-		if (!canCrossOcean(pLoopPlot, sth.unitTravelState))
+		if (!canCrossOcean(pCandidatePlot, sth.unitTravelState))
 			continue;
+
+		AIPathCandidate kCandidate;
+		kCandidate.iValue = plotDistance(getX_INLINE(), getY_INLINE(), pCandidatePlot->getX_INLINE(), pCandidatePlot->getY_INLINE());
+		kCandidate.iBase = 0;
+		kCandidate.pPlot = pCandidatePlot;
+		aEuropeCandidates.push_back(kCandidate);
+	}
+	std::sort(aEuropeCandidates.begin(), aEuropeCandidates.end(), AIPathCandidateCloser);
+
+	// Search the nearest plots. Keep going (up to a hard limit) only while no route has been found.
+	const int iNearestPlotsToSearch = 8;
+	const int iMaxPlotsToSearch = 32;
+
+	for (int iCandidate = 0; iCandidate < (int)aEuropeCandidates.size(); iCandidate++)
+	{
+		if (iCandidate >= iMaxPlotsToSearch)
+			break;
+		if (iCandidate >= iNearestPlotsToSearch && (pBestImmediatePlot != NULL || pBestDelayedPlot != NULL))
+			break;
+
+		CvPlot* const pLoopPlot = aEuropeCandidates[iCandidate].pPlot;
 
 		// Compute off-map travel time using our new helper.
 		int iTravelTime = GET_PLAYER(getOwnerINLINE()).calculateEuropeTravelTime(pLoopPlot->getEurope());
@@ -7273,6 +7338,7 @@ CvPlot* CvUnitAI::findNearbyOceanPlot(const CvPlot& kPlot) const
 	CvPlot* pBestPlot = NULL;
 	int iBestValue = 0;
 
+	std::vector<AIPathCandidate> aCandidates;
 	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
@@ -7303,19 +7369,42 @@ CvPlot* CvUnitAI::findNearbyOceanPlot(const CvPlot& kPlot) const
 			{
 				if (canCrossOcean(pLoopPlot, UNIT_TRAVEL_STATE_FROM_EUROPE))
 				{
-					int iPathTurns;
-					if (getGroup()->generatePath(&kPlot, pLoopPlot, 0, true, &iPathTurns))
-					{
-						int iValue = 10000;
-						iValue /= 100 + getPathCost();
-
-						if ((kPlot.getY_INLINE() == pLoopPlot->getY_INLINE()) ? (iValue >= iBestValue) : (iValue > iBestValue))
-						{
-							iBestValue = iValue;
-							pBestPlot = pLoopPlot;
-						}
-					}
+					AIPathCandidate kCandidate;
+					kCandidate.iValue = plotDistance(kPlot.getX_INLINE(), kPlot.getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+					kCandidate.iBase = 0;
+					kCandidate.pPlot = pLoopPlot;
+					aCandidates.push_back(kCandidate);
 				}
+			}
+		}
+	}
+
+	// Performance: the best plot is the one with the cheapest path, which is almost always one of the nearest.
+	// Searching a path to every ocean plot of the map for every city was extremely expensive.
+	// Only the nearest plots get a path search. Keep going (up to a hard limit) only while no plot has been found.
+	std::sort(aCandidates.begin(), aCandidates.end(), AIPathCandidateCloser);
+	const int iNearestPlotsToSearch = 8;
+	const int iMaxPlotsToSearch = 32;
+
+	for (int iCandidate = 0; iCandidate < (int)aCandidates.size(); iCandidate++)
+	{
+		if (iCandidate >= iMaxPlotsToSearch)
+			break;
+		if (iCandidate >= iNearestPlotsToSearch && pBestPlot != NULL)
+			break;
+
+		CvPlot* const pLoopPlot = aCandidates[iCandidate].pPlot;
+
+		int iPathTurns;
+		if (getGroup()->generatePath(&kPlot, pLoopPlot, 0, true, &iPathTurns))
+		{
+			int iValue = 10000;
+			iValue /= 100 + getPathCost();
+
+			if ((kPlot.getY_INLINE() == pLoopPlot->getY_INLINE()) ? (iValue >= iBestValue) : (iValue > iBestValue))
+			{
+				iBestValue = iValue;
+				pBestPlot = pLoopPlot;
 			}
 		}
 	}
@@ -9311,12 +9400,19 @@ bool CvUnitAI::AI_moveTowardsDanger(int iMaxPath)
 
 		if ((pLoopPlot != NULL) && AI_plotValid(pLoopPlot) && !atPlot(pLoopPlot))
 		{
+			// Performance: Check for danger first. A plot without any danger can never be a target
+			// (the path turns are never negative), so the expensive path search is only needed for the rest.
+			iDanger = kOwner.AI_getWaterDanger(pLoopPlot, iRange, true, false, true);
+			iIncoming = kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_PIRACY, getGroup());
+
+			if (!(iDanger > iIncoming) && !(iIncoming == 0 && pLoopPlot->getDangerMap(getOwnerINLINE()) > 0))
+			{
+				continue;
+			}
+
 			int iPathTurns;
 			if (generatePath(pLoopPlot, MOVE_THROUGH_ENEMY, true, &iPathTurns, iMaxPath))
 			{
-				iDanger = kOwner.AI_getWaterDanger(pLoopPlot, iRange, true, false, true);
-				iIncoming = kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_PIRACY, getGroup());
-
 				if ((iDanger > iIncoming) || ((iPathTurns < pLoopPlot->getDangerMap(getOwnerINLINE())) && (iIncoming == 0)))
 				{
 					if (iPathTurns < iBestPathTurns)
@@ -12157,19 +12253,17 @@ bool CvUnitAI::AI_explore(bool bFavorOpenBorders)
 {
 	PROFILE_FUNC();
 
-	CvPlot* pBestPlot;
-	CvPlot* pBestExplorePlot;
+	CvPlot* pBestPlot = NULL;
+	CvPlot* pBestExplorePlot = NULL;
 	int iPathTurns;
-	int iBestValue;
-	int iI;
+	int iBestValue = 0;
 
-	iBestValue = 0;
-	pBestPlot = NULL;
-	pBestExplorePlot = NULL;
+	// Performance: rating all plots is cheap, a path search is not.
+	// Collect the candidates first and only path find the best rated ones.
+	std::vector<AIPathCandidate> aCandidates;
+	const int iBaseMoves = std::max(1, baseMoves());
 
-	bool bNoContact = (GC.getGameINLINE().countCivTeamsAlive() > GET_TEAM(getTeam()).getHasMetCivCount());
-
-	for (iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
+	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
 	{
 		PROFILE("AI_explore 1");
 
@@ -12185,31 +12279,64 @@ bool CvUnitAI::AI_explore(bool bFavorOpenBorders)
 				{
 					if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_EXPLORE, getGroup(), 3) == 0)
 					{
-						if (!atPlot(pLoopPlot) && generatePath(pLoopPlot, MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns))
+						if (!atPlot(pLoopPlot))
 						{
-							iValue += GC.getGameINLINE().getSorenRandNum(250 * abs(xDistance(getX_INLINE(), pLoopPlot->getX_INLINE())) + abs(yDistance(getY_INLINE(), pLoopPlot->getY_INLINE())), "AI explore");
-
+							// rough estimate of the final value. Path turns are approximated by the distance
+							int iRough = iValue;
 							if (pLoopPlot->isAdjacentToLand())
 							{
-								iValue += 10000;
+								iRough += 10000;
 							}
-
 							if (bFavorOpenBorders && pLoopPlot->isOwned())
 							{
-								iValue *= 2;
+								iRough *= 2;
 							}
+							iRough /= 3 + std::max(1, stepDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) / iBaseMoves);
 
-							iValue /= 3 + std::max(1, iPathTurns);
-
-							if (iValue > iBestValue)
-							{
-								iBestValue = iValue;
-								pBestPlot = pLoopPlot->isRevealedGoody(getTeam()) ? getPathEndTurnPlot() : pLoopPlot;
-								pBestExplorePlot = pLoopPlot;
-							}
+							AIPathCandidate kCandidate;
+							kCandidate.iValue = iRough;
+							kCandidate.iBase = iValue;
+							kCandidate.pPlot = pLoopPlot;
+							aCandidates.push_back(kCandidate);
 						}
 					}
 				}
+			}
+		}
+	}
+
+	const int iNumSearches = std::min((int)aCandidates.size(), AI_MAX_EXPLORE_PATH_SEARCHES);
+	if (iNumSearches > 0)
+	{
+		std::partial_sort(aCandidates.begin(), aCandidates.begin() + iNumSearches, aCandidates.end(), AIPathCandidateBetter);
+	}
+
+	for (int iI = 0; iI < iNumSearches; iI++)
+	{
+		CvPlot* pLoopPlot = aCandidates[iI].pPlot;
+		int iValue = aCandidates[iI].iBase;
+
+		if (generatePath(pLoopPlot, MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns))
+		{
+			iValue += GC.getGameINLINE().getSorenRandNum(250 * abs(xDistance(getX_INLINE(), pLoopPlot->getX_INLINE())) + abs(yDistance(getY_INLINE(), pLoopPlot->getY_INLINE())), "AI explore");
+
+			if (pLoopPlot->isAdjacentToLand())
+			{
+				iValue += 10000;
+			}
+
+			if (bFavorOpenBorders && pLoopPlot->isOwned())
+			{
+				iValue *= 2;
+			}
+
+			iValue /= 3 + std::max(1, iPathTurns);
+
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				pBestPlot = pLoopPlot->isRevealedGoody(getTeam()) ? getPathEndTurnPlot() : pLoopPlot;
+				pBestExplorePlot = pLoopPlot;
 			}
 		}
 	}
@@ -12245,6 +12372,8 @@ bool CvUnitAI::AI_exploreRange(int iRange)
 	CvPlot* pBestPlot = NULL;
 	CvPlot* pBestExplorePlot = NULL;
 
+	// Performance: only the best rated targets get a path search
+	std::vector<AIPathCandidate> aCandidates;
 
 	for (int iX = -iRange; iX <= iRange; iX++)
 	{
@@ -12264,26 +12393,44 @@ bool CvUnitAI::AI_exploreRange(int iRange)
 
 						if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_EXPLORE, getGroup(), 3) == 0)
 						{
-							if (generatePath(pLoopPlot, MOVE_BUST_FOG, true))
-							{
-								if (getPathFinder().GetFinalMoves() == 0)
-								{
-									iValue += pLoopPlot->seeFromLevel() * 500;
-								}
-								iValue *= 100;
-								iValue += GC.getGame().getSorenRandNum(100, "AI Explore Range");
-								iValue /= 100 + getPathCost();
-
-								if (iValue > iBestValue)
-								{
-									iBestValue = iValue;
-									pBestExplorePlot = pLoopPlot;
-									pBestPlot = getPathEndTurnPlot();
-								}
-							}
+							AIPathCandidate kCandidate;
+							kCandidate.iValue = (iValue * 100) / (100 + 100 * std::max(1, stepDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE())));
+							kCandidate.iBase = iValue;
+							kCandidate.pPlot = pLoopPlot;
+							aCandidates.push_back(kCandidate);
 						}
 					}
 				}
+			}
+		}
+	}
+
+	const int iNumSearches = std::min((int)aCandidates.size(), AI_MAX_EXPLORE_PATH_SEARCHES);
+	if (iNumSearches > 0)
+	{
+		std::partial_sort(aCandidates.begin(), aCandidates.begin() + iNumSearches, aCandidates.end(), AIPathCandidateBetter);
+	}
+
+	for (int iI = 0; iI < iNumSearches; iI++)
+	{
+		CvPlot* pLoopPlot = aCandidates[iI].pPlot;
+		int iValue = aCandidates[iI].iBase;
+
+		if (generatePath(pLoopPlot, MOVE_BUST_FOG, true))
+		{
+			if (getPathFinder().GetFinalMoves() == 0)
+			{
+				iValue += pLoopPlot->seeFromLevel() * 500;
+			}
+			iValue *= 100;
+			iValue += GC.getGame().getSorenRandNum(100, "AI Explore Range");
+			iValue /= 100 + getPathCost();
+
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				pBestExplorePlot = pLoopPlot;
+				pBestPlot = getPathEndTurnPlot();
 			}
 		}
 	}
@@ -12605,6 +12752,10 @@ bool CvUnitAI::AI_exploreDeep()
 	CvPlot* pBestPlot = NULL;
 	CvPlot* pBestExplorePlot = NULL;
 
+	// Performance: only the best rated targets get a path search
+	std::vector<AIPathCandidate> aCandidates;
+	const int iBaseMoves = std::max(1, baseMoves());
+
 	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
@@ -12666,30 +12817,53 @@ bool CvUnitAI::AI_exploreDeep()
 				{
 					if (!(pLoopPlot->isVisibleEnemyUnit(this)))
 					{
-						if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_EXPLORE, getGroup(), 3) == 0)
-						{
-							int iPathTurns;
-							if (generatePath(pLoopPlot, MOVE_BUST_FOG, true, &iPathTurns))
-							{
-								iValue += GC.getGameINLINE().getSorenRandNum(10, "AI find land deep search");
+						// Performance: rate the plot cheaply here, path searches are done for the best rated ones only
+						int iRough = iValue * 5;
+						iRough /= 5 + pLoopPlot->getDistanceToOcean();
+						iRough /= 3 + std::max(1, stepDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) / iBaseMoves);
 
-								iValue *= 5;
-								iValue /= 5 + pLoopPlot->getDistanceToOcean();
-
-								iValue *= 10000;
-
-								iValue /= 100 + getPathCost();
-
-								if (iValue > iBestValue)
-								{
-									iBestValue = iValue;
-									pBestPlot = getPathEndTurnPlot();
-									pBestExplorePlot = pLoopPlot;
-								}
-							}
-						}
+						AIPathCandidate kCandidate;
+						kCandidate.iValue = iRough;
+						kCandidate.iBase = iValue;
+						kCandidate.pPlot = pLoopPlot;
+						aCandidates.push_back(kCandidate);
 					}
 				}
+			}
+		}
+	}
+
+	std::sort(aCandidates.begin(), aCandidates.end(), AIPathCandidateBetter);
+
+	int iNumSearches = 0;
+	for (int iCandidate = 0; iCandidate < (int)aCandidates.size() && iNumSearches < AI_MAX_EXPLORE_PATH_SEARCHES; iCandidate++)
+	{
+		CvPlot* const pLoopPlot = aCandidates[iCandidate].pPlot;
+		int iValue = aCandidates[iCandidate].iBase;
+
+		if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_EXPLORE, getGroup(), 3) != 0)
+		{
+			continue;
+		}
+
+		iNumSearches++;
+		int iPathTurns;
+		if (generatePath(pLoopPlot, MOVE_BUST_FOG, true, &iPathTurns))
+		{
+			iValue += GC.getGameINLINE().getSorenRandNum(10, "AI find land deep search");
+
+			iValue *= 5;
+			iValue /= 5 + pLoopPlot->getDistanceToOcean();
+
+			iValue *= 10000;
+
+			iValue /= 100 + getPathCost();
+
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				pBestPlot = getPathEndTurnPlot();
+				pBestExplorePlot = pLoopPlot;
 			}
 		}
 	}
@@ -12903,6 +13077,10 @@ bool CvUnitAI::AI_moveToWhale()
 	CvPlot* pBestPlot = NULL;
 	CvPlot* pBestExplorePlot = NULL;
 
+	// Performance: only the best rated targets get a path search
+	std::vector<AIPathCandidate> aCandidates;
+	const int iBaseMoves = std::max(1, baseMoves());
+
 	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
@@ -12910,29 +13088,49 @@ bool CvUnitAI::AI_moveToWhale()
 		{
 			if (pLoopPlot->isRevealed(getTeam(), false) && !pLoopPlot->isVisibleEnemyDefender(this))
 			{
-				int iPlotValue = 0;
 				if (canGatherResource(pLoopPlot))
 				{
-					if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_WORKER_SEA, getGroup(), 3) == 0)
-					{
-						int iPathTurns;
-						if (generatePath(pLoopPlot, MOVE_BUST_FOG, true, &iPathTurns))
-						{
-							iPlotValue += 100;
-							iPlotValue += GC.getGameINLINE().getSorenRandNum(10, "AI find seafood deep search");
-							iPlotValue *= 100;
-							iPlotValue /= 100 + GET_PLAYER(getOwnerINLINE()).AI_cityDistance(pLoopPlot);
-							iPlotValue *= 10000;
-							iPlotValue /= 100 + getPathCost();
-							if (iPlotValue > iBestValue)
-							{
-								iBestValue = iPlotValue;
-								pBestPlot = getPathEndTurnPlot();
-								pBestExplorePlot = pLoopPlot;
-							}
-						}
-					}
+					int iRough = 100 * 100;
+					iRough /= 100 + GET_PLAYER(getOwnerINLINE()).AI_cityDistance(pLoopPlot);
+					iRough /= 3 + std::max(1, stepDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) / iBaseMoves);
+
+					AIPathCandidate kCandidate;
+					kCandidate.iValue = iRough;
+					kCandidate.iBase = 0;
+					kCandidate.pPlot = pLoopPlot;
+					aCandidates.push_back(kCandidate);
 				}
+			}
+		}
+	}
+
+	std::sort(aCandidates.begin(), aCandidates.end(), AIPathCandidateBetter);
+
+	int iNumSearches = 0;
+	for (int iCandidate = 0; iCandidate < (int)aCandidates.size() && iNumSearches < AI_MAX_EXPLORE_PATH_SEARCHES; iCandidate++)
+	{
+		CvPlot* const pLoopPlot = aCandidates[iCandidate].pPlot;
+
+		if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_WORKER_SEA, getGroup(), 3) != 0)
+		{
+			continue;
+		}
+
+		iNumSearches++;
+		int iPathTurns;
+		if (generatePath(pLoopPlot, MOVE_BUST_FOG, true, &iPathTurns))
+		{
+			int iPlotValue = 100;
+			iPlotValue += GC.getGameINLINE().getSorenRandNum(10, "AI find seafood deep search");
+			iPlotValue *= 100;
+			iPlotValue /= 100 + GET_PLAYER(getOwnerINLINE()).AI_cityDistance(pLoopPlot);
+			iPlotValue *= 10000;
+			iPlotValue /= 100 + getPathCost();
+			if (iPlotValue > iBestValue)
+			{
+				iBestValue = iPlotValue;
+				pBestPlot = getPathEndTurnPlot();
+				pBestExplorePlot = pLoopPlot;
 			}
 		}
 	}
@@ -12951,6 +13149,10 @@ bool CvUnitAI::AI_exploreRessource()
 	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;
 	CvPlot* pBestExplorePlot = NULL;
+
+	// Performance: only the best rated targets get a path search
+	std::vector<AIPathCandidate> aCandidates;
+	const int iBaseMoves = std::max(1, baseMoves());
 
 	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
 	{
@@ -12995,29 +13197,52 @@ bool CvUnitAI::AI_exploreRessource()
 				{
 					if (!(pLoopPlot->isVisibleEnemyUnit(this)))
 					{
-						if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_WORKER_SEA, getGroup(), 3) == 0)
-						{
-							int iPathTurns;
-							if (generatePath(pLoopPlot, MOVE_BUST_FOG, true, &iPathTurns))
-							{
-								iPlotValue += GC.getGameINLINE().getSorenRandNum(10, "AI find seafood deep search");
+						// Performance: rate the plot cheaply here, path searches are done for the best rated ones only
+						int iRough = iPlotValue * 100;
+						iRough /= 100 + GET_PLAYER(getOwnerINLINE()).AI_cityDistance(pLoopPlot);
+						iRough /= 3 + std::max(1, stepDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) / iBaseMoves);
 
-								iPlotValue *= 100;
-								iPlotValue /= 100 + GET_PLAYER(getOwnerINLINE()).AI_cityDistance(pLoopPlot);
-
-								iPlotValue *= 10000;
-								iPlotValue /= 100 + getPathCost();
-
-								if (iPlotValue > iBestValue)
-								{
-									iBestValue = iPlotValue;
-									pBestPlot = getPathEndTurnPlot();
-									pBestExplorePlot = pLoopPlot;
-								}
-							}
-						}
+						AIPathCandidate kCandidate;
+						kCandidate.iValue = iRough;
+						kCandidate.iBase = iPlotValue;
+						kCandidate.pPlot = pLoopPlot;
+						aCandidates.push_back(kCandidate);
 					}
 				}
+			}
+		}
+	}
+
+	std::sort(aCandidates.begin(), aCandidates.end(), AIPathCandidateBetter);
+
+	int iNumSearches = 0;
+	for (int iCandidate = 0; iCandidate < (int)aCandidates.size() && iNumSearches < AI_MAX_EXPLORE_PATH_SEARCHES; iCandidate++)
+	{
+		CvPlot* const pLoopPlot = aCandidates[iCandidate].pPlot;
+		int iPlotValue = aCandidates[iCandidate].iBase;
+
+		if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_WORKER_SEA, getGroup(), 3) != 0)
+		{
+			continue;
+		}
+
+		iNumSearches++;
+		int iPathTurns;
+		if (generatePath(pLoopPlot, MOVE_BUST_FOG, true, &iPathTurns))
+		{
+			iPlotValue += GC.getGameINLINE().getSorenRandNum(10, "AI find seafood deep search");
+
+			iPlotValue *= 100;
+			iPlotValue /= 100 + GET_PLAYER(getOwnerINLINE()).AI_cityDistance(pLoopPlot);
+
+			iPlotValue *= 10000;
+			iPlotValue /= 100 + getPathCost();
+
+			if (iPlotValue > iBestValue)
+			{
+				iBestValue = iPlotValue;
+				pBestPlot = getPathEndTurnPlot();
+				pBestExplorePlot = pLoopPlot;
 			}
 		}
 	}
@@ -17914,7 +18139,8 @@ bool CvUnitAI::AI_treasureRetreat(int iMaxPathTurns)
 		return false;
 	}
 
-	for (int iPass = 0; iPass < 2; iPass++)
+	// Performance: Long path searches to every colony are expensive. Only the nearest colonies are considered.
+	std::vector<AIPathCandidate> aColonies;
 	{
 		int iLoop;
 		for (CvCity* pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
@@ -17926,21 +18152,37 @@ bool CvUnitAI::AI_treasureRetreat(int iMaxPathTurns)
 				{
 					if (pLoopPlot->getNearestEurope() == eMainEurope)
 					{
-						int iPathTurns = 0;
-						if (atPlot(pLoopPlot) || generatePath(pLoopPlot, ((iPass > 0) ? MOVE_IGNORE_DANGER : 0), true, &iPathTurns, iMaxPathTurns))
-						{
-							int iValue = 3 + pLoopPlot->getDistanceToOcean();
-
-							iValue *= 3 + iPathTurns;
-
-							if (iValue < iBestValue)
-							{
-								iBestValue = iValue;
-								pBestPlot = atPlot(pLoopPlot) ? pLoopPlot : getPathEndTurnPlot();
-								pBestMissionPlot = pLoopPlot;
-							}
-						}
+						AIPathCandidate kCandidate;
+						kCandidate.iValue = plotDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+						kCandidate.iBase = 0;
+						kCandidate.pPlot = pLoopPlot;
+						aColonies.push_back(kCandidate);
 					}
+				}
+			}
+		}
+	}
+	std::sort(aColonies.begin(), aColonies.end(), AIPathCandidateCloser);
+	const int iNumColoniesToSearch = std::min((int)aColonies.size(), 3);
+
+	for (int iPass = 0; iPass < 2; iPass++)
+	{
+		for (int iColony = 0; iColony < iNumColoniesToSearch; iColony++)
+		{
+			CvPlot* pLoopPlot = aColonies[iColony].pPlot;
+
+			int iPathTurns = 0;
+			if (atPlot(pLoopPlot) || generatePath(pLoopPlot, ((iPass > 0) ? MOVE_IGNORE_DANGER : 0), true, &iPathTurns, iMaxPathTurns))
+			{
+				int iValue = 3 + pLoopPlot->getDistanceToOcean();
+
+				iValue *= 3 + iPathTurns;
+
+				if (iValue < iBestValue)
+				{
+					iBestValue = iValue;
+					pBestPlot = atPlot(pLoopPlot) ? pLoopPlot : getPathEndTurnPlot();
+					pBestMissionPlot = pLoopPlot;
 				}
 			}
 		}
