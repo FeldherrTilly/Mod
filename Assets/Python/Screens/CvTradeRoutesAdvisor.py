@@ -53,6 +53,8 @@ class CvTradeRoutesAdvisor:
 		
 		# Selection enums
 		self.NO_YIELD = -1
+		self.ALL_YIELDS = -2 # WTP: one export/import setting for every cargo yield
+		self.ALL_YIELDS_BOX = 999 # widget name suffix of its box in the yield table
 		self.EUROPE_CITY = -1
 		self.NO_CITY = -2
 		
@@ -77,6 +79,12 @@ class CvTradeRoutesAdvisor:
 		self.SAVE_GROUP_ID = 12		
 		self.DELETE_GROUP_ID = 13
 		#R&R mod, vetiarvind, trade groups - END
+
+		# WTP: reserved routes (served only by the transports assigned to them, not by Automate Transport)
+		self.RESERVE_ID = 14
+		# WTP: private routes (made here, they leave the export and import settings of the colonies alone)
+		self.PRIVATE_ID = 16
+		self.DELETE_PRIVATE_ID = 17
 		
 		
 	def interfaceScreen (self):
@@ -115,6 +123,11 @@ class CvTradeRoutesAdvisor:
 		
 		# Trade routes
 		self.ExistingRoutes, self.AssignedRoutes = [], {}
+		self.ReservedRoutes = {}
+		# WTP: (source id, destination id, yield) of the routes the last "add route" asked for; they get the tick of the builder row
+		self.PendingRoutes = []
+		self.bPendingAssigned = False
+		self.bPendingPrivate = False
 		self.ExistingRoutes = list(self.player.getViableTradeRoutes(self.pTransport))
 		for pRoute in self.ExistingRoutes:
  			rid = pRoute.getID()
@@ -195,9 +208,9 @@ class CvTradeRoutesAdvisor:
 		#R&R mod, vetiarvind, trade groups - end
 		
 		self.BUTTON_SIZE = 24
-		self.BUTTON_X = self.PANEL_WIDTH - self.STANDARD_MARGIN - self.BUTTON_SIZE * 3 - 4
+		self.BUTTON_X = self.PANEL_WIDTH - self.STANDARD_MARGIN - self.BUTTON_SIZE * 5 - 8
 		self.BUTTON_Y = self.STANDARD_MARGIN / 4
-		self.BUTTON_WIDTH = self.BUTTON_SIZE * 3 + 8
+		self.BUTTON_WIDTH = self.BUTTON_SIZE * 5 + 12
 		self.BUTTON_HEIGHT = self.BUTTON_SIZE + 2
 		
 		# Set the background and exit button, and show the screen
@@ -292,7 +305,7 @@ class CvTradeRoutesAdvisor:
 			self.CURRENT_TABLE = self.LIMITED_ROUTES
 			self.CurrentList = []
 			for pRoute in self.ExistingRoutes:
-				if self.iYields == self.NO_YIELD or self.iYields == pRoute.getYield():
+				if self.iYields in [self.NO_YIELD, self.ALL_YIELDS] or self.iYields == pRoute.getYield():
 					if self.iExport == self.NO_CITY or self.iExport == pRoute.getSourceCity().iID:
 						if self.iImport == self.NO_CITY or self.iImport == pRoute.getDestinationCity().iID:
 							self.CurrentList.append(pRoute)
@@ -348,6 +361,11 @@ class CvTradeRoutesAdvisor:
 		szColor = u"<color=255,255,255>"
 		if pRoute.getDestinationCity().iID == self.EUROPE_CITY:
 			szColor = u"<color=170,170,170>"
+		# WTP: reserved routes in gold, private ones in blue
+		if pRoute.isPrivate():
+			szColor = u"<color=120,200,255>"
+		elif self.isReserved(pRoute):
+			szColor = u"<color=255,200,50>"
 		
 		return szColor
 
@@ -357,11 +375,10 @@ class CvTradeRoutesAdvisor:
 		for pRoute in self.ExistingRoutes:
 			rid = pRoute.getID()
 			if rid not in self.AssignedRoutes:
+				# WTP: the routes may come in over several updates (all yields): matched against the routes asked for
 				assigned = False
-				if self.iYields == pRoute.getYield():
-					if self.iExport == pRoute.getSourceCity().iID:
-						if self.iImport == pRoute.getDestinationCity().iID:
-							assigned = self.bAssigned
+				if (pRoute.getSourceCity().iID, pRoute.getDestinationCity().iID, pRoute.getYield()) in self.PendingRoutes and pRoute.isPrivate() == self.bPendingPrivate:
+					assigned = self.bPendingAssigned
 				self.AssignedRoutes[rid] = assigned
 		
 		self.bAssigned = False
@@ -378,7 +395,9 @@ class CvTradeRoutesAdvisor:
 		
 		szAssigned = u""
 		szYields = localText.getText("TXT_KEY_TRADE_ROUTES_MISSING_YIELD", ())
-		if self.iYields != self.NO_YIELD:
+		if self.iYields == self.ALL_YIELDS:
+			szYields = localText.getText("TXT_KEY_TRADE_ROUTES_ALL_YIELDS", ())
+		elif self.iYields != self.NO_YIELD:
 			szYields = u"<font=3>%c</font>" % gc.getYieldInfo(self.iYields).getChar()
 		szExport = localText.getText("TXT_KEY_TRADE_ROUTES_MISSING_CITY", ())
 		if self.iExport != self.NO_CITY:
@@ -428,6 +447,7 @@ class CvTradeRoutesAdvisor:
 			szLabel = u"%c" % CyGame().getSymbolID(FontSymbols.CHECKBOX_SELECTED_CHAR)
 		
 		self.getScreen().setTableText(self.TableNames[self.CURRENT_TABLE], 1, iRow, szLabel, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
+		self.updateButtons()
 		
 		
 	def getRouteByTableRow(self, iRow):
@@ -459,8 +479,21 @@ class CvTradeRoutesAdvisor:
 			if (iYield % iRows) + 1 == iRows:
 				YIELD_X = 0
 				YIELD_Y += BOX_SIZE
-		
+
+		# WTP: all yields at once, in the next box
+		szAll = str(self.ALL_YIELDS_BOX)
+		screen.addDDSGFCAt(szTable + "Highlight" + szAll, szTable, "Art/Interface/Screens/TradeRoutes/BoxSelected.dds", YIELD_X, YIELD_Y, BOX_SIZE, BOX_SIZE, WidgetTypes.WIDGET_GENERAL, -1, -1, False)
+		screen.hide(szTable + "Highlight" + szAll)
+		screen.addDDSGFCAt(szTable + "Box" + szAll, szTable, ArtFileMgr.getInterfaceArtInfo("INTERFACE_EUROPE_BOX_PRICE").getPath(), YIELD_X, YIELD_Y, BOX_SIZE, BOX_SIZE, WidgetTypes.WIDGET_GENERAL, -1, -1, False)
+		screen.setImageButtonAt(szTable + "Selector" + szAll, szTable + "Box" + szAll, self.getYieldIcon(self.ALL_YIELDS), BOX_SIZE / 6, BOX_SIZE / 6, BOX_SIZE * 2 / 3, BOX_SIZE * 2 / 3, WidgetTypes.WIDGET_GENERAL, self.YIELD_LIST_ID, self.ALL_YIELDS)
+
 		self.updateButtons()
+
+	# WTP: the icon of a yield, or of all yields
+	def getYieldIcon(self, iYield):
+		if iYield == self.ALL_YIELDS:
+			return "Art/Interface/Screens/TradeRoutes/AllYields.dds"
+		return gc.getYieldInfo(iYield).getIcon()
 		
 	
 	def cityTable(self, bImport):
@@ -474,7 +507,7 @@ class CvTradeRoutesAdvisor:
 			
 		szTable = self.TableNames[self.CURRENT_TABLE]
 		szYieldHeader = u""
-		if self.iYields != self.NO_YIELD:
+		if self.iYields >= 0:
 			szYieldHeader = u"<font=3>%c</font>" % gc.getYieldInfo(self.iYields).getChar()
 			
 		screen.modifyLabel(self.szTitle, u"<font=3b>" + self.TableLabel[self.CURRENT_TABLE] + u"</font>", CvUtil.FONT_LEFT_JUSTIFY)
@@ -637,7 +670,7 @@ class CvTradeRoutesAdvisor:
 	def getRate(self, city):
 		szLabel = u"-"
 	
-		if self.iYields != self.NO_YIELD:
+		if self.iYields >= 0:
 			iRate = city.getYieldRate(self.iYields)
 			if iRate > 0:
 				szLabel = u"<color=63,255,63>+" + str(iRate) + u"</color>"
@@ -650,7 +683,7 @@ class CvTradeRoutesAdvisor:
 	def getExport(self, city):
 		szLabel = u"-"
 		
-		if self.iYields != self.NO_YIELD:
+		if self.iYields >= 0:
 			bExport = city.isExport(self.iYields)
 			bImport = city.isImport(self.iYields)
 			
@@ -695,7 +728,7 @@ class CvTradeRoutesAdvisor:
 		if self.iYields != self.NO_YIELD:
 			screen.hide(self.szPreviewYields + "Title")
 			screen.show(self.szPreviewYields + "Cancel")
-			screen.addDDSGFC(self.szPreviewYields, gc.getYieldInfo(self.iYields).getIcon(), self.PREVIEW_X + self.PREVIEW_WIDTH / 4, self.PREVIEW_Y + self.PREVIEW_HEIGHT / 4, self.PREVIEW_WIDTH / 2, self.PREVIEW_WIDTH / 2, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.addDDSGFC(self.szPreviewYields, self.getYieldIcon(self.iYields), self.PREVIEW_X + self.PREVIEW_WIDTH / 4, self.PREVIEW_Y + self.PREVIEW_HEIGHT / 4, self.PREVIEW_WIDTH / 2, self.PREVIEW_WIDTH / 2, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			screen.moveToFront(self.szPreviewYields + "Border" + str(0))
 		else:
 			screen.hide(self.szPreviewYields)
@@ -765,18 +798,82 @@ class CvTradeRoutesAdvisor:
 		
 		if self.CURRENT_TABLE in [self.EXISTING_ROUTES, self.LIMITED_ROUTES]:
 			screen.appendMultiListButton(self.szButtonPanel, szSelectButton, 0, WidgetTypes.WIDGET_GENERAL, self.SELECT_ID, -1, False)
+			szReserveButton = "Art/Interface/Screens/TradeRoutes/ReservedOff.dds"
+			if self.areCheckedRoutesReserved():
+				szReserveButton = "Art/Interface/Screens/TradeRoutes/Reserved.dds"
+			screen.appendMultiListButton(self.szButtonPanel, szReserveButton, 0, WidgetTypes.WIDGET_GENERAL, self.RESERVE_ID, -1, False)
+			screen.appendMultiListButton(self.szButtonPanel, "Art/Interface/Screens/TradeRoutes/Cancel.dds", 0, WidgetTypes.WIDGET_GENERAL, self.DELETE_PRIVATE_ID, -1, False)
 		elif self.CURRENT_TABLE == self.BUILDER_TABLE:
 			screen.appendMultiListButton(self.szButtonPanel, szRoutesButton, 0, WidgetTypes.WIDGET_GENERAL, self.ROUTES_ID, -1, False)
+			szPrivateButton = "Art/Interface/Screens/TradeRoutes/AddPrivateRoute.dds"
+			screen.appendMultiListButton(self.szButtonPanel, szPrivateButton, 0, WidgetTypes.WIDGET_GENERAL, self.PRIVATE_ID, -1, False)
 			if self.isSelectionReady():
 				screen.enableMultiListPulse(self.szButtonPanel, True, 0, 0)
+				screen.enableMultiListPulse(self.szButtonPanel, True, 0, 1)
 			else:
 				screen.disableMultiListButton(self.szButtonPanel, 0, 0, szRoutesButton)
+				screen.disableMultiListButton(self.szButtonPanel, 0, 1, szPrivateButton)
 		else:
 			screen.appendMultiListButton(self.szButtonPanel, szReturnButton, 0, WidgetTypes.WIDGET_GENERAL, self.RETURN_ID, -1, False)
 		
 		screen.appendMultiListButton(self.szButtonPanel, szDangerButton, 0, WidgetTypes.WIDGET_GENERAL, self.DANGER_ID, -1, False)
 		screen.appendMultiListButton(self.szButtonPanel, szHelpButton, 0, WidgetTypes.WIDGET_PEDIA_DESCRIPTION, CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT, ConceptTypes.CONCEPT_TRADE_ROUTE, False)
 	
+	# WTP: reserved routes: the screen shows the new state at once, the game state follows with the network message
+	def isReserved(self, pRoute):
+		rid = pRoute.getID()
+		if rid in self.ReservedRoutes:
+			return self.ReservedRoutes[rid]
+		return pRoute.isReserved()
+
+	def getCheckedRoutes(self):
+		return [pRoute for pRoute in self.CurrentList if self.AssignedRoutes.get(pRoute.getID(), False) and not pRoute.isPrivate()]
+
+	# WTP: private routes: deletes the ticked ones
+	def deleteCheckedPrivateRoutes(self):
+		for pRoute in self.CurrentList:
+			rid = pRoute.getID()
+			if pRoute.isPrivate() and self.AssignedRoutes.get(rid, False):
+				del self.AssignedRoutes[rid]
+				CyMessageControl().sendModNetMessage(754, self.player.getID(), rid, 0, 0)
+
+	# WTP: private routes for the selection (all yields: one per cargo yield); this transport gets them
+	def addPrivateSelection(self):
+		if not self.isSelectionReady():
+			return
+		lYields = [self.iYields]
+		if self.iYields == self.ALL_YIELDS:
+			lYields = self.YieldList
+		self.PendingRoutes = [(self.iExport, self.iImport, iYield) for iYield in lYields]
+		self.bPendingAssigned = True
+		self.bPendingPrivate = True
+		for pRoute in self.ExistingRoutes:
+			if pRoute.isPrivate() and (pRoute.getSourceCity().iID, pRoute.getDestinationCity().iID, pRoute.getYield()) in self.PendingRoutes:
+				self.AssignedRoutes[pRoute.getID()] = True
+		for iYield in lYields:
+			CyMessageControl().sendModNetMessage(753, self.player.getID(), self.iExport, self.iImport, iYield)
+
+	def areCheckedRoutesReserved(self):
+		lRoutes = self.getCheckedRoutes()
+		if lRoutes == []:
+			return False
+		for pRoute in lRoutes:
+			if not self.isReserved(pRoute):
+				return False
+		return True
+
+	# reserves the ticked routes; if all of them are reserved already, it releases them
+	def toggleReserved(self):
+		lRoutes = self.getCheckedRoutes()
+		if lRoutes == []:
+			return
+		bReserve = not self.areCheckedRoutesReserved()
+		for pRoute in lRoutes:
+			rid = pRoute.getID()
+			self.ReservedRoutes[rid] = bReserve
+			CyMessageControl().sendModNetMessage(752, self.player.getID(), rid, int(bReserve), 0)
+		self.routesTable(True)
+
 	def toggleSelect(self):
 		self.bSelected = not self.bSelected
 		for pRoute in self.CurrentList:
@@ -796,9 +893,22 @@ class CvTradeRoutesAdvisor:
 		if not self.isSelectionReady():
 			return
 			
-		CyMessageControl().sendDoTask(self.iExport, TaskTypes.TASK_YIELD_EXPORT, self.iYields, True, False, False, False, False)
-		if self.iImport > self.EUROPE_CITY:
-			CyMessageControl().sendDoTask(self.iImport, TaskTypes.TASK_YIELD_IMPORT, self.iYields, True, False, False, False, False)
+		# WTP: all yields: the export and import of every cargo yield
+		lYields = [self.iYields]
+		if self.iYields == self.ALL_YIELDS:
+			lYields = self.YieldList
+		self.PendingRoutes = [(self.iExport, self.iImport, iYield) for iYield in lYields]
+		self.bPendingAssigned = self.bAssigned
+		self.bPendingPrivate = False
+		# routes that exist already get the tick at once (only new routes come with the update)
+		if self.bAssigned:
+			for pRoute in self.ExistingRoutes:
+				if not pRoute.isPrivate() and (pRoute.getSourceCity().iID, pRoute.getDestinationCity().iID, pRoute.getYield()) in self.PendingRoutes:
+					self.AssignedRoutes[pRoute.getID()] = True
+		for iYield in lYields:
+			CyMessageControl().sendDoTask(self.iExport, TaskTypes.TASK_YIELD_EXPORT, iYield, True, False, False, False, False)
+			if self.iImport > self.EUROPE_CITY:
+				CyMessageControl().sendDoTask(self.iImport, TaskTypes.TASK_YIELD_IMPORT, iYield, True, False, False, False, False)
 				
 	
 	def isSelectionEmpty(self):
@@ -822,6 +932,12 @@ class CvTradeRoutesAdvisor:
 					self.toggleSelect()
 				elif inputClass.getData1() == self.DANGER_ID:
 					self.toggleDanger()
+				elif inputClass.getData1() == self.PRIVATE_ID:
+					self.addPrivateSelection()
+				elif inputClass.getData1() == self.DELETE_PRIVATE_ID:
+					self.deleteCheckedPrivateRoutes()
+				elif inputClass.getData1() == self.RESERVE_ID:
+					self.toggleReserved()
 				elif inputClass.getData1() == self.ROUTES_ID:
 					self.addSelection()
 				elif inputClass.getData1() == self.RETURN_ID:
@@ -905,6 +1021,15 @@ class CvTradeRoutesAdvisor:
 					return localText.getText("TXT_KEY_TRADE_ROUTES_DESELECT_ROUTES_HELP", ())
 				else:
 					return localText.getText("TXT_KEY_TRADE_ROUTES_SELECT_ROUTES_HELP", ())
+			elif iData1 == self.PRIVATE_ID:
+				return localText.getText("TXT_KEY_TRADE_ROUTES_ADD_PRIVATE_HELP", ())
+			elif iData1 == self.DELETE_PRIVATE_ID:
+				return localText.getText("TXT_KEY_TRADE_ROUTES_DELETE_PRIVATE_HELP", ())
+			elif iData1 == self.RESERVE_ID:
+				if self.areCheckedRoutesReserved():
+					return localText.getText("TXT_KEY_TRADE_ROUTES_RELEASE_ROUTES_HELP", ())
+				else:
+					return localText.getText("TXT_KEY_TRADE_ROUTES_RESERVE_ROUTES_HELP", ())
 			elif iData1 == self.DANGER_ID:
 				if self.bDanger:
 					return localText.getText("TXT_KEY_TRADE_ROUTES_CANCEL_IGNORE_DANGER_HELP", ())
@@ -916,6 +1041,8 @@ class CvTradeRoutesAdvisor:
 				return localText.getText("TXT_KEY_TRADE_ROUTES_RETURN_HELP", ())
 			elif iData1 == self.YIELD_TABLE_ID:
 				return localText.getText("TXT_KEY_TRADE_ROUTES_YIELD_HELP", ())
+			elif iData1 == self.YIELD_LIST_ID and iData2 == self.ALL_YIELDS:
+				return localText.getText("TXT_KEY_TRADE_ROUTES_ALL_YIELDS_HELP", ())
 			elif iData1 == self.EXPORT_TABLE_ID:
 				return localText.getText("TXT_KEY_TRADE_ROUTES_EXPORT_HELP", ())
 			elif iData1 == self.IMPORT_TABLE_ID:
@@ -948,6 +1075,8 @@ class CvTradeRoutesAdvisor:
 		
 	def onClose(self) :
 		for iRoute, bAssigned in self.AssignedRoutes.iteritems():
+			if self.player.getTradeRoute(iRoute).getID() != iRoute: # WTP: the route was deleted meanwhile
+				continue
 			CyMessageControl().sendDoCommand(self.pTransport.getID(), CommandTypes.COMMAND_ASSIGN_TRADE_ROUTE, iRoute, bAssigned, False)
 		
 		return 0

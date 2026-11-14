@@ -803,6 +803,9 @@ public:
 	int getMaintainLevel(YieldTypes eYield) const;
 	// R&R mod, vetiarvind, max yield import limit - Start
 	void setImportsLimit(YieldTypes eYield, int iValue);
+	// WTP: trade route presets of the city screen
+	void applyTradeRoutePreset(int iPreset);
+	void setImportFeeder(YieldTypes eYield, int iMaintainLevel, int iImportLimit);
 	// WTP: the colony takes colonists of the job automation (switch of the city screen, off by default)
 	bool isAutoAssignTarget() const { return m_bAutoAssignTarget; }
 	void setAutoAssignTarget(bool bNewValue) { m_bAutoAssignTarget = bNewValue; }

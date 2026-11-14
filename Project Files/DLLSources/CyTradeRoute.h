@@ -23,6 +23,9 @@ public:
 	int getYield() const;
 	int getDistanceBetweenCities() const;
 	int getImportAmount() const;
+	bool isReserved() const;
+	void setReserved(bool bNewValue);
+	bool isPrivate() const;
 
 protected:
 	CvTradeRoute* m_pTradeRoute;

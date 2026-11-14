@@ -7,7 +7,9 @@
 
 CvTradeRoute::CvTradeRoute() :
 	m_iId(ANYWHERE_CITY_ID),
-	m_eYield(NO_YIELD)
+	m_eYield(NO_YIELD),
+	m_bReserved(false),
+	m_bPrivate(false)
 {
 
 }
@@ -22,6 +24,30 @@ void CvTradeRoute::init(const IDInfo& kSourceCity, const IDInfo& kDestinationCit
 	m_kSourceCity = kSourceCity;
 	m_kDestinationCity = kDestinationCity;
 	m_eYield = eYield;
+}
+
+bool CvTradeRoute::isReserved() const
+{
+	return m_bReserved;
+}
+
+void CvTradeRoute::setReserved(bool bNewValue)
+{
+	if (m_bReserved != bNewValue)
+	{
+		m_bReserved = bNewValue;
+		setActiveDirty();
+	}
+}
+
+bool CvTradeRoute::isPrivate() const
+{
+	return m_bPrivate;
+}
+
+void CvTradeRoute::setPrivate(bool bNewValue)
+{
+	m_bPrivate = bNewValue;
 }
 
 int CvTradeRoute::getID() const

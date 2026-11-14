@@ -936,6 +936,11 @@ bool CvSelectionGroupAI::AI_tradeRoutes()
 	const bool bIgnoreDanger = getIgnoreDangerStatus();
 	// R&R mod, vetiarvind, max yield import limit - end
 
+	// WTP: a human player's land transport with Automate Transport makes no trips of more than 10 turns (to the source
+	// colony, from there to the destination, to its next destination)
+	static const int LAND_TRANSPORT_MAX_TRIP_TURNS = 10;
+	const bool bMaxTrip = isHuman() && getAutomateType() == AUTOMATE_TRANSPORT_FULL && getDomainType() == DOMAIN_LAND;
+
 	// Erik: We need to determine if we're dealing with a coastal transport
 	bool bCoastalTransport = false;
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
@@ -972,6 +977,12 @@ bool CvSelectionGroupAI::AI_tradeRoutes()
 				continue;
 			}
 			// transport feeder - end - Nightinggale
+
+			// WTP: reserved and private routes are served only by the transports assigned to them
+			if (pRoute->isPrivate() || (isHuman() && pRoute->isReserved()))
+			{
+				continue;
+			}
 
 			// traderoute fix - start - Nightinggale
 			if (isHuman() && (pRoute->getDestinationCity().eOwner != getOwnerINLINE() || (pRoute->getDestinationCity() == kEurope)))
@@ -1109,7 +1120,8 @@ bool CvSelectionGroupAI::AI_tradeRoutes()
 
 				YieldTypes eYield = routes[i]->getYield();
 				int yieldsToUnload = aiYieldsLoaded[eYield];
-				if(pDestinationCity != NULL && pDestinationCity->getMaxImportAmount(eYield) > 0)
+				// WTP: a private route unloads without import limit
+				if(pDestinationCity != NULL && pDestinationCity->getMaxImportAmount(eYield) > 0 && !routes[i]->isPrivate())
 				{
 					int turnsToReach = 0;
 					generatePath(plot(), pDestinationCity->plot(), (bIgnoreDanger ? MOVE_IGNORE_DANGER : MOVE_NO_ENEMY_TERRITORY), true, &turnsToReach);
@@ -1148,8 +1160,21 @@ bool CvSelectionGroupAI::AI_tradeRoutes()
 			//int iAmount = pSourceCity->getYieldStored(eYield) - pSourceCity->getMaintainLevel(eYield);
 			int iAmount = pSourceCity->getYieldStored(eYield) - pSourceCity->getAutoMaintainThreshold(eYield);
 			// transport feeder - end - Nightinggale
+			// WTP: land transport with Automate Transport: no trip of more than 10 turns
+			if (bMaxTrip && pDestinationCity != NULL)
+			{
+				const int iFlags = (bIgnoreDanger ? MOVE_IGNORE_DANGER : MOVE_NO_ENEMY_TERRITORY);
+				int iToSource = 0;
+				int iToDestination = 0;
+				if ((pSourceCity != pPlotCity && (!generatePath(plot(), pSourceCity->plot(), iFlags, true, &iToSource) || iToSource > LAND_TRANSPORT_MAX_TRIP_TURNS))
+					|| !generatePath(pSourceCity->plot(), pDestinationCity->plot(), iFlags, true, &iToDestination) || iToDestination > LAND_TRANSPORT_MAX_TRIP_TURNS)
+				{
+					continue;
+				}
+			}
 			// R&R mod, vetiarvind, max yield import limit - start
-			if(pDestinationCity != NULL && pDestinationCity->getMaxImportAmount(eYield) > 0)
+			// WTP: a private route loads without import limit (see below)
+			if(pDestinationCity != NULL && pDestinationCity->getMaxImportAmount(eYield) > 0 && !routes[i]->isPrivate())
 			{
 				int turnsToReachToSource = 0, turnsToReachFromSourceToDest = 0;
 				const bool bSourceOk = generatePath(pSourceCity->plot(), plot(), (bIgnoreDanger ? MOVE_IGNORE_DANGER : MOVE_NO_ENEMY_TERRITORY), true, &turnsToReachToSource);
@@ -1180,6 +1205,11 @@ bool CvSelectionGroupAI::AI_tradeRoutes()
 				}
 
 				iAmount = estimateYieldsToLoad(pDestinationCity, iAmount, eYield, turnsRequired, aiYieldsLoaded[eYield]);
+			}
+			// WTP: a private route between colonies: no import limit, the route counts as viable
+			else if (pDestinationCity != NULL && routes[i]->isPrivate())
+			{
+				bNoRoute = false;
 			}
 			// Note that Europe has no import limit!
 			else if (pDestinationCity == NULL && routes[i]->getDestinationCity() == kEurope)
@@ -1242,7 +1272,8 @@ bool CvSelectionGroupAI::AI_tradeRoutes()
 				CvPlot* pDestinationCityPlot = pCity->plot();
 
 				int iTurns;
-				if (generatePath(plot(), pDestinationCityPlot, (bIgnoreDanger ? MOVE_IGNORE_DANGER : MOVE_NO_ENEMY_TERRITORY), true, &iTurns))
+				if (generatePath(plot(), pDestinationCityPlot, (bIgnoreDanger ? MOVE_IGNORE_DANGER : MOVE_NO_ENEMY_TERRITORY), true, &iTurns)
+					&& (!bMaxTrip || iTurns <= LAND_TRANSPORT_MAX_TRIP_TURNS)) // WTP: land transport: no trip of more than 10 turns
 				// TAC - Trade Routes Advisor - koma13 - END
 				{
 					iValue /= 1 + kOwner.AI_plotTargetMissionAIs(pDestinationCityPlot, MISSIONAI_TRANSPORT, this, 0);
@@ -1327,7 +1358,7 @@ bool CvSelectionGroupAI::AI_tradeRoutes()
 
 					// R&R mod, vetiarvind, max yield import limit - start
 					int iOriginalAmount = iAmount;
-					const bool bDestinationHasImportLimit = pDestinationCity != NULL && pDestinationCity->getImportsLimit(eYield) > 0;
+					const bool bDestinationHasImportLimit = pDestinationCity != NULL && pDestinationCity->getImportsLimit(eYield) > 0 && !routes[i]->isPrivate(); // WTP: private: no limit
 					if (bDestinationHasImportLimit)
 					{
 						int turnsToReach = 0;

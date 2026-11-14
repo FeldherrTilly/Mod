@@ -7,6 +7,8 @@
 
 const int defaultId = 0;
 const YieldTypes defaultYield = NO_YIELD;
+const bool defaultReserved = false;
+const bool defaultPrivate = false;
 
 // 
 enum SavegameVariableTypes
@@ -16,6 +18,8 @@ enum SavegameVariableTypes
 	TradeRouteSave_SourceCity,
 	TradeRouteSave_DestinationCity,
 	TradeRouteSave_Yield,
+	TradeRouteSave_Reserved,
+	TradeRouteSave_Private,
 	NUM_SAVE_ENUM_VALUES,
 };
 
@@ -28,6 +32,8 @@ const char* getSavedEnumNameTradeRoute(SavegameVariableTypes eType)
 	case TradeRouteSave_SourceCity: return "TradeRouteSave_SourceCity";
 	case TradeRouteSave_DestinationCity: return "TradeRouteSave_DestinationCity";
 	case TradeRouteSave_Yield: return "TradeRouteSave_Yield";
+	case TradeRouteSave_Reserved: return "TradeRouteSave_Reserved";
+	case TradeRouteSave_Private: return "TradeRouteSave_Private";
 	}
 	FAssertMsg(0, "Missing case");
 	return "";
@@ -45,6 +51,8 @@ void CvTradeRoute::resetSavedData()
 	m_kSourceCity.reset();
 	m_kDestinationCity.reset();
 	m_eYield = defaultYield;
+	m_bReserved = defaultReserved;
+	m_bPrivate = defaultPrivate;
 }
 
 void CvTradeRoute::read(CvSavegameReader reader)
@@ -71,6 +79,8 @@ void CvTradeRoute::read(CvSavegameReader reader)
 		case TradeRouteSave_SourceCity: reader.Read(m_kSourceCity); break;
 		case TradeRouteSave_DestinationCity: reader.Read(m_kDestinationCity); break;
 		case TradeRouteSave_Yield : reader.Read(m_eYield); break;
+		case TradeRouteSave_Reserved: reader.Read(m_bReserved); break;
+		case TradeRouteSave_Private: reader.Read(m_bPrivate); break;
 
 		}
 	}
@@ -92,6 +102,8 @@ void CvTradeRoute::write(CvSavegameWriter writer)
 	writer.Write(TradeRouteSave_SourceCity, m_kSourceCity);
 	writer.Write(TradeRouteSave_DestinationCity, m_kDestinationCity);
 	writer.Write(TradeRouteSave_Yield, m_eYield, defaultYield);
+	writer.Write(TradeRouteSave_Reserved, m_bReserved, defaultReserved);
+	writer.Write(TradeRouteSave_Private, m_bPrivate, defaultPrivate);
 	
 	writer.Write(TradeRouteSave_END);
 }

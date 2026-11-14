@@ -2738,6 +2738,39 @@
 		<Hungarian>A hajó a gépi játékosok szállítóihoz hasonlóan begyűjti a hajóra váró kincseket (a Kincs automatizálása automatizálású kincseket), és Európába viszi őket, ahol eladják őket. Európából egyenesen a következő várakozó kincshez hajózik; ha nincs ilyen, Európában vár. A térképen, ha nincs mit begyűjteni, a legközelebbi saját kolóniában vár.</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_TRADEROUTE_PRESET_BUILD</Tag>
+		<English>Building material: import clay, stone, tools (feeder 100/150), feeder for horses, sailcloth, hardwood, rope</English>
+		<Portuguese>Material de construção: importar argila, pedra, ferramentas (alimentador 100/150), alimentador para cavalos, lona, madeira de lei, cordas</Portuguese>
+		<French>Matériaux : importer argile, pierre, outils (approvisionnement 100/150), approvisionnement pour chevaux, toile, bois dur, cordes</French>
+		<German>Baumaterial: Lehm, Stein, Werkzeug importieren (Feeder 100/150), Feeder für Pferde, Segeltuch, Hartholz, Seile</German>
+		<Italian>Materiali edili: importa argilla, pietra, attrezzi (rifornimento 100/150), rifornimento per cavalli, tela, legno duro, corde</Italian>
+		<Spanish>Materiales: importar arcilla, piedra, herramientas (abastecimiento 100/150), abastecimiento para caballos, lona, madera dura, cuerdas</Spanish>
+		<Russian>Стройматериалы: импорт глины, камня, инструментов (подвоз 100/150), подвоз лошадей, парусины, твёрдой древесины, канатов</Russian>
+		<Hungarian>Építőanyag: agyag, kő, szerszám importja (utánpótlás 100/150), utánpótlás lóhoz, vitorlavászonhoz, keményfához, kötélhez</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRADEROUTE_PRESET_MARKET_20</Tag>
+		<English>Market: import all goods the market asks for (feeder 20/20)</English>
+		<Portuguese>Mercado: importar todos os bens que o mercado procura (alimentador 20/20)</Portuguese>
+		<French>Marché : importer toutes les marchandises demandées par le marché (approvisionnement 20/20)</French>
+		<German>Markt: alle vom Markt nachgefragten Waren importieren (Feeder 20/20)</German>
+		<Italian>Mercato: importa tutte le merci richieste dal mercato (rifornimento 20/20)</Italian>
+		<Spanish>Mercado: importar todos los bienes que pide el mercado (abastecimiento 20/20)</Spanish>
+		<Russian>Рынок: импорт всех товаров, нужных рынку (подвоз 20/20)</Russian>
+		<Hungarian>Piac: a piac által keresett összes áru importja (utánpótlás 20/20)</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRADEROUTE_PRESET_MARKET_40</Tag>
+		<English>Market: import all goods the market asks for (feeder 40/40)</English>
+		<Portuguese>Mercado: importar todos os bens que o mercado procura (alimentador 40/40)</Portuguese>
+		<French>Marché : importer toutes les marchandises demandées par le marché (approvisionnement 40/40)</French>
+		<German>Markt: alle vom Markt nachgefragten Waren importieren (Feeder 40/40)</German>
+		<Italian>Mercato: importa tutte le merci richieste dal mercato (rifornimento 40/40)</Italian>
+		<Spanish>Mercado: importar todos los bienes que pide el mercado (abastecimiento 40/40)</Spanish>
+		<Russian>Рынок: импорт всех товаров, нужных рынку (подвоз 40/40)</Russian>
+		<Hungarian>Piac: a piac által keresett összes áru importja (utánpótlás 40/40)</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_ACTION_AUTOMATE_FULL_HELP</Tag>
 		<English>Automate this unit</English>
 		<Portuguese>Automatizar unidade</Portuguese>
