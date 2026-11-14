@@ -645,12 +645,6 @@ void CvPlayerAI::AI_doTurnUnitsPre()
 }
 // WTP, Schmiddie, AI Fleet Modernization END
 
-void CvPlayerAI::AI_setSiegePowderGold(int iGold)
-{
-	m_iSiegePowderGold = iGold;
-	m_iSiegePowderTurn = GC.getGameINLINE().getGameTurn();
-}
-
 void CvPlayerAI::AI_doTurnUnitsPost()
 {
 #ifdef PROFILING_ENABLED
@@ -18263,7 +18257,6 @@ void CvPlayerAI::AI_wfUpdateTravel(const CvUnit& kColonist)
 // WTP: turns a colonist on kFrom needs to the colony kTo: over land, or walking to a port, waiting for a transport there
 // and sailing (the faster way; the ship only if it saves 2 turns). piPortCityID gets the port (-1: over land). MAX_INT if
 // there is no way (or no travel times yet)
-int CvPlayerAI::AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* piPortCityID) const
 // WTP: the land cost of the way from kFrom (see AI_wfUpdateTravel); a colonist on a peak without a road (it may climb peaks) is
 // not in the land costs: the way from the best land plot next to it, one plot's moves more (it stood there without a job)
 static int wfLandCostFrom(const std::vector<int>& aiCost, const CvPlot& kFrom, int iStepCost)
@@ -18291,6 +18284,7 @@ static int wfLandCostFrom(const std::vector<int>& aiCost, const CvPlot& kFrom, i
 	return iBest;
 }
 
+int CvPlayerAI::AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* piPortCityID) const
 {
 	// waiting for a transport and boarding
 	static const int WF_SHIP_WAIT = 3;
@@ -21742,19 +21736,6 @@ void CvPlayerAI::AI_setSavingGold()
 // WTP: keeps the gold for the cheapest urgent building (see CvCityAI::AI_isUrgentHurryBuilding); the colony hurries it in its turn
 bool CvPlayerAI::AI_doUrgentHurrySaving()
 {
-	// the powder of a waiting wagon train comes first
-	if (m_iSiegePowderTurn >= GC.getGameINLINE().getGameTurn() - 1 && getGold() < m_iSiegePowderGold)
-	{
-		AI_setSavingGold();
-		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), "WTP decision: Player %d (%S) saves for the powder of a wagon train (%d gold, have %d)", getID(), getCivilizationDescription(0), m_iSiegePowderGold, getGold());
-		return true;
-	}
-
-		// with twice the cost the colony hurries it next turn anyway and the purchases go on
-		if (iWagonCost >= 0 && getGold() >= 2 * iWagonCost)
-		{
-			return false;
-		}
 	CvCity* pBestCity = NULL;
 	BuildingTypes eBestBuilding = NO_BUILDING;
 	int iBestCost = MAX_INT;
@@ -23586,4 +23567,27 @@ int CvPlayerAI::AI_firstCityFoundValue(const CvPlot& kPlot)
 	if (val < 1LL) val = 1LL;
 	if (val > 2147483647LL) val = 2147483647LL;
 	return static_cast<int>(val);
+}
+
+// WTP: a transport a colonist may board on its way: the AI's transports; of a human player only the automated ones
+bool CvPlayerAI::AI_isWfShip(const CvUnit& kShip)
+{
+	if (kShip.AI_getUnitAIType() != UNITAI_TRANSPORT_SEA && kShip.AI_getUnitAIType() != UNITAI_TRANSPORT_COAST)
+	{
+		return false;
+	}
+	return !kShip.isHuman() || (kShip.getGroup() != NULL && kShip.getGroup()->getAutomateType() == AUTOMATE_TRANSPORT_FULL);
+}
+
+bool CvPlayerAI::AI_hasWfShip() const
+{
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->getDomainType() == DOMAIN_SEA && AI_isWfShip(*pLoopUnit))
+		{
+			return true;
+		}
+	}
+	return false;
 }

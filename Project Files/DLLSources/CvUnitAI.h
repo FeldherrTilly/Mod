@@ -432,7 +432,7 @@ protected:
 	void AI_nativeTradeShipMove();
 	void AI_explorerShipMove();
 	bool AI_nativeTradeEurope();
-	bool AI_crossFromEurope();
+	bool AI_crossFromEurope(CvPlot* pArrival = NULL);
 	int AI_nativeTradeSell(CvWString* pszDeals = NULL);
 	int AI_nativeTradeBuy(CvWString* pszDeals = NULL);
 	bool AI_canTradeWithVillage(const CvCity& kCity) const;

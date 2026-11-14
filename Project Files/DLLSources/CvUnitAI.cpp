@@ -15424,7 +15424,6 @@ bool CvUnitAI::AI_pillageAroundCity(CvCity* pTargetCity, int iBonusValueThreshol
 }
 
 // Returns true if a mission was pushed...
-				kOwner.AI_setSiegePowderGold(kOwner.AI_siegePowderGold(GLOBAL_DEFINE_SIEGE_AI_WAGON_MIN_POWDER - iPowder));
 bool CvUnitAI::AI_bombardCity()
 {
 	PROFILE_FUNC();
@@ -18702,16 +18701,16 @@ CvPlot* CvUnitAI::AI_nativeTradeArrivalPlot(bool bMuskets, CvCity*& pVillage, in
 }
 
 // WTP: leave Europe for the colonies like AI_europe does (the ship appears next to the colony AI_bestDestinationPlot names)
-bool CvUnitAI::AI_crossFromEurope()
+bool CvUnitAI::AI_crossFromEurope(CvPlot* pArrival)
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	CvPlot* const pStartingPlot = kOwner.getStartingPlot();
 	if (kOwner.getNumCities() > 0)
 	{
-		CvPlot* pNewPlot = NULL;
+		CvPlot* pNewPlot = pArrival;
 		// WTP: the human native trade automation comes back to its home colony
 		const CvCity* const pHome = AI_isHumanNativeTrade() ? AI_nativeTradeHomeCity() : NULL;
-		if (pHome != NULL && pHome->plot()->isEuropeAccessable())
+		if (pNewPlot == NULL && pHome != NULL && pHome->plot()->isEuropeAccessable())
 		{
 			pNewPlot = findNearbyOceanPlot(*pHome->plot());
 		}

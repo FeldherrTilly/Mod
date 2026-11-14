@@ -723,6 +723,9 @@ protected:
 	bool AI_doWfExpertPurchase();
 public:
 	int AI_wfLearnWaitTurns(int iUnitID, bool bStart);
+	// WTP: a transport a colonist may board on its way (the AI's transports; of a human player only the automated ones)
+	static bool AI_isWfShip(const CvUnit& kShip);
+	bool AI_hasWfShip() const;
 	void AI_clearWfLearnWait(int iUnitID);
 	void AI_setWfExpertToBuy(UnitClassTypes eExpertClass);
 	UnitClassTypes AI_getWfExpertToBuy() const { return m_eWfExpertToBuy; }
@@ -745,8 +748,6 @@ protected:
 	};
 	std::vector<WfOpenOpportunity> m_aWfOpenOpportunities;
 	int m_iWfIdleCount; // WTP: colonists without a job in the last plan (not saved)
-	int m_iSiegePowderGold; // WTP: siege: gold a waiting wagon train needs for its powder (not saved)
-	int m_iSiegePowderTurn; // WTP: siege: the turn it asked for it (not saved)
 	int m_iEuropeFallbackTurn; // WTP: the turn the idle transports in Europe were last checked (not saved)
 	int m_iWfFoodCityID; // WTP: the colony that needs a food provider most (not saved), -1
 	bool m_bWfFoodWater; // WTP: ... a fisherman (else a farmer or an African slave)
@@ -775,7 +776,6 @@ protected:
 
 	void AI_doMilitaryStrategy();
 	void AI_doSuppressRevolution();
-	void AI_setSiegePowderGold(int iGold);
 	int AI_siegePowderGold(int iAmount) const;
 	void AI_doUnitAIWeights();
 	void AI_doEmotions();
