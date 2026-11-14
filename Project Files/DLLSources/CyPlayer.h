@@ -123,6 +123,8 @@ public:
 	int getTotalLand();
 	int getTotalLandScored();
 	int getGold();
+	int getMilitaryUpkeep(); // WTP
+	int getDomesticMarketIncome(); // WTP
 	void setGold(int iNewValue);
 	void changeGold(int iChange);
 	int getAdvancedStartPoints();

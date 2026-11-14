@@ -267,6 +267,7 @@ void CvGameTextMgr::setGoldStr(CvWString& szString, PlayerTypes ePlayer)
 	{
 		szString.Format(L"%d", GET_PLAYER(ePlayer).getGold());
 	}
+	// (WTP: the military upkeep and the domestic market income are lines of their own below the gold, CvMainInterface.py)
 }
 
 void CvGameTextMgr::setOOSSeeds(CvWString& szString, PlayerTypes ePlayer)

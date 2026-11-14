@@ -377,6 +377,15 @@ int CyPlayer::getGold()
 {
 	return m_pPlayer ? m_pPlayer->getGold() : -1;
 }
+// WTP: military upkeep per turn and the domestic market income of the last turn (shown below the gold)
+int CyPlayer::getMilitaryUpkeep()
+{
+	return m_pPlayer ? m_pPlayer->getMilitaryUpkeep() : 0;
+}
+int CyPlayer::getDomesticMarketIncome()
+{
+	return m_pPlayer ? m_pPlayer->getDomesticMarketIncome() : 0;
+}
 void CyPlayer::setGold(int iNewValue)
 {
 	if (m_pPlayer)

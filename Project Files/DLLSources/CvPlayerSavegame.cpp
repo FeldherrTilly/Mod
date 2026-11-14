@@ -104,6 +104,9 @@ const int defaultRevolutionEuropeTradeCount = 0;
 // WTP, Schmiddie, Slave Emancipation - START
 const int defaultSlaveEmancipationCount = 0;
 const int defaultSlaveEmancipationCooldownEndTurn = 0;
+const int defaultMilitaryDismissTurn = -1;
+const int defaultMilitaryShortTurn = -1;
+const int defaultDomesticMarketIncome = 0;
 // WTP, Schmiddie, Slave Emancipation - END
 const int defaultFatherPointMultiplier = 100;
 const int defaultMissionaryRateModifier = 0;
@@ -326,7 +329,10 @@ enum SavegameVariableTypes
 	PlayerSave_TradePostMestizoPoints,
 	PlayerSave_TradePostMestizoThresholdMultiplier,
 	// WTP, Schmiddie, Trade Post Mestizo - END
-
+	// (new values only at the end: savegames store the enum index)
+	PlayerSave_MilitaryDismissTurn, // WTP
+	PlayerSave_MilitaryShortTurn, // WTP
+	PlayerSave_DomesticMarketIncome, // WTP
 	NUM_SAVE_ENUM_VALUES,
 };
 
@@ -535,6 +541,9 @@ const char* getSavedEnumNamePlayer(SavegameVariableTypes eType)
 	// WTP, Schmiddie, Slave Emancipation - START
 	case PlayerSave_SlaveEmancipationCount: return "PlayerSave_SlaveEmancipationCount";
 	case PlayerSave_SlaveEmancipationCooldownEndTurn: return "PlayerSave_SlaveEmancipationCooldownEndTurn";
+	case PlayerSave_MilitaryDismissTurn: return "PlayerSave_MilitaryDismissTurn";
+	case PlayerSave_MilitaryShortTurn: return "PlayerSave_MilitaryShortTurn";
+	case PlayerSave_DomesticMarketIncome: return "PlayerSave_DomesticMarketIncome";
 	// WTP, Schmiddie, Slave Emancipation - END
 	// WTP, Schmiddie, Trade Post Mestizo - START
 	case PlayerSave_TradePostMestizoPoints: return "PlayerSave_TradePostMestizoPoints";
@@ -721,6 +730,11 @@ void CvPlayer::resetSavedData(PlayerTypes eID, bool bConstructorCall)
 	// WTP, Schmiddie, Slave Emancipation - START
 	m_iSlaveEmancipationCount = defaultSlaveEmancipationCount;
 	m_iSlaveEmancipationCooldownEndTurn = defaultSlaveEmancipationCooldownEndTurn;
+	m_iMilitaryDismissTurn = defaultMilitaryDismissTurn;
+	m_iMilitaryShortTurn = defaultMilitaryShortTurn;
+	m_iDomesticMarketIncome = defaultDomesticMarketIncome;
+	m_iTurnCrimeGold = 0;
+	m_iTurnCultureGold = 0;
 	// WTP, Schmiddie, Slave Emancipation - END
 	m_iFatherPointMultiplier = defaultFatherPointMultiplier;
 	m_iMissionaryRateModifier = defaultMissionaryRateModifier;
@@ -985,6 +999,15 @@ void CvPlayer::read(CvSavegameReader reader)
 
 		case PlayerSave_SlaveEmancipationCooldownEndTurn:
 			reader.Read(m_iSlaveEmancipationCooldownEndTurn);
+			break;
+		case PlayerSave_DomesticMarketIncome:
+			reader.Read(m_iDomesticMarketIncome);
+			break;
+		case PlayerSave_MilitaryDismissTurn:
+			reader.Read(m_iMilitaryDismissTurn);
+			break;
+		case PlayerSave_MilitaryShortTurn:
+			reader.Read(m_iMilitaryShortTurn);
 			break;
 		// WTP, Schmiddie, Slave Emancipation - END
 		case PlayerSave_FatherPointMultiplier: reader.Read(m_iFatherPointMultiplier); break;
@@ -1255,6 +1278,9 @@ void CvPlayer::write(CvSavegameWriter writer)
 	// WTP, Schmiddie, Slave Emancipation - START
 	writer.Write(PlayerSave_SlaveEmancipationCount, m_iSlaveEmancipationCount, defaultSlaveEmancipationCount);
 	writer.Write(PlayerSave_SlaveEmancipationCooldownEndTurn, m_iSlaveEmancipationCooldownEndTurn, defaultSlaveEmancipationCooldownEndTurn);
+	writer.Write(PlayerSave_MilitaryDismissTurn, m_iMilitaryDismissTurn, defaultMilitaryDismissTurn);
+	writer.Write(PlayerSave_MilitaryShortTurn, m_iMilitaryShortTurn, defaultMilitaryShortTurn);
+	writer.Write(PlayerSave_DomesticMarketIncome, m_iDomesticMarketIncome, defaultDomesticMarketIncome);
 	// WTP, Schmiddie, Slave Emancipation - END
 	writer.Write(PlayerSave_FatherPointMultiplier, m_iFatherPointMultiplier, defaultFatherPointMultiplier);
 	writer.Write(PlayerSave_MissionaryRateModifier, m_iMissionaryRateModifier, defaultMissionaryRateModifier);

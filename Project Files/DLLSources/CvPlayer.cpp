@@ -2224,9 +2224,7 @@ void CvPlayer::doTurn()
 
 	EXTRA_POWER_CHECK
 
-	doGold();
-
-	EXTRA_POWER_CHECK
+	// WTP (user 2026-10-27): doGold (the military upkeep) comes after the colonies, i.e. after the domestic market income
 
 	doBells();
 
@@ -2311,6 +2309,11 @@ void CvPlayer::doTurn()
 
 	EXTRA_POWER_CHECK
 
+	// WTP: the colonies count their domestic market income, the gold stolen and the gold earned through culture of this turn
+	m_iDomesticMarketIncome = 0;
+	m_iTurnCrimeGold = 0;
+	m_iTurnCultureGold = 0;
+
 	// R&R Abandon City, ray START
 	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
@@ -2326,6 +2329,20 @@ void CvPlayer::doTurn()
 		}
 	}
 	// R&R  Abandon City, ray END
+
+	// WTP (user 2026-10-24): one message for the gold stolen because of low law and the gold earned through culture
+	// (instead of a message per colony)
+	if (isHuman() && (m_iTurnCrimeGold > 0 || m_iTurnCultureGold > 0))
+	{
+		const CvWString szBuffer = gDLL->getText("TXT_KEY_TURN_GOLD_CRIME_CULTURE", m_iTurnCrimeGold, m_iTurnCultureGold);
+		gDLL->UI().addPlayerMessage(getID(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, Coordinates::invalidCoord(), (m_iTurnCrimeGold > 0) ? "AS2D_CITYCRIME" : NULL,
+			MESSAGE_TYPE_INFO, NULL, (m_iTurnCrimeGold > 0) ? COLOR_RED : COLOR_WHITE);
+	}
+
+	EXTRA_POWER_CHECK
+
+	// WTP (user 2026-10-27): the military upkeep is paid with the income of the colonies (domestic market) of this turn
+	doGold();
 
 	// R&R, Little Extra Native Income, ray START
 	if (isNative())
@@ -11648,10 +11665,254 @@ void CvPlayer::doGold()
 
 	int iGoldChange = 0;
 
+	// WTP: military upkeep. Not enough gold: paid units are dismissed, at most 2 per turn. First the soldiers that become colonists
+	// again (a random one, non-veterans before veterans), then the units that leave (the most expensive first).
+	// After a dismissal no unit may be armed as a soldier in the coming turn.
+	// WTP (user 2026-10-27): only when the gold falls short a second time within MILITARY_UPKEEP_GRACE_TURNS turns; the first time
+	// the player is warned and pays what he has
+	static const int MILITARY_UPKEEP_GRACE_TURNS = 30;
+	if (isHuman())
+	{
+		std::vector<std::pair<int, int> > aPaid;
+		getMilitaryUpkeepUnits(aPaid);
+		int iUpkeep = 0;
+		for (uint i = 0; i < aPaid.size(); ++i)
+		{
+			iUpkeep += aPaid[i].first;
+		}
+		std::sort(aPaid.begin(), aPaid.end());
+		bool bDismiss = false;
+		if (iUpkeep > getGold())
+		{
+			const int iTurn = GC.getGameINLINE().getGameTurn();
+			bDismiss = m_iMilitaryShortTurn >= 0 && iTurn - m_iMilitaryShortTurn <= MILITARY_UPKEEP_GRACE_TURNS;
+			m_iMilitaryShortTurn = iTurn;
+			if (!bDismiss)
+			{
+				const CvWString szBuffer = gDLL->getText("TXT_KEY_MILITARY_UPKEEP_WARNING", iUpkeep, MILITARY_UPKEEP_GRACE_TURNS);
+				gDLL->UI().addPlayerMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, Coordinates::invalidCoord(), "AS2D_POSITIVE_DINK",
+					MESSAGE_TYPE_MAJOR_EVENT, NULL, COLOR_RED);
+			}
+		}
+		for (int iDismissed = 0; bDismiss && iDismissed < 2 && iUpkeep > getGold(); ++iDismissed)
+		{
+			// candidates: 0 non-veteran soldiers, 1 veteran soldiers, 2 units that leave
+			std::vector<int> aiCandidates[3];
+			for (uint i = 0; i < aPaid.size(); ++i)
+			{
+				const CvUnit* const pUnit = getUnit(aPaid[i].second);
+				// (a ship with cargo is kept: its cargo would die with it)
+				if (pUnit == NULL || pUnit->hasCargo())
+				{
+					continue;
+				}
+				if (pUnit->getProfession() == NO_PROFESSION)
+				{
+					aiCandidates[2].push_back(i);
+				}
+				else
+				{
+					int iFreePool;
+					const bool bVeteran = getMilitaryProfessionUpkeep(pUnit->getUnitInfo().getDefaultProfession(), iFreePool) > 0;
+					aiCandidates[bVeteran ? 1 : 0].push_back(i);
+				}
+			}
+			int iChosen = -1;
+			for (int iGroup = 0; iGroup < 2 && iChosen < 0; ++iGroup)
+			{
+				if (!aiCandidates[iGroup].empty())
+				{
+					iChosen = aiCandidates[iGroup][GC.getGameINLINE().getSorenRandNum(aiCandidates[iGroup].size(), "military upkeep dismissal")];
+				}
+			}
+			if (iChosen < 0 && !aiCandidates[2].empty())
+			{
+				iChosen = aiCandidates[2].back();
+			}
+			if (iChosen < 0)
+			{
+				break;
+			}
+			CvUnit* const pUnit = getUnit(aPaid[iChosen].second);
+			const CvWString szBuffer = gDLL->getText("TXT_KEY_MILITARY_UPKEEP_DISMISSED", pUnit->getName().GetCString());
+			gDLL->UI().addPlayerMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_MAJOR_EVENT, pUnit->getButton(), COLOR_RED, pUnit->getX_INLINE(), pUnit->getY_INLINE());
+			if (pUnit->getProfession() != NO_PROFESSION)
+			{
+				// lays down the arms: back to a free colonist (the equipment stays in the colony if the unit is in one)
+				pUnit->setProfession(GC.getCivilizationInfo(getCivilizationType()).getDefaultProfession(), true);
+			}
+			else
+			{
+				pUnit->kill(false);
+			}
+			iUpkeep -= aPaid[iChosen].first;
+			aPaid.erase(aPaid.begin() + iChosen);
+			// (the player's turn is over: the block is for the coming turn)
+			m_iMilitaryDismissTurn = GC.getGameINLINE().getGameTurn() + 1;
+		}
+		iGoldChange -= std::min(iUpkeep, std::max(0, getGold()));
+	}
+
 	FAssert(isHuman() || ((getGold() + iGoldChange) >= 0));
 
 	OOS_LOG("doGold", iGoldChange);
 	changeGold(iGoldChange);
+}
+
+// WTP: the upkeep of a military unit per turn; iFreePool: the free units it may be one of (0: none, 1: land units, 2: warships)
+int CvPlayer::getMilitaryUpkeepCost(const CvUnit& kUnit, int& iFreePool) const
+{
+	// (these unit classes have no constant in every build)
+	static const UnitClassTypes eSlaveHunter = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_SLAVE_HUNTER");
+	static const UnitClassTypes eSlaveMaster = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_SLAVE_MASTER");
+	static const UnitClassTypes eBuccanneer = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_BUCCANNEER");
+	static const UnitClassTypes eHessian = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_HESSIAN");
+	iFreePool = 0;
+	if (kUnit.getDomainType() == DOMAIN_SEA)
+	{
+		// warships: 50 for the small ones that can sail the coastal waters, 100 for the big ones
+		const CvUnitInfo& kInfo = kUnit.getUnitInfo();
+		if (kInfo.getDefaultUnitAIType() != UNITAI_COMBAT_SEA && kInfo.getDefaultUnitAIType() != UNITAI_PIRATE_SEA)
+		{
+			return 0;
+		}
+		iFreePool = 2;
+		return kInfo.getTerrainImpassable(TERRAIN_SHALLOW_COAST) ? 100 : 50;
+	}
+	if (kUnit.getDomainType() != DOMAIN_LAND)
+	{
+		return 0;
+	}
+	if (kUnit.getProfession() != NO_PROFESSION)
+	{
+		return getMilitaryProfessionUpkeep(kUnit.getProfession(), iFreePool);
+	}
+	const UnitClassTypes eClass = kUnit.getUnitClassType();
+	if (eClass == UNITCLASS_RANGER || eClass == UNITCLASS_MILITIA)
+	{
+		iFreePool = 1;
+		return 40;
+	}
+	if (eClass == UNITCLASS_CONQUISTADOR || eClass == UNITCLASS_MOUNTED_CONQUISTADOR)
+	{
+		iFreePool = 1;
+		return 60;
+	}
+	if (eClass == eSlaveHunter || eClass == eSlaveMaster)
+	{
+		return 40;
+	}
+	if (eClass == UNITCLASS_NATIVE_MERC || eClass == eBuccanneer)
+	{
+		return 60;
+	}
+	if (eClass == UNITCLASS_CONTINENTAL_GUARD)
+	{
+		return 80;
+	}
+	if (eClass == eHessian || eClass == UNITCLASS_MORTAR)
+	{
+		return 120;
+	}
+	return 0;
+}
+
+// WTP: the upkeep of a soldier profession per turn (0: no soldier); iFreePool 1: the unit may be one of the free land units
+int CvPlayer::getMilitaryProfessionUpkeep(ProfessionTypes eProfession, int& iFreePool)
+{
+	// (these professions have no constant in every build)
+	static const ProfessionTypes eTownGuard = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_TOWN_GUARD");
+	static const ProfessionTypes eColonialMilitia = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_COLONIAL_MILITIA");
+	static const ProfessionTypes eDragoon = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_DRAGOON");
+	static const ProfessionTypes eLineInfantry = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_LINE_INFANTRY");
+	static const ProfessionTypes eHeavyCavalry = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_HEAVY_CAVALRY");
+	static const ProfessionTypes eLightArtillery = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_LIGHT_ARTILLERY");
+	static const ProfessionTypes eHeavyArtillery = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_HEAVY_ARTILLERY");
+	iFreePool = 0;
+	if (eProfession == eTownGuard || eProfession == eColonialMilitia)
+	{
+		iFreePool = 1;
+		return 40;
+	}
+	if (eProfession == eDragoon)
+	{
+		iFreePool = 1;
+		return 80;
+	}
+	if (eProfession == eLineInfantry || eProfession == eHeavyCavalry || eProfession == eLightArtillery)
+	{
+		return 80;
+	}
+	if (eProfession == eHeavyArtillery)
+	{
+		return 120;
+	}
+	return 0;
+}
+
+// WTP: a unit was dismissed for lack of upkeep: no unit may be armed as a soldier this turn
+bool CvPlayer::isMilitaryEquipBlocked() const
+{
+	return m_iMilitaryDismissTurn == GC.getGameINLINE().getGameTurn();
+}
+
+// WTP: 5 units are free, one more for each colony of size 5 and another one at size 20
+int CvPlayer::getMilitaryUpkeepFreeUnits() const
+{
+	int iFree = 5;
+	int iLoop;
+	for (const CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	{
+		if (pLoopCity->getPopulation() >= 5)
+		{
+			++iFree;
+		}
+		if (pLoopCity->getPopulation() >= 20)
+		{
+			++iFree;
+		}
+	}
+	return iFree;
+}
+
+// WTP: the units the player pays for, as (upkeep, unit ID); the most expensive freeable units are the free ones (one warship is free)
+void CvPlayer::getMilitaryUpkeepUnits(std::vector<std::pair<int, int> >& aPaid) const
+{
+	aPaid.clear();
+	if (!isHuman())
+	{
+		return;
+	}
+	std::vector<std::pair<int, int> > aFreeableLand;
+	std::vector<std::pair<int, int> > aFreeableSea;
+	int iLoop;
+	for (const CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		int iFreePool;
+		const int iCost = getMilitaryUpkeepCost(*pLoopUnit, iFreePool);
+		if (iCost > 0)
+		{
+			(iFreePool == 1 ? aFreeableLand : (iFreePool == 2 ? aFreeableSea : aPaid)).push_back(std::make_pair(iCost, pLoopUnit->getID()));
+		}
+	}
+	std::sort(aFreeableLand.begin(), aFreeableLand.end());
+	const int iPaidLand = std::max(0, (int)aFreeableLand.size() - getMilitaryUpkeepFreeUnits());
+	aPaid.insert(aPaid.end(), aFreeableLand.begin(), aFreeableLand.begin() + iPaidLand);
+	std::sort(aFreeableSea.begin(), aFreeableSea.end());
+	const int iPaidSea = std::max(0, (int)aFreeableSea.size() - 1);
+	aPaid.insert(aPaid.end(), aFreeableSea.begin(), aFreeableSea.begin() + iPaidSea);
+}
+
+int CvPlayer::getMilitaryUpkeep() const
+{
+	std::vector<std::pair<int, int> > aPaid;
+	getMilitaryUpkeepUnits(aPaid);
+	int iUpkeep = 0;
+	for (uint i = 0; i < aPaid.size(); ++i)
+	{
+		iUpkeep += aPaid[i].first;
+	}
+	return iUpkeep;
 }
 
 /** NBMOD REF **/
