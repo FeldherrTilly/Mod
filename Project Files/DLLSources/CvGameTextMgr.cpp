@@ -3192,6 +3192,12 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					szString.append(NEWLINE);
 					szString.append(gDLL->getText("TXT_KEY_CITY_BARRACKS_TOTALLY_FULL", iCityBarracksSpaceUsed, iCityBarracksSpaceMax, GC.getSymbolID(NO_BARRACKS_CHAR)));
 				}
+				// WTP: too many units lower the defense bonus
+				if (pCity->getBarracksDefensePercent() < 100)
+				{
+					szString.append(NEWLINE);
+					szString.append(gDLL->getText("TXT_KEY_CITY_BARRACKS_DEFENSE_REDUCED", pCity->getBarracksDefensePercent()));
+				}
 			}
 			// WTP, ray, new Barracks System - END
 		}
@@ -3641,6 +3647,12 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity)
 		{
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_CITY_BARRACKS_TOTALLY_FULL", iCityBarracksSpaceUsed, iCityBarracksSpaceMax, GC.getSymbolID(NO_BARRACKS_CHAR)));
+		}
+		// WTP: too many units lower the defense bonus
+		if (pCity->getBarracksDefensePercent() < 100)
+		{
+			szString.append(NEWLINE);
+			szString.append(gDLL->getText("TXT_KEY_CITY_BARRACKS_DEFENSE_REDUCED", pCity->getBarracksDefensePercent()));
 		}
 	}
 	// WTP, ray, new Barracks System - END
@@ -10927,7 +10939,7 @@ void CvGameTextMgr::setFatherHelp(CvWStringBuffer &szBuffer, FatherTypes eFather
 					szTempBuffer += L"\n";
 				}
 
-				szTempBuffer += CvWString::format(L"%d%c", (eTeam != NO_TEAM ? GET_TEAM(eTeam).getFatherPointCost(eFather, ePointType) : kFatherInfo.getPointCost(ePointType)), GC.getFatherPointInfo(ePointType).getChar());
+				szTempBuffer += CvWString::format(L"%d%c", (eTeam != NO_TEAM ? GET_TEAM(eTeam).getFatherPointCost(eFather, ePointType) : GC.getGameINLINE().getFatherPointCost(eFather, ePointType)), GC.getFatherPointInfo(ePointType).getChar());
 			}
 		}
 

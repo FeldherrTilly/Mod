@@ -1583,6 +1583,7 @@
 					<iCost>7500</iCost>
 				</FatherPointCost>
 			</FatherPointCosts>
+			<bNoShuffle>1</bNoShuffle>
 			<Trait>TRAIT_SAMUEL_ADAMS</Trait>
 			<Quote>TXT_KEY_FUTURE_QUOTE</Quote>
 			<Sound>AS2D_FUTURE</Sound>
@@ -2715,6 +2716,7 @@
 					<iCost>4500</iCost>
 				</FatherPointCost>
 			</FatherPointCosts>
+			<bNoShuffle>1</bNoShuffle>
 			<Trait>TRAIT_DOM_PEDRO_I</Trait>
 			<Quote>TXT_KEY_FUTURE_QUOTE</Quote>
 			<Sound>AS2D_FUTURE</Sound>
@@ -2817,6 +2819,7 @@
 					<iCost>6000</iCost>
 				</FatherPointCost>
 			</FatherPointCosts>
+			<bNoShuffle>1</bNoShuffle>
 			<Trait>TRAIT_HENRY_SHRAPNEL</Trait>
 			<Quote>TXT_KEY_FUTURE_QUOTE</Quote>
 			<Sound>AS2D_FUTURE</Sound>
@@ -2848,6 +2851,7 @@
 					<iCost>6500</iCost>
 				</FatherPointCost>
 			</FatherPointCosts>
+			<bNoShuffle>1</bNoShuffle>
 			<Trait>TRAIT_WALTER_RALEIGH</Trait>
 			<Quote>TXT_KEY_FUTURE_QUOTE</Quote>
 			<Sound>AS2D_FUTURE</Sound>
@@ -2890,6 +2894,7 @@
 					<iCost>7500</iCost>
 				</FatherPointCost>
 			</FatherPointCosts>
+			<bNoShuffle>1</bNoShuffle>
 			<Trait>TRAIT_BENJAMIN_LINCOLN</Trait>
 			<Quote>TXT_KEY_FUTURE_QUOTE</Quote>
 			<Sound>AS2D_FUTURE</Sound>
@@ -2924,6 +2929,7 @@
 					<iCost>8500</iCost>
 				</FatherPointCost>
 			</FatherPointCosts>
+			<bNoShuffle>1</bNoShuffle>
 			<Trait>TRAIT_FRIEDRICH_WILHELM_VON_STEUBEN</Trait>
 			<Quote>TXT_KEY_FUTURE_QUOTE</Quote>
 			<Sound>AS2D_FUTURE</Sound>
@@ -2962,6 +2968,7 @@
 					<iCost>9500</iCost>
 				</FatherPointCost>
 			</FatherPointCosts>
+			<bNoShuffle>1</bNoShuffle>
 			<Trait>TRAIT_JOSE_DE_SAN_MARTIN</Trait>
 			<Quote>TXT_KEY_FUTURE_QUOTE</Quote>
 			<Sound>AS2D_FUTURE</Sound>
@@ -3461,6 +3468,7 @@
 					<iCost>7000</iCost>
 				</FatherPointCost>
 			</FatherPointCosts>
+			<bNoShuffle>1</bNoShuffle>
 			<Trait>TRAIT_THOMAS_PAINE</Trait>
 			<Quote>TXT_KEY_FUTURE_QUOTE</Quote>
 			<Sound>AS2D_FUTURE</Sound>
@@ -3576,6 +3584,7 @@
 					<iCost>12000</iCost>
 				</FatherPointCost>
 			</FatherPointCosts>
+			<bNoShuffle>1</bNoShuffle>
 			<Trait>TRAIT_THOMAS_JEFFERSON</Trait>
 			<Quote>TXT_KEY_FUTURE_QUOTE</Quote>
 			<Sound>AS2D_FUTURE</Sound>

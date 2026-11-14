@@ -16483,6 +16483,7 @@ CvFatherInfo::CvFatherInfo() :
 	m_eFatherCategory(NO_FATHERCATEGORY),
 	m_eTrait(NO_TRAIT),
 	m_eCivEffect(NO_CIV_EFFECT),
+	m_bNoShuffle(false),
 	m_aiFreeUnits(NULL),
 	m_aiAlternativeFreeUnits(NULL),
 	m_aiPointCost(NULL),
@@ -16575,6 +16576,7 @@ void CvFatherInfo::read(FDataStreamBase* stream)
 	stream->Read(&uiFlag);	// flags for expansion
 	//stream->Read(&m_iFatherCategory);
 	stream->Read(&m_eTrait);
+	stream->Read(&m_bNoShuffle);
 
 	SAFE_DELETE_ARRAY(m_aiFreeUnits);
 	m_aiFreeUnits = new int [GC.getNumUnitClassInfos()];
@@ -16606,6 +16608,7 @@ void CvFatherInfo::write(FDataStreamBase* stream)
 	stream->Write(uiFlag);		// flag for expansion
 	//stream->Write(m_iFatherCategory);
 	stream->Write(m_eTrait);
+	stream->Write(m_bNoShuffle);
 	stream->Write(GC.getNumUnitClassInfos(), m_aiFreeUnits);
 	stream->Write(GC.getNumUnitClassInfos(), m_aiAlternativeFreeUnits);
 	stream->Write(GC.getNumFatherPointInfos(), m_aiPointCost);
@@ -16669,6 +16672,7 @@ bool CvFatherInfo::read(CvXMLLoadUtility* pXML)
 	}
 
 	pXML->SetVariableListTagPair(&m_aiPointCost, "FatherPointCosts", GC.getNumFatherPointInfos(), 0);
+	pXML->GetChildXmlValByName(&m_bNoShuffle, "bNoShuffle", false);
 	pXML->SetVariableListTagPair(&m_abRevealImprovement, "RevealImprovements", GC.getNumImprovementInfos(), false);
 
 	pXML->GetChildXmlValByName(m_szQuoteKey, "Quote");

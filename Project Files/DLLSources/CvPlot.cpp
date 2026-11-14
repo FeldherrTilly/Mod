@@ -1226,23 +1226,12 @@ bool CvPlot::isAdjacentWaterPassable(CvPlot* pPlot) const
 		return true;
 	}
 
-	CvPlot* pDirectionPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), (DirectionTypes)((eDirection + 1) % NUM_DIRECTION_TYPES));
-	if (pDirectionPlot != NULL)
-	{
-		if (pDirectionPlot->isWater())
-		{
-			return true;
-		}
-	}
-	pDirectionPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), (DirectionTypes)((eDirection - 1) % NUM_DIRECTION_TYPES));
-	if (pDirectionPlot != NULL)
-	{
-		if (pDirectionPlot->isWater())
-		{
-			return true;
-		}
-	}
-	return false;
+	// WTP: the two corner plots of the diagonal step, as ships move (pathValid in CvGameCoreUtils): this used to look at the
+	// plots beside the target, so a lake linked only diagonally to a large river counted as reachable from Europe (and a
+	// Swedish Opportunistic Resources settler was sent to a lake shore no ship could reach)
+	const CvPlot* const pCorner1 = GC.getMap().plotINLINE(getX_INLINE(), pPlot->getY_INLINE());
+	const CvPlot* const pCorner2 = GC.getMap().plotINLINE(pPlot->getX_INLINE(), getY_INLINE());
+	return (pCorner1 != NULL && pCorner1->isWater()) || (pCorner2 != NULL && pCorner2->isWater());
 }
 
 bool CvPlot::isVisibleWorked() const
@@ -3899,6 +3888,13 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 		}
 	}
 
+	// WTP: a road in enemy territory (not usable by the unit) still makes the move cost at most one movement point (e.g. 1
+	// instead of 2 in a forest), but gives no further road bonus
+	if (pFromPlot->isRoute() && isRoute() && !(pFromPlot->isValidRoute(pUnit) && isValidRoute(pUnit)))
+	{
+		iRegularCost = std::min(iRegularCost, (int)GLOBAL_DEFINE_MOVE_DENOMINATOR);
+	}
+
 	if (pFromPlot->isValidRoute(pUnit) && isValidRoute(pUnit))
 	{
 		iRouteCost = std::max((GC.getRouteInfo(pFromPlot->getRouteType()).getMovementCost()),
@@ -4932,7 +4928,8 @@ bool CvPlot::isValidDomainForAction(UnitTypes eUnit) const
 
 		// WTP, ray, Canal - START
 		// in Canals, which are actually on land plots, we do not want to have any Ships bigger than Coastal Ships or Fishing Boats
-		if (!isWater() && !kUnitInfo.getTerrainImpassable(TERRAIN_OCEAN) && !(kUnitInfo.isGatherBoat() && kUnitInfo.getHarbourSpaceNeeded() == 1) && getImprovementType() != NO_IMPROVEMENT && GC.getImprovementInfo(getImprovementType()).isCanal())
+		// WTP: ships that cannot sail to Europe count as coastal ships (see CvUnit::canMoveInto)
+		if (!isWater() && kUnitInfo.canSailToEurope() && !(kUnitInfo.isGatherBoat() && kUnitInfo.getHarbourSpaceNeeded() == 1) && getImprovementType() != NO_IMPROVEMENT && GC.getImprovementInfo(getImprovementType()).isCanal())
 		{
 			return false;
 		}
