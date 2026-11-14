@@ -21603,7 +21603,8 @@ bool CvPlayerAI::AI_hasTradePostTarget() const
 			const CvPlot* const pPlot = pVillage->plot();
 			if (pVillage->getTradePostCivilization() != getCivilizationType() && pPlot->isRevealed(getTeam(), false)
 				&& (pPlot->area()->getCitiesPerPlayer(getID()) > 0 || pPlot->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN()))
-				&& pPlot->calculateCulturePercent(pPlot->getOwnerINLINE()) == 100)
+				&& pPlot->calculateCulturePercent(pPlot->getOwnerINLINE()) == 100
+				&& pVillage->getTradeBlockingFortOwner(getID()) == NO_PLAYER)
 			{
 				return true;
 			}

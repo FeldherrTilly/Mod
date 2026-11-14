@@ -10852,7 +10852,8 @@ bool CvUnitAI::AI_spreadTradePosts()
 						CvPlot* pLoopPlot = pLoopCity->plot();
 						// (revealed: discovered once, it need not be in sight)
 						if (!pLoopPlot->isRevealed(getTeam(), false) || pLoopCity->getTradePostCivilization() == getCivilizationType()
-							|| pLoopPlot->calculateCulturePercent(pLoopPlot->getOwnerINLINE()) != 100)
+							|| pLoopPlot->calculateCulturePercent(pLoopPlot->getOwnerINLINE()) != 100
+							|| pLoopCity->getTradeBlockingFortOwner(getOwnerINLINE()) != NO_PLAYER) // WTP, forts block foreign trade
 						{
 							continue;
 						}
@@ -17689,6 +17690,12 @@ bool CvUnitAI::AI_yieldNativeDestination(int iMaxPath)
 					{
 						CvPlot* pLoopPlot = pCity->plot();
 
+						// WTP, forts block foreign trade
+						if (pCity->getTradeBlockingFortOwner(getOwnerINLINE()) != NO_PLAYER)
+						{
+							continue;
+						}
+
 						if (!atPlot(pLoopPlot) && pLoopPlot->isRevealed(getTeam(), false))
 						{
 
@@ -18885,7 +18892,7 @@ bool CvUnitAI::AI_canTradeWithVillage(const CvCity& kCity) const
 {
 	const CvPlayerAI& kNative = GET_PLAYER(kCity.getOwnerINLINE());
 	return kNative.isAlive() && kNative.isNative() && !atWar(getTeam(), kNative.getTeam()) && kNative.getTimeNoTrade(getOwnerINLINE()) == 0
-		&& kCity.plot()->isRevealed(getTeam(), false)
+		&& kCity.getTradeBlockingFortOwner(getOwnerINLINE()) == NO_PLAYER && kCity.plot()->isRevealed(getTeam(), false)
 		&& CvPlayerAI::AI_shipCanReachCity(getUnitType(), kCity);
 }
 

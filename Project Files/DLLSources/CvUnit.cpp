@@ -4019,6 +4019,11 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 					{
 						iImprovementBarracksSpace = iImprovementBarracksSpace * 2;
 					}
+					// WTP: forts have 50% more room
+					if (kPlot.isFort())
+					{
+						iImprovementBarracksSpace = iImprovementBarracksSpace * 3 / 2;
+					}
 
 					// now we calculate how much is already used
 					int iImprovementBarracksSpaceUsed = 0;
@@ -5321,6 +5326,12 @@ bool CvUnit::canTradeYield(const CvPlot* pPlot) const
 		return false;
 	}
 
+	// WTP, forts block foreign trade
+	if (pCity->getTradeBlockingFortOwner(getOwnerINLINE()) != NO_PLAYER)
+	{
+		return false;
+	}
+
 	if (cargoSpace() == 0)
 	{
 		return false;
@@ -5999,6 +6010,11 @@ bool CvUnit::canUnload() const
 				{
 					iImprovementBarracksSpace = iImprovementBarracksSpace * 2;
 				}
+				// WTP: forts have 50% more room
+				if (plot()->isFort())
+				{
+					iImprovementBarracksSpace = iImprovementBarracksSpace * 3 / 2;
+				}
 
 				// now we calculate how much is already used
 				int iImprovementBarracksSpaceUsed = 0;
@@ -6616,6 +6632,12 @@ bool CvUnit::canEstablishTradePost() const
 
 	CvPlayer& kCityOwner = GET_PLAYER(pCity->getOwnerINLINE());
 	if (!kCityOwner.canHaveTradePost(getOwnerINLINE()))
+	{
+		return false;
+	}
+
+	// WTP, forts block foreign trade
+	if (pCity->getTradeBlockingFortOwner(getOwnerINLINE()) != NO_PLAYER)
 	{
 		return false;
 	}
@@ -8558,6 +8580,12 @@ bool CvUnit::build(BuildTypes eBuild)
 			{
 				if(plot()->getOwnerINLINE() == NO_PLAYER)
 				{
+					plot()->setOwner(getOwnerINLINE(),true);
+				}
+				// WTP, forts on native land: the fort plot passes to the builder, the natives resent it
+				else if (GET_PLAYER(plot()->getOwnerINLINE()).isNative() && !GET_PLAYER(getOwnerINLINE()).isNative())
+				{
+					GET_PLAYER(plot()->getOwnerINLINE()).AI_changeAttitudeExtra(getOwnerINLINE(), -GLOBAL_DEFINE_FORT_ON_NATIVE_LAND_ATTITUDE_PENALTY);
 					plot()->setOwner(getOwnerINLINE(),true);
 				}
 			}
@@ -11757,6 +11785,21 @@ void CvUnit::jumpTo(Coordinates toCoord, bool bGroup, bool bUpdate, bool bShow, 
 			}
 		}
 		// Super Forts end
+
+		// WTP, forts block foreign trade: tell the player why the village will not trade
+		if (pNewPlot->isCity() && cargoSpace() > 0 && !getUnitInfo().isGatherBoat() && GET_PLAYER(getOwnerINLINE()).isHuman())
+		{
+			const CvCity* const pVillage = pNewPlot->getPlotCity();
+			if (pVillage->isNative() && pVillage->getOwnerINLINE() != getOwnerINLINE())
+			{
+				const PlayerTypes eBlocker = pVillage->getTradeBlockingFortOwner(getOwnerINLINE());
+				if (eBlocker != NO_PLAYER)
+				{
+					CvWString szBuffer = gDLL->getText("TXT_KEY_TRADE_BLOCKED_BY_FORT", pVillage->getNameKey(), GET_PLAYER(eBlocker).getCivilizationShortDescriptionKey());
+					gDLL->UI().addPlayerMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_ADVISOR_SUGGEST", MESSAGE_TYPE_INFO, getButton(), COLOR_WARNING_TEXT, pNewPlot->getX_INLINE(), pNewPlot->getY_INLINE(), true, true);
+				}
+			}
+		}
 
 		//update facing direction
 		if(pOldPlot != NULL)

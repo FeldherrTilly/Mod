@@ -39,6 +39,33 @@
 // In general the game will use a low realistic number while it can increase if a rare promotion combo comes up.
 
 // WTP, Schmiddie, Naval Control Movement - START
+// WTP: an occupied fort makes the plots around it harder to cross for its enemies (land units): one move more
+int CvPlot::fortZoneMovementCost(const CvUnit* pMovingUnit) const
+{
+	if (pMovingUnit->getDomainType() != DOMAIN_LAND)
+	{
+		return 0;
+	}
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		const CvPlot* const pAdjacent = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
+		if (pAdjacent == NULL || !pAdjacent->isFort())
+		{
+			continue;
+		}
+		for (int i = 0; i < pAdjacent->getNumUnits(); ++i)
+		{
+			const CvUnit* const pFortUnit = pAdjacent->getUnitByIndex(i);
+			if (pFortUnit != NULL && !pFortUnit->isCargo() && pFortUnit->canDefend()
+				&& pMovingUnit->isEnemy(pFortUnit->getCombatTeam(pMovingUnit->getTeam(), pAdjacent), pAdjacent))
+			{
+				return GLOBAL_DEFINE_MOVE_DENOMINATOR;
+			}
+		}
+	}
+	return 0;
+}
+
 int CvPlot::navalControlMovementCost(const CvUnit* pMovingUnit) const
 {
 	if (pMovingUnit == NULL)
@@ -2374,6 +2401,25 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 	return true;
 }
 
+// WTP, forts on native land: forts may be built in native territory, but not directly next to a village
+bool CvPlot::canBuildFortOnNativeLand(ImprovementTypes eImprovement) const
+{
+	if (!GC.getImprovementInfo(eImprovement).isFort() || getOwnerINLINE() == NO_PLAYER || !GET_PLAYER(getOwnerINLINE()).isNative())
+	{
+		return false;
+	}
+
+	for (int i = 0; i < NUM_DIRECTION_TYPES; ++i)
+	{
+		const CvPlot* const pLoopPlot = ::plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes) i);
+		if (pLoopPlot != NULL && pLoopPlot->isCity())
+		{
+			return false;
+		}
+	}
+	return !isCity();
+}
+
 bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible) const
 {
 	ImprovementTypes eImprovement;
@@ -2490,7 +2536,7 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 					//WTP, ray, Large Rivers
 					if (getTerrainType() != TERRAIN_LARGE_RIVERS)
 					{
-						if (getTeam() != NO_TEAM)
+						if (getTeam() != NO_TEAM && !canBuildFortOnNativeLand(eImprovement))
 						{
 							return false;
 						}
@@ -2668,7 +2714,9 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 	{
 		if (GC.getBuildInfo(eBuild).isFeatureRemove(getFeatureType()))
 		{
-			if (isOwned() && (GET_PLAYER(ePlayer).getTeam() != getTeam()) && !atWar(GET_PLAYER(ePlayer).getTeam(), getTeam()))
+			// WTP: Europeans may also clear features on native land (e.g. to build a fort there), not on other colonies' land
+			if (isOwned() && (GET_PLAYER(ePlayer).getTeam() != getTeam()) && !atWar(GET_PLAYER(ePlayer).getTeam(), getTeam())
+				&& !(GET_PLAYER(getOwnerINLINE()).isNative() && !GET_PLAYER(ePlayer).isNative()))
 			{
 				return false;
 			}
@@ -2830,6 +2878,12 @@ int CvPlot::getFeatureYield(BuildTypes eBuild, YieldTypes eYield, TeamTypes eTea
 	if (*ppCity == NULL)
 	{
 		*ppCity = getWorkingCity();
+
+		// WTP: the yield of a cleared feature goes to the builder's own colonies, not to a foreign (e.g. native) city working the plot
+		if (*ppCity != NULL && (*ppCity)->getTeam() != eTeam)
+		{
+			*ppCity = NULL;
+		}
 
 		if (*ppCity == NULL)
 		{
@@ -3859,6 +3913,7 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 	{
 		iMovementCost += navalControlMovementCost(pUnit);
 	}
+	iMovementCost += fortZoneMovementCost(pUnit);
 
 	return iMovementCost;
 }
