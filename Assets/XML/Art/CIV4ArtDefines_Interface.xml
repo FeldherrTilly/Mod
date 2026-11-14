@@ -898,5 +898,13 @@
 			<Type>INTERFACE_GENERAL_TERRITORIAL_INFLUENCE</Type>
 			<Path>Art/Interface/actions/territorial_Influence.dds</Path>
 		</InterfaceArtInfo>
+		<InterfaceArtInfo>
+			<Type>INTERFACE_PIONEER_PLAN</Type>
+			<Path>Art/Interface/Game Hud/Top_buttons/Pioneer_Plan.dds</Path>
+		</InterfaceArtInfo>
+		<InterfaceArtInfo>
+			<Type>INTERFACE_PRIVATE_PIONEER</Type>
+			<Path>Art/Interface/Game Hud/Top_buttons/Private_Pioneer.dds</Path>
+		</InterfaceArtInfo>
 	</InterfaceArtInfos>
 </Civ4ArtDefines>

@@ -214,7 +214,7 @@
 			<Command>COMMAND_AUTOMATE</Command>
 			<Automate>AUTOMATE_PIONEER_PLAN</Automate>
 			<bVisible>1</bVisible>
-			<Button>Art/Interface/Game Hud/Actions/automate_high_res.dds</Button>
+			<Button>Art/Interface/Game Hud/Actions/automate_pioneer_plan_high_res.dds</Button>
 		</AutomateInfo>
 		<AutomateInfo>
 			<Type>AUTOMATE_PRIVATE_BUILD</Type>
@@ -233,7 +233,7 @@
 			<Command>COMMAND_AUTOMATE</Command>
 			<Automate>AUTOMATE_PRIVATE_BUILD</Automate>
 			<bVisible>0</bVisible>
-			<Button>Art/Interface/Game Hud/Actions/automate_high_res.dds</Button>
+			<Button>Art/Interface/Game Hud/Actions/private_pioneer_high_res.dds</Button>
 		</AutomateInfo>
 	</AutomateInfos>
 </Civ4AutomateInfos>
