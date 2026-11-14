@@ -563,11 +563,6 @@
 		<iDefineIntVal>350</iDefineIntVal>
 	</Define>
 	<Define>
-		<!-- AI: minimum number of a team's land plots bordering the AI's territory for it to count as a land target (vanilla 8) -->
-		<DefineName>LAND_TARGET_MIN_ADJACENT_PLOTS</DefineName>
-		<iDefineIntVal>3</iDefineIntVal>
-	</Define>
-	<Define>
 		<!-- a defended fort within this many plots of a native village blocks trade there for other players -->
 		<DefineName>FORT_TRADE_BLOCK_RANGE</DefineName>
 		<iDefineIntVal>2</iDefineIntVal>
@@ -576,6 +571,11 @@
 		<!-- attitude loss of natives towards a player who builds a fort on their land (the fort plot passes to the builder) -->
 		<DefineName>FORT_ON_NATIVE_LAND_ATTITUDE_PENALTY</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- AI: minimum number of a team's land plots bordering the AI's territory for it to count as a land target (vanilla 8) -->
+		<DefineName>LAND_TARGET_MIN_ADJACENT_PLOTS</DefineName>
+		<iDefineIntVal>3</iDefineIntVal>
 	</Define>
 	<Define>
 		<DefineName>MAX_NATIVE_BARGAIN_MODIFIER</DefineName>
@@ -1897,6 +1897,12 @@
 		<DefineName>SIEGE_AI_MUSTER_ATTACK_PERCENT</DefineName>
 		<iDefineIntVal>130</iDefineIntVal>
 	</Define>
+	<!-- WTP: 1 logs every action of the human players with its situation (WTP_P00_<civ>_human.log in the game's log folder),
+		as data to tune the AI by; 0 turns this log off -->
+	<Define>
+		<DefineName>WTP_LOG_HUMAN_ACTIONS</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
 	<!-- WTP: AI: a unit in a city too weak against the enemies nearby (AI_leaveAttack strength threshold) still attacks a
 		reachable enemy with odds of at least AI_LEAVE_ATTACK_SURE_ODDS percent, if another defender stays in the city -->
 	<Define>
@@ -1926,12 +1932,6 @@
 	<Define>
 		<DefineName>SIEGE_AI_WAGON_MIN_POWDER</DefineName>
 		<iDefineIntVal>30</iDefineIntVal>
-	</Define>
-	<!-- WTP: 1 logs every action of the human players with its situation (WTP_P00_<civ>_human.log in the game's log folder),
-		as data to tune the AI by; 0 turns this log off -->
-	<Define>
-		<DefineName>WTP_LOG_HUMAN_ACTIONS</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 	<!-- WTP: automatic market imports (trade route preset in the import/export dialog): every AUTO_MARKET_IMPORT_INTERVAL turns
 		the goods the domestic market asks for are imported with the feeder, maintain level AUTO_MARKET_IMPORT_MAINTAIN_TURNS and
@@ -1967,16 +1967,6 @@
 		<!-- see comments for TRADE_DECAY_TURN -->
 		<DefineName>TRADE_DECAY_PRICE_CHANGE</DefineName>
 		<iDefineIntVal>512</iDefineIntVal>
-	</Define>
-	<Define>
-		<!-- WTP: native supply automation (coastal ships): villages within this many plots of the home colony are visited -->
-		<DefineName>NATIVE_SUPPLY_HOME_RANGE</DefineName>
-		<iDefineIntVal>35</iDefineIntVal>
-	</Define>
-	<Define>
-		<!-- WTP: native supply automation: the ship brings its goods home this many turns after it left (also the longest trip to a village); the help text TXT_KEY_ACTION_AUTOMATE_NATIVE_SUPPLY_HELP names it -->
-		<DefineName>NATIVE_SUPPLY_TRIP_TURNS</DefineName>
-		<iDefineIntVal>20</iDefineIntVal>
 	</Define>
 	<Define>
 		<!-- WTP: black powder a land artillery carries -->
@@ -2017,6 +2007,16 @@
 		<!-- WTP: artillery duel: bombardment effect in percent with eight times (or more) the enemy artillery strength -->
 		<DefineName>BOMBARD_ARTILLERY_PERCENT_8X</DefineName>
 		<iDefineIntVal>75</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- WTP: native supply automation (coastal ships): villages within this many plots of the home colony are visited -->
+		<DefineName>NATIVE_SUPPLY_HOME_RANGE</DefineName>
+		<iDefineIntVal>35</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- WTP: native supply automation: the ship brings its goods home this many turns after it left (also the longest trip to a village); the help text TXT_KEY_ACTION_AUTOMATE_NATIVE_SUPPLY_HELP names it -->
+		<DefineName>NATIVE_SUPPLY_TRIP_TURNS</DefineName>
+		<iDefineIntVal>20</iDefineIntVal>
 	</Define>
 	<Define>
 		<!-- WTP: the pirate ships of the barbarian player (Wild Animals) have at most this many moves -->

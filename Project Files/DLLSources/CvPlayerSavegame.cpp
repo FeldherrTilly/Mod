@@ -329,12 +329,11 @@ enum SavegameVariableTypes
 	PlayerSave_TradePostMestizoPoints,
 	PlayerSave_TradePostMestizoThresholdMultiplier,
 	// WTP, Schmiddie, Trade Post Mestizo - END
-
-	PlayerSave_PioneerPlans, // WTP
 	// (new values only at the end: savegames store the enum index)
 	PlayerSave_MilitaryDismissTurn, // WTP
 	PlayerSave_MilitaryShortTurn, // WTP
 	PlayerSave_DomesticMarketIncome, // WTP
+	PlayerSave_PioneerPlans, // WTP
 	NUM_SAVE_ENUM_VALUES,
 };
 
@@ -736,9 +735,9 @@ void CvPlayer::resetSavedData(PlayerTypes eID, bool bConstructorCall)
 	m_iMilitaryDismissTurn = defaultMilitaryDismissTurn;
 	m_iMilitaryShortTurn = defaultMilitaryShortTurn;
 	m_iDomesticMarketIncome = defaultDomesticMarketIncome;
+	m_mapPioneerPlans.clear();
 	m_iTurnCrimeGold = 0;
 	m_iTurnCultureGold = 0;
-	m_mapPioneerPlans.clear();
 	// WTP, Schmiddie, Slave Emancipation - END
 	m_iFatherPointMultiplier = defaultFatherPointMultiplier;
 	m_iMissionaryRateModifier = defaultMissionaryRateModifier;
@@ -1007,12 +1006,6 @@ void CvPlayer::read(CvSavegameReader reader)
 		case PlayerSave_DomesticMarketIncome:
 			reader.Read(m_iDomesticMarketIncome);
 			break;
-		case PlayerSave_MilitaryDismissTurn:
-			reader.Read(m_iMilitaryDismissTurn);
-			break;
-		case PlayerSave_MilitaryShortTurn:
-			reader.Read(m_iMilitaryShortTurn);
-			break;
 		case PlayerSave_PioneerPlans:
 		{
 			// WTP: pioneer plan (pairs of plot index and build * 10 + priority)
@@ -1025,6 +1018,12 @@ void CvPlayer::read(CvSavegameReader reader)
 			}
 			break;
 		}
+		case PlayerSave_MilitaryDismissTurn:
+			reader.Read(m_iMilitaryDismissTurn);
+			break;
+		case PlayerSave_MilitaryShortTurn:
+			reader.Read(m_iMilitaryShortTurn);
+			break;
 		// WTP, Schmiddie, Slave Emancipation - END
 		case PlayerSave_FatherPointMultiplier: reader.Read(m_iFatherPointMultiplier); break;
 		case PlayerSave_MissionaryRateModifier: reader.Read(m_iMissionaryRateModifier); break;

@@ -106,8 +106,8 @@ enum SavegameVariableTypes
 	PlayerSaveAI_EarlySettlerId1,
 	PlayerSaveAI_WarMilitarySpent,
 	PlayerSaveAI_WarCivilianSpent,
-	PlayerSaveAI_NativeTraderTurn, // WTP: the turn the last native trader was equipped
 	PlayerSaveAI_SiegeCounterIDs, // WTP: siege
+	PlayerSaveAI_NativeTraderTurn, // WTP: the turn the last native trader was equipped
 	NUM_SAVE_ENUM_VALUES,
 };
 
@@ -166,8 +166,8 @@ const char* getSavedEnumNamePlayerAi(SavegameVariableTypes eType)
 	case PlayerSaveAI_EarlySettlerId1: return "PlayerSaveAI_EarlySettlerId1";
 	case PlayerSaveAI_WarMilitarySpent: return "PlayerSaveAI_WarMilitarySpent";
 	case PlayerSaveAI_WarCivilianSpent: return "PlayerSaveAI_WarCivilianSpent";
-	case PlayerSaveAI_NativeTraderTurn: return "PlayerSaveAI_NativeTraderTurn";
 	case PlayerSaveAI_SiegeCounterIDs: return "PlayerSaveAI_SiegeCounterIDs";
+	case PlayerSaveAI_NativeTraderTurn: return "PlayerSaveAI_NativeTraderTurn";
 
 		case PlayerSaveAI_AICitySites: return "PlayerSaveAI_AICitySites";
 		case PlayerSaveAI_unitPriorityHeap: return "PlayerSaveAI_unitPriorityHeap";
@@ -247,7 +247,6 @@ void CvPlayerAI::AI_resetSavedData()
 	m_iSurplusPioneerID = -1;
 	m_iSurplusPioneerCityID = -1;
 	m_iSavingGoldTurn = -1;
-	m_iEuropeFallbackTurn = -1;
 	m_iSiegeArtilleryCount = 0;
 	m_iSiegeWagonShortfall = 0;
 	m_iSiegePowderGold = 0;
@@ -257,6 +256,7 @@ void CvPlayerAI::AI_resetSavedData()
 	m_iSiegeMusterPlot = -1;
 	m_iSiegeMusterThreatPlot = -1;
 	m_iSiegeMusterAttackTurn = -1;
+	m_iEuropeFallbackTurn = -1;
 	m_mapWfLearnWait.clear();
 	m_mapWfRecentBuy.clear();
 	m_mapWfUnreachable.clear();
@@ -266,15 +266,15 @@ void CvPlayerAI::AI_resetSavedData()
 	m_iWfLandMoves = 1;
 	m_mapNativeVillageVisit.clear();
 	m_mapTraderTarget.clear();
+	m_mapPioneerPlanTargets.clear();
+	m_iPioneerPlanDoneTurn = -1;
+	m_mapPioneerPlanNoWay.clear();
 	m_eWfExpertToBuy = NO_UNITCLASS;
 	m_aWfOpenOpportunities.clear();
 	m_iWfIdleCount = 0;
 	m_iWfTravelTurn = -1;
 	m_iWfFoodCityID = -1;
 	m_bWfFoodWater = false;
-	m_mapPioneerPlanTargets.clear();
-	m_iPioneerPlanDoneTurn = -1;
-	m_mapPioneerPlanNoWay.clear();
 	m_iMoveQueuePasses = defaultMoveQueuePasses;
 	m_iLastWave = defaultLastWave;
 	m_iWaveIndex = defaultWaveIndex;

@@ -288,9 +288,9 @@ class CvMainInterface:
 	BUTTON_PIONEER_PLAN_BUILD = 752 # WTP: iData2 = the build
 	BUTTON_PIONEER_PLAN_PRIORITY = 753 # WTP: iData2 = the priority
 	BUTTON_PRIVATE_BUILD = 754 # WTP: private pioneer
+	BUTTON_AUTO_ASSIGN_TARGET = 755 # WTP: city screen: the colony takes colonists of the job automation
 	PRIVATE_BUILD_COST = 500 # WTP: as CvPlayer::startPrivateBuild
 	PRIVATE_BUILD_RANGE = 3 # WTP: as CvPlayer::startPrivateBuild
-	BUTTON_AUTO_ASSIGN_TARGET = 755 # WTP: city screen: the colony takes colonists of the job automation
 
 	def numPlotListButtons( self ):
 		return NUM_PLOT_LIST_BUTTONS
@@ -3771,6 +3771,9 @@ class CvMainInterface:
 			elif (inputClass.getButtonType() == WidgetTypes.WIDGET_GENERAL and inputClass.getData1() == self.BUTTON_PRIVATE_BUILD):
 				self.togglePrivateBuild()
 
+			elif (inputClass.getButtonType() == WidgetTypes.WIDGET_GENERAL and inputClass.getData1() == self.BUTTON_AUTO_ASSIGN_TARGET):
+				self.toggleAutoAssignTarget()
+
 			# WTP: pioneer plan: the improvement and the priority chosen
 			elif (inputClass.getButtonType() == WidgetTypes.WIDGET_GENERAL and inputClass.getData1() == self.BUTTON_PIONEER_PLAN_BUILD):
 				self.iPioneerPlanBuild = inputClass.getData2()
@@ -3780,9 +3783,6 @@ class CvMainInterface:
 				self.iPioneerPlanPriority = inputClass.getData2()
 				self.drawPioneerPlanChoice()
 
-
-			elif (inputClass.getButtonType() == WidgetTypes.WIDGET_GENERAL and inputClass.getData1() == self.BUTTON_AUTO_ASSIGN_TARGET):
-				self.toggleAutoAssignTarget()
 		return 0
 
 	# WTP: pioneer plan mode: choose an improvement and a priority, left click marks a plot, right click removes the mark

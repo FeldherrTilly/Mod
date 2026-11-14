@@ -3588,17 +3588,6 @@ void CvUnit::doCommand(CommandTypes eCommand, int iData1, int iData2)
 			}
 			break;
 
-		// WTP: transport to a city: the player picks the colony
-		case COMMAND_TRANSPORT_TO_CITY:
-			if (getOwnerINLINE() == GC.getGameINLINE().getActivePlayer() && gDLL->getInterfaceIFace()->getHeadSelectedUnit() == this)
-			{
-				CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_TRANSPORT_TO_MENU);
-				pInfo->setData1(getID());
-				gDLL->getInterfaceIFace()->addPopup(pInfo, getOwnerINLINE(), true, true);
-			}
-			break;
-
-
 		// WTP: reload the black powder of land artillery
 		case COMMAND_RELOAD_POWDER:
 			reloadPowderGroup();
@@ -3612,6 +3601,17 @@ void CvUnit::doCommand(CommandTypes eCommand, int iData1, int iData2)
 		case COMMAND_LIFT_SIEGE:
 			getLiftSiegeCity()->endSiege();
 			break;
+
+		// WTP: transport to a city: the player picks the colony
+		case COMMAND_TRANSPORT_TO_CITY:
+			if (getOwnerINLINE() == GC.getGameINLINE().getActivePlayer() && gDLL->getInterfaceIFace()->getHeadSelectedUnit() == this)
+			{
+				CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_TRANSPORT_TO_MENU);
+				pInfo->setData1(getID());
+				gDLL->getInterfaceIFace()->addPopup(pInfo, getOwnerINLINE(), true, true);
+			}
+			break;
+
 		// TAC - Goto Menu - koma13 - START
 		case COMMAND_GOTO_MENU:
 			if (getOwnerINLINE() == GC.getGameINLINE().getActivePlayer() && gDLL->getInterfaceIFace()->getHeadSelectedUnit() == this)
@@ -4822,6 +4822,18 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 		}
 		break;
 
+	// WTP: automatic job assignment: a single colonist on the map (not aboard a ship) of a player with a colony
+	case AUTOMATE_ASSIGN_JOB:
+		if (getDomainType() != DOMAIN_LAND || !isOnMap_() || isCargo() || isNative() || !getUnitInfo().isFound()
+			|| getGroup() == NULL || getGroup()->getNumUnits() != 1 || GET_PLAYER(getOwnerINLINE()).getNumCities() == 0)
+		{
+			return false;
+		}
+		break;
+
+	// WTP: transport to a city or plot: set by its own buttons (COMMAND_TRANSPORT_TO_CITY, INTERFACEMODE_TRANSPORT_TO)
+	case AUTOMATE_TRAVEL:
+		return false;
 
 	// WTP: private pioneer: set when the player pays for it (CvPlayer::startPrivateBuild), never by the player
 	case AUTOMATE_PRIVATE_BUILD:
@@ -4835,6 +4847,7 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 			return false;
 		}
 		break;
+
 	// WTP: patrol: a human player's military unit or warship on the map (not aboard a ship)
 	case AUTOMATE_PATROL:
 		if (!isHuman() || isNative() || !isOnMap_() || isCargo() || !canAttack() || (getDomainType() != DOMAIN_LAND && getDomainType() != DOMAIN_SEA))
@@ -4842,23 +4855,6 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 			return false;
 		}
 		break;
-
-	// WTP: native supply automation: a human player's coastal ship (cargo, no fishing or whaling boat) on the map
-	case AUTOMATE_NATIVE_SUPPLY:
-		if (!isHuman() || isNative() || getDomainType() != DOMAIN_SEA || !isOnMap_() || cargoSpace() == 0 || getUnitInfo().isGatherBoat()
-			|| getUnitInfo().getDefaultUnitAIType() != UNITAI_TRANSPORT_COAST || GET_PLAYER(getOwnerINLINE()).getNumCities() == 0)
-	// WTP: automatic job assignment: a single colonist on the map (not aboard a ship) of a player with a colony
-	case AUTOMATE_ASSIGN_JOB:
-		if (getDomainType() != DOMAIN_LAND || !isOnMap_() || isCargo() || isNative() || !getUnitInfo().isFound()
-			|| getGroup() == NULL || getGroup()->getNumUnits() != 1 || GET_PLAYER(getOwnerINLINE()).getNumCities() == 0)
-		{
-			return false;
-		}
-		break;
-
-	// WTP: transport to a city or plot: set by its own buttons (COMMAND_TRANSPORT_TO_CITY, INTERFACEMODE_TRANSPORT_TO)
-	case AUTOMATE_TRAVEL:
-		return false;
 
 	// WTP: treasure automation: a human player's treasure on the map (not aboard a ship)
 	case AUTOMATE_TREASURE:
@@ -4878,6 +4874,15 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 			{
 				return false;
 			}
+		}
+		break;
+
+	// WTP: native supply automation: a human player's coastal ship (cargo, no fishing or whaling boat) on the map
+	case AUTOMATE_NATIVE_SUPPLY:
+		if (!isHuman() || isNative() || getDomainType() != DOMAIN_SEA || !isOnMap_() || cargoSpace() == 0 || getUnitInfo().isGatherBoat()
+			|| getUnitInfo().getDefaultUnitAIType() != UNITAI_TRANSPORT_COAST || GET_PLAYER(getOwnerINLINE()).getNumCities() == 0)
+		{
+			return false;
 		}
 		break;
 
@@ -9142,13 +9147,7 @@ bool CvUnit::build(BuildTypes eBuild)
 	OOS_LOG("CvUnit::build", getTypeStr(eBuild));
 	GET_PLAYER(getOwnerINLINE()).changeGold(-(GET_PLAYER(getOwnerINLINE()).getBuildCost(plot(), eBuild)));
 
-	// WTP: the first turn of a build counts twice, so a pioneer needs one turn less
-	int iWork = workRate(false);
-	if (plot()->getBuildProgress(eBuild) == 0)
-	{
-		iWork *= 2;
-	}
-	bFinished = plot()->changeBuildProgress(eBuild, iWork, getTeam());
+	bFinished = plot()->changeBuildProgress(eBuild, workRate(false), getTeam());
 
 	finishMoves(); // needs to be at bottom because movesLeft() can affect workRate()...
 

@@ -749,6 +749,12 @@ protected:
 	std::map<int, int> m_mapNativeVillageVisit;
 	// WTP: the village (plot index) each native trader (unit ID) is on its way to, not saved
 	std::map<int, int> m_mapTraderTarget;
+	// WTP: pioneer plan: the plot (index) each pioneer with the automation AUTOMATE_PIONEER_PLAN works on (unit ID), not saved
+	std::map<int, int> m_mapPioneerPlanTargets;
+	// WTP: pioneer plan: the turn the player was told that nothing is marked any more (once per turn), not saved
+	int m_iPioneerPlanDoneTurn;
+	// WTP: pioneer plan: (unit ID, plot index) -> the turn the pioneer found no way to that plot (not saved)
+	std::map<std::pair<int, int>, int> m_mapPioneerPlanNoWay;
 	// WTP: expert to buy instead of learning it (learning was blocked for 15 turns), not saved
 	UnitClassTypes m_eWfExpertToBuy;
 	bool AI_doWfExpertPurchase();
@@ -759,6 +765,10 @@ public:
 	UnitClassTypes AI_getWfExpertToBuy() const { return m_eWfExpertToBuy; }
 	static bool AI_isProtectedSpecialty(UnitClassTypes eUnitClass);
 	bool AI_isWantedExpertOnDock(const CvUnit& kUnit) const;
+	int AI_pioneerPlanTarget(const CvUnit& kPioneer);
+	void AI_clearPioneerPlanTarget(int iUnitID) { m_mapPioneerPlanTargets.erase(iUnitID); }
+	bool AI_pioneerPlanDoneNotice();
+	void AI_setPioneerPlanNoWay(int iUnitID, int iPlotIndex);
 	void AI_setTraderTarget(int iUnitID, int iPlotIndex);
 	bool AI_isTraderTargetTaken(int iPlotIndex, int iUnitID) const;
 protected:
@@ -776,7 +786,6 @@ protected:
 	};
 	std::vector<WfOpenOpportunity> m_aWfOpenOpportunities;
 	int m_iWfIdleCount; // WTP: colonists without a job in the last plan (not saved)
-	int m_iEuropeFallbackTurn; // WTP: the turn the idle transports in Europe were last checked (not saved)
 	int m_iSiegeArtilleryCount; // WTP: siege: own land artillery units, counted every turn (not saved)
 	int m_iSiegeWagonShortfall; // WTP: siege: attacking stacks with artillery minus wagon trains (not saved)
 	int m_iSiegePowderGold; // WTP: siege: gold a waiting wagon train needs for its powder (not saved)
@@ -788,19 +797,10 @@ protected:
 	int m_iSiegeMusterPlot;
 	int m_iSiegeMusterThreatPlot;
 	int m_iSiegeMusterAttackTurn; // WTP: siege: the turn the gathered counter units attacked the siege stack (not saved)
+	int m_iEuropeFallbackTurn; // WTP: the turn the idle transports in Europe were last checked (not saved)
 	int m_iWfFoodCityID; // WTP: the colony that needs a food provider most (not saved), -1
 	bool m_bWfFoodWater; // WTP: ... a fisherman (else a farmer or an African slave)
 	bool AI_buyExpertForOpportunity();
-	// WTP: pioneer plan: the plot (index) each pioneer with the automation AUTOMATE_PIONEER_PLAN works on (unit ID), not saved
-	std::map<int, int> m_mapPioneerPlanTargets;
-	// WTP: pioneer plan: the turn the player was told that nothing is marked any more (once per turn), not saved
-	int m_iPioneerPlanDoneTurn;
-	// WTP: pioneer plan: (unit ID, plot index) -> the turn the pioneer found no way to that plot (not saved)
-	std::map<std::pair<int, int>, int> m_mapPioneerPlanNoWay;
-	int AI_pioneerPlanTarget(const CvUnit& kPioneer);
-	void AI_clearPioneerPlanTarget(int iUnitID) { m_mapPioneerPlanTargets.erase(iUnitID); }
-	bool AI_pioneerPlanDoneNotice();
-	void AI_setPioneerPlanNoWay(int iUnitID, int iPlotIndex);
 
 	void AI_doTradeRoutes();
 	void AI_doCounter();
@@ -825,7 +825,6 @@ protected:
 
 	void AI_doMilitaryStrategy();
 	void AI_doSuppressRevolution();
-	int AI_siegePowderGold(int iAmount) const;
 	void AI_doSieges(); // WTP: siege
 	void AI_doWarDefense(); // WTP: siege
 	void AI_setSiegeMuster(const std::vector<struct SiegeThreat>& aThreats, int iOldCityID, int iOldPlot); // WTP: siege

@@ -2840,11 +2840,6 @@ int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, int iNowExtra, int iThenExtra) 
 
 	iBuildLeft = getBuildTime(eBuild);
 
-	// WTP: the first turn of a build counts twice (CvUnit::build)
-	if (getBuildProgress(eBuild) == 0)
-	{
-		iBuildLeft -= (iNowBuildRate > 0) ? iNowBuildRate : iThenBuildRate;
-	}
 	iBuildLeft -= getBuildProgress(eBuild);
 	iBuildLeft -= iNowBuildRate;
 
@@ -4145,15 +4140,15 @@ PlayerTypes CvPlot::calculateCulturalOwner() const
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
-			PlayerTypes ePlayer = (PlayerTypes)iI;
-			int iCulture = getCulture(ePlayer);
-			int iFortStrength = getFortCultureStrength(ePlayer);
 			// WTP: natives can't win back land that was bought from them
 			if (isBoughtFromNatives() && GET_PLAYER((PlayerTypes)iI).isNative())
 			{
 				continue;
 			}
 
+			PlayerTypes ePlayer = (PlayerTypes)iI;
+			int iCulture = getCulture(ePlayer);
+			int iFortStrength = getFortCultureStrength(ePlayer);
 
 			if (iCulture > 0 || iFortStrength > 0)
 			{

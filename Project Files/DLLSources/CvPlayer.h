@@ -1271,9 +1271,6 @@ public:
 	void changeDomesticMarketIncome(int iChange) { m_iDomesticMarketIncome += iChange; }
 	void changeTurnCrimeGold(int iChange) { m_iTurnCrimeGold += iChange; }
 	void changeTurnCultureGold(int iChange) { m_iTurnCultureGold += iChange; }
-	static int getMilitaryProfessionUpkeep(ProfessionTypes eProfession, int& iFreePool);
-	bool isMilitaryEquipBlocked() const;
-protected:
 	// WTP: pioneer plan: plots the player marked for an improvement (build) with priority 1 or 2 (AUTOMATE_PIONEER_PLAN works them)
 	void setPioneerPlan(int iPlotIndex, BuildTypes eBuild, int iPriority);
 	BuildTypes getPioneerPlanBuild(int iPlotIndex) const;
@@ -1281,6 +1278,9 @@ protected:
 	const std::map<int, int>& getPioneerPlans() const { return m_mapPioneerPlans; }
 	// WTP: private pioneer: for PRIVATE_BUILD_COST gold a hardy pioneer builds an improvement on a plot of the player
 	bool startPrivateBuild(int iX, int iY, BuildTypes eBuild);
+	static int getMilitaryProfessionUpkeep(ProfessionTypes eProfession, int& iFreePool);
+	bool isMilitaryEquipBlocked() const;
+protected:
 	void doBells();
 	void doCrosses();
 	void doWarnings();

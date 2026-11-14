@@ -2256,70 +2256,6 @@
 		<Hungarian>A hajó a legközelebbi kolónia körüli bennszülött falvakkal kereskedik: megveszi az áruikat és eladja őket Európában, ahol csereárut vásárol a bennszülötteknek (útonként legfeljebb 1000 arany, 500 arany a kincstárban marad), majd visszatér ehhez a kolóniához. Nem ad el fegyvert vagy lovat a bennszülötteknek, és nem visz utasokat.</Hungarian>
 	</TEXT>
 	<TEXT>
-		<Tag>TXT_KEY_NATIVE_TRADE_REPORT_VILLAGE</Tag>
-		<English>%s1 at %s2 - sold: %s3; bought: %s4</English>
-		<Portuguese>%s1 em %s2 - vendido: %s3; comprado: %s4</Portuguese>
-		<French>%s1 à %s2 - vendu : %s3 ; acheté : %s4</French>
-		<German>%s1 in %s2 - verkauft: %s3; gekauft: %s4</German>
-		<Italian>%s1 a %s2 - venduto: %s3; comprato: %s4</Italian>
-		<Spanish>%s1 en %s2 - vendido: %s3; comprado: %s4</Spanish>
-		<Russian>%s1 в %s2 - продано: %s3; куплено: %s4</Russian>
-		<Hungarian>%s1 itt: %s2 - eladva: %s3; vásárolva: %s4</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_NATIVE_TRADE_REPORT_EUROPE</Tag>
-		<English>%s1 in Europe - sold: %s2 for %d3 gold; bought: %s4</English>
-		<Portuguese>%s1 na Europa - vendido: %s2 por %d3 de ouro; comprado: %s4</Portuguese>
-		<French>%s1 en Europe - vendu : %s2 pour %d3 pièces d'or ; acheté : %s4</French>
-		<German>%s1 in Europa - verkauft: %s2 für %d3 Gold; gekauft: %s4</German>
-		<Italian>%s1 in Europa - venduto: %s2 per %d3 monete d'oro; comprato: %s4</Italian>
-		<Spanish>%s1 en Europa - vendido: %s2 por %d3 de oro; comprado: %s4</Spanish>
-		<Russian>%s1 в Европе - продано: %s2 за %d3 золота; куплено: %s4</Russian>
-		<Hungarian>%s1 Európában - eladva: %s2 %d3 aranyért; vásárolva: %s4</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_NATIVE_TRADE_REPORT_NOTHING</Tag>
-		<English>nothing</English>
-		<Portuguese>nada</Portuguese>
-		<French>rien</French>
-		<German>nichts</German>
-		<Italian>niente</Italian>
-		<Spanish>nada</Spanish>
-		<Russian>ничего</Russian>
-		<Hungarian>semmi</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_ACTION_AUTOMATE_NATIVE_SUPPLY</Tag>
-		<English>Native Supply Runs</English>
-		<Portuguese>Viagens de compra aos indígenas</Portuguese>
-		<French>Tournées d'achat chez les indigènes</French>
-		<German>Einkaufsfahrten zu den Indianern</German>
-		<Italian>Viaggi di acquisto dai nativi</Italian>
-		<Spanish>Viajes de compra a los indígenas</Spanish>
-		<Russian>Закупки у индейцев</Russian>
-		<Hungarian>Beszerzés a bennszülöttektől</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_ACTION_AUTOMATE_NATIVE_SUPPLY_HELP</Tag>
-		<English>The coastal ship buys goods in the native villages within 35 plots of the nearest colony and brings them to that colony, then starts again. It sails home when all cargo slots are taken, no village is worth a visit or 20 turns after it left. It sells nothing and never sails to Europe.</English>
-		<Portuguese>O navio costeiro compra mercadorias nas aldeias indígenas em torno da colônia mais próxima e leva-as para essa colônia; depois recomeça. Volta para casa quando todos os espaços de carga estão ocupados, nenhuma aldeia vale a visita ou 20 turnos depois de partir. Não vende nada e nunca navega para a Europa.</Portuguese>
-		<French>Le navire côtier achète des marchandises dans les villages indigènes autour de la colonie la plus proche et les rapporte à cette colonie, puis recommence. Il rentre quand toutes ses cales sont occupées, quand aucun village ne vaut la visite ou 20 tours après son départ. Il ne vend rien et ne va jamais en Europe.</French>
-		<German>Das Küstenschiff kauft in den Indianerdörfern im Umkreis von 35 Feldern um die nächste Kolonie Waren und bringt sie in diese Kolonie, dann beginnt es von vorn. Es fährt heim, wenn alle Laderäume belegt sind, kein Dorf einen Besuch lohnt oder 20 Runden nach der Abfahrt. Es verkauft nichts und fährt nie nach Europa.</German>
-		<Italian>La nave costiera compra merci nei villaggi nativi intorno alla colonia più vicina e le porta in quella colonia, poi ricomincia. Torna a casa quando tutte le stive sono occupate, nessun villaggio vale la visita o 20 turni dopo la partenza. Non vende nulla e non va mai in Europa.</Italian>
-		<Spanish>El barco costero compra mercancías en las aldeas indígenas alrededor de la colonia más cercana y las lleva a esa colonia; luego vuelve a empezar. Regresa cuando todas las bodegas están ocupadas, ninguna aldea merece la visita o 20 turnos después de partir. No vende nada y nunca navega a Europa.</Spanish>
-		<Russian>Каботажное судно закупает товары в индейских деревнях вокруг ближайшей колонии и привозит их в эту колонию, затем начинает заново. Оно возвращается, когда все трюмы заняты, ни одна деревня не стоит визита или через 20 ходов после отплытия. Оно ничего не продаёт и никогда не плывёт в Европу.</Russian>
-		<Hungarian>A parti hajó árut vásárol a legközelebbi kolónia körüli bennszülött falvakban, elviszi azt a kolóniába, majd újrakezdi. Hazaindul, ha minden raktere megtelt, egyik falu sem éri meg a látogatást, vagy 20 körrel az indulás után. Semmit sem ad el, és soha nem hajózik Európába.</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_NATIVE_SUPPLY_REPORT_HOME</Tag>
-		<English>%s1 brings %s2 to %s3</English>
-		<Portuguese>%s1 leva %s2 para %s3</Portuguese>
-		<French>%s1 apporte %s2 à %s3</French>
-		<German>%s1 bringt %s2 nach %s3</German>
-		<Italian>%s1 porta %s2 a %s3</Italian>
-		<Spanish>%s1 lleva %s2 a %s3</Spanish>
-		<Russian>%s1 привозит %s2 в %s3</Russian>
-		<Hungarian>%s1 elviszi ide: %s3 - %s2</Hungarian>
 		<Tag>TXT_KEY_ACTION_AUTOMATE_ASSIGN_JOB</Tag>
 		<English>Auto Assign Job</English>
 		<Portuguese>Atribuir trabalho automaticamente</Portuguese>
@@ -2417,6 +2353,72 @@
 		<Spanish>%s1 deja su puesto en %s2 a %s3 y queda en la casilla de la colonia.</Spanish>
 		<Russian>%s1 уступает место в %s2 для %s3 и стоит на клетке колонии.</Russian>
 		<Hungarian>%s1 átadja a helyét %s2 kolóniában %s3 számára, és a kolónia mezőjén áll.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRADEROUTE_PRESET_BUILD</Tag>
+		<English>Building material: import clay, stone, tools (feeder 100/150), feeder for horses, sailcloth, hardwood, rope</English>
+		<Portuguese>Material de construção: importar argila, pedra, ferramentas (alimentador 100/150), alimentador para cavalos, lona, madeira de lei, cordas</Portuguese>
+		<French>Matériaux : importer argile, pierre, outils (approvisionnement 100/150), approvisionnement pour chevaux, toile, bois dur, cordes</French>
+		<German>Baumaterial: Lehm, Stein, Werkzeug importieren (Feeder 100/150), Feeder für Pferde, Segeltuch, Hartholz, Seile</German>
+		<Italian>Materiali edili: importa argilla, pietra, attrezzi (rifornimento 100/150), rifornimento per cavalli, tela, legno duro, corde</Italian>
+		<Spanish>Materiales: importar arcilla, piedra, herramientas (abastecimiento 100/150), abastecimiento para caballos, lona, madera dura, cuerdas</Spanish>
+		<Russian>Стройматериалы: импорт глины, камня, инструментов (подвоз 100/150), подвоз лошадей, парусины, твёрдой древесины, канатов</Russian>
+		<Hungarian>Építőanyag: agyag, kő, szerszám importja (utánpótlás 100/150), utánpótlás lóhoz, vitorlavászonhoz, keményfához, kötélhez</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRADEROUTE_PRESET_MARKET_AUTO</Tag>
+		<English>Market automatic: import the goods the market asks for, levels follow the demand (keep 5 turns of it, bring at most 7, at least 10, updated every 5 turns)</English>
+		<Portuguese>Mercado automático: importar os bens que o mercado procura, os níveis seguem a procura (manter 5 turnos dela, trazer no máximo 7, pelo menos 10, atualizado a cada 5 turnos)</Portuguese>
+		<French>Marché automatique : importer les marchandises demandées par le marché, les niveaux suivent la demande (garder 5 tours de celle-ci, apporter au plus 7, au moins 10, mis à jour tous les 5 tours)</French>
+		<German>Markt automatisch: vom Markt nachgefragte Waren importieren, Mengen folgen der Nachfrage (5 Runden davon halten, höchstens 7 bringen, mind. 10, alle 5 Runden aktualisiert)</German>
+		<Italian>Mercato automatico: importa le merci richieste dal mercato, i livelli seguono la domanda (tenere 5 turni di essa, portare al massimo 7, almeno 10, aggiornato ogni 5 turni)</Italian>
+		<Spanish>Mercado automático: importar los bienes que pide el mercado, los niveles siguen la demanda (mantener 5 turnos de ella, traer como máximo 7, al menos 10, actualizado cada 5 turnos)</Spanish>
+		<Russian>Рынок автоматически: импорт товаров, нужных рынку, объёмы следуют за спросом (запас на 5 ходов спроса, подвоз не больше 7, не меньше 10, обновление каждые 5 ходов)</Russian>
+		<Hungarian>Piac automatikusan: a piac által keresett áruk importja, a mennyiségek követik a keresletet (5 környi kereslet tartása, legfeljebb 7 hozása, legalább 10, 5 körönként frissül)</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRADEROUTE_PRESET_MARKET_AUTO_OFF</Tag>
+		<English>Market automatic: switch off (the imports stay as they are)</English>
+		<Portuguese>Mercado automático: desligar (as importações ficam como estão)</Portuguese>
+		<French>Marché automatique : désactiver (les importations restent telles quelles)</French>
+		<German>Markt automatisch: ausschalten (Importe bleiben wie sie sind)</German>
+		<Italian>Mercato automatico: disattiva (le importazioni restano come sono)</Italian>
+		<Spanish>Mercado automático: desactivar (las importaciones quedan como están)</Spanish>
+		<Russian>Рынок автоматически: выключить (импорт остаётся как есть)</Russian>
+		<Hungarian>Piac automatikusan: kikapcsolás (az importok maradnak, ahogy vannak)</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NATIVE_TRADE_REPORT_VILLAGE</Tag>
+		<English>%s1 at %s2 - sold: %s3; bought: %s4</English>
+		<Portuguese>%s1 em %s2 - vendido: %s3; comprado: %s4</Portuguese>
+		<French>%s1 à %s2 - vendu : %s3 ; acheté : %s4</French>
+		<German>%s1 in %s2 - verkauft: %s3; gekauft: %s4</German>
+		<Italian>%s1 a %s2 - venduto: %s3; comprato: %s4</Italian>
+		<Spanish>%s1 en %s2 - vendido: %s3; comprado: %s4</Spanish>
+		<Russian>%s1 в %s2 - продано: %s3; куплено: %s4</Russian>
+		<Hungarian>%s1 itt: %s2 - eladva: %s3; vásárolva: %s4</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NATIVE_TRADE_REPORT_EUROPE</Tag>
+		<English>%s1 in Europe - sold: %s2 for %d3 gold; bought: %s4</English>
+		<Portuguese>%s1 na Europa - vendido: %s2 por %d3 de ouro; comprado: %s4</Portuguese>
+		<French>%s1 en Europe - vendu : %s2 pour %d3 pièces d'or ; acheté : %s4</French>
+		<German>%s1 in Europa - verkauft: %s2 für %d3 Gold; gekauft: %s4</German>
+		<Italian>%s1 in Europa - venduto: %s2 per %d3 monete d'oro; comprato: %s4</Italian>
+		<Spanish>%s1 en Europa - vendido: %s2 por %d3 de oro; comprado: %s4</Spanish>
+		<Russian>%s1 в Европе - продано: %s2 за %d3 золота; куплено: %s4</Russian>
+		<Hungarian>%s1 Európában - eladva: %s2 %d3 aranyért; vásárolva: %s4</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NATIVE_TRADE_REPORT_NOTHING</Tag>
+		<English>nothing</English>
+		<Portuguese>nada</Portuguese>
+		<French>rien</French>
+		<German>nichts</German>
+		<Italian>niente</Italian>
+		<Spanish>nada</Spanish>
+		<Russian>ничего</Russian>
+		<Hungarian>semmi</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_COMMAND_TRANSPORT_TO_CITY</Tag>
@@ -2573,6 +2575,17 @@
 		<Hungarian>%s1 felszáll a(z) %s2 hajóra itt: %s3, cél: egy mező %s5 közelében (kb. %d4 kör).</Hungarian>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_CITY_BARRACKS_DEFENSE_REDUCED</Tag>
+		<English>Too many military units: city defense bonus at %d1%%</English>
+		<Portuguese>Unidades militares demais: bônus de defesa da cidade em %d1%%</Portuguese>
+		<French>Trop d'unités militaires : bonus de défense de la ville à %d1%%</French>
+		<German>Zu viele Militäreinheiten: Verteidigungsbonus der Stadt bei %d1%%</German>
+		<Italian>Troppe unità militari: bonus di difesa della città al %d1%%</Italian>
+		<Spanish>Demasiadas unidades militares: bonificación de defensa de la ciudad al %d1%%</Spanish>
+		<Russian>Слишком много военных отрядов: бонус защиты города %d1%%</Russian>
+		<Hungarian>Túl sok katonai egység: a város védelmi bónusza %d1%%</Hungarian>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_TRAVEL_BOARDED</Tag>
 		<English>%s1 boards %s2 in %s3 (about %d4 turns to its destination).</English>
 		<Portuguese>%s1 embarca no %s2 em %s3 (cerca de %d4 turnos até o destino).</Portuguese>
@@ -2615,248 +2628,6 @@
 		<Spanish> - comida escasa</Spanish>
 		<Russian> - нехватка еды</Russian>
 		<Hungarian> - kevés élelem</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_LOW_FOOD</Tag>
-		<English> - little [ICON_FOOD]</English>
-		<Portuguese> - pouca [ICON_FOOD]</Portuguese>
-		<French> - peu de [ICON_FOOD]</French>
-		<German> - wenig [ICON_FOOD]</German>
-		<Italian> - poco [ICON_FOOD]</Italian>
-		<Spanish> - poca [ICON_FOOD]</Spanish>
-		<Russian> - мало [ICON_FOOD]</Russian>
-		<Hungarian> - kevés [ICON_FOOD]</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_HAPPINESS</Tag>
-		<English> - happiness with those on their way %d1</English>
-		<Portuguese> - felicidade com os a caminho %d1</Portuguese>
-		<French> - bonheur avec ceux en route %d1</French>
-		<German> - Zufriedenheit mit den Geplanten %d1</German>
-		<Italian> - soddisfazione con quelli in arrivo %d1</Italian>
-		<Spanish> - satisfacción con los que van en camino %d1</Spanish>
-		<Russian> - счастье с теми, кто в пути, %d1</Russian>
-		<Hungarian> - boldogság az úton lévőkkel %d1</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_NO_GOLD</Tag>
-		<English>%s1 in %s2: %d3 turns away</English>
-		<Portuguese>%s1 em %s2: a %d3 turnos</Portuguese>
-		<French>%s1 à %s2 : à %d3 tours</French>
-		<German>%s1 in %s2: %d3 Runden entfernt</German>
-		<Italian>%s1 a %s2: a %d3 turni</Italian>
-		<Spanish>%s1 en %s2: a %d3 turnos</Spanish>
-		<Russian>%s1 в %s2: %d3 ходов пути</Russian>
-		<Hungarian>%s1 itt: %s2: %d3 kör távolságra</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_NO_GOLD_REPLACE</Tag>
-		<English>%s1 in %s2: %d3 turns away (replaces %s4)</English>
-		<Portuguese>%s1 em %s2: a %d3 turnos (substitui %s4)</Portuguese>
-		<French>%s1 à %s2 : à %d3 tours (remplace %s4)</French>
-		<German>%s1 in %s2: %d3 Runden entfernt (ersetzt %s4)</German>
-		<Italian>%s1 a %s2: a %d3 turni (sostituisce %s4)</Italian>
-		<Spanish>%s1 en %s2: a %d3 turnos (sustituye a %s4)</Spanish>
-		<Russian>%s1 в %s2: %d3 ходов пути (заменяет %s4)</Russian>
-		<Hungarian>%s1 itt: %s2: %d3 kör távolságra (%s4 helyére)</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_TITLE</Tag>
-		<English>Which job for %s1?</English>
-		<Portuguese>Qual trabalho para %s1?</Portuguese>
-		<French>Quel emploi pour %s1 ?</French>
-		<German>Welcher Job für %s1?</German>
-		<Italian>Quale lavoro per %s1?</Italian>
-		<Spanish>¿Qué trabajo para %s1?</Spanish>
-		<Russian>Какую работу дать %s1?</Russian>
-		<Hungarian>Milyen munka legyen %s1 számára?</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_SELECTION</Tag>
-		<English>%s1 in %s2: %d3 gold per turn, %d4 turns away</English>
-		<Portuguese>%s1 em %s2: %d3 de ouro por turno, a %d4 turnos</Portuguese>
-		<French>%s1 à %s2 : %d3 pièces d'or par tour, à %d4 tours</French>
-		<German>%s1 in %s2: %d3 Gold pro Runde, %d4 Runden entfernt</German>
-		<Italian>%s1 a %s2: %d3 monete d'oro per turno, a %d4 turni</Italian>
-		<Spanish>%s1 en %s2: %d3 de oro por turno, a %d4 turnos</Spanish>
-		<Russian>%s1 в %s2: %d3 золота за ход, %d4 ходов пути</Russian>
-		<Hungarian>%s1 itt: %s2: %d3 arany körönként, %d4 kör távolságra</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_REPLACE</Tag>
-		<English>%s1 in %s2: %d3 gold per turn, %d4 turns away (replaces %s5)</English>
-		<Portuguese>%s1 em %s2: %d3 de ouro por turno, a %d4 turnos (substitui %s5)</Portuguese>
-		<French>%s1 à %s2 : %d3 pièces d'or par tour, à %d4 tours (remplace %s5)</French>
-		<German>%s1 in %s2: %d3 Gold pro Runde, %d4 Runden entfernt (ersetzt %s5)</German>
-		<Italian>%s1 a %s2: %d3 monete d'oro per turno, a %d4 turni (sostituisce %s5)</Italian>
-		<Spanish>%s1 en %s2: %d3 de oro por turno, a %d4 turnos (sustituye a %s5)</Spanish>
-		<Russian>%s1 в %s2: %d3 золота за ход, %d4 ходов пути (заменяет %s5)</Russian>
-		<Hungarian>%s1 itt: %s2: %d3 arany körönként, %d4 kör távolságra (%s5 helyére)</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_ACTION_AUTOMATE_TREASURE</Tag>
-		<English>Automate Treasure</English>
-		<Portuguese>Automatizar tesouro</Portuguese>
-		<French>Automatiser le trésor</French>
-		<German>Schatz automatisieren</German>
-		<Italian>Automatizza tesoro</Italian>
-		<Spanish>Automatizar tesoro</Spanish>
-		<Russian>Автоматизировать сокровище</Russian>
-		<Hungarian>Kincs automatizálása</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_ACTION_AUTOMATE_TREASURE_HELP</Tag>
-		<English>The treasure is handled like those of the computer players: it goes to the nearest own colony with a deep water harbour (merging with other treasures there) and waits for a ship with the automation Fetch Treasures. If you have no such ship that can carry it, the king transports it from a coastal colony with a harbour, for his commission.</English>
-		<Portuguese>O tesouro é tratado como os dos jogadores do computador: vai para a colônia própria mais próxima com porto de águas profundas (juntando-se aos outros tesouros de lá) e espera por um navio com a automação Buscar tesouros. Se você não tiver um navio assim que possa levá-lo, o rei o transporta a partir de uma colônia costeira com porto, pela comissão dele.</Portuguese>
-		<French>Le trésor est géré comme ceux des joueurs ordinateur : il se rend dans la colonie la plus proche dotée d'un port en eau profonde (où il fusionne avec les autres trésors) et y attend un navire avec l'automatisation Récupérer les trésors. Si vous n'avez aucun navire de ce type capable de le transporter, le roi le transporte depuis une colonie côtière dotée d'un port, contre sa commission.</French>
-		<German>Der Schatz wird wie die der Computerspieler behandelt: Er geht in die nächste eigene Kolonie mit Tiefwasserhafen (und vereinigt sich dort mit anderen Schätzen) und wartet auf ein Schiff mit der Automatik Schätze abholen. Habt Ihr kein solches Schiff, das ihn tragen kann, transportiert ihn der König aus einer Küstenkolonie mit Hafen, gegen seine Provision.</German>
-		<Italian>Il tesoro è gestito come quelli dei giocatori del computer: va nella colonia propria più vicina con un porto in acque profonde (unendosi agli altri tesori lì) e aspetta una nave con l'automazione Recupera tesori. Se non hai una nave del genere in grado di trasportarlo, il re lo trasporta da una colonia costiera con un porto, in cambio della sua commissione.</Italian>
-		<Spanish>El tesoro se gestiona como los de los jugadores del ordenador: va a la colonia propia más cercana con puerto de aguas profundas (uniéndose a los demás tesoros de allí) y espera un barco con la automatización Recoger tesoros. Si no tienes ningún barco así que pueda llevarlo, el rey lo transporta desde una colonia costera con puerto, a cambio de su comisión.</Spanish>
-		<Russian>Сокровище ведёт себя как сокровища компьютерных игроков: оно идёт в ближайшую свою колонию с глубоководной гаванью (объединяясь там с другими сокровищами) и ждёт корабль с автоматизацией «Забирать сокровища». Если у вас нет такого корабля, способного его увезти, король перевозит его из прибрежной колонии с гаванью за свою комиссию.</Russian>
-		<Hungarian>A kincset úgy kezeli a játék, mint a gépi játékosokét: a legközelebbi saját, mélyvízi kikötős kolóniába megy (ott egyesül a többi kinccsel), és egy Kincsek begyűjtése automatizálású hajóra vár. Ha nincs ilyen hajód, amely elvihetné, a király szállítja el egy kikötős tengerparti kolóniából, a jutalékáért.</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_ACTION_AUTOMATE_TREASURE_SHIP</Tag>
-		<English>Fetch Treasures</English>
-		<Portuguese>Buscar tesouros</Portuguese>
-		<French>Récupérer les trésors</French>
-		<German>Schätze abholen</German>
-		<Italian>Recupera tesori</Italian>
-		<Spanish>Recoger tesoros</Spanish>
-		<Russian>Забирать сокровища</Russian>
-		<Hungarian>Kincsek begyűjtése</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_ACTION_AUTOMATE_TREASURE_SHIP_HELP</Tag>
-		<English>The ship fetches the treasures waiting for a ship (treasures with the automation Automate Treasure) like the transports of the computer players and takes them to Europe, where they are sold. From Europe it sails straight to the next waiting treasure; with none it waits in Europe. On the map with nothing to fetch it waits in the nearest own colony.</English>
-		<Portuguese>O navio busca os tesouros que esperam por um navio (tesouros com a automação Automatizar tesouro) como os transportes dos jogadores do computador e os leva para a Europa, onde são vendidos. Da Europa navega direto para o próximo tesouro à espera; sem nenhum, espera na Europa. No mapa, sem nada para buscar, espera na colônia própria mais próxima.</Portuguese>
-		<French>Le navire récupère les trésors qui attendent un navire (trésors avec l'automatisation Automatiser le trésor) comme les transports des joueurs ordinateur et les emmène en Europe, où ils sont vendus. Depuis l'Europe, il fait route directement vers le prochain trésor en attente ; s'il n'y en a aucun, il attend en Europe. Sur la carte, sans rien à récupérer, il attend dans la colonie la plus proche.</French>
-		<German>Das Schiff holt die Schätze, die auf ein Schiff warten (Schätze mit der Automatik Schatz automatisieren), wie die Transporter der Computerspieler ab und bringt sie nach Europa, wo sie verkauft werden. Von Europa fährt es direkt zum nächsten wartenden Schatz; gibt es keinen, wartet es in Europa. Auf der Karte wartet es ohne Schatz in der nächsten eigenen Kolonie.</German>
-		<Italian>La nave recupera i tesori che aspettano una nave (tesori con l'automazione Automatizza tesoro) come i trasporti dei giocatori del computer e li porta in Europa, dove vengono venduti. Dall'Europa salpa direttamente verso il prossimo tesoro in attesa; se non ce ne sono, aspetta in Europa. Sulla mappa, senza nulla da recuperare, aspetta nella colonia propria più vicina.</Italian>
-		<Spanish>El barco recoge los tesoros que esperan un barco (tesoros con la automatización Automatizar tesoro) como los transportes de los jugadores del ordenador y los lleva a Europa, donde se venden. Desde Europa navega directamente al siguiente tesoro en espera; si no hay ninguno, espera en Europa. En el mapa, sin nada que recoger, espera en la colonia propia más cercana.</Spanish>
-		<Russian>Корабль забирает сокровища, ожидающие корабль (сокровища с автоматизацией «Автоматизировать сокровище»), как транспорты компьютерных игроков, и отвозит их в Европу, где они продаются. Из Европы он плывёт прямо к следующему ожидающему сокровищу; если таких нет, ждёт в Европе. На карте, если забирать нечего, он ждёт в ближайшей своей колонии.</Russian>
-		<Hungarian>A hajó a gépi játékosok szállítóihoz hasonlóan begyűjti a hajóra váró kincseket (a Kincs automatizálása automatizálású kincseket), és Európába viszi őket, ahol eladják őket. Európából egyenesen a következő várakozó kincshez hajózik; ha nincs ilyen, Európában vár. A térképen, ha nincs mit begyűjteni, a legközelebbi saját kolóniában vár.</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_TRADEROUTE_PRESET_BUILD</Tag>
-		<English>Building material: import clay, stone, tools (feeder 100/150), feeder for horses, sailcloth, hardwood, rope</English>
-		<Portuguese>Material de construção: importar argila, pedra, ferramentas (alimentador 100/150), alimentador para cavalos, lona, madeira de lei, cordas</Portuguese>
-		<French>Matériaux : importer argile, pierre, outils (approvisionnement 100/150), approvisionnement pour chevaux, toile, bois dur, cordes</French>
-		<German>Baumaterial: Lehm, Stein, Werkzeug importieren (Feeder 100/150), Feeder für Pferde, Segeltuch, Hartholz, Seile</German>
-		<Italian>Materiali edili: importa argilla, pietra, attrezzi (rifornimento 100/150), rifornimento per cavalli, tela, legno duro, corde</Italian>
-		<Spanish>Materiales: importar arcilla, piedra, herramientas (abastecimiento 100/150), abastecimiento para caballos, lona, madera dura, cuerdas</Spanish>
-		<Russian>Стройматериалы: импорт глины, камня, инструментов (подвоз 100/150), подвоз лошадей, парусины, твёрдой древесины, канатов</Russian>
-		<Hungarian>Építőanyag: agyag, kő, szerszám importja (utánpótlás 100/150), utánpótlás lóhoz, vitorlavászonhoz, keményfához, kötélhez</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_TRADEROUTE_PRESET_MARKET_AUTO</Tag>
-		<English>Market automatic: import the goods the market asks for, levels follow the demand (keep 5 turns of it, bring at most 7, at least 10, updated every 5 turns)</English>
-		<Portuguese>Mercado automático: importar os bens que o mercado procura, os níveis seguem a procura (manter 5 turnos dela, trazer no máximo 7, pelo menos 10, atualizado a cada 5 turnos)</Portuguese>
-		<French>Marché automatique : importer les marchandises demandées par le marché, les niveaux suivent la demande (garder 5 tours de celle-ci, apporter au plus 7, au moins 10, mis à jour tous les 5 tours)</French>
-		<German>Markt automatisch: vom Markt nachgefragte Waren importieren, Mengen folgen der Nachfrage (5 Runden davon halten, höchstens 7 bringen, mind. 10, alle 5 Runden aktualisiert)</German>
-		<Italian>Mercato automatico: importa le merci richieste dal mercato, i livelli seguono la domanda (tenere 5 turni di essa, portare al massimo 7, almeno 10, aggiornato ogni 5 turni)</Italian>
-		<Spanish>Mercado automático: importar los bienes que pide el mercado, los niveles siguen la demanda (mantener 5 turnos de ella, traer como máximo 7, al menos 10, actualizado cada 5 turnos)</Spanish>
-		<Russian>Рынок автоматически: импорт товаров, нужных рынку, объёмы следуют за спросом (запас на 5 ходов спроса, подвоз не больше 7, не меньше 10, обновление каждые 5 ходов)</Russian>
-		<Hungarian>Piac automatikusan: a piac által keresett áruk importja, a mennyiségek követik a keresletet (5 környi kereslet tartása, legfeljebb 7 hozása, legalább 10, 5 körönként frissül)</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_TRADEROUTE_PRESET_MARKET_AUTO_OFF</Tag>
-		<English>Market automatic: switch off (the imports stay as they are)</English>
-		<Portuguese>Mercado automático: desligar (as importações ficam como estão)</Portuguese>
-		<French>Marché automatique : désactiver (les importations restent telles quelles)</French>
-		<German>Markt automatisch: ausschalten (Importe bleiben wie sie sind)</German>
-		<Italian>Mercato automatico: disattiva (le importazioni restano come sono)</Italian>
-		<Spanish>Mercado automático: desactivar (las importaciones quedan como están)</Spanish>
-		<Russian>Рынок автоматически: выключить (импорт остаётся как есть)</Russian>
-		<Hungarian>Piac automatikusan: kikapcsolás (az importok maradnak, ahogy vannak)</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_CITY_BARRACKS_DEFENSE_REDUCED</Tag>
-		<English>Too many military units: city defense bonus at %d1%%</English>
-		<Portuguese>Unidades militares demais: bônus de defesa da cidade em %d1%%</Portuguese>
-		<French>Trop d'unités militaires : bonus de défense de la ville à %d1%%</French>
-		<German>Zu viele Militäreinheiten: Verteidigungsbonus der Stadt bei %d1%%</German>
-		<Italian>Troppe unità militari: bonus di difesa della città al %d1%%</Italian>
-		<Spanish>Demasiadas unidades militares: bonificación de defensa de la ciudad al %d1%%</Spanish>
-		<Russian>Слишком много военных отрядов: бонус защиты города %d1%%</Russian>
-		<Hungarian>Túl sok katonai egység: a város védelmi bónusza %d1%%</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_ACTION_AUTOMATE_PATROL</Tag>
-		<English>Patrol</English>
-		<Portuguese>Patrulhar</Portuguese>
-		<French>Patrouiller</French>
-		<German>Patrouille</German>
-		<Italian>Pattugliare</Italian>
-		<Spanish>Patrullar</Spanish>
-		<Russian>Патрулировать</Russian>
-		<Hungarian>Járőrözés</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_ACTION_AUTOMATE_PATROL_HELP</Tag>
-		<English>The unit patrols within 10 plots of where it is now. It hunts runaway and revolting slaves, criminals, hostile natives, wild animals, pirates and enemies at war outside their borders, but only attacks with less than 5% risk of being destroyed. Below 95% strength it heals first, in the nearest colony. With nothing to attack it moves around the area.</English>
-		<Portuguese>A unidade patrulha num raio de 10 casas a partir de onde está agora. Caça escravos fugitivos e rebeldes, criminosos, nativos hostis, animais selvagens, piratas e inimigos em guerra fora das fronteiras deles, mas só ataca com menos de 5% de risco de ser destruída. Abaixo de 95% de força, cura-se primeiro na colônia mais próxima. Sem nada para atacar, percorre a área.</Portuguese>
-		<French>L'unité patrouille dans un rayon de 10 cases autour de sa position actuelle. Elle traque les esclaves fugitifs et révoltés, les criminels, les indigènes hostiles, les animaux sauvages, les pirates et les ennemis en guerre hors de leurs frontières, mais n'attaque qu'avec moins de 5% de risque d'être détruite. Sous 95% de force, elle se soigne d'abord dans la colonie la plus proche. Sans cible, elle parcourt la zone.</French>
-		<German>Die Einheit patrouilliert im Umkreis von 10 Feldern um ihren jetzigen Standort. Sie jagt entflohene und rebellische Sklaven, Sträflinge, feindliche Ureinwohner, wilde Tiere, Piraten und Kriegsgegner außerhalb ihrer Grenzen, greift aber nur an, wenn sie dabei mit weniger als 5% Wahrscheinlichkeit zerstört wird. Unter 95% Stärke heilt sie sich zuerst in der nächsten Kolonie. Ohne Ziel fährt sie Streife.</German>
-		<Italian>L'unità pattuglia entro 10 caselle dalla posizione attuale. Dà la caccia a schiavi fuggiti e ribelli, criminali, nativi ostili, animali selvatici, pirati e nemici in guerra fuori dai loro confini, ma attacca solo con meno del 5% di rischio di essere distrutta. Sotto il 95% di forza si cura prima nella colonia più vicina. Senza bersagli percorre la zona.</Italian>
-		<Spanish>La unidad patrulla en un radio de 10 casillas desde donde está ahora. Persigue a esclavos fugitivos y rebeldes, criminales, nativos hostiles, animales salvajes, piratas y enemigos en guerra fuera de sus fronteras, pero solo ataca con menos del 5% de riesgo de ser destruida. Por debajo del 95% de fuerza se cura primero en la colonia más cercana. Sin nada que atacar recorre la zona.</Spanish>
-		<Russian>Отряд патрулирует в радиусе 10 клеток от своего нынешнего места. Он охотится на беглых и восставших рабов, преступников, враждебных туземцев, диких животных, пиратов и врагов, с которыми идёт война, вне их границ, но атакует только при риске гибели менее 5%. При силе ниже 95% он сначала лечится в ближайшей колонии. Без целей он обходит территорию.</Russian>
-		<Hungarian>Az egység a jelenlegi helyétől 10 mezős körzetben járőrözik. Üldözi a szökött és lázadó rabszolgákat, bűnözőket, ellenséges bennszülötteket, vadállatokat, kalózokat és a háborús ellenségeket a határaikon kívül, de csak akkor támad, ha 5%-nál kisebb az esélye, hogy elpusztul. 95% erő alatt előbb a legközelebbi kolóniában gyógyul. Ha nincs célpont, bejárja a területet.</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_MILITARY_UPKEEP_GOLD_STR</Tag>
-		<English>Military upkeep: -%d1 per turn</English>
-		<Portuguese>Manutenção militar: -%d1 por turno</Portuguese>
-		<French>Entretien militaire : -%d1 par tour</French>
-		<German>Militärunterhalt: -%d1 pro Runde</German>
-		<Italian>Mantenimento militare: -%d1 per turno</Italian>
-		<Spanish>Mantenimiento militar: -%d1 por turno</Spanish>
-		<Russian>Содержание армии: -%d1 за ход</Russian>
-		<Hungarian>Katonai fenntartás: -%d1 körönként</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_DOMESTIC_MARKET_INCOME_STR</Tag>
-		<English>Domestic market: +%d1 last turn</English>
-		<Portuguese>Mercado interno: +%d1 no último turno</Portuguese>
-		<French>Marché intérieur : +%d1 au dernier tour</French>
-		<German>Binnenmarkt: +%d1 letzte Runde</German>
-		<Italian>Mercato interno: +%d1 nell'ultimo turno</Italian>
-		<Spanish>Mercado interior: +%d1 el último turno</Spanish>
-		<Russian>Внутренний рынок: +%d1 за прошлый ход</Russian>
-		<Hungarian>Belső piac: +%d1 az előző körben</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_TURN_GOLD_CRIME_CULTURE</Tag>
-		<English>This turn thieves stole %d1 gold from our colonies because of low law; culture brought in %d2 gold.</English>
-		<Portuguese>Neste turno, ladrões roubaram %d1 de ouro das nossas colônias por causa da pouca lei; a cultura rendeu %d2 de ouro.</Portuguese>
-		<French>Ce tour-ci, des voleurs ont dérobé %d1 pièces d'or dans nos colonies faute d'ordre public ; la culture a rapporté %d2 pièces d'or.</French>
-		<German>In dieser Runde haben Diebe wegen zu wenig Ordnung %d1 Gold aus unseren Kolonien gestohlen; die Kultur hat %d2 Gold eingebracht.</German>
-		<Italian>In questo turno i ladri hanno rubato %d1 monete d'oro dalle nostre colonie a causa della scarsa legge; la cultura ha reso %d2 monete d'oro.</Italian>
-		<Spanish>Este turno los ladrones robaron %d1 de oro de nuestras colonias por falta de ley; la cultura aportó %d2 de oro.</Spanish>
-		<Russian>В этом ходу воры украли %d1 золота из наших колоний из-за слабого порядка; культура принесла %d2 золота.</Russian>
-		<Hungarian>Ebben a körben a tolvajok %d1 aranyat loptak el gyarmatainkról a gyenge közrend miatt; a kultúra %d2 aranyat hozott.</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_MILITARY_UPKEEP_DISMISSED</Tag>
-		<English>%s1 was dismissed: there is no gold left for the military upkeep.</English>
-		<Portuguese>%s1 foi dispensado: não há ouro para a manutenção militar.</Portuguese>
-		<French>%s1 a été renvoyé : il n'y a plus d'or pour l'entretien militaire.</French>
-		<German>%s1 wurde entlassen: Es ist kein Gold für den Militärunterhalt mehr da.</German>
-		<Italian>%s1 è stato congedato: non c'è più oro per il mantenimento militare.</Italian>
-		<Spanish>%s1 ha sido licenciado: no queda oro para el mantenimiento militar.</Spanish>
-		<Russian>%s1 уволен: нет золота на содержание армии.</Russian>
-		<Hungarian>%s1 elbocsátva: nincs több arany a katonai fenntartásra.</Hungarian>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_MILITARY_UPKEEP_WARNING</Tag>
-		<English>Not enough gold for the military upkeep of %d1 gold! If it happens again within %d2 turns, units will be dismissed.</English>
-		<Portuguese>Ouro insuficiente para a manutenção militar de %d1 de ouro! Se isso acontecer de novo em até %d2 turnos, unidades serão dispensadas.</Portuguese>
-		<French>Pas assez d'or pour l'entretien militaire de %d1 pièces d'or ! Si cela se reproduit dans les %d2 tours, des unités seront renvoyées.</French>
-		<German>Nicht genug Gold für den Militärunterhalt von %d1 Gold! Passiert das innerhalb von %d2 Runden erneut, werden Einheiten entlassen.</German>
-		<Italian>Oro insufficiente per il mantenimento militare di %d1 oro! Se succede di nuovo entro %d2 turni, alcune unità verranno congedate.</Italian>
-		<Spanish>¡No hay oro suficiente para el mantenimiento militar de %d1 de oro! Si vuelve a ocurrir en %d2 turnos, se licenciarán unidades.</Spanish>
-		<Russian>Не хватает золота на содержание армии (%d1 золота)! Если это повторится в течение %d2 ходов, отряды будут уволены.</Russian>
-		<Hungarian>Nincs elég arany a(z) %d1 arany katonai fenntartásra! Ha %d2 körön belül újra megtörténik, egységeket bocsátanak el.</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_ACTION_AUTOMATE_PIONEER_PLAN</Tag>
@@ -3011,6 +2782,237 @@
 		<Spanish>[COLOR_YELLOW]Plan de pioneros: %s1 (prioridad %d2)[COLOR_REVERT]</Spanish>
 		<Russian>[COLOR_YELLOW]План пионеров: %s1 (приоритет %d2)[COLOR_REVERT]</Russian>
 		<Hungarian>[COLOR_YELLOW]Úttörőterv: %s1 (%d2. prioritás)[COLOR_REVERT]</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_LOW_FOOD</Tag>
+		<English> - little [ICON_FOOD]</English>
+		<Portuguese> - pouca [ICON_FOOD]</Portuguese>
+		<French> - peu de [ICON_FOOD]</French>
+		<German> - wenig [ICON_FOOD]</German>
+		<Italian> - poco [ICON_FOOD]</Italian>
+		<Spanish> - poca [ICON_FOOD]</Spanish>
+		<Russian> - мало [ICON_FOOD]</Russian>
+		<Hungarian> - kevés [ICON_FOOD]</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_HAPPINESS</Tag>
+		<English> - happiness with those on their way %d1</English>
+		<Portuguese> - felicidade com os a caminho %d1</Portuguese>
+		<French> - bonheur avec ceux en route %d1</French>
+		<German> - Zufriedenheit mit den Geplanten %d1</German>
+		<Italian> - soddisfazione con quelli in arrivo %d1</Italian>
+		<Spanish> - satisfacción con los que van en camino %d1</Spanish>
+		<Russian> - счастье с теми, кто в пути, %d1</Russian>
+		<Hungarian> - boldogság az úton lévőkkel %d1</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_NO_GOLD</Tag>
+		<English>%s1 in %s2: %d3 turns away</English>
+		<Portuguese>%s1 em %s2: a %d3 turnos</Portuguese>
+		<French>%s1 à %s2 : à %d3 tours</French>
+		<German>%s1 in %s2: %d3 Runden entfernt</German>
+		<Italian>%s1 a %s2: a %d3 turni</Italian>
+		<Spanish>%s1 en %s2: a %d3 turnos</Spanish>
+		<Russian>%s1 в %s2: %d3 ходов пути</Russian>
+		<Hungarian>%s1 itt: %s2: %d3 kör távolságra</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_NO_GOLD_REPLACE</Tag>
+		<English>%s1 in %s2: %d3 turns away (replaces %s4)</English>
+		<Portuguese>%s1 em %s2: a %d3 turnos (substitui %s4)</Portuguese>
+		<French>%s1 à %s2 : à %d3 tours (remplace %s4)</French>
+		<German>%s1 in %s2: %d3 Runden entfernt (ersetzt %s4)</German>
+		<Italian>%s1 a %s2: a %d3 turni (sostituisce %s4)</Italian>
+		<Spanish>%s1 en %s2: a %d3 turnos (sustituye a %s4)</Spanish>
+		<Russian>%s1 в %s2: %d3 ходов пути (заменяет %s4)</Russian>
+		<Hungarian>%s1 itt: %s2: %d3 kör távolságra (%s4 helyére)</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MILITARY_UPKEEP_GOLD_STR</Tag>
+		<English>Military upkeep: -%d1 per turn</English>
+		<Portuguese>Manutenção militar: -%d1 por turno</Portuguese>
+		<French>Entretien militaire : -%d1 par tour</French>
+		<German>Militärunterhalt: -%d1 pro Runde</German>
+		<Italian>Mantenimento militare: -%d1 per turno</Italian>
+		<Spanish>Mantenimiento militar: -%d1 por turno</Spanish>
+		<Russian>Содержание армии: -%d1 за ход</Russian>
+		<Hungarian>Katonai fenntartás: -%d1 körönként</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_DOMESTIC_MARKET_INCOME_STR</Tag>
+		<English>Domestic market: +%d1 last turn</English>
+		<Portuguese>Mercado interno: +%d1 no último turno</Portuguese>
+		<French>Marché intérieur : +%d1 au dernier tour</French>
+		<German>Binnenmarkt: +%d1 letzte Runde</German>
+		<Italian>Mercato interno: +%d1 nell'ultimo turno</Italian>
+		<Spanish>Mercado interior: +%d1 el último turno</Spanish>
+		<Russian>Внутренний рынок: +%d1 за прошлый ход</Russian>
+		<Hungarian>Belső piac: +%d1 az előző körben</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TURN_GOLD_CRIME_CULTURE</Tag>
+		<English>This turn thieves stole %d1 gold from our colonies because of low law; culture brought in %d2 gold.</English>
+		<Portuguese>Neste turno, ladrões roubaram %d1 de ouro das nossas colônias por causa da pouca lei; a cultura rendeu %d2 de ouro.</Portuguese>
+		<French>Ce tour-ci, des voleurs ont dérobé %d1 pièces d'or dans nos colonies faute d'ordre public ; la culture a rapporté %d2 pièces d'or.</French>
+		<German>In dieser Runde haben Diebe wegen zu wenig Ordnung %d1 Gold aus unseren Kolonien gestohlen; die Kultur hat %d2 Gold eingebracht.</German>
+		<Italian>In questo turno i ladri hanno rubato %d1 monete d'oro dalle nostre colonie a causa della scarsa legge; la cultura ha reso %d2 monete d'oro.</Italian>
+		<Spanish>Este turno los ladrones robaron %d1 de oro de nuestras colonias por falta de ley; la cultura aportó %d2 de oro.</Spanish>
+		<Russian>В этом ходу воры украли %d1 золота из наших колоний из-за слабого порядка; культура принесла %d2 золота.</Russian>
+		<Hungarian>Ebben a körben a tolvajok %d1 aranyat loptak el gyarmatainkról a gyenge közrend miatt; a kultúra %d2 aranyat hozott.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MILITARY_UPKEEP_DISMISSED</Tag>
+		<English>%s1 was dismissed: there is no gold left for the military upkeep.</English>
+		<Portuguese>%s1 foi dispensado: não há ouro para a manutenção militar.</Portuguese>
+		<French>%s1 a été renvoyé : il n'y a plus d'or pour l'entretien militaire.</French>
+		<German>%s1 wurde entlassen: Es ist kein Gold für den Militärunterhalt mehr da.</German>
+		<Italian>%s1 è stato congedato: non c'è più oro per il mantenimento militare.</Italian>
+		<Spanish>%s1 ha sido licenciado: no queda oro para el mantenimiento militar.</Spanish>
+		<Russian>%s1 уволен: нет золота на содержание армии.</Russian>
+		<Hungarian>%s1 elbocsátva: nincs több arany a katonai fenntartásra.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MILITARY_UPKEEP_WARNING</Tag>
+		<English>Not enough gold for the military upkeep of %d1 gold! If it happens again within %d2 turns, units will be dismissed.</English>
+		<Portuguese>Ouro insuficiente para a manutenção militar de %d1 de ouro! Se isso acontecer de novo em até %d2 turnos, unidades serão dispensadas.</Portuguese>
+		<French>Pas assez d'or pour l'entretien militaire de %d1 pièces d'or ! Si cela se reproduit dans les %d2 tours, des unités seront renvoyées.</French>
+		<German>Nicht genug Gold für den Militärunterhalt von %d1 Gold! Passiert das innerhalb von %d2 Runden erneut, werden Einheiten entlassen.</German>
+		<Italian>Oro insufficiente per il mantenimento militare di %d1 oro! Se succede di nuovo entro %d2 turni, alcune unità verranno congedate.</Italian>
+		<Spanish>¡No hay oro suficiente para el mantenimiento militar de %d1 de oro! Si vuelve a ocurrir en %d2 turnos, se licenciarán unidades.</Spanish>
+		<Russian>Не хватает золота на содержание армии (%d1 золота)! Если это повторится в течение %d2 ходов, отряды будут уволены.</Russian>
+		<Hungarian>Nincs elég arany a(z) %d1 arany katonai fenntartásra! Ha %d2 körön belül újra megtörténik, egységeket bocsátanak el.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_TITLE</Tag>
+		<English>Which job for %s1?</English>
+		<Portuguese>Qual trabalho para %s1?</Portuguese>
+		<French>Quel emploi pour %s1 ?</French>
+		<German>Welcher Job für %s1?</German>
+		<Italian>Quale lavoro per %s1?</Italian>
+		<Spanish>¿Qué trabajo para %s1?</Spanish>
+		<Russian>Какую работу дать %s1?</Russian>
+		<Hungarian>Milyen munka legyen %s1 számára?</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_SELECTION</Tag>
+		<English>%s1 in %s2: %d3 gold per turn, %d4 turns away</English>
+		<Portuguese>%s1 em %s2: %d3 de ouro por turno, a %d4 turnos</Portuguese>
+		<French>%s1 à %s2 : %d3 pièces d'or par tour, à %d4 tours</French>
+		<German>%s1 in %s2: %d3 Gold pro Runde, %d4 Runden entfernt</German>
+		<Italian>%s1 a %s2: %d3 monete d'oro per turno, a %d4 turni</Italian>
+		<Spanish>%s1 en %s2: %d3 de oro por turno, a %d4 turnos</Spanish>
+		<Russian>%s1 в %s2: %d3 золота за ход, %d4 ходов пути</Russian>
+		<Hungarian>%s1 itt: %s2: %d3 arany körönként, %d4 kör távolságra</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_REPLACE</Tag>
+		<English>%s1 in %s2: %d3 gold per turn, %d4 turns away (replaces %s5)</English>
+		<Portuguese>%s1 em %s2: %d3 de ouro por turno, a %d4 turnos (substitui %s5)</Portuguese>
+		<French>%s1 à %s2 : %d3 pièces d'or par tour, à %d4 tours (remplace %s5)</French>
+		<German>%s1 in %s2: %d3 Gold pro Runde, %d4 Runden entfernt (ersetzt %s5)</German>
+		<Italian>%s1 a %s2: %d3 monete d'oro per turno, a %d4 turni (sostituisce %s5)</Italian>
+		<Spanish>%s1 en %s2: %d3 de oro por turno, a %d4 turnos (sustituye a %s5)</Spanish>
+		<Russian>%s1 в %s2: %d3 золота за ход, %d4 ходов пути (заменяет %s5)</Russian>
+		<Hungarian>%s1 itt: %s2: %d3 arany körönként, %d4 kör távolságra (%s5 helyére)</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_PATROL</Tag>
+		<English>Patrol</English>
+		<Portuguese>Patrulhar</Portuguese>
+		<French>Patrouiller</French>
+		<German>Patrouille</German>
+		<Italian>Pattugliare</Italian>
+		<Spanish>Patrullar</Spanish>
+		<Russian>Патрулировать</Russian>
+		<Hungarian>Járőrözés</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_PATROL_HELP</Tag>
+		<English>The unit patrols within 10 plots of where it is now. It hunts runaway and revolting slaves, criminals, hostile natives, wild animals, pirates and enemies at war outside their borders, but only attacks with less than 5% risk of being destroyed. Below 95% strength it heals first, in the nearest colony. With nothing to attack it moves around the area.</English>
+		<Portuguese>A unidade patrulha num raio de 10 casas a partir de onde está agora. Caça escravos fugitivos e rebeldes, criminosos, nativos hostis, animais selvagens, piratas e inimigos em guerra fora das fronteiras deles, mas só ataca com menos de 5% de risco de ser destruída. Abaixo de 95% de força, cura-se primeiro na colônia mais próxima. Sem nada para atacar, percorre a área.</Portuguese>
+		<French>L'unité patrouille dans un rayon de 10 cases autour de sa position actuelle. Elle traque les esclaves fugitifs et révoltés, les criminels, les indigènes hostiles, les animaux sauvages, les pirates et les ennemis en guerre hors de leurs frontières, mais n'attaque qu'avec moins de 5% de risque d'être détruite. Sous 95% de force, elle se soigne d'abord dans la colonie la plus proche. Sans cible, elle parcourt la zone.</French>
+		<German>Die Einheit patrouilliert im Umkreis von 10 Feldern um ihren jetzigen Standort. Sie jagt entflohene und rebellische Sklaven, Sträflinge, feindliche Ureinwohner, wilde Tiere, Piraten und Kriegsgegner außerhalb ihrer Grenzen, greift aber nur an, wenn sie dabei mit weniger als 5% Wahrscheinlichkeit zerstört wird. Unter 95% Stärke heilt sie sich zuerst in der nächsten Kolonie. Ohne Ziel fährt sie Streife.</German>
+		<Italian>L'unità pattuglia entro 10 caselle dalla posizione attuale. Dà la caccia a schiavi fuggiti e ribelli, criminali, nativi ostili, animali selvatici, pirati e nemici in guerra fuori dai loro confini, ma attacca solo con meno del 5% di rischio di essere distrutta. Sotto il 95% di forza si cura prima nella colonia più vicina. Senza bersagli percorre la zona.</Italian>
+		<Spanish>La unidad patrulla en un radio de 10 casillas desde donde está ahora. Persigue a esclavos fugitivos y rebeldes, criminales, nativos hostiles, animales salvajes, piratas y enemigos en guerra fuera de sus fronteras, pero solo ataca con menos del 5% de riesgo de ser destruida. Por debajo del 95% de fuerza se cura primero en la colonia más cercana. Sin nada que atacar recorre la zona.</Spanish>
+		<Russian>Отряд патрулирует в радиусе 10 клеток от своего нынешнего места. Он охотится на беглых и восставших рабов, преступников, враждебных туземцев, диких животных, пиратов и врагов, с которыми идёт война, вне их границ, но атакует только при риске гибели менее 5%. При силе ниже 95% он сначала лечится в ближайшей колонии. Без целей он обходит территорию.</Russian>
+		<Hungarian>Az egység a jelenlegi helyétől 10 mezős körzetben járőrözik. Üldözi a szökött és lázadó rabszolgákat, bűnözőket, ellenséges bennszülötteket, vadállatokat, kalózokat és a háborús ellenségeket a határaikon kívül, de csak akkor támad, ha 5%-nál kisebb az esélye, hogy elpusztul. 95% erő alatt előbb a legközelebbi kolóniában gyógyul. Ha nincs célpont, bejárja a területet.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_TREASURE</Tag>
+		<English>Automate Treasure</English>
+		<Portuguese>Automatizar tesouro</Portuguese>
+		<French>Automatiser le trésor</French>
+		<German>Schatz automatisieren</German>
+		<Italian>Automatizza tesoro</Italian>
+		<Spanish>Automatizar tesoro</Spanish>
+		<Russian>Автоматизировать сокровище</Russian>
+		<Hungarian>Kincs automatizálása</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_TREASURE_HELP</Tag>
+		<English>The treasure is handled like those of the computer players: it goes to the nearest own colony with a deep water harbour (merging with other treasures there) and waits for a ship with the automation Fetch Treasures. If you have no such ship that can carry it, the king transports it from a coastal colony with a harbour, for his commission.</English>
+		<Portuguese>O tesouro é tratado como os dos jogadores do computador: vai para a colônia própria mais próxima com porto de águas profundas (juntando-se aos outros tesouros de lá) e espera por um navio com a automação Buscar tesouros. Se você não tiver um navio assim que possa levá-lo, o rei o transporta a partir de uma colônia costeira com porto, pela comissão dele.</Portuguese>
+		<French>Le trésor est géré comme ceux des joueurs ordinateur : il se rend dans la colonie la plus proche dotée d'un port en eau profonde (où il fusionne avec les autres trésors) et y attend un navire avec l'automatisation Récupérer les trésors. Si vous n'avez aucun navire de ce type capable de le transporter, le roi le transporte depuis une colonie côtière dotée d'un port, contre sa commission.</French>
+		<German>Der Schatz wird wie die der Computerspieler behandelt: Er geht in die nächste eigene Kolonie mit Tiefwasserhafen (und vereinigt sich dort mit anderen Schätzen) und wartet auf ein Schiff mit der Automatik Schätze abholen. Habt Ihr kein solches Schiff, das ihn tragen kann, transportiert ihn der König aus einer Küstenkolonie mit Hafen, gegen seine Provision.</German>
+		<Italian>Il tesoro è gestito come quelli dei giocatori del computer: va nella colonia propria più vicina con un porto in acque profonde (unendosi agli altri tesori lì) e aspetta una nave con l'automazione Recupera tesori. Se non hai una nave del genere in grado di trasportarlo, il re lo trasporta da una colonia costiera con un porto, in cambio della sua commissione.</Italian>
+		<Spanish>El tesoro se gestiona como los de los jugadores del ordenador: va a la colonia propia más cercana con puerto de aguas profundas (uniéndose a los demás tesoros de allí) y espera un barco con la automatización Recoger tesoros. Si no tienes ningún barco así que pueda llevarlo, el rey lo transporta desde una colonia costera con puerto, a cambio de su comisión.</Spanish>
+		<Russian>Сокровище ведёт себя как сокровища компьютерных игроков: оно идёт в ближайшую свою колонию с глубоководной гаванью (объединяясь там с другими сокровищами) и ждёт корабль с автоматизацией «Забирать сокровища». Если у вас нет такого корабля, способного его увезти, король перевозит его из прибрежной колонии с гаванью за свою комиссию.</Russian>
+		<Hungarian>A kincset úgy kezeli a játék, mint a gépi játékosokét: a legközelebbi saját, mélyvízi kikötős kolóniába megy (ott egyesül a többi kinccsel), és egy Kincsek begyűjtése automatizálású hajóra vár. Ha nincs ilyen hajód, amely elvihetné, a király szállítja el egy kikötős tengerparti kolóniából, a jutalékáért.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_TREASURE_SHIP</Tag>
+		<English>Fetch Treasures</English>
+		<Portuguese>Buscar tesouros</Portuguese>
+		<French>Récupérer les trésors</French>
+		<German>Schätze abholen</German>
+		<Italian>Recupera tesori</Italian>
+		<Spanish>Recoger tesoros</Spanish>
+		<Russian>Забирать сокровища</Russian>
+		<Hungarian>Kincsek begyűjtése</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_TREASURE_SHIP_HELP</Tag>
+		<English>The ship fetches the treasures waiting for a ship (treasures with the automation Automate Treasure) like the transports of the computer players and takes them to Europe, where they are sold. From Europe it sails straight to the next waiting treasure; with none it waits in Europe. On the map with nothing to fetch it waits in the nearest own colony.</English>
+		<Portuguese>O navio busca os tesouros que esperam por um navio (tesouros com a automação Automatizar tesouro) como os transportes dos jogadores do computador e os leva para a Europa, onde são vendidos. Da Europa navega direto para o próximo tesouro à espera; sem nenhum, espera na Europa. No mapa, sem nada para buscar, espera na colônia própria mais próxima.</Portuguese>
+		<French>Le navire récupère les trésors qui attendent un navire (trésors avec l'automatisation Automatiser le trésor) comme les transports des joueurs ordinateur et les emmène en Europe, où ils sont vendus. Depuis l'Europe, il fait route directement vers le prochain trésor en attente ; s'il n'y en a aucun, il attend en Europe. Sur la carte, sans rien à récupérer, il attend dans la colonie la plus proche.</French>
+		<German>Das Schiff holt die Schätze, die auf ein Schiff warten (Schätze mit der Automatik Schatz automatisieren), wie die Transporter der Computerspieler ab und bringt sie nach Europa, wo sie verkauft werden. Von Europa fährt es direkt zum nächsten wartenden Schatz; gibt es keinen, wartet es in Europa. Auf der Karte wartet es ohne Schatz in der nächsten eigenen Kolonie.</German>
+		<Italian>La nave recupera i tesori che aspettano una nave (tesori con l'automazione Automatizza tesoro) come i trasporti dei giocatori del computer e li porta in Europa, dove vengono venduti. Dall'Europa salpa direttamente verso il prossimo tesoro in attesa; se non ce ne sono, aspetta in Europa. Sulla mappa, senza nulla da recuperare, aspetta nella colonia propria più vicina.</Italian>
+		<Spanish>El barco recoge los tesoros que esperan un barco (tesoros con la automatización Automatizar tesoro) como los transportes de los jugadores del ordenador y los lleva a Europa, donde se venden. Desde Europa navega directamente al siguiente tesoro en espera; si no hay ninguno, espera en Europa. En el mapa, sin nada que recoger, espera en la colonia propia más cercana.</Spanish>
+		<Russian>Корабль забирает сокровища, ожидающие корабль (сокровища с автоматизацией «Автоматизировать сокровище»), как транспорты компьютерных игроков, и отвозит их в Европу, где они продаются. Из Европы он плывёт прямо к следующему ожидающему сокровищу; если таких нет, ждёт в Европе. На карте, если забирать нечего, он ждёт в ближайшей своей колонии.</Russian>
+		<Hungarian>A hajó a gépi játékosok szállítóihoz hasonlóan begyűjti a hajóra váró kincseket (a Kincs automatizálása automatizálású kincseket), és Európába viszi őket, ahol eladják őket. Európából egyenesen a következő várakozó kincshez hajózik; ha nincs ilyen, Európában vár. A térképen, ha nincs mit begyűjteni, a legközelebbi saját kolóniában vár.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_NATIVE_SUPPLY</Tag>
+		<English>Native Supply Runs</English>
+		<Portuguese>Viagens de compra aos indígenas</Portuguese>
+		<French>Tournées d'achat chez les indigènes</French>
+		<German>Einkaufsfahrten zu den Indianern</German>
+		<Italian>Viaggi di acquisto dai nativi</Italian>
+		<Spanish>Viajes de compra a los indígenas</Spanish>
+		<Russian>Закупки у индейцев</Russian>
+		<Hungarian>Beszerzés a bennszülöttektől</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_NATIVE_SUPPLY_HELP</Tag>
+		<English>The coastal ship buys goods in the native villages within 35 plots of the nearest colony and brings them to that colony, then starts again. It sails home when all cargo slots are taken, no village is worth a visit or 20 turns after it left. It sells nothing and never sails to Europe.</English>
+		<Portuguese>O navio costeiro compra mercadorias nas aldeias indígenas em torno da colônia mais próxima e leva-as para essa colônia; depois recomeça. Volta para casa quando todos os espaços de carga estão ocupados, nenhuma aldeia vale a visita ou 20 turnos depois de partir. Não vende nada e nunca navega para a Europa.</Portuguese>
+		<French>Le navire côtier achète des marchandises dans les villages indigènes autour de la colonie la plus proche et les rapporte à cette colonie, puis recommence. Il rentre quand toutes ses cales sont occupées, quand aucun village ne vaut la visite ou 20 tours après son départ. Il ne vend rien et ne va jamais en Europe.</French>
+		<German>Das Küstenschiff kauft in den Indianerdörfern im Umkreis von 35 Feldern um die nächste Kolonie Waren und bringt sie in diese Kolonie, dann beginnt es von vorn. Es fährt heim, wenn alle Laderäume belegt sind, kein Dorf einen Besuch lohnt oder 20 Runden nach der Abfahrt. Es verkauft nichts und fährt nie nach Europa.</German>
+		<Italian>La nave costiera compra merci nei villaggi nativi intorno alla colonia più vicina e le porta in quella colonia, poi ricomincia. Torna a casa quando tutte le stive sono occupate, nessun villaggio vale la visita o 20 turni dopo la partenza. Non vende nulla e non va mai in Europa.</Italian>
+		<Spanish>El barco costero compra mercancías en las aldeas indígenas alrededor de la colonia más cercana y las lleva a esa colonia; luego vuelve a empezar. Regresa cuando todas las bodegas están ocupadas, ninguna aldea merece la visita o 20 turnos después de partir. No vende nada y nunca navega a Europa.</Spanish>
+		<Russian>Каботажное судно закупает товары в индейских деревнях вокруг ближайшей колонии и привозит их в эту колонию, затем начинает заново. Оно возвращается, когда все трюмы заняты, ни одна деревня не стоит визита или через 20 ходов после отплытия. Оно ничего не продаёт и никогда не плывёт в Европу.</Russian>
+		<Hungarian>A parti hajó árut vásárol a legközelebbi kolónia körüli bennszülött falvakban, elviszi azt a kolóniába, majd újrakezdi. Hazaindul, ha minden raktere megtelt, egyik falu sem éri meg a látogatást, vagy 20 körrel az indulás után. Semmit sem ad el, és soha nem hajózik Európába.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NATIVE_SUPPLY_REPORT_HOME</Tag>
+		<English>%s1 brings %s2 to %s3</English>
+		<Portuguese>%s1 leva %s2 para %s3</Portuguese>
+		<French>%s1 apporte %s2 à %s3</French>
+		<German>%s1 bringt %s2 nach %s3</German>
+		<Italian>%s1 porta %s2 a %s3</Italian>
+		<Spanish>%s1 lleva %s2 a %s3</Spanish>
+		<Russian>%s1 привозит %s2 в %s3</Russian>
+		<Hungarian>%s1 elviszi ide: %s3 - %s2</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_ACTION_AUTOMATE_FULL_HELP</Tag>
