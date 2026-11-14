@@ -16,6 +16,7 @@ import sys
 import CvWorldBuilderScreen
 import CvAdvisorUtils
 import CvRandomEventInterface
+import CvMarketBoom
 
 gc = CyGlobalContext()
 localText = CyTranslator()
@@ -463,6 +464,8 @@ class CvEventManager:
 		
 		
 		CyMap().calculateCanalAndChokePoints() # Super Forts
+
+		CvMarketBoom.checkMarketBoom()
 
 	def onGameEnd(self, argsList):
 		'Called at the End of the game'
