@@ -214,7 +214,7 @@
 			<Command>COMMAND_AUTOMATE</Command>
 			<Automate>AUTOMATE_NATIVE_TRADE</Automate>
 			<bVisible>1</bVisible>
-			<Button>Art/Interface/Game Hud/Actions/automate_transport_high_res.dds</Button>
+			<Button>Art/Interface/Game Hud/Actions/automate_native_trade_high_res.dds</Button>
 		</AutomateInfo>
 		<AutomateInfo>
 			<Type>AUTOMATE_NATIVE_SUPPLY</Type>
