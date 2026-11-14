@@ -229,6 +229,14 @@ bool CvUnitAI::AI_update()
 					getGroup()->setAutomateType(NO_AUTOMATE);
 				}
 				break;
+			// WTP: pioneer plan of a human player's pioneer (it keeps the automation and waits when nothing is marked)
+			case AUTOMATE_PIONEER_PLAN:
+				AI_doPioneerPlan();
+				break;
+			// WTP: private pioneer paid by the player
+			case AUTOMATE_PRIVATE_BUILD:
+				AI_doPrivateBuild();
+				break;
 			case AUTOMATE_FULL:
 				FAssert(false);
 				break;
@@ -25683,5 +25691,68 @@ bool CvUnitAI::AI_doPatrol()
 	}
 	getGroup()->pushMission(MISSION_SKIP);
 	return true;
+}
+
+// WTP: private pioneer (user 2026-10-25): it builds the improvement it was paid for on its plot (as fast as a hardy pioneer);
+// when it is there already or cannot be built any more, the private pioneer leaves (CvUnit::build removes it when done)
+void CvUnitAI::AI_doPrivateBuild()
+{
+	const BuildTypes eBuild = AI_getPrivateBuild();
+	if (eBuild == NO_BUILD)
+	{
+		getGroup()->setAutomateType(NO_AUTOMATE);
+		return;
+	}
+	const ImprovementTypes eImprovement = (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement();
+	if ((eImprovement != NO_IMPROVEMENT && plot()->getImprovementType() == eImprovement) || !canBuild(plot(), eBuild))
+	{
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "private pioneer at %d,%d leaves: %s (build %S, profession %d, work rate %d)", getX_INLINE(), getY_INLINE(),
+			(eImprovement != NO_IMPROVEMENT && plot()->getImprovementType() == eImprovement) ? "the improvement is there" : "it cannot build it",
+			GC.getBuildInfo(eBuild).getDescription(), (int)getProfession(), workRate(true));
+		kill(true);
+		return;
+	}
+	getGroup()->pushMission(MISSION_BUILD, eBuild, -1, 0, false, false, MISSIONAI_BUILD, plot());
+}
+
+// WTP: pioneer plan (user 2026-10-25): the pioneer goes to the plot it got (CvPlayerAI::AI_pioneerPlanTarget) and builds the
+// marked improvement there; a mark it cannot build any more is removed; with nothing to do it waits for the next turn.
+// WTP (user 2026-10-27): a dropped target (mark gone, no way there) gives the next plot at once instead of a turn of waiting;
+// a plot it finds no way to is not given to it again for some turns
+bool CvUnitAI::AI_doPioneerPlan()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	for (int iTry = 0; iTry < 4; ++iTry)
+	{
+		const int iPlotIndex = kOwner.AI_pioneerPlanTarget(*this);
+		CvPlot* const pPlot = (iPlotIndex >= 0) ? GC.getMap().plotByIndexINLINE(iPlotIndex) : NULL;
+		const BuildTypes eBuild = (iPlotIndex >= 0) ? kOwner.getPioneerPlanBuild(iPlotIndex) : NO_BUILD;
+		if (pPlot == NULL || eBuild == NO_BUILD)
+		{
+			break;
+		}
+		if (!canBuild(pPlot, eBuild))
+		{
+			// (built by somebody else, or not possible there any more)
+			kOwner.setPioneerPlan(iPlotIndex, NO_BUILD, 0);
+			kOwner.AI_clearPioneerPlanTarget(getID());
+			continue;
+		}
+		if (atPlot(pPlot))
+		{
+			getGroup()->pushMission(MISSION_BUILD, eBuild, -1, 0, false, false, MISSIONAI_BUILD, pPlot);
+			return true;
+		}
+		if (!generatePath(pPlot, 0, true))
+		{
+			// (no way there now: another plot)
+			kOwner.AI_setPioneerPlanNoWay(getID(), iPlotIndex);
+			continue;
+		}
+		getGroup()->pushMission(MISSION_MOVE_TO, pPlot->getX_INLINE(), pPlot->getY_INLINE(), 0, false, false, MISSIONAI_BUILD, pPlot);
+		return true;
+	}
+	getGroup()->pushMission(MISSION_SKIP);
+	return false;
 }
 

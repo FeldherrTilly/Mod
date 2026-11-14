@@ -397,6 +397,20 @@ class CvEventManager:
 					pRoute.setReserved(iData4 == 1)
 			return
 
+		# WTP: pioneer plan (iData5: build * 10 + priority, priority 0 removes the mark)
+		if (iData1 == 751):
+			iPlayer = iData2
+			if (iPlayer >= 0 and iPlayer < gc.getMAX_PLAYERS()):
+				gc.getPlayer(iPlayer).setPioneerPlan(iData3, iData4, iData5 / 10, iData5 % 10)
+			return
+
+		# WTP: private pioneer (iData5: the build)
+		if (iData1 == 754):
+			iPlayer = iData2
+			if (iPlayer >= 0 and iPlayer < gc.getMAX_PLAYERS()):
+				gc.getPlayer(iPlayer).startPrivateBuild(iData3, iData4, iData5)
+			return
+
 		print("Modder's net message!")
 
 		CvUtil.pyPrint( 'onModNetMessage' )
@@ -944,6 +958,14 @@ class CvEventManager:
 	def onMouseEvent(self, argsList):
 		'mouse handler - returns 1 if the event was consumed'
 		eventType,mx,my,px,py,interfaceConsumed,screens = argsList
+		# WTP: territorial influence and pioneer plan take the clicks on the map (no unit is selected or moved meanwhile)
+		if ( px!=-1 and py!=-1 and not interfaceConsumed and (eventType == self.EventLButtonDown or eventType == self.EventRButtonDown) ):
+			if CvScreensInterface.mainInterface.handleMapClick(eventType == self.EventLButtonDown, px, py):
+				return 1
+		# WTP: a double click in a map mode would select the units of the plot; the mode swallows it (its first click
+		# already did the action)
+		if ( px!=-1 and py!=-1 and not interfaceConsumed and eventType == self.EventLcButtonDblClick and CvScreensInterface.mainInterface.isMapClickMode() and not CyInterface().isCityScreenUp() ):
+			return 1
 		if ( px!=-1 and py!=-1 ):
 			if ( eventType == self.EventLButtonDown ):
 				if (self.bAllowCheats and self.bCtrl and self.bAlt and CyMap().plot(px,py).isCity() and not interfaceConsumed):

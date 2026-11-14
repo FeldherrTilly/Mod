@@ -2751,6 +2751,12 @@ bool CvUnit::canDoCommand(CommandTypes eCommand, int iData1, int iData2, bool bT
 {
 	CvUnit* pUnit;
 
+	// WTP: the private pioneer takes no commands but delete
+	if (static_cast<const CvUnitAI*>(this)->AI_getPrivateBuild() != NO_BUILD && eCommand != COMMAND_DELETE)
+	{
+		return false;
+	}
+
 	if (bTestBusy && getGroup()->isBusy())
 	{
 		return false;
@@ -4816,6 +4822,19 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 		}
 		break;
 
+
+	// WTP: private pioneer: set when the player pays for it (CvPlayer::startPrivateBuild), never by the player
+	case AUTOMATE_PRIVATE_BUILD:
+		return false;
+
+	// WTP: pioneer plan: a human player's pioneer (a unit that can build improvements) alone on the map
+	case AUTOMATE_PIONEER_PLAN:
+		if (!isHuman() || getDomainType() != DOMAIN_LAND || !isOnMap_() || isCargo() || workRate(true) <= 0
+			|| getGroup() == NULL || getGroup()->getNumUnits() != 1)
+		{
+			return false;
+		}
+		break;
 	// WTP: patrol: a human player's military unit or warship on the map (not aboard a ship)
 	case AUTOMATE_PATROL:
 		if (!isHuman() || isNative() || !isOnMap_() || isCargo() || !canAttack() || (getDomainType() != DOMAIN_LAND && getDomainType() != DOMAIN_SEA))
@@ -8887,6 +8906,11 @@ bool CvUnit::doFound(bool bBuyLand)
 bool CvUnit::canJoinCity(const CvPlot* pPlot, bool bTestVisible, bool bIgnoreFood) const
 // TAC - Clear Specialty Fix - koma13 - END
 {
+	// WTP: the private pioneer does not join a colony
+	if (static_cast<const CvUnitAI*>(this)->AI_getPrivateBuild() != NO_BUILD)
+	{
+		return false;
+	}
 	CvCity* pCity = pPlot->getPlotCity();
 
 	if (pCity == NULL)
@@ -9062,7 +9086,10 @@ bool CvUnit::canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestVisible)
 	// R&R, ray, prevent Forts and Monasteries to be built on Peaks - end
 
 	// R&R, ray, AI Improvement - START
-	if (!isHuman() || isAutomated())  //R&R 2.3, ray's fix for automated pioneers
+	// (WTP: not the private pioneer: the player chose its improvement, it may replace one or clear a feature; WTP (user
+	// 2026-10-27): nor a pioneer working the pioneer plan: the player marked the improvement)
+	if ((!isHuman() || isAutomated()) && static_cast<const CvUnitAI*>(this)->AI_getPrivateBuild() == NO_BUILD  //R&R 2.3, ray's fix for automated pioneers
+		&& (getGroup() == NULL || getGroup()->getAutomateType() != AUTOMATE_PIONEER_PLAN))
 	{
 		// only go into here, if there is a Terrain Feature and build would remove it
 		if (pPlot->getFeatureType() != NO_FEATURE && GC.getBuildInfo(eBuild).isFeatureRemove(pPlot->getFeatureType()))
@@ -9127,6 +9154,25 @@ bool CvUnit::build(BuildTypes eBuild)
 
 	if (bFinished)
 	{
+		// WTP: the private pioneer has done its work and leaves
+		if (static_cast<const CvUnitAI*>(this)->AI_getPrivateBuild() != NO_BUILD)
+		{
+			const CvCity* const pNear = plot()->getWorkingCity();
+			const CvWString szBuffer = gDLL->getText("TXT_KEY_PRIVATE_BUILD_DONE", GC.getBuildInfo(eBuild).getTextKeyWide(),
+				(pNear != NULL) ? pNear->getNameKey() : L"-");
+			gDLL->UI().addPlayerMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, plot(), "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO,
+				GC.getBuildInfo(eBuild).getButton(), COLOR_WHITE, true, true);
+			kill(true);
+		}
+		// WTP: pioneer plan: the mark of this improvement is done
+		{
+			CvPlayer& kOwner = GET_PLAYER(getOwnerINLINE());
+			const int iPlotIndex = GC.getMap().plotNumINLINE(getX_INLINE(), getY_INLINE());
+			if (kOwner.getPioneerPlanBuild(iPlotIndex) == eBuild)
+			{
+				kOwner.setPioneerPlan(iPlotIndex, NO_BUILD, 0);
+			}
+		}
 		// WTP: pioneer log
 		if (gUnitLogLevel >= 1 && !isHuman())
 		{
@@ -14344,6 +14390,11 @@ PlayerTypes CvUnit::getCapturingPlayer() const
 
 void CvUnit::setCapturingPlayer(PlayerTypes eNewValue)
 {
+	// WTP: a private pioneer is destroyed, not captured
+	if (eNewValue != NO_PLAYER && static_cast<const CvUnitAI*>(this)->AI_getPrivateBuild() != NO_BUILD)
+	{
+		eNewValue = NO_PLAYER;
+	}
 	m_eCapturingPlayer = eNewValue;
 }
 

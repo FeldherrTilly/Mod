@@ -505,6 +505,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 
 	m_bDebugMode = false;
 	m_bDebugModeCache = false;
+	m_bMapClickMode = false; // WTP
 	m_bPbemTurnSent = false;
 	m_bPlayerOptionsSent = false;
 
@@ -1717,6 +1718,12 @@ void CvGame::updateCitySight(bool bIncrement)
 
 void CvGame::updateSelectionList()
 {
+	// WTP: no unit is selected while a map mode of the interface takes the clicks (a right click would move it)
+	if (isMapClickMode())
+	{
+		return;
+	}
+
 	if (GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_NO_UNIT_CYCLING))
 	{
 		return;

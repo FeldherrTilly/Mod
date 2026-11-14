@@ -334,6 +334,15 @@ bool CyGame::isDebugMode() const
 {
 	return m_pGame ? m_pGame->isDebugMode() : false;
 }
+// WTP
+void CyGame::setMapClickMode(bool bNewValue)
+{
+	if (m_pGame)
+	{
+		m_pGame->setMapClickMode(bNewValue);
+	}
+}
+
 void CyGame::toggleDebugMode()
 {
 	if (m_pGame)

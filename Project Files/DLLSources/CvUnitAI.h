@@ -182,6 +182,13 @@ public:
 	bool AI_doPatrol();
 	bool AI_isPatrolTarget(const CvUnit& kTarget, const CvPlot& kPlot) const;
 
+	// WTP: pioneer plan: a human player's pioneer builds the improvements the player marked (AUTOMATE_PIONEER_PLAN)
+	bool AI_doPioneerPlan();
+	// WTP: private pioneer: a hardy pioneer the player paid for builds one improvement and leaves (AUTOMATE_PRIVATE_BUILD);
+	// the player cannot command it
+	BuildTypes AI_getPrivateBuild() const { return (BuildTypes)m_iPrivateBuild; }
+	void AI_setPrivateBuild(BuildTypes eBuild) { m_iPrivateBuild = (int)eBuild; }
+	void AI_doPrivateBuild();
 protected:
 
 	void AI_resetSavedData();
@@ -223,6 +230,7 @@ protected:
 	int m_iNativeTradeSlotsFullTurn; // WTP: native trade ship: turn all its cargo slots were taken (-1: not yet)
 	int m_iNativeTradeHomeCityID; // WTP: native trade automation (human): the colony it trades around (-1: none)
 
+	int m_iPrivateBuild; // WTP: private pioneer: the build it was paid for (NO_BUILD: none)
 	mutable ProfessionTypes m_eIdealProfessionCache;
 
 	// < JAnimals Mod Start >

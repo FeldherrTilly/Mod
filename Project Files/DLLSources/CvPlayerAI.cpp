@@ -23919,6 +23919,167 @@ void CvPlayerAI::AI_doCivilianPurchases()
 	}
 }
 
+// WTP: pioneer plan (user 2026-10-25): the plot a pioneer with the automation AUTOMATE_PIONEER_PLAN works on (-1: none).
+// Marks whose improvement exists already are removed. Free pioneers get their plots together, the nearest pair of pioneer
+// and plot first (a priority 2 plot counts 6 plots further away): a priority 1 plot gets a hardy pioneer or two pioneers
+// (a hardy pioneer counts twice), a priority 2 plot one; twice as many where the build clears a forest. Only plots on the
+// pioneer's land area.
+namespace
+{
+	// the strength a pioneer brings to a priority 1 plot (2 are needed): a hardy pioneer (expert pioneer) 2, others 1
+	int pioneerPlanStrength(const CvUnit& kUnit)
+	{
+		const ProfessionTypes ePioneer = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_PIONEER");
+		return (ePioneer != NO_PROFESSION && GC.getProfessionInfo(ePioneer).LbD_getExpert() == kUnit.getUnitClassType()) ? 2 : 1;
+	}
+
+	// the strength a marked plot wants: priority 1 two, priority 2 one; WTP (user 2026-10-27): twice that if the build clears the
+	// plot's feature (a farm in a forest)
+	int pioneerPlanWanted(const CvPlayer& kPlayer, int iPlotIndex)
+	{
+		int iWanted = (kPlayer.getPioneerPlanPriority(iPlotIndex) == 1) ? 2 : 1;
+		const CvPlot* const pPlot = GC.getMap().plotByIndexINLINE(iPlotIndex);
+		const BuildTypes eBuild = kPlayer.getPioneerPlanBuild(iPlotIndex);
+		if (pPlot != NULL && eBuild != NO_BUILD && pPlot->getFeatureType() != NO_FEATURE && GC.getBuildInfo(eBuild).isFeatureRemove(pPlot->getFeatureType()))
+		{
+			iWanted *= 2;
+		}
+		return iWanted;
+	}
+}
+
+// WTP: the pioneer found no way to the plot: it does not get that plot again for PIONEER_PLAN_NO_WAY_TURNS turns (it got the
+// same plot every turn and stood still)
+static const int PIONEER_PLAN_NO_WAY_TURNS = 5;
+void CvPlayerAI::AI_setPioneerPlanNoWay(int iUnitID, int iPlotIndex)
+{
+	m_mapPioneerPlanTargets.erase(iUnitID);
+	m_mapPioneerPlanNoWay[std::make_pair(iUnitID, iPlotIndex)] = GC.getGameINLINE().getGameTurn();
+}
+
+int CvPlayerAI::AI_pioneerPlanTarget(const CvUnit& kPioneer)
+{
+	const CvMap& kMap = GC.getMap();
+	// marks already done
+	std::vector<int> aiDone;
+	for (std::map<int, int>::const_iterator it = getPioneerPlans().begin(); it != getPioneerPlans().end(); ++it)
+	{
+		const CvPlot* const pPlot = kMap.plotByIndexINLINE(it->first);
+		const BuildTypes eBuild = (BuildTypes)(it->second / 10);
+		const ImprovementTypes eImprovement = (eBuild >= 0 && eBuild < GC.getNumBuildInfos()) ? (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement() : NO_IMPROVEMENT;
+		if (pPlot == NULL || eImprovement == NO_IMPROVEMENT || pPlot->getImprovementType() == eImprovement)
+		{
+			aiDone.push_back(it->first);
+		}
+	}
+	for (uint i = 0; i < aiDone.size(); ++i)
+	{
+		setPioneerPlan(aiDone[i], NO_BUILD, 0);
+	}
+	// targets of pioneers that are gone, no longer automated or whose mark is gone; the strength on each plot
+	std::map<int, int> mapStrength;
+	for (std::map<int, int>::iterator it = m_mapPioneerPlanTargets.begin(); it != m_mapPioneerPlanTargets.end(); )
+	{
+		const CvUnit* const pUnit = getUnit(it->first);
+		if (pUnit == NULL || pUnit->getGroup() == NULL || pUnit->getGroup()->getAutomateType() != AUTOMATE_PIONEER_PLAN
+			|| getPioneerPlanBuild(it->second) == NO_BUILD)
+		{
+			m_mapPioneerPlanTargets.erase(it++);
+		}
+		else
+		{
+			mapStrength[it->second] += pioneerPlanStrength(*pUnit);
+			++it;
+		}
+	}
+	std::map<int, int>::const_iterator itOwn = m_mapPioneerPlanTargets.find(kPioneer.getID());
+	if (itOwn != m_mapPioneerPlanTargets.end())
+	{
+		return itOwn->second;
+	}
+	// the free pioneers
+	std::vector<const CvUnit*> apFree;
+	int iLoop;
+	for (const CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->getGroup() != NULL && pLoopUnit->getGroup()->getAutomateType() == AUTOMATE_PIONEER_PLAN && pLoopUnit->isOnMap()
+			&& !pLoopUnit->isCargo() && m_mapPioneerPlanTargets.find(pLoopUnit->getID()) == m_mapPioneerPlanTargets.end())
+		{
+			apFree.push_back(pLoopUnit);
+		}
+	}
+	// WTP (user 2026-10-25): priority 1 and 2 plots together; a priority 2 plot counts PIONEER_PLAN_PRIORITY_DISTANCE plots
+	// further away (a pioneer takes it if the nearest priority 1 plot is that much further); a priority 1 plot wants strength 2
+	// (a hardy pioneer or two pioneers), a priority 2 plot one pioneer
+	static const int PIONEER_PLAN_PRIORITY_DISTANCE = 6;
+	std::vector<int> aiPlots;
+	for (std::map<int, int>::const_iterator it = getPioneerPlans().begin(); it != getPioneerPlans().end(); ++it)
+	{
+		const int iWanted = pioneerPlanWanted(*this, it->first);
+		const std::map<int, int>::const_iterator itStrength = mapStrength.find(it->first);
+		if (itStrength == mapStrength.end() || itStrength->second < iWanted)
+		{
+			aiPlots.push_back(it->first);
+		}
+	}
+	while (!aiPlots.empty() && !apFree.empty())
+	{
+		int iBestDistance = MAX_INT;
+		int iBestUnit = -1;
+		int iBestPlot = -1;
+		for (uint u = 0; u < apFree.size(); ++u)
+		{
+			for (uint p = 0; p < aiPlots.size(); ++p)
+			{
+				const CvPlot* const pPlot = kMap.plotByIndexINLINE(aiPlots[p]);
+				if (pPlot->area() != apFree[u]->area() || !apFree[u]->canBuild(pPlot, getPioneerPlanBuild(aiPlots[p])))
+				{
+					continue;
+				}
+				const std::map<std::pair<int, int>, int>::const_iterator itNoWay = m_mapPioneerPlanNoWay.find(std::make_pair(apFree[u]->getID(), aiPlots[p]));
+				if (itNoWay != m_mapPioneerPlanNoWay.end() && GC.getGameINLINE().getGameTurn() - itNoWay->second < PIONEER_PLAN_NO_WAY_TURNS)
+				{
+					continue;
+				}
+				const int iDistance = plotDistance(apFree[u]->getX_INLINE(), apFree[u]->getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE())
+					+ ((getPioneerPlanPriority(aiPlots[p]) == 2) ? PIONEER_PLAN_PRIORITY_DISTANCE : 0);
+				if (iDistance < iBestDistance)
+				{
+					iBestDistance = iDistance;
+					iBestUnit = u;
+					iBestPlot = p;
+				}
+			}
+		}
+		if (iBestUnit < 0)
+		{
+			break;
+		}
+		const int iPlot = aiPlots[iBestPlot];
+		m_mapPioneerPlanTargets[apFree[iBestUnit]->getID()] = iPlot;
+		mapStrength[iPlot] += pioneerPlanStrength(*apFree[iBestUnit]);
+		if (mapStrength[iPlot] >= pioneerPlanWanted(*this, iPlot))
+		{
+			aiPlots.erase(aiPlots.begin() + iBestPlot);
+		}
+		apFree.erase(apFree.begin() + iBestUnit);
+	}
+	itOwn = m_mapPioneerPlanTargets.find(kPioneer.getID());
+	return (itOwn != m_mapPioneerPlanTargets.end()) ? itOwn->second : -1;
+}
+
+// WTP: pioneer plan (user 2026-10-27): true the first time in a turn that a pioneer finds no marked improvement left
+// (the player is told once per turn, not by every waiting pioneer)
+bool CvPlayerAI::AI_pioneerPlanDoneNotice()
+{
+	if (!getPioneerPlans().empty() || m_iPioneerPlanDoneTurn == GC.getGameINLINE().getGameTurn())
+	{
+		return false;
+	}
+	m_iPioneerPlanDoneTurn = GC.getGameINLINE().getGameTurn();
+	return true;
+}
+
 // TAC - AI More Immigrants - koma13 - START
 void CvPlayerAI::AI_hurryDocks()
 {

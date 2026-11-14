@@ -329,6 +329,8 @@ enum SavegameVariableTypes
 	PlayerSave_TradePostMestizoPoints,
 	PlayerSave_TradePostMestizoThresholdMultiplier,
 	// WTP, Schmiddie, Trade Post Mestizo - END
+
+	PlayerSave_PioneerPlans, // WTP
 	// (new values only at the end: savegames store the enum index)
 	PlayerSave_MilitaryDismissTurn, // WTP
 	PlayerSave_MilitaryShortTurn, // WTP
@@ -544,6 +546,7 @@ const char* getSavedEnumNamePlayer(SavegameVariableTypes eType)
 	case PlayerSave_MilitaryDismissTurn: return "PlayerSave_MilitaryDismissTurn";
 	case PlayerSave_MilitaryShortTurn: return "PlayerSave_MilitaryShortTurn";
 	case PlayerSave_DomesticMarketIncome: return "PlayerSave_DomesticMarketIncome";
+	case PlayerSave_PioneerPlans: return "PlayerSave_PioneerPlans";
 	// WTP, Schmiddie, Slave Emancipation - END
 	// WTP, Schmiddie, Trade Post Mestizo - START
 	case PlayerSave_TradePostMestizoPoints: return "PlayerSave_TradePostMestizoPoints";
@@ -735,6 +738,7 @@ void CvPlayer::resetSavedData(PlayerTypes eID, bool bConstructorCall)
 	m_iDomesticMarketIncome = defaultDomesticMarketIncome;
 	m_iTurnCrimeGold = 0;
 	m_iTurnCultureGold = 0;
+	m_mapPioneerPlans.clear();
 	// WTP, Schmiddie, Slave Emancipation - END
 	m_iFatherPointMultiplier = defaultFatherPointMultiplier;
 	m_iMissionaryRateModifier = defaultMissionaryRateModifier;
@@ -1009,6 +1013,18 @@ void CvPlayer::read(CvSavegameReader reader)
 		case PlayerSave_MilitaryShortTurn:
 			reader.Read(m_iMilitaryShortTurn);
 			break;
+		case PlayerSave_PioneerPlans:
+		{
+			// WTP: pioneer plan (pairs of plot index and build * 10 + priority)
+			std::vector<int> aiPlans;
+			reader.Read(aiPlans);
+			m_mapPioneerPlans.clear();
+			for (uint i = 0; i + 1 < aiPlans.size(); i += 2)
+			{
+				m_mapPioneerPlans[aiPlans[i]] = aiPlans[i + 1];
+			}
+			break;
+		}
 		// WTP, Schmiddie, Slave Emancipation - END
 		case PlayerSave_FatherPointMultiplier: reader.Read(m_iFatherPointMultiplier); break;
 		case PlayerSave_MissionaryRateModifier: reader.Read(m_iMissionaryRateModifier); break;
@@ -1281,6 +1297,16 @@ void CvPlayer::write(CvSavegameWriter writer)
 	writer.Write(PlayerSave_MilitaryDismissTurn, m_iMilitaryDismissTurn, defaultMilitaryDismissTurn);
 	writer.Write(PlayerSave_MilitaryShortTurn, m_iMilitaryShortTurn, defaultMilitaryShortTurn);
 	writer.Write(PlayerSave_DomesticMarketIncome, m_iDomesticMarketIncome, defaultDomesticMarketIncome);
+	if (!m_mapPioneerPlans.empty())
+	{
+		std::vector<int> aiPlans;
+		for (std::map<int, int>::const_iterator it = m_mapPioneerPlans.begin(); it != m_mapPioneerPlans.end(); ++it)
+		{
+			aiPlans.push_back(it->first);
+			aiPlans.push_back(it->second);
+		}
+		writer.Write(PlayerSave_PioneerPlans, aiPlans);
+	}
 	// WTP, Schmiddie, Slave Emancipation - END
 	writer.Write(PlayerSave_FatherPointMultiplier, m_iFatherPointMultiplier, defaultFatherPointMultiplier);
 	writer.Write(PlayerSave_MissionaryRateModifier, m_iMissionaryRateModifier, defaultMissionaryRateModifier);

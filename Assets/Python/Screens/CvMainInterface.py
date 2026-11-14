@@ -284,6 +284,12 @@ class CvMainInterface:
 	"Main Interface Screen"
 
 	BUTTON_TERRITORIAL_INFLUENCE = 750
+	BUTTON_PIONEER_PLAN = 751 # WTP
+	BUTTON_PIONEER_PLAN_BUILD = 752 # WTP: iData2 = the build
+	BUTTON_PIONEER_PLAN_PRIORITY = 753 # WTP: iData2 = the priority
+	BUTTON_PRIVATE_BUILD = 754 # WTP: private pioneer
+	PRIVATE_BUILD_COST = 500 # WTP: as CvPlayer::startPrivateBuild
+	PRIVATE_BUILD_RANGE = 3 # WTP: as CvPlayer::startPrivateBuild
 	BUTTON_AUTO_ASSIGN_TARGET = 755 # WTP: city screen: the colony takes colonists of the job automation
 
 	def numPlotListButtons( self ):
@@ -559,6 +565,13 @@ class CvMainInterface:
 		self.bTerritorialInfluenceLeftMouseDown = False
 		self.bTerritorialInfluenceRightMouseDown = False
 		self.bTerritorialInfluenceOldNoUnitCycling = False
+		# WTP: pioneer plan mode (mark plots for an improvement with priority 1 or 2)
+		self.bPioneerPlanMode = False
+		self.bPrivateBuildMode = False # WTP: private pioneer mode (an improvement for gold)
+		self.iPioneerPlanBuild = -1
+		self.iPioneerPlanPriority = 1
+		self.aszPioneerPlanWidgets = []
+		self.iPioneerPlanHoverY = 0
 
 		self.TableYields = []
 		for iYield in range(YieldTypes.NUM_YIELD_TYPES):
@@ -695,7 +708,7 @@ class CvMainInterface:
 	# ADVISOR BUTTONS
 
 		SpaceAvailable = (xResolution / 2)
-		self.ADVISOR_BUTTON_SPACING = SpaceAvailable / 15
+		self.ADVISOR_BUTTON_SPACING = SpaceAvailable / 17
 		self.ADVISOR_BUTTON_SIZE = SMALL_BUTTON_SIZE * 2
 		iBtnX = xResolution / 6 - self.ADVISOR_BUTTON_SPACING
 
@@ -769,6 +782,20 @@ class CvMainInterface:
 		screen.setImageShape("TerritorialInfluenceButton", ImageShapes.IMAGE_SHAPE_ELLIPSE, -1)
 		screen.setHitMargins("TerritorialInfluenceButton", self.ADVISOR_BUTTON_SIZE / 6, self.ADVISOR_BUTTON_SIZE / 6)
 		self.appendtoHideState(screen, "TerritorialInfluenceButton", HIDE_TYPE_MAP, HIDE_LEVEL_HIDE)
+		iBtnX += self.ADVISOR_BUTTON_SPACING
+
+		# WTP: pioneer plan
+		screen.setImageButton("PioneerPlanButton", ArtFileMgr.getInterfaceArtInfo("INTERFACE_PIONEER_PLAN").getPath(), iBtnX, (TOP_CENTER_HUD_HEIGHT - self.ADVISOR_BUTTON_SIZE) / 2, self.ADVISOR_BUTTON_SIZE, self.ADVISOR_BUTTON_SIZE, WidgetTypes.WIDGET_GENERAL, self.BUTTON_PIONEER_PLAN, -1 )
+		screen.setImageShape("PioneerPlanButton", ImageShapes.IMAGE_SHAPE_ELLIPSE, -1)
+		screen.setHitMargins("PioneerPlanButton", self.ADVISOR_BUTTON_SIZE / 6, self.ADVISOR_BUTTON_SIZE / 6)
+		self.appendtoHideState(screen, "PioneerPlanButton", HIDE_TYPE_MAP, HIDE_LEVEL_HIDE)
+		iBtnX += self.ADVISOR_BUTTON_SPACING
+
+		# WTP: private pioneer (an improvement for gold)
+		screen.setImageButton("PrivateBuildButton", ArtFileMgr.getInterfaceArtInfo("INTERFACE_PRIVATE_PIONEER").getPath(), iBtnX, (TOP_CENTER_HUD_HEIGHT - self.ADVISOR_BUTTON_SIZE) / 2, self.ADVISOR_BUTTON_SIZE, self.ADVISOR_BUTTON_SIZE, WidgetTypes.WIDGET_GENERAL, self.BUTTON_PRIVATE_BUILD, -1 )
+		screen.setImageShape("PrivateBuildButton", ImageShapes.IMAGE_SHAPE_ELLIPSE, -1)
+		screen.setHitMargins("PrivateBuildButton", self.ADVISOR_BUTTON_SIZE / 6, self.ADVISOR_BUTTON_SIZE / 6)
+		self.appendtoHideState(screen, "PrivateBuildButton", HIDE_TYPE_MAP, HIDE_LEVEL_HIDE)
 		iBtnX += self.ADVISOR_BUTTON_SPACING
 
 		screen.setImageButton("DomesticAdvisorButton", ArtFileMgr.getInterfaceArtInfo("INTERFACE_DOMESTIC_ADVISOR").getPath(), iBtnX, (TOP_CENTER_HUD_HEIGHT - self.ADVISOR_BUTTON_SIZE) / 2, self.ADVISOR_BUTTON_SIZE, self.ADVISOR_BUTTON_SIZE, WidgetTypes.WIDGET_ACTION, gc.getControlInfo(ControlTypes.CONTROL_DOMESTIC_SCREEN).getActionInfoIndex(), -1 )
@@ -3669,8 +3696,13 @@ class CvMainInterface:
 
 		screen = CyGInterfaceScreen("MainInterface", CvScreenEnums.MAIN_INTERFACE )
 
-		self.bTerritorialInfluenceMode = not self.bTerritorialInfluenceMode
+		# WTP: only one of the plot marking modes at a time
+		if not self.bTerritorialInfluenceMode and self.bPioneerPlanMode:
+			self.togglePioneerPlan()
+		if not self.bTerritorialInfluenceMode and self.bPrivateBuildMode:
+			self.togglePrivateBuild()
 
+		self.bTerritorialInfluenceMode = not self.bTerritorialInfluenceMode
 		if self.bTerritorialInfluenceMode:
 			self.bTerritorialInfluenceOldNoUnitCycling = CyUserProfile().getPlayerOption(PlayerOptionTypes.PLAYEROPTION_NO_UNIT_CYCLING)
 
@@ -3678,6 +3710,8 @@ class CvMainInterface:
 				CyMessageControl().sendPlayerOption(PlayerOptionTypes.PLAYEROPTION_NO_UNIT_CYCLING, True)
 
 			screen.overlayButtonGFC("TerritorialInfluenceButton", ArtFileMgr.getInterfaceArtInfo("INTERFACE_HIGHLIGHTED_BUTTON").getPath())
+			# WTP: no unit stays selected (a right click on the map would move it)
+			CyInterface().clearSelectionList()
 			self.refreshTerritorialInfluence()
 		else:
 			if not self.bTerritorialInfluenceOldNoUnitCycling:
@@ -3731,10 +3765,174 @@ class CvMainInterface:
 			elif (inputClass.getButtonType() == WidgetTypes.WIDGET_GENERAL and inputClass.getData1() == self.BUTTON_TERRITORIAL_INFLUENCE):
 				self.toggleTerritorialInfluence()
 
+			elif (inputClass.getButtonType() == WidgetTypes.WIDGET_GENERAL and inputClass.getData1() == self.BUTTON_PIONEER_PLAN):
+				self.togglePioneerPlan()
+
+			elif (inputClass.getButtonType() == WidgetTypes.WIDGET_GENERAL and inputClass.getData1() == self.BUTTON_PRIVATE_BUILD):
+				self.togglePrivateBuild()
+
+			# WTP: pioneer plan: the improvement and the priority chosen
+			elif (inputClass.getButtonType() == WidgetTypes.WIDGET_GENERAL and inputClass.getData1() == self.BUTTON_PIONEER_PLAN_BUILD):
+				self.iPioneerPlanBuild = inputClass.getData2()
+				self.drawPioneerPlanChoice()
+
+			elif (inputClass.getButtonType() == WidgetTypes.WIDGET_GENERAL and inputClass.getData1() == self.BUTTON_PIONEER_PLAN_PRIORITY):
+				self.iPioneerPlanPriority = inputClass.getData2()
+				self.drawPioneerPlanChoice()
+
 
 			elif (inputClass.getButtonType() == WidgetTypes.WIDGET_GENERAL and inputClass.getData1() == self.BUTTON_AUTO_ASSIGN_TARGET):
 				self.toggleAutoAssignTarget()
 		return 0
+
+	# WTP: pioneer plan mode: choose an improvement and a priority, left click marks a plot, right click removes the mark
+	def togglePioneerPlan(self):
+
+		screen = CyGInterfaceScreen("MainInterface", CvScreenEnums.MAIN_INTERFACE )
+
+		if not self.bPioneerPlanMode and self.bTerritorialInfluenceMode:
+			self.toggleTerritorialInfluence()
+		if not self.bPioneerPlanMode and self.bPrivateBuildMode:
+			self.togglePrivateBuild()
+
+		self.bPioneerPlanMode = not self.bPioneerPlanMode
+
+		if self.bPioneerPlanMode:
+			screen.overlayButtonGFC("PioneerPlanButton", ArtFileMgr.getInterfaceArtInfo("INTERFACE_HIGHLIGHTED_BUTTON").getPath())
+			# (no unit stays selected: a right click on the map would move it)
+			CyInterface().clearSelectionList()
+			self.drawPioneerPlanChoice()
+			self.refreshPioneerPlan()
+		else:
+			screen.overlayButtonGFC("PioneerPlanButton", None)
+			for szName in self.aszPioneerPlanWidgets:
+				screen.hide(szName)
+			CyEngine().clearAreaBorderPlots(AreaBorderLayers.AREA_BORDER_LAYER_WORLD_BUILDER)
+			CyEngine().clearAreaBorderPlots(AreaBorderLayers.AREA_BORDER_LAYER_REVEALED_PLOTS)
+
+	# WTP: the choice of the pioneer plan below the top bar: a button per improvement (the pioneers' build buttons, the name
+	# in the help), the chosen one highlighted; the two priorities; the plan of the plot under the mouse
+	def drawPioneerPlanChoice(self):
+
+		screen = CyGInterfaceScreen("MainInterface", CvScreenEnums.MAIN_INTERFACE )
+		xResolution = screen.getXResolution()
+		iSize = 56
+		iStep = iSize + 4
+		iPerRow = 13
+		iLeft = xResolution / 2 - (iPerRow * iStep) / 2
+		iTop = TOP_CENTER_HUD_HEIGHT + 8
+		self.aszPioneerPlanWidgets = []
+		iIndex = 0
+		for iBuild in range(gc.getNumBuildInfos()):
+			kBuild = gc.getBuildInfo(iBuild)
+			if kBuild.getImprovement() < 0:
+				continue
+			if self.iPioneerPlanBuild < 0:
+				self.iPioneerPlanBuild = iBuild
+			szName = "PioneerPlanBuild" + str(iBuild)
+			iX = iLeft + (iIndex % iPerRow) * iStep
+			iY = iTop + (iIndex / iPerRow) * iStep
+			screen.setImageButton(szName, kBuild.getButton(), iX, iY, iSize, iSize, WidgetTypes.WIDGET_GENERAL, self.BUTTON_PIONEER_PLAN_BUILD, iBuild)
+			if iBuild == self.iPioneerPlanBuild:
+				screen.overlayButtonGFC(szName, ArtFileMgr.getInterfaceArtInfo("INTERFACE_HIGHLIGHTED_BUTTON").getPath())
+			else:
+				screen.overlayButtonGFC(szName, None)
+			screen.show(szName)
+			self.aszPioneerPlanWidgets.append(szName)
+			iIndex += 1
+		iRows = (iIndex + iPerRow - 1) / iPerRow
+		iY = iTop + iRows * iStep + 4
+		if self.bPrivateBuildMode:
+			screen.setText("PrivateBuildCost", "Background", localText.getText("TXT_KEY_PRIVATE_BUILD_COST", (self.PRIVATE_BUILD_COST,)), CvUtil.FONT_CENTER_JUSTIFY, xResolution / 2, iY, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.show("PrivateBuildCost")
+			self.aszPioneerPlanWidgets.append("PrivateBuildCost")
+			self.iPioneerPlanHoverY = iY + 24
+			return
+		for iPriority in range(1, 3):
+			szName = "PioneerPlanPriority" + str(iPriority)
+			szText = localText.getText("TXT_KEY_PIONEER_PLAN_PRIORITY", (iPriority,))
+			if iPriority == self.iPioneerPlanPriority:
+				szText = u"<color=255,255,0,255>" + szText + u"</color>"
+			screen.setText(szName, "Background", szText, CvUtil.FONT_CENTER_JUSTIFY, xResolution / 2 + (iPriority * 2 - 3) * 70, iY, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, self.BUTTON_PIONEER_PLAN_PRIORITY, iPriority)
+			screen.show(szName)
+			self.aszPioneerPlanWidgets.append(szName)
+		self.iPioneerPlanHoverY = iY + 24
+		self.aszPioneerPlanWidgets.append("PioneerPlanHover")
+
+	# WTP: private pioneer mode: choose an improvement (the buttons of the pioneer plan), a left click on a plot of our land
+	# pays a private pioneer for it (CvPlayer::startPrivateBuild)
+	def togglePrivateBuild(self):
+
+		screen = CyGInterfaceScreen("MainInterface", CvScreenEnums.MAIN_INTERFACE )
+
+		if not self.bPrivateBuildMode and self.bTerritorialInfluenceMode:
+			self.toggleTerritorialInfluence()
+		if not self.bPrivateBuildMode and self.bPioneerPlanMode:
+			self.togglePioneerPlan()
+
+		self.bPrivateBuildMode = not self.bPrivateBuildMode
+
+		if self.bPrivateBuildMode:
+			screen.overlayButtonGFC("PrivateBuildButton", ArtFileMgr.getInterfaceArtInfo("INTERFACE_HIGHLIGHTED_BUTTON").getPath())
+			CyInterface().clearSelectionList()
+			self.drawPioneerPlanChoice()
+		else:
+			screen.overlayButtonGFC("PrivateBuildButton", None)
+			for szName in self.aszPioneerPlanWidgets:
+				screen.hide(szName)
+			CyEngine().clearAreaBorderPlots(AreaBorderLayers.AREA_BORDER_LAYER_WORLD_BUILDER)
+
+	def updatePioneerPlanEditor(self):
+
+		if not self.bPioneerPlanMode and not self.bPrivateBuildMode:
+			return
+
+		if CyInterface().isCityScreenUp() or CyEngine().isGlobeviewUp():
+			return
+
+		pPlot = CyInterface().getMouseOverPlot()
+
+		if pPlot is None or pPlot.isNone():
+			return
+
+		CyEngine().clearAreaBorderPlots(AreaBorderLayers.AREA_BORDER_LAYER_WORLD_BUILDER)
+		CyEngine().fillAreaBorderPlotAlt(pPlot.getX(), pPlot.getY(), AreaBorderLayers.AREA_BORDER_LAYER_WORLD_BUILDER, "COLOR_BLUE", 1.0)
+
+		# the plan of the plot under the mouse (the clicks come from handleMapClick)
+		if self.bPrivateBuildMode:
+			return
+		screen = CyGInterfaceScreen("MainInterface", CvScreenEnums.MAIN_INTERFACE )
+		iPlayer = CyGame().getActivePlayer()
+		szText = u""
+		if iPlayer >= 0:
+			iBuild = gc.getPlayer(iPlayer).getPioneerPlanBuild(pPlot.getX(), pPlot.getY())
+			if iBuild >= 0:
+				szText = localText.getText("TXT_KEY_PIONEER_PLAN_PLOT_HELP", (gc.getBuildInfo(iBuild).getDescription(), gc.getPlayer(iPlayer).getPioneerPlanPriority(pPlot.getX(), pPlot.getY())))
+		screen.setText("PioneerPlanHover", "Background", szText, CvUtil.FONT_CENTER_JUSTIFY, screen.getXResolution() / 2, self.iPioneerPlanHoverY, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.show("PioneerPlanHover")
+
+	def pioneerPlanColor(self, iPriority):
+		if iPriority == 1:
+			return "COLOR_YELLOW"
+		return "COLOR_GREEN"
+
+	def refreshPioneerPlan(self, iSkipX = -1, iSkipY = -1):
+
+		CyEngine().clearAreaBorderPlots(AreaBorderLayers.AREA_BORDER_LAYER_REVEALED_PLOTS)
+
+		iPlayer = CyGame().getActivePlayer()
+
+		if iPlayer < 0:
+			return
+
+		pPlayer = gc.getPlayer(iPlayer)
+		for iX in range(CyMap().getGridWidth()):
+			for iY in range(CyMap().getGridHeight()):
+				if iX == iSkipX and iY == iSkipY:
+					continue
+				iPriority = pPlayer.getPioneerPlanPriority(iX, iY)
+				if iPriority > 0:
+					CyEngine().fillAreaBorderPlotAlt(iX, iY, AreaBorderLayers.AREA_BORDER_LAYER_REVEALED_PLOTS, self.pioneerPlanColor(iPriority), 1.0)
 
 	def updateTerritorialInfluenceEditor(self):
 
@@ -3754,48 +3952,51 @@ class CvMainInterface:
 		CyEngine().clearAreaBorderPlots(AreaBorderLayers.AREA_BORDER_LAYER_WORLD_BUILDER)
 		CyEngine().fillAreaBorderPlotAlt(pPlot.getX(), pPlot.getY(), AreaBorderLayers.AREA_BORDER_LAYER_WORLD_BUILDER, "COLOR_BLUE", 1.0)
 
-		bLeftMouseDown = CyInterface().isLeftMouseDown()
-		bRightMouseDown = CyInterface().isRightMouseDown()
+		# (the clicks come from CvEventManager.onMouseEvent: handleMapClick, so that they do not select or move units)
 
-		if bLeftMouseDown and not self.bTerritorialInfluenceLeftMouseDown:
-			iPlayer = CyGame().getActivePlayer()
+	# WTP: a click on the map while territorial influence or the pioneer plan is on: the mode takes it (no unit is selected
+	# or moved). Returns True if the click was taken.
+	def isMapClickMode(self):
+		return self.bTerritorialInfluenceMode or self.bPioneerPlanMode or self.bPrivateBuildMode
 
-			if iPlayer >= 0 and pPlot.canSetNotCulture(iPlayer):
-				CyMessageControl().sendModNetMessage(
-					750,
-					iPlayer,
-					pPlot.getX(),
-					pPlot.getY(),
-					1
-				)
+	def handleMapClick(self, bLeft, iX, iY):
 
-				CyEngine().fillAreaBorderPlotAlt(
-					pPlot.getX(),
-					pPlot.getY(),
-					AreaBorderLayers.AREA_BORDER_LAYER_REVEALED_PLOTS,
-					"COLOR_BLACK",
-					1.0
-				)
+		if not self.bTerritorialInfluenceMode and not self.bPioneerPlanMode and not self.bPrivateBuildMode:
+			return False
 
-		elif bRightMouseDown and not self.bTerritorialInfluenceRightMouseDown:
-			iPlayer = CyGame().getActivePlayer()
+		if CyInterface().isCityScreenUp() or CyEngine().isGlobeviewUp():
+			return False
 
-			if iPlayer >= 0:
-				CyMessageControl().sendModNetMessage(
-					750,
-					iPlayer,
-					pPlot.getX(),
-					pPlot.getY(),
-					0
-				)
+		pPlot = CyMap().plot(iX, iY)
+		iPlayer = CyGame().getActivePlayer()
+		if pPlot is None or pPlot.isNone() or iPlayer < 0:
+			return True
 
-				self.refreshTerritorialInfluence(
-					pPlot.getX(),
-					pPlot.getY()
-				)
+		if self.bTerritorialInfluenceMode:
+			if bLeft:
+				if pPlot.canSetNotCulture(iPlayer):
+					CyMessageControl().sendModNetMessage(750, iPlayer, iX, iY, 1)
+					CyEngine().fillAreaBorderPlotAlt(iX, iY, AreaBorderLayers.AREA_BORDER_LAYER_REVEALED_PLOTS, "COLOR_BLACK", 1.0)
+			else:
+				CyMessageControl().sendModNetMessage(750, iPlayer, iX, iY, 0)
+				self.refreshTerritorialInfluence(iX, iY)
+			return True
 
-		self.bTerritorialInfluenceLeftMouseDown = bLeftMouseDown
-		self.bTerritorialInfluenceRightMouseDown = bRightMouseDown
+		# WTP: private pioneer: a left click pays for it (the DLL checks the plot and the gold)
+		if self.bPrivateBuildMode:
+			if bLeft and self.iPioneerPlanBuild >= 0:
+				CyMessageControl().sendModNetMessage(754, iPlayer, iX, iY, self.iPioneerPlanBuild)
+			return True
+
+		if bLeft:
+			# (only where the improvement can be built, e.g. a windmill only on hills)
+			if self.iPioneerPlanBuild >= 0 and not pPlot.isWater() and pPlot.canBuild(self.iPioneerPlanBuild, iPlayer, False):
+				CyMessageControl().sendModNetMessage(751, iPlayer, iX, iY, self.iPioneerPlanBuild * 10 + self.iPioneerPlanPriority)
+				CyEngine().fillAreaBorderPlotAlt(iX, iY, AreaBorderLayers.AREA_BORDER_LAYER_REVEALED_PLOTS, self.pioneerPlanColor(self.iPioneerPlanPriority), 1.0)
+		else:
+			CyMessageControl().sendModNetMessage(751, iPlayer, iX, iY, 0)
+			self.refreshPioneerPlan(iX, iY)
+		return True
 
 	def refreshTerritorialInfluence(self, iSkipX = -1, iSkipY = -1):
 
@@ -3826,7 +4027,14 @@ class CvMainInterface:
 
 	# Updates the Screen
 	def update( self, fDelta ):
+		# WTP: while a map mode takes the clicks, the DLL selects no unit by the automatic unit cycling, and a unit
+		# selected anyway is deselected (a right click would move it)
+		bMapClickMode = self.isMapClickMode()
+		CyGame().setMapClickMode(bMapClickMode)
+		if bMapClickMode and not CyInterface().isCityScreenUp() and CyInterface().getHeadSelectedUnit() is not None:
+			CyInterface().clearSelectionList()
 		self.updateTerritorialInfluenceEditor()
+		self.updatePioneerPlanEditor()
 		return
 
 	# Adds Mouse Over Help to General Widgets
@@ -3862,6 +4070,12 @@ class CvMainInterface:
 				return localText.getText("TXT_KEY_INTERFACE_ACHIEVE_ADVISOR", ("F10", ""));
 			elif iData1 == self.BUTTON_TERRITORIAL_INFLUENCE:
 				return localText.getText("TXT_KEY_INTERFACE_TERRITORIAL_INFLUENCE", ("Ctrl+I", ""));
+			elif iData1 == self.BUTTON_PIONEER_PLAN:
+				return localText.getText("TXT_KEY_INTERFACE_PIONEER_PLAN", ());
+			elif iData1 == self.BUTTON_PIONEER_PLAN_BUILD:
+				return gc.getBuildInfo(iData2).getDescription()
+			elif iData1 == self.BUTTON_PRIVATE_BUILD:
+				return localText.getText("TXT_KEY_INTERFACE_PRIVATE_BUILD", (self.PRIVATE_BUILD_COST, self.PRIVATE_BUILD_RANGE))
 			elif iData1 == self.BUTTON_AUTO_ASSIGN_TARGET:
 				pCity = CyInterface().getHeadSelectedCity()
 				if pCity and pCity.isAutoAssignTarget():

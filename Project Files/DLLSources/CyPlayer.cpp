@@ -386,6 +386,27 @@ int CyPlayer::getDomesticMarketIncome()
 {
 	return m_pPlayer ? m_pPlayer->getDomesticMarketIncome() : 0;
 }
+// WTP: pioneer plan (the interface marks plots, CvMainInterface.py)
+void CyPlayer::setPioneerPlan(int iX, int iY, int iBuild, int iPriority)
+{
+	if (m_pPlayer && GC.getMap().isPlot(iX, iY))
+	{
+		pointer(CREATE_ASSERT_DATA)->setPioneerPlan(GC.getMap().plotNumINLINE(iX, iY), (BuildTypes)iBuild, iPriority);
+	}
+}
+int CyPlayer::getPioneerPlanBuild(int iX, int iY)
+{
+	return (m_pPlayer && GC.getMap().isPlot(iX, iY)) ? (int)m_pPlayer->getPioneerPlanBuild(GC.getMap().plotNumINLINE(iX, iY)) : -1;
+}
+// WTP: private pioneer (the interface, CvMainInterface.py)
+bool CyPlayer::startPrivateBuild(int iX, int iY, int iBuild)
+{
+	return m_pPlayer ? pointer(CREATE_ASSERT_DATA)->startPrivateBuild(iX, iY, (BuildTypes)iBuild) : false;
+}
+int CyPlayer::getPioneerPlanPriority(int iX, int iY)
+{
+	return (m_pPlayer && GC.getMap().isPlot(iX, iY)) ? m_pPlayer->getPioneerPlanPriority(GC.getMap().plotNumINLINE(iX, iY)) : 0;
+}
 void CyPlayer::setGold(int iNewValue)
 {
 	if (m_pPlayer)

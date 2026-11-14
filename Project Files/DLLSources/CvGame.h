@@ -461,10 +461,15 @@ protected:
 public:
 	int getLogGameStart() const { return m_iLogGameStart; }
 protected:
+	// WTP: a map mode of the interface (pioneer plan, private pioneer, territorial influence) takes the clicks on the map;
+	// meanwhile no unit is selected by the automatic unit cycling (not saved)
+	void setMapClickMode(bool bNewValue) { m_bMapClickMode = bNewValue; }
+	bool isMapClickMode() const { return m_bMapClickMode; }
 
 	bool m_bScoreDirty;
 	bool m_bDebugMode;
 	bool m_bDebugModeCache;
+	bool m_bMapClickMode; // WTP
 	bool m_bFinalInitialized;
 	bool m_bPbemTurnSent;
 	bool m_bHotPbemBetweenTurns;

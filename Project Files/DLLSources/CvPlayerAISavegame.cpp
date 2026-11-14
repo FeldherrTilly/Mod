@@ -272,6 +272,9 @@ void CvPlayerAI::AI_resetSavedData()
 	m_iWfTravelTurn = -1;
 	m_iWfFoodCityID = -1;
 	m_bWfFoodWater = false;
+	m_mapPioneerPlanTargets.clear();
+	m_iPioneerPlanDoneTurn = -1;
+	m_mapPioneerPlanNoWay.clear();
 	m_iMoveQueuePasses = defaultMoveQueuePasses;
 	m_iLastWave = defaultLastWave;
 	m_iWaveIndex = defaultWaveIndex;
