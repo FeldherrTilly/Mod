@@ -10798,8 +10798,7 @@ bool CvUnitAI::AI_spreadTradePosts()
 						CvPlot* pLoopPlot = pLoopCity->plot();
 						// (revealed: discovered once, it need not be in sight)
 						if (!pLoopPlot->isRevealed(getTeam(), false) || pLoopCity->getTradePostCivilization() == getCivilizationType()
-							|| pLoopPlot->calculateCulturePercent(pLoopPlot->getOwnerINLINE()) != 100
-							|| pLoopCity->getTradeBlockingFortOwner(getOwnerINLINE()) != NO_PLAYER) // WTP, forts block foreign trade
+							|| pLoopPlot->calculateCulturePercent(pLoopPlot->getOwnerINLINE()) != 100)
 						{
 							continue;
 						}
@@ -17756,7 +17755,7 @@ int CvUnitAI::AI_nativeTradeSell(CvWString* pszDeals)
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	CvCity* const pCity = plot()->getPlotCity();
-	if (pCity == NULL || !GET_PLAYER(pCity->getOwnerINLINE()).isNative() || !canTradeYield(plot()) || pCity->getTradeBlockingFortOwner(getOwnerINLINE()) != NO_PLAYER)
+	if (pCity == NULL || !GET_PLAYER(pCity->getOwnerINLINE()).isNative() || !canTradeYield(plot()))
 	{
 		return 0;
 	}
@@ -17847,7 +17846,7 @@ int CvUnitAI::AI_nativeTradeBuy(CvWString* pszDeals)
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	CvCity* const pCity = plot()->getPlotCity();
-	if (pCity == NULL || !GET_PLAYER(pCity->getOwnerINLINE()).isNative() || !canTradeYield(plot()) || pCity->getTradeBlockingFortOwner(getOwnerINLINE()) != NO_PLAYER)
+	if (pCity == NULL || !GET_PLAYER(pCity->getOwnerINLINE()).isNative() || !canTradeYield(plot()))
 	{
 		return 0;
 	}
@@ -18833,7 +18832,7 @@ bool CvUnitAI::AI_canTradeWithVillage(const CvCity& kCity) const
 {
 	const CvPlayerAI& kNative = GET_PLAYER(kCity.getOwnerINLINE());
 	return kNative.isAlive() && kNative.isNative() && !atWar(getTeam(), kNative.getTeam()) && kNative.getTimeNoTrade(getOwnerINLINE()) == 0
-		&& kCity.getTradeBlockingFortOwner(getOwnerINLINE()) == NO_PLAYER && kCity.plot()->isRevealed(getTeam(), false)
+		&& kCity.plot()->isRevealed(getTeam(), false)
 		&& CvPlayerAI::AI_shipCanReachCity(getUnitType(), kCity);
 }
 
