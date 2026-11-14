@@ -806,6 +806,8 @@ public:
 	// WTP: trade route presets of the city screen
 	void applyTradeRoutePreset(int iPreset);
 	void setImportFeeder(YieldTypes eYield, int iMaintainLevel, int iImportLimit);
+	bool isAutoMarketImport() const { return m_bAutoMarketImport; }
+	void updateAutoMarketImport();
 	// WTP: the colony takes colonists of the job automation (switch of the city screen, off by default)
 	bool isAutoAssignTarget() const { return m_bAutoAssignTarget; }
 	void setAutoAssignTarget(bool bNewValue) { m_bAutoAssignTarget = bNewValue; }
@@ -951,6 +953,7 @@ protected:
 
 	PlayerTypes m_eBesieger; // WTP: siege: the player who started it, NO_PLAYER: none
 	bool m_bAutoAssignTarget; // WTP: the colony takes colonists of the job automation
+	bool m_bAutoMarketImport; // WTP: trade route preset 1, the market goods imports are updated every few turns
 	bool m_bHasHurried; // Needed to remember (cache) if a hurry was conducted and we should complete the current build
 	int m_iSlaveWorkerProductionBonus;
 

@@ -51,6 +51,7 @@
 	const bool defaultWallOverride = false;
 	const bool defaultPopulationRankValid = false;
 	const bool defaultHasHurried = false;
+	const bool defaultAutoMarketImport = false; // WTP
 	const bool defaultAutoAssignTarget = false; // WTP
 
 	const PlayerTypes defaultOwner = NO_PLAYER;
@@ -192,6 +193,7 @@ enum SavegameVariableTypes
 	CitySave_Besieger, // WTP: siege
 
 	CitySave_AutoAssignTarget, // WTP: the colony takes colonists of the job automation
+	CitySave_AutoMarketImport, // WTP: trade route preset, market goods kept up to date (not readable by older DLLs while on)
 	NUM_CITYSAVE_ENUM_VALUES,
 };
 
@@ -321,6 +323,7 @@ const char* getSavedEnumNameCity(SavegameVariableTypes eType)
 		case CitySave_Besieged: return "CitySave_Besieged";
 		case CitySave_Besieger: return "CitySave_Besieger";
 		case CitySave_AutoAssignTarget: return "CitySave_AutoAssignTarget";
+		case CitySave_AutoMarketImport: return "CitySave_AutoMarketImport";
 	}
 	FAssertMsg(0, "Missing case");
 	return "";
@@ -401,6 +404,7 @@ void CvCity::resetSavedData(int iID, PlayerTypes eOwner, Coordinates resetCoord,
 	m_bHasHurried = defaultHasHurried;
 	m_eBesieger = defaultBesieger;
 	m_bAutoAssignTarget = defaultAutoAssignTarget;
+	m_bAutoMarketImport = defaultAutoMarketImport;
 
 	m_eOwner = eOwner;
 	m_ePreviousOwner = defaultPreviousOwner;
@@ -520,6 +524,7 @@ void CvCity::read(CvSavegameReader reader)
 		}
 		case CitySave_Besieger                                   : reader.Read(m_eBesieger)                                 ; break;
 		case CitySave_AutoAssignTarget                           : reader.Read(m_bAutoAssignTarget)                         ; break;
+		case CitySave_AutoMarketImport                           : reader.Read(m_bAutoMarketImport)                         ; break;
 		case CitySave_CultureUpdateTimer                         : reader.Read(m_iCultureUpdateTimer)                       ; break;
 		case CitySave_CitySizeBoost                              : reader.Read(m_iCitySizeBoost)                            ; break;
 		case CitySave_Hammers                                    : reader.Read(m_iHammers)                                  ; break;
@@ -681,6 +686,7 @@ void CvCity::write(CvSavegameWriter writer)
 	writer.Write(CitySave_ForeignBuildingBurnTimer, m_iForeignBuildingBurnTimer, defaultForeignBuildingBurnTimer);
 	writer.Write(CitySave_Besieger, m_eBesieger, defaultBesieger);
 	writer.Write(CitySave_AutoAssignTarget, m_bAutoAssignTarget, defaultAutoAssignTarget);
+	writer.Write(CitySave_AutoMarketImport, m_bAutoMarketImport, defaultAutoMarketImport);
 	writer.Write(CitySave_CultureUpdateTimer, m_iCultureUpdateTimer, defaultCultureUpdateTimer);
 	writer.Write(CitySave_CitySizeBoost, m_iCitySizeBoost, defaultCitySizeBoost);
 	writer.Write(CitySave_Hammers, m_iHammers, defaultHammers);
