@@ -379,7 +379,7 @@ class CvEventManager:
 			return
 
 		# WTP: deletes a private trade route (iData3: route id)
-		if (iData1 == 754):
+		if (iData1 == 757):
 			iPlayer = iData2
 			if (iPlayer >= 0 and iPlayer < gc.getMAX_PLAYERS()):
 				pRoute = gc.getPlayer(iPlayer).getTradeRoute(iData3)

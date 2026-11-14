@@ -835,7 +835,7 @@ class CvTradeRoutesAdvisor:
 			rid = pRoute.getID()
 			if pRoute.isPrivate() and self.AssignedRoutes.get(rid, False):
 				del self.AssignedRoutes[rid]
-				CyMessageControl().sendModNetMessage(754, self.player.getID(), rid, 0, 0)
+				CyMessageControl().sendModNetMessage(757, self.player.getID(), rid, 0, 0)
 
 	# WTP: private routes for the selection (all yields: one per cargo yield); this transport gets them
 	def addPrivateSelection(self):
