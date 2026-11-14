@@ -1348,6 +1348,7 @@ BeginMap
 	sealevel=SEALEVEL_MEDIUM
 	num plots written=13375
 	num signs written=89
+	City Catchment Radius=2
 	Randomize Features=false
 	Randomize Resources=false
 	Randomize Goodies=true
