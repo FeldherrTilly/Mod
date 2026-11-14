@@ -17815,7 +17815,7 @@ int CvUnitAI::AI_nativeTradeSell(CvWString* pszDeals)
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	CvCity* const pCity = plot()->getPlotCity();
-	if (pCity == NULL || !GET_PLAYER(pCity->getOwnerINLINE()).isNative() || !canTradeYield(plot()))
+	if (pCity == NULL || !GET_PLAYER(pCity->getOwnerINLINE()).isNative() || !canTradeYield(plot()) || pCity->getTradeBlockingFortOwner(getOwnerINLINE()) != NO_PLAYER)
 	{
 		return 0;
 	}
@@ -17906,7 +17906,7 @@ int CvUnitAI::AI_nativeTradeBuy(CvWString* pszDeals)
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	CvCity* const pCity = plot()->getPlotCity();
-	if (pCity == NULL || !GET_PLAYER(pCity->getOwnerINLINE()).isNative() || !canTradeYield(plot()))
+	if (pCity == NULL || !GET_PLAYER(pCity->getOwnerINLINE()).isNative() || !canTradeYield(plot()) || pCity->getTradeBlockingFortOwner(getOwnerINLINE()) != NO_PLAYER)
 	{
 		return 0;
 	}
