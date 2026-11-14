@@ -2320,6 +2320,378 @@
 		<Spanish>%s1 lleva %s2 a %s3</Spanish>
 		<Russian>%s1 привозит %s2 в %s3</Russian>
 		<Hungarian>%s1 elviszi ide: %s3 - %s2</Hungarian>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_ASSIGN_JOB</Tag>
+		<English>Auto Assign Job</English>
+		<Portuguese>Atribuir trabalho automaticamente</Portuguese>
+		<French>Affecter un emploi automatiquement</French>
+		<German>Automatisch zuweisen</German>
+		<Italian>Assegna lavoro automaticamente</Italian>
+		<Spanish>Asignar trabajo automáticamente</Spanish>
+		<Russian>Автоматически назначить работу</Russian>
+		<Hungarian>Munka automatikus kiosztása</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_ASSIGN_JOB_HELP</Tag>
+		<English>You pick one of the 12 best free jobs in your colonies for the colonist (an expert also the job of a regular colonist in his trade), it goes there on foot or by an automated transport and joins the colony in that job. Regular colonists go at most 12 turns far; the colony must keep 2 food to spare unless the job produces food.</English>
+		<Portuguese>Você escolhe para o colono um dos 12 melhores trabalhos livres nas suas colônias (um especialista também o trabalho de um colono comum no seu ofício), ele vai até lá a pé ou num transporte automatizado e junta-se à colônia nesse trabalho. Colonos comuns vão no máximo a 12 turnos de distância; a colônia deve manter 2 de comida de sobra, a menos que o trabalho produza comida.</Portuguese>
+		<French>Vous choisissez pour le colon l'un des 12 meilleurs emplois libres dans vos colonies (un expert aussi l'emploi d'un colon ordinaire de son métier), il s'y rend à pied ou par un transport automatisé et rejoint la colonie à cet emploi. Les colons ordinaires vont à 12 tours au plus ; la colonie doit garder 2 de nourriture en surplus, sauf si l'emploi produit de la nourriture.</French>
+		<German>Du wählst für den Kolonisten eine der 12 besten freien Stellen in deinen Kolonien (für einen Experten auch die Stelle eines regulären Kolonisten in seinem Beruf), er geht zu Fuß oder mit einem automatischen Transporter dorthin und tritt der Kolonie mit dieser Arbeit bei. Reguläre Kolonisten gehen höchstens 12 Runden weit; die Kolonie muss 2 Nahrung übrig behalten, außer die Arbeit erzeugt Nahrung.</German>
+		<Italian>Scegli per il colono uno degli 12 migliori lavori liberi nelle tue colonie (per un esperto anche il lavoro di un colono comune del suo mestiere), lui ci va a piedi o con un trasporto automatizzato e si unisce alla colonia con quel lavoro. I coloni comuni vanno al massimo a 12 turni di distanza; la colonia deve conservare 2 di cibo in eccesso, a meno che il lavoro produca cibo.</Italian>
+		<Spanish>Eliges para el colono uno de los 12 mejores trabajos libres en tus colonias (para un experto también el trabajo de un colono común de su oficio), él va allí a pie o en un transporte automatizado y se une a la colonia en ese trabajo. Los colonos comunes van como máximo a 12 turnos de distancia; la colonia debe conservar 2 de comida de sobra, salvo que el trabajo produzca comida.</Spanish>
+		<Russian>Вы выбираете для колониста одну из 12 лучших свободных работ в ваших колониях (для эксперта — также место обычного колониста по своей специальности), он идёт туда пешком или на автоматическом транспорте и вступает в колонию на эту работу. Обычные колонисты идут не дальше 12 ходов; у колонии должно оставаться 2 избытка еды, если работа сама не производит еду.</Russian>
+		<Hungarian>A telepesnek kiválasztod a kolóniáid 12 legjobb szabad munkájának egyikét (szakértőnek a saját szakmájában egy közönséges telepes munkáját is), ő gyalog vagy automatikus szállítóval odamegy, és ezzel a munkával csatlakozik a kolóniához. A közönséges telepesek legfeljebb 12 környi távolságra mennek; a kolóniának 2 élelmiszer-többletet kell megtartania, hacsak a munka nem termel élelmiszert.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_TARGET</Tag>
+		<English>%s1 goes to %s2 to work as %s3 (%d4 turns, about %d5 gold per turn).</English>
+		<Portuguese>%s1 vai para %s2 para trabalhar como %s3 (%d4 turnos, cerca de %d5 de ouro por turno).</Portuguese>
+		<French>%s1 se rend à %s2 pour travailler comme %s3 (%d4 tours, environ %d5 pièces d'or par tour).</French>
+		<German>%s1 geht nach %s2 und arbeitet dort als %s3 (%d4 Runden, etwa %d5 Gold pro Runde).</German>
+		<Italian>%s1 va a %s2 per lavorare come %s3 (%d4 turni, circa %d5 monete d'oro per turno).</Italian>
+		<Spanish>%s1 va a %s2 para trabajar como %s3 (%d4 turnos, unos %d5 de oro por turno).</Spanish>
+		<Russian>%s1 направляется в %s2, чтобы работать как %s3 (%d4 ход., около %d5 золота за ход).</Russian>
+		<Hungarian>%s1 %s2 felé indul, hogy ott %s3 legyen (%d4 kör, körönként kb. %d5 arany).</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_INTERFACE_AUTO_ASSIGN_TARGET_OFF</Tag>
+		<English>This colony takes no colonists of Auto Assign Job. Click to switch it on.</English>
+		<Portuguese>Esta colônia não recebe colonos da atribuição automática. Clique para ativar.</Portuguese>
+		<French>Cette colonie ne reçoit aucun colon de l'affectation automatique. Cliquer pour l'activer.</French>
+		<German>Diese Kolonie bekommt keine Kolonisten von „Automatisch zuweisen“. Anklicken zum Einschalten.</German>
+		<Italian>Questa colonia non riceve coloni dall'assegnazione automatica. Clicca per attivarla.</Italian>
+		<Spanish>Esta colonia no recibe colonos de la asignación automática. Haz clic para activarla.</Spanish>
+		<Russian>Эта колония не получает колонистов от автоматического назначения. Нажмите, чтобы включить.</Russian>
+		<Hungarian>Ez a kolónia nem kap telepeseket az automatikus kiosztástól. Kattints a bekapcsoláshoz.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_INTERFACE_AUTO_ASSIGN_TARGET_ON</Tag>
+		<English>This colony takes colonists of Auto Assign Job (its jobs appear in the job menu). Click to switch it off.</English>
+		<Portuguese>Esta colônia recebe colonos da atribuição automática (os seus trabalhos aparecem no menu). Clique para desativar.</Portuguese>
+		<French>Cette colonie reçoit des colons de l'affectation automatique (ses emplois apparaissent dans le menu). Cliquer pour la désactiver.</French>
+		<German>Diese Kolonie bekommt Kolonisten von „Automatisch zuweisen“ (ihre Jobs erscheinen im Job-Menü). Anklicken zum Ausschalten.</German>
+		<Italian>Questa colonia riceve coloni dall'assegnazione automatica (i suoi lavori compaiono nel menu). Clicca per disattivarla.</Italian>
+		<Spanish>Esta colonia recibe colonos de la asignación automática (sus trabajos aparecen en el menú). Haz clic para desactivarla.</Spanish>
+		<Russian>Эта колония получает колонистов от автоматического назначения (её работы видны в меню). Нажмите, чтобы выключить.</Russian>
+		<Hungarian>Ez a kolónia telepeseket kap az automatikus kiosztástól (munkái megjelennek a menüben). Kattints a kikapcsoláshoz.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_NONE</Tag>
+		<English>%s1 finds no suitable job in your colonies. Only colonies switched on for it in the city screen take colonists.</English>
+		<Portuguese>%s1 não encontra nenhum trabalho adequado nas suas colônias. Só as colônias ativadas para isso na tela da cidade recebem colonos.</Portuguese>
+		<French>%s1 ne trouve aucun emploi convenable dans vos colonies. Seules les colonies activées pour cela dans l'écran de la ville reçoivent des colons.</French>
+		<German>%s1 findet keine passende Arbeit in deinen Kolonien. Nur im Stadtbildschirm dafür eingeschaltete Kolonien bekommen Kolonisten.</German>
+		<Italian>%s1 non trova un lavoro adatto nelle tue colonie. Solo le colonie attivate per questo nella schermata della città ricevono coloni.</Italian>
+		<Spanish>%s1 no encuentra ningún trabajo adecuado en tus colonias. Solo las colonias activadas para ello en la pantalla de la ciudad reciben colonos.</Spanish>
+		<Russian>%s1 не находит подходящей работы в ваших колониях. Колонистов получают только колонии, включённые для этого на экране города.</Russian>
+		<Hungarian>%s1 nem talál megfelelő munkát a kolóniáidban. Csak a városképernyőn ehhez bekapcsolt kolóniák kapnak telepeseket.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_UNREACHABLE</Tag>
+		<English>%s1 cannot reach %s2 and looks for another job.</English>
+		<Portuguese>%s1 não consegue chegar a %s2 e procura outro trabalho.</Portuguese>
+		<French>%s1 ne peut pas atteindre %s2 et cherche un autre emploi.</French>
+		<German>%s1 kann %s2 nicht erreichen und sucht eine andere Arbeit.</German>
+		<Italian>%s1 non riesce a raggiungere %s2 e cerca un altro lavoro.</Italian>
+		<Spanish>%s1 no puede llegar a %s2 y busca otro trabajo.</Spanish>
+		<Russian>%s1 не может добраться до %s2 и ищет другую работу.</Russian>
+		<Hungarian>%s1 nem tudja elérni %s2 kolóniát, és másik munkát keres.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_JOINED</Tag>
+		<English>%s1 now works as %s2 in %s3.</English>
+		<Portuguese>%s1 agora trabalha como %s2 em %s3.</Portuguese>
+		<French>%s1 travaille maintenant comme %s2 à %s3.</French>
+		<German>%s1 arbeitet jetzt als %s2 in %s3.</German>
+		<Italian>%s1 ora lavora come %s2 a %s3.</Italian>
+		<Spanish>%s1 ahora trabaja como %s2 en %s3.</Spanish>
+		<Russian>%s1 теперь работает как %s2 в %s3.</Russian>
+		<Hungarian>%s1 mostantól %s2 munkát végez itt: %s3.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_DISPLACED</Tag>
+		<English>%s1 makes room in %s2 for %s3 and stands on the colony plot.</English>
+		<Portuguese>%s1 dá lugar em %s2 a %s3 e fica no terreno da colônia.</Portuguese>
+		<French>%s1 cède sa place à %s3 dans %s2 et attend sur la case de la colonie.</French>
+		<German>%s1 macht in %s2 Platz für %s3 und steht auf dem Stadtfeld.</German>
+		<Italian>%s1 lascia il posto a %s3 a %s2 e resta sulla casella della colonia.</Italian>
+		<Spanish>%s1 deja su puesto en %s2 a %s3 y queda en la casilla de la colonia.</Spanish>
+		<Russian>%s1 уступает место в %s2 для %s3 и стоит на клетке колонии.</Russian>
+		<Hungarian>%s1 átadja a helyét %s2 kolóniában %s3 számára, és a kolónia mezőjén áll.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_TRANSPORT_TO_CITY</Tag>
+		<English>Transport to City</English>
+		<Portuguese>Transportar para cidade</Portuguese>
+		<French>Transport vers une ville</French>
+		<German>Transport zur Stadt</German>
+		<Italian>Trasporto verso una città</Italian>
+		<Spanish>Transporte a una ciudad</Spanish>
+		<Russian>Перевезти в город</Russian>
+		<Hungarian>Szállítás városba</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_TRANSPORT_TO_CITY_HELP</Tag>
+		<English>The unit travels to one of your colonies: on foot, or to a port (a coastal colony or a coastal native village at peace), there aboard a ship with [COLOR_HIGHLIGHT_TEXT]Automate Transport[COLOR_REVERT], ashore near the destination and on foot for the rest. Long voyages are made by the fastest ship, never by a coastal ship. On arrival the unit waits for orders.</English>
+		<Portuguese>A unidade viaja para uma de suas colônias: a pé, ou até um porto (uma colônia costeira ou uma aldeia nativa costeira em paz), lá embarca num navio com [COLOR_HIGHLIGHT_TEXT]Automatizar transporte[COLOR_REVERT], desembarca perto do destino e segue a pé. Viagens longas são feitas pelo navio mais rápido, nunca por um navio costeiro. Ao chegar, a unidade aguarda ordens.</Portuguese>
+		<French>L'unité se rend dans l'une de vos colonies : à pied, ou jusqu'à un port (une colonie côtière ou un village indigène côtier en paix), où elle embarque sur un navire en [COLOR_HIGHLIGHT_TEXT]Automatiser le transport[COLOR_REVERT], débarque près de la destination et finit à pied. Les longs voyages sont faits par le navire le plus rapide, jamais par un navire côtier. À l'arrivée, l'unité attend des ordres.</French>
+		<German>Die Einheit reist in eine deiner Kolonien: zu Fuß, oder zu einem Hafen (Küstenkolonie oder Ureinwohnerdorf an der Küste, mit dem Frieden herrscht), dort an Bord eines Schiffs mit [COLOR_HIGHLIGHT_TEXT]Transporteinheit komplett automatisieren[COLOR_REVERT], an Land nahe dem Ziel und den Rest zu Fuß. Lange Fahrten übernimmt das schnellste Schiff, nie ein Küstenschiff. Am Ziel wartet die Einheit auf Befehle.</German>
+		<Italian>L'unità si reca in una delle tue colonie: a piedi, oppure fino a un porto (una colonia costiera o un villaggio nativo costiero in pace), dove si imbarca su una nave con [COLOR_HIGHLIGHT_TEXT]Automatizza i trasporti[COLOR_REVERT], sbarca vicino alla destinazione e prosegue a piedi. I viaggi lunghi li fa la nave più veloce, mai una nave costiera. All'arrivo l'unità attende ordini.</Italian>
+		<Spanish>La unidad viaja a una de tus colonias: a pie, o hasta un puerto (una colonia costera o una aldea nativa costera en paz), allí embarca en un barco con [COLOR_HIGHLIGHT_TEXT]Automatizar transporte[COLOR_REVERT], desembarca cerca del destino y sigue a pie. Los viajes largos los hace el barco más rápido, nunca un barco costero. Al llegar, la unidad espera órdenes.</Spanish>
+		<Russian>Отряд отправляется в одну из ваших колоний: пешком или до порта (прибрежной колонии или прибрежной деревни туземцев, с которыми мир), там садится на корабль с режимом [COLOR_HIGHLIGHT_TEXT]Автоматизировать транспорт[COLOR_REVERT], высаживается рядом с целью и идёт дальше пешком. Дальние рейсы выполняет самый быстрый корабль, но никогда не каботажный. По прибытии отряд ждёт приказов.</Russian>
+		<Hungarian>Az egység az egyik kolóniádba utazik: gyalog, vagy egy kikötőig (part menti kolónia vagy békés part menti bennszülött falu), ott felszáll egy [COLOR_HIGHLIGHT_TEXT]Szállítás Automatizálása[COLOR_REVERT] módú hajóra, a cél közelében partra száll, és gyalog megy tovább. Hosszú utakat a leggyorsabb hajó tesz meg, parti hajó soha. Megérkezés után az egység parancsra vár.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_INTERFACEMODE_TRANSPORT_TO</Tag>
+		<English>Transport to Plot</English>
+		<Portuguese>Transportar para casa</Portuguese>
+		<French>Transport vers une case</French>
+		<German>Transport zum Feld</German>
+		<Italian>Trasporto verso una casella</Italian>
+		<Spanish>Transporte a una casilla</Spanish>
+		<Russian>Перевезти на клетку</Russian>
+		<Hungarian>Szállítás mezőre</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_INTERFACEMODE_TRANSPORT_TO_HELP</Tag>
+		<English>Choose a plot on the map: the unit travels there on foot, or to a port (a coastal colony or a coastal native village at peace), there aboard a ship with [COLOR_HIGHLIGHT_TEXT]Automate Transport[COLOR_REVERT], ashore near the destination and on foot for the rest. Long voyages are made by the fastest ship, never by a coastal ship. On arrival the unit waits for orders.</English>
+		<Portuguese>Escolha uma casa no mapa: a unidade vai até lá a pé, ou até um porto (uma colônia costeira ou uma aldeia nativa costeira em paz), lá embarca num navio com [COLOR_HIGHLIGHT_TEXT]Automatizar transporte[COLOR_REVERT], desembarca perto do destino e segue a pé. Viagens longas são feitas pelo navio mais rápido, nunca por um navio costeiro. Ao chegar, a unidade aguarda ordens.</Portuguese>
+		<French>Choisissez une case sur la carte : l'unité s'y rend à pied, ou jusqu'à un port (une colonie côtière ou un village indigène côtier en paix), où elle embarque sur un navire en [COLOR_HIGHLIGHT_TEXT]Automatiser le transport[COLOR_REVERT], débarque près de la destination et finit à pied. Les longs voyages sont faits par le navire le plus rapide, jamais par un navire côtier. À l'arrivée, l'unité attend des ordres.</French>
+		<German>Wähle ein Feld auf der Karte: die Einheit reist dorthin zu Fuß, oder zu einem Hafen (Küstenkolonie oder Ureinwohnerdorf an der Küste, mit dem Frieden herrscht), dort an Bord eines Schiffs mit [COLOR_HIGHLIGHT_TEXT]Transporteinheit komplett automatisieren[COLOR_REVERT], an Land nahe dem Ziel und den Rest zu Fuß. Lange Fahrten übernimmt das schnellste Schiff, nie ein Küstenschiff. Am Ziel wartet die Einheit auf Befehle.</German>
+		<Italian>Scegli una casella sulla mappa: l'unità ci va a piedi, oppure fino a un porto (una colonia costiera o un villaggio nativo costiero in pace), dove si imbarca su una nave con [COLOR_HIGHLIGHT_TEXT]Automatizza i trasporti[COLOR_REVERT], sbarca vicino alla destinazione e prosegue a piedi. I viaggi lunghi li fa la nave più veloce, mai una nave costiera. All'arrivo l'unità attende ordini.</Italian>
+		<Spanish>Elige una casilla del mapa: la unidad va allí a pie, o hasta un puerto (una colonia costera o una aldea nativa costera en paz), allí embarca en un barco con [COLOR_HIGHLIGHT_TEXT]Automatizar transporte[COLOR_REVERT], desembarca cerca del destino y sigue a pie. Los viajes largos los hace el barco más rápido, nunca un barco costero. Al llegar, la unidad espera órdenes.</Spanish>
+		<Russian>Выберите клетку на карте: отряд идёт туда пешком или до порта (прибрежной колонии или прибрежной деревни туземцев, с которыми мир), там садится на корабль с режимом [COLOR_HIGHLIGHT_TEXT]Автоматизировать транспорт[COLOR_REVERT], высаживается рядом с целью и идёт дальше пешком. Дальние рейсы выполняет самый быстрый корабль, но никогда не каботажный. По прибытии отряд ждёт приказов.</Russian>
+		<Hungarian>Válassz egy mezőt a térképen: az egység gyalog megy oda, vagy egy kikötőig (part menti kolónia vagy békés part menti bennszülött falu), ott felszáll egy [COLOR_HIGHLIGHT_TEXT]Szállítás Automatizálása[COLOR_REVERT] módú hajóra, a cél közelében partra száll, és gyalog megy tovább. Hosszú utakat a leggyorsabb hajó tesz meg, parti hajó soha. Megérkezés után az egység parancsra vár.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISSION_TRANSPORT_TO</Tag>
+		<English>Transport to Plot</English>
+		<Portuguese>Transportar para casa</Portuguese>
+		<French>Transport vers une case</French>
+		<German>Transport zum Feld</German>
+		<Italian>Trasporto verso una casella</Italian>
+		<Spanish>Transporte a una casilla</Spanish>
+		<Russian>Перевезти на клетку</Russian>
+		<Hungarian>Szállítás mezőre</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISSION_TRANSPORT_TO_HELP</Tag>
+		<English>Choose a plot on the map: the unit travels there on foot, or to a port (a coastal colony or a coastal native village at peace), there aboard a ship with [COLOR_HIGHLIGHT_TEXT]Automate Transport[COLOR_REVERT], ashore near the destination and on foot for the rest. Long voyages are made by the fastest ship, never by a coastal ship. On arrival the unit waits for orders.</English>
+		<Portuguese>Escolha uma casa no mapa: a unidade vai até lá a pé, ou até um porto (uma colônia costeira ou uma aldeia nativa costeira em paz), lá embarca num navio com [COLOR_HIGHLIGHT_TEXT]Automatizar transporte[COLOR_REVERT], desembarca perto do destino e segue a pé. Viagens longas são feitas pelo navio mais rápido, nunca por um navio costeiro. Ao chegar, a unidade aguarda ordens.</Portuguese>
+		<French>Choisissez une case sur la carte : l'unité s'y rend à pied, ou jusqu'à un port (une colonie côtière ou un village indigène côtier en paix), où elle embarque sur un navire en [COLOR_HIGHLIGHT_TEXT]Automatiser le transport[COLOR_REVERT], débarque près de la destination et finit à pied. Les longs voyages sont faits par le navire le plus rapide, jamais par un navire côtier. À l'arrivée, l'unité attend des ordres.</French>
+		<German>Wähle ein Feld auf der Karte: die Einheit reist dorthin zu Fuß, oder zu einem Hafen (Küstenkolonie oder Ureinwohnerdorf an der Küste, mit dem Frieden herrscht), dort an Bord eines Schiffs mit [COLOR_HIGHLIGHT_TEXT]Transporteinheit komplett automatisieren[COLOR_REVERT], an Land nahe dem Ziel und den Rest zu Fuß. Lange Fahrten übernimmt das schnellste Schiff, nie ein Küstenschiff. Am Ziel wartet die Einheit auf Befehle.</German>
+		<Italian>Scegli una casella sulla mappa: l'unità ci va a piedi, oppure fino a un porto (una colonia costiera o un villaggio nativo costiero in pace), dove si imbarca su una nave con [COLOR_HIGHLIGHT_TEXT]Automatizza i trasporti[COLOR_REVERT], sbarca vicino alla destinazione e prosegue a piedi. I viaggi lunghi li fa la nave più veloce, mai una nave costiera. All'arrivo l'unità attende ordini.</Italian>
+		<Spanish>Elige una casilla del mapa: la unidad va allí a pie, o hasta un puerto (una colonia costera o una aldea nativa costera en paz), allí embarca en un barco con [COLOR_HIGHLIGHT_TEXT]Automatizar transporte[COLOR_REVERT], desembarca cerca del destino y sigue a pie. Los viajes largos los hace el barco más rápido, nunca un barco costero. Al llegar, la unidad espera órdenes.</Spanish>
+		<Russian>Выберите клетку на карте: отряд идёт туда пешком или до порта (прибрежной колонии или прибрежной деревни туземцев, с которыми мир), там садится на корабль с режимом [COLOR_HIGHLIGHT_TEXT]Автоматизировать транспорт[COLOR_REVERT], высаживается рядом с целью и идёт дальше пешком. Дальние рейсы выполняет самый быстрый корабль, но никогда не каботажный. По прибытии отряд ждёт приказов.</Russian>
+		<Hungarian>Válassz egy mezőt a térképen: az egység gyalog megy oda, vagy egy kikötőig (part menti kolónia vagy békés part menti bennszülött falu), ott felszáll egy [COLOR_HIGHLIGHT_TEXT]Szállítás Automatizálása[COLOR_REVERT] módú hajóra, a cél közelében partra száll, és gyalog megy tovább. Hosszú utakat a leggyorsabb hajó tesz meg, parti hajó soha. Megérkezés után az egység parancsra vár.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_TRAVEL</Tag>
+		<English>Transport to Destination</English>
+		<Portuguese>Transporte ao destino</Portuguese>
+		<French>Transport vers la destination</French>
+		<German>Transport zum Ziel</German>
+		<Italian>Trasporto alla destinazione</Italian>
+		<Spanish>Transporte al destino</Spanish>
+		<Russian>Перевозка к цели</Russian>
+		<Hungarian>Szállítás a célhoz</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_AUTOMATE_TRAVEL_HELP</Tag>
+		<English>Choose a plot on the map: the unit travels there on foot, or to a port (a coastal colony or a coastal native village at peace), there aboard a ship with [COLOR_HIGHLIGHT_TEXT]Automate Transport[COLOR_REVERT], ashore near the destination and on foot for the rest. Long voyages are made by the fastest ship, never by a coastal ship. On arrival the unit waits for orders.</English>
+		<Portuguese>Escolha uma casa no mapa: a unidade vai até lá a pé, ou até um porto (uma colônia costeira ou uma aldeia nativa costeira em paz), lá embarca num navio com [COLOR_HIGHLIGHT_TEXT]Automatizar transporte[COLOR_REVERT], desembarca perto do destino e segue a pé. Viagens longas são feitas pelo navio mais rápido, nunca por um navio costeiro. Ao chegar, a unidade aguarda ordens.</Portuguese>
+		<French>Choisissez une case sur la carte : l'unité s'y rend à pied, ou jusqu'à un port (une colonie côtière ou un village indigène côtier en paix), où elle embarque sur un navire en [COLOR_HIGHLIGHT_TEXT]Automatiser le transport[COLOR_REVERT], débarque près de la destination et finit à pied. Les longs voyages sont faits par le navire le plus rapide, jamais par un navire côtier. À l'arrivée, l'unité attend des ordres.</French>
+		<German>Wähle ein Feld auf der Karte: die Einheit reist dorthin zu Fuß, oder zu einem Hafen (Küstenkolonie oder Ureinwohnerdorf an der Küste, mit dem Frieden herrscht), dort an Bord eines Schiffs mit [COLOR_HIGHLIGHT_TEXT]Transporteinheit komplett automatisieren[COLOR_REVERT], an Land nahe dem Ziel und den Rest zu Fuß. Lange Fahrten übernimmt das schnellste Schiff, nie ein Küstenschiff. Am Ziel wartet die Einheit auf Befehle.</German>
+		<Italian>Scegli una casella sulla mappa: l'unità ci va a piedi, oppure fino a un porto (una colonia costiera o un villaggio nativo costiero in pace), dove si imbarca su una nave con [COLOR_HIGHLIGHT_TEXT]Automatizza i trasporti[COLOR_REVERT], sbarca vicino alla destinazione e prosegue a piedi. I viaggi lunghi li fa la nave più veloce, mai una nave costiera. All'arrivo l'unità attende ordini.</Italian>
+		<Spanish>Elige una casilla del mapa: la unidad va allí a pie, o hasta un puerto (una colonia costera o una aldea nativa costera en paz), allí embarca en un barco con [COLOR_HIGHLIGHT_TEXT]Automatizar transporte[COLOR_REVERT], desembarca cerca del destino y sigue a pie. Los viajes largos los hace el barco más rápido, nunca un barco costero. Al llegar, la unidad espera órdenes.</Spanish>
+		<Russian>Выберите клетку на карте: отряд идёт туда пешком или до порта (прибрежной колонии или прибрежной деревни туземцев, с которыми мир), там садится на корабль с режимом [COLOR_HIGHLIGHT_TEXT]Автоматизировать транспорт[COLOR_REVERT], высаживается рядом с целью и идёт дальше пешком. Дальние рейсы выполняет самый быстрый корабль, но никогда не каботажный. По прибытии отряд ждёт приказов.</Russian>
+		<Hungarian>Válassz egy mezőt a térképen: az egység gyalog megy oda, vagy egy kikötőig (part menti kolónia vagy békés part menti bennszülött falu), ott felszáll egy [COLOR_HIGHLIGHT_TEXT]Szállítás Automatizálása[COLOR_REVERT] módú hajóra, a cél közelében partra száll, és gyalog megy tovább. Hosszú utakat a leggyorsabb hajó tesz meg, parti hajó soha. Megérkezés után az egység parancsra vár.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_TRANSPORT_TO_MENU_TITLE</Tag>
+		<English>Transport to which colony?</English>
+		<Portuguese>Transportar para qual colônia?</Portuguese>
+		<French>Transporter vers quelle colonie ?</French>
+		<German>In welche Kolonie transportieren?</German>
+		<Italian>Trasportare in quale colonia?</Italian>
+		<Spanish>¿Transportar a qué colonia?</Spanish>
+		<Russian>В какую колонию перевезти?</Russian>
+		<Hungarian>Melyik kolóniába szállítsuk?</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_TRANSPORT_TO_MENU_SELECTION</Tag>
+		<English>%s1 (%d2) - Happiness %d3</English>
+		<Portuguese>%s1 (%d2) - Felicidade %d3</Portuguese>
+		<French>%s1 (%d2) - Bonheur %d3</French>
+		<German>%s1 (%d2) - Zufriedenheit %d3</German>
+		<Italian>%s1 (%d2) - Soddisfazione %d3</Italian>
+		<Spanish>%s1 (%d2) - Satisfacción %d3</Spanish>
+		<Russian>%s1 (%d2) - Счастье %d3</Russian>
+		<Hungarian>%s1 (%d2) - Boldogság %d3</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_TRANSPORT_TO_MENU_SELECTION_PLANNED</Tag>
+		<English>%s1 (%d2) - Happiness %d3, with %d5 on their way %d4</English>
+		<Portuguese>%s1 (%d2) - Felicidade %d3, com %d5 a caminho %d4</Portuguese>
+		<French>%s1 (%d2) - Bonheur %d3, avec %d5 en route %d4</French>
+		<German>%s1 (%d2) - Zufriedenheit %d3, mit %d5 unterwegs %d4</German>
+		<Italian>%s1 (%d2) - Soddisfazione %d3, con %d5 in arrivo %d4</Italian>
+		<Spanish>%s1 (%d2) - Satisfacción %d3, con %d5 en camino %d4</Spanish>
+		<Russian>%s1 (%d2) - Счастье %d3, с %d5 в пути %d4</Russian>
+		<Hungarian>%s1 (%d2) - Boldogság %d3, %d5 úton lévővel %d4</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRAVEL_WALK</Tag>
+		<English>%s1 walks to its destination (about %d2 turns).</English>
+		<Portuguese>%s1 vai a pé até o destino (cerca de %d2 turnos).</Portuguese>
+		<French>%s1 se rend à pied à sa destination (environ %d2 tours).</French>
+		<German>%s1 geht zu Fuß zum Ziel (etwa %d2 Runden).</German>
+		<Italian>%s1 va a piedi alla destinazione (circa %d2 turni).</Italian>
+		<Spanish>%s1 va a pie a su destino (unos %d2 turnos).</Spanish>
+		<Russian>%s1 идёт к цели пешком (около %d2 ходов).</Russian>
+		<Hungarian>%s1 gyalog megy a célhoz (kb. %d2 kör).</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRAVEL_BOARDED_FOR</Tag>
+		<English>%s1 boards %s2 in %s3 for %s5 (about %d4 turns).</English>
+		<Portuguese>%s1 embarca no %s2 em %s3 rumo a %s5 (cerca de %d4 turnos).</Portuguese>
+		<French>%s1 embarque sur le %s2 à %s3 pour %s5 (environ %d4 tours).</French>
+		<German>%s1 geht in %s3 an Bord der %s2, Ziel %s5 (etwa %d4 Runden).</German>
+		<Italian>%s1 si imbarca sulla %s2 a %s3 per %s5 (circa %d4 turni).</Italian>
+		<Spanish>%s1 embarca en el %s2 en %s3 rumbo a %s5 (unos %d4 turnos).</Spanish>
+		<Russian>%s1 садится на %s2 в %s3, цель %s5 (около %d4 ходов).</Russian>
+		<Hungarian>%s1 felszáll a(z) %s2 hajóra itt: %s3, cél: %s5 (kb. %d4 kör).</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRAVEL_BOARDED_NEAR</Tag>
+		<English>%s1 boards %s2 in %s3 for a plot near %s5 (about %d4 turns).</English>
+		<Portuguese>%s1 embarca no %s2 em %s3 rumo a uma casa perto de %s5 (cerca de %d4 turnos).</Portuguese>
+		<French>%s1 embarque sur le %s2 à %s3 pour une case près de %s5 (environ %d4 tours).</French>
+		<German>%s1 geht in %s3 an Bord der %s2, Ziel ein Feld nahe %s5 (etwa %d4 Runden).</German>
+		<Italian>%s1 si imbarca sulla %s2 a %s3 per una casella vicino a %s5 (circa %d4 turni).</Italian>
+		<Spanish>%s1 embarca en el %s2 en %s3 rumbo a una casilla cerca de %s5 (unos %d4 turnos).</Spanish>
+		<Russian>%s1 садится на %s2 в %s3, цель — клетка у %s5 (около %d4 ходов).</Russian>
+		<Hungarian>%s1 felszáll a(z) %s2 hajóra itt: %s3, cél: egy mező %s5 közelében (kb. %d4 kör).</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRAVEL_BOARDED</Tag>
+		<English>%s1 boards %s2 in %s3 (about %d4 turns to its destination).</English>
+		<Portuguese>%s1 embarca no %s2 em %s3 (cerca de %d4 turnos até o destino).</Portuguese>
+		<French>%s1 embarque sur le %s2 à %s3 (environ %d4 tours jusqu'à destination).</French>
+		<German>%s1 geht in %s3 an Bord der %s2 (etwa %d4 Runden bis zum Ziel).</German>
+		<Italian>%s1 si imbarca sulla %s2 a %s3 (circa %d4 turni alla destinazione).</Italian>
+		<Spanish>%s1 embarca en el %s2 en %s3 (unos %d4 turnos hasta su destino).</Spanish>
+		<Russian>%s1 садится на %s2 в %s3 (около %d4 ходов до цели).</Russian>
+		<Hungarian>%s1 felszáll a(z) %s2 hajóra itt: %s3 (kb. %d4 kör a célig).</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRAVEL_ARRIVED</Tag>
+		<English>%s1 has reached its destination.</English>
+		<Portuguese>%s1 chegou ao destino.</Portuguese>
+		<French>%s1 est arrivé à destination.</French>
+		<German>%s1 hat sein Ziel erreicht.</German>
+		<Italian>%s1 ha raggiunto la destinazione.</Italian>
+		<Spanish>%s1 ha llegado a su destino.</Spanish>
+		<Russian>%s1 прибыл к цели.</Russian>
+		<Hungarian>%s1 elérte a célját.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRAVEL_NO_WAY</Tag>
+		<English>%s1 finds no way to its destination, neither on foot nor with an automated transport.</English>
+		<Portuguese>%s1 não encontra caminho até o destino, nem a pé nem com um transporte automatizado.</Portuguese>
+		<French>%s1 ne trouve aucun chemin vers sa destination, ni à pied ni avec un transport automatique.</French>
+		<German>%s1 findet keinen Weg zum Ziel, weder zu Fuß noch mit einem automatisierten Transport.</German>
+		<Italian>%s1 non trova una via per la destinazione, né a piedi né con un trasporto automatico.</Italian>
+		<Spanish>%s1 no encuentra camino a su destino, ni a pie ni con un transporte automatizado.</Spanish>
+		<Russian>%s1 не находит пути к цели ни пешком, ни на автоматическом транспорте.</Russian>
+		<Hungarian>%s1 nem talál utat a céljához, sem gyalog, sem automatikus szállítással.</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_FOOD_SHORTAGE</Tag>
+		<English> - food short</English>
+		<Portuguese> - comida escassa</Portuguese>
+		<French> - nourriture rare</French>
+		<German> - Knappe Nahrung</German>
+		<Italian> - cibo scarso</Italian>
+		<Spanish> - comida escasa</Spanish>
+		<Russian> - нехватка еды</Russian>
+		<Hungarian> - kevés élelem</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_LOW_FOOD</Tag>
+		<English> - little [ICON_FOOD]</English>
+		<Portuguese> - pouca [ICON_FOOD]</Portuguese>
+		<French> - peu de [ICON_FOOD]</French>
+		<German> - wenig [ICON_FOOD]</German>
+		<Italian> - poco [ICON_FOOD]</Italian>
+		<Spanish> - poca [ICON_FOOD]</Spanish>
+		<Russian> - мало [ICON_FOOD]</Russian>
+		<Hungarian> - kevés [ICON_FOOD]</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_HAPPINESS</Tag>
+		<English> - happiness with those on their way %d1</English>
+		<Portuguese> - felicidade com os a caminho %d1</Portuguese>
+		<French> - bonheur avec ceux en route %d1</French>
+		<German> - Zufriedenheit mit den Geplanten %d1</German>
+		<Italian> - soddisfazione con quelli in arrivo %d1</Italian>
+		<Spanish> - satisfacción con los que van en camino %d1</Spanish>
+		<Russian> - счастье с теми, кто в пути, %d1</Russian>
+		<Hungarian> - boldogság az úton lévőkkel %d1</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_NO_GOLD</Tag>
+		<English>%s1 in %s2: %d3 turns away</English>
+		<Portuguese>%s1 em %s2: a %d3 turnos</Portuguese>
+		<French>%s1 à %s2 : à %d3 tours</French>
+		<German>%s1 in %s2: %d3 Runden entfernt</German>
+		<Italian>%s1 a %s2: a %d3 turni</Italian>
+		<Spanish>%s1 en %s2: a %d3 turnos</Spanish>
+		<Russian>%s1 в %s2: %d3 ходов пути</Russian>
+		<Hungarian>%s1 itt: %s2: %d3 kör távolságra</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_NO_GOLD_REPLACE</Tag>
+		<English>%s1 in %s2: %d3 turns away (replaces %s4)</English>
+		<Portuguese>%s1 em %s2: a %d3 turnos (substitui %s4)</Portuguese>
+		<French>%s1 à %s2 : à %d3 tours (remplace %s4)</French>
+		<German>%s1 in %s2: %d3 Runden entfernt (ersetzt %s4)</German>
+		<Italian>%s1 a %s2: a %d3 turni (sostituisce %s4)</Italian>
+		<Spanish>%s1 en %s2: a %d3 turnos (sustituye a %s4)</Spanish>
+		<Russian>%s1 в %s2: %d3 ходов пути (заменяет %s4)</Russian>
+		<Hungarian>%s1 itt: %s2: %d3 kör távolságra (%s4 helyére)</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_TITLE</Tag>
+		<English>Which job for %s1?</English>
+		<Portuguese>Qual trabalho para %s1?</Portuguese>
+		<French>Quel emploi pour %s1 ?</French>
+		<German>Welcher Job für %s1?</German>
+		<Italian>Quale lavoro per %s1?</Italian>
+		<Spanish>¿Qué trabajo para %s1?</Spanish>
+		<Russian>Какую работу дать %s1?</Russian>
+		<Hungarian>Milyen munka legyen %s1 számára?</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_SELECTION</Tag>
+		<English>%s1 in %s2: %d3 gold per turn, %d4 turns away</English>
+		<Portuguese>%s1 em %s2: %d3 de ouro por turno, a %d4 turnos</Portuguese>
+		<French>%s1 à %s2 : %d3 pièces d'or par tour, à %d4 tours</French>
+		<German>%s1 in %s2: %d3 Gold pro Runde, %d4 Runden entfernt</German>
+		<Italian>%s1 a %s2: %d3 monete d'oro per turno, a %d4 turni</Italian>
+		<Spanish>%s1 en %s2: %d3 de oro por turno, a %d4 turnos</Spanish>
+		<Russian>%s1 в %s2: %d3 золота за ход, %d4 ходов пути</Russian>
+		<Hungarian>%s1 itt: %s2: %d3 arany körönként, %d4 kör távolságra</Hungarian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_REPLACE</Tag>
+		<English>%s1 in %s2: %d3 gold per turn, %d4 turns away (replaces %s5)</English>
+		<Portuguese>%s1 em %s2: %d3 de ouro por turno, a %d4 turnos (substitui %s5)</Portuguese>
+		<French>%s1 à %s2 : %d3 pièces d'or par tour, à %d4 tours (remplace %s5)</French>
+		<German>%s1 in %s2: %d3 Gold pro Runde, %d4 Runden entfernt (ersetzt %s5)</German>
+		<Italian>%s1 a %s2: %d3 monete d'oro per turno, a %d4 turni (sostituisce %s5)</Italian>
+		<Spanish>%s1 en %s2: %d3 de oro por turno, a %d4 turnos (sustituye a %s5)</Spanish>
+		<Russian>%s1 в %s2: %d3 золота за ход, %d4 ходов пути (заменяет %s5)</Russian>
+		<Hungarian>%s1 itt: %s2: %d3 arany körönként, %d4 kör távolságra (%s5 helyére)</Hungarian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_ACTION_AUTOMATE_FULL_HELP</Tag>

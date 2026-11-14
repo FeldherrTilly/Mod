@@ -141,6 +141,7 @@ public:
 	bool isValidPlot(const CvPlot* pPlot) const;
 
 	bool canAutomate(AutomateTypes eAutomate) const;
+	bool canTransportTo() const; // WTP: transport to a city or plot
 	void automate(AutomateTypes eAutomate);
 	bool canScrap() const;
 	void scrap();

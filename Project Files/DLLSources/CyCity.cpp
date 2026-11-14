@@ -673,6 +673,19 @@ void CyCity::setAllCitizensAutomated(bool bAutomated)
 		pointer(CREATE_ASSERT_DATA)->setAllCitizensAutomated(bAutomated);
 }
 
+bool CyCity::isAutoAssignTarget()
+{
+	return m_pCity ? m_pCity->isAutoAssignTarget() : false;
+}
+
+void CyCity::setAutoAssignTarget(bool bNewValue)
+{
+	if (m_pCity)
+	{
+		pointer(CREATE_ASSERT_DATA)->setAutoAssignTarget(bNewValue);
+	}
+}
+
 bool CyCity::isProductionAutomated()
 {
 	return m_pCity ? m_pCity->isProductionAutomated() : false;

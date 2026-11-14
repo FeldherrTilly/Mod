@@ -1340,6 +1340,22 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 		{
 			apBack[i]->getGroup()->setAutomateType(AUTOMATE_NATIVE_TRADE);
 		}
+		// WTP: units on their way to a port for a transport (transport to a city or plot, job automation): their ship is
+		// chosen again now that the ships have their moves back, one unit after the other (each counts the tours before)
+		std::vector<CvUnitAI*> apTravellers;
+		for (pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+		{
+			CvUnitAI* const pTraveller = static_cast<CvUnitAI*>(pLoopUnit);
+			if ((pTraveller->AI_getWfTask() == CvUnitAI::WF_TRAVEL || pTraveller->AI_getWfTask() == CvUnitAI::WF_ASSIGN)
+				&& pTraveller->AI_travelPickup() != NULL && pLoopUnit->isOnMap_() && !pLoopUnit->isCargo())
+			{
+				apTravellers.push_back(pTraveller);
+			}
+		}
+		for (uint i = 0; i < apTravellers.size(); ++i)
+		{
+			apTravellers[i]->AI_travelChooseShip();
+		}
 		return;
 	}
 
@@ -19062,7 +19078,7 @@ static int wfLandCostFrom(const std::vector<int>& aiCost, const CvPlot& kFrom, i
 	return iBest;
 }
 
-int CvPlayerAI::AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* piPortCityID) const
+int CvPlayerAI::AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* piPortCityID, bool bNoShip, bool bShipThenWalk) const
 {
 	// waiting for a transport and boarding
 	static const int WF_SHIP_WAIT = 3;
@@ -19079,7 +19095,7 @@ int CvPlayerAI::AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* pi
 	}
 	int iShip = MAX_INT;
 	int iPort = -1;
-	for (std::map<std::pair<int, int>, int>::const_iterator it = m_mapWfSeaTurns.begin(); it != m_mapWfSeaTurns.end(); ++it)
+	for (std::map<std::pair<int, int>, int>::const_iterator it = m_mapWfSeaTurns.begin(); it != m_mapWfSeaTurns.end() && !bNoShip; ++it)
 	{
 		if (it->first.second != kTo.getID())
 		{
@@ -19095,6 +19111,31 @@ int CvPlayerAI::AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* pi
 		{
 			iShip = iTurns;
 			iPort = it->first.first;
+		}
+	}
+	// WTP: bShipThenWalk (human job search): also by ship to another colony and on foot from there (a colony inland on another
+	// coast); the ship of Transport to City may put the colonist ashore nearer, this is the estimate
+	if (bShipThenWalk && !bNoShip && itTo != m_mapWfLandCost.end())
+	{
+		for (std::map<std::pair<int, int>, int>::const_iterator it = m_mapWfSeaTurns.begin(); it != m_mapWfSeaTurns.end(); ++it)
+		{
+			const CvCity* const pLanding = getCity(it->first.second);
+			if (it->first.second == kTo.getID() || pLanding == NULL)
+			{
+				continue;
+			}
+			const int iOnFoot = itTo->second[GC.getMap().plotNumINLINE(pLanding->getX_INLINE(), pLanding->getY_INLINE())];
+			const std::map<int, std::vector<int> >::const_iterator itPort = m_mapWfLandCost.find(it->first.first);
+			if (iOnFoot == MAX_INT || itPort == m_mapWfLandCost.end() || wfLandCostFrom(itPort->second, kFrom, m_iWfLandMoves) == MAX_INT)
+			{
+				continue;
+			}
+			const int iTurns = (wfLandCostFrom(itPort->second, kFrom, m_iWfLandMoves) + m_iWfLandMoves - 1) / m_iWfLandMoves + WF_SHIP_WAIT + it->second + (iOnFoot + m_iWfLandMoves - 1) / m_iWfLandMoves;
+			if (iTurns < iShip)
+			{
+				iShip = iTurns;
+				iPort = it->first.first;
+			}
 		}
 	}
 	if (iShip != MAX_INT && (iLand == MAX_INT || iShip + 2 <= iLand))
@@ -24464,4 +24505,747 @@ bool CvPlayerAI::AI_hasWfShip() const
 		}
 	}
 	return false;
+// WTP: automatic job assignment for a human player's colonist (AUTOMATE_ASSIGN_JOB). The travel times of the workforce plan are
+// made once per turn for the human player (the AI makes them at the start of its plan)
+void CvPlayerAI::AI_wfEnsureTravel(const CvUnit& kColonist)
+{
+	if (m_iWfTravelTurn != GC.getGameINLINE().getGameTurn())
+	{
+		AI_wfUpdateTravel(kColonist);
+		m_iWfTravelTurn = GC.getGameINLINE().getGameTurn();
+	}
+}
+
+namespace
+{
+	// colonists that never work in buildings (as in the workforce plan); failed traders only as carpenters, disillusioned
+	// missionaries only in the church
+	bool wfMayWorkInBuilding(const CvUnit& kUnit, YieldTypes eYield)
+	{
+		const UnitClassTypes eClass = (UnitClassTypes)kUnit.getUnitInfo().getUnitClassType();
+		// (an indentured servant may study at school)
+		if (eYield == YIELD_EDUCATION && eClass == (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_INDENTURED_SERVANT"))
+		{
+			return true;
+		}
+		const char* const aszFieldOnly[6] = { "UNITCLASS_INDENTURED_SERVANT", "UNITCLASS_MULATTO", "UNITCLASS_MESTIZZO",
+			"UNITCLASS_AFRICAN_SLAVE", "UNITCLASS_NATIVE_SLAVE", "UNITCLASS_CONVERTED_NATIVE" };
+		for (int k = 0; k < 6; ++k)
+		{
+			if (eClass == (UnitClassTypes)GC.getInfoTypeForString(aszFieldOnly[k]))
+			{
+				return false;
+			}
+		}
+		if (eClass == (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_FAILED_TRADER"))
+		{
+			return eYield == YIELD_HAMMERS;
+		}
+		if (eClass == (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_FAILED_MISSIONARY"))
+		{
+			return eYield == YIELD_CROSSES;
+		}
+		return true;
+	}
+
+	// the unhappiness balance of a colony (unhappiness minus happiness) with iNewColonists more citizens: more unhappiness
+	// from the population and from missing defenders, the other factors as now
+	int wfUnhappinessWith(const CvCity& kCity, int iNewColonists)
+	{
+		const int iPop = kCity.getPopulation();
+		const int iNewPop = iPop + iNewColonists;
+		const int iMinPop = GC.getMIN_POP_NEG_HAPPINESS();
+		int iDelta = std::max(0, iNewPop - iMinPop) - std::max(0, iPop - iMinPop);
+		const int iDivisor = std::max(1, GC.getPOP_DIVISOR_DEFENSE_UNHAPPINESS());
+		int iDefenders = 0;
+		const CvPlot* const pPlot = kCity.plot();
+		for (int i = 0; i < pPlot->getNumUnits(); ++i)
+		{
+			const CvUnit* const pLoopUnit = pPlot->getUnitByIndex(i);
+			if (pLoopUnit != NULL && pLoopUnit->getDomainType() == DOMAIN_LAND && pLoopUnit->canAttack() && pLoopUnit->getOwnerINLINE() == kCity.getOwnerINLINE())
+			{
+				++iDefenders;
+			}
+		}
+		iDelta += std::max(0, iNewPop / iDivisor - iDefenders) - std::max(0, iPop / iDivisor - iDefenders);
+		return kCity.getCityUnHappiness() - kCity.getCityHappiness() + iDelta;
+	}
+
+	// the unit type whose output counts: an expert outside its trade works like a free colonist (as in the workforce plan)
+	UnitTypes wfWorkingType(const CvUnitAI& kUnit, ProfessionTypes eProfession, UnitTypes eColonist)
+	{
+		if (kUnit.AI_getIdealProfession() != NO_PROFESSION && !wfIsExpertFor(kUnit, eProfession))
+		{
+			return eColonist;
+		}
+		return kUnit.getUnitType();
+	}
+
+	// gold x100 per turn a unit earns in a job (output at the Europe price, the input deducted, food 4 gold); -1: no output
+	// the happiness balance of a colony (happiness minus unhappiness) with the colonists of the job automation on their way
+	// there (pExclude: not this one): their population, the happiness of those who will make it
+	int wfPlannedHappiness(const CvCity& kCity, const CvUnit* pExclude)
+	{
+		int iNewCitizens = 0;
+		int iHappinessOnWay = 0;
+		const CvPlayerAI& kOwner = GET_PLAYER(kCity.getOwnerINLINE());
+		int iLoop;
+		for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
+		{
+			const CvUnitAI& kOther = static_cast<const CvUnitAI&>(*pLoopUnit);
+			const ProfessionTypes eOtherJob = kOther.AI_getWfProfession();
+			if (pLoopUnit == pExclude || kOther.AI_getWfTask() != CvUnitAI::WF_ASSIGN || kOther.AI_getWfCityID() != kCity.getID() || eOtherJob == NO_PROFESSION)
+			{
+				continue;
+			}
+			if (kOther.AI_getWfVillageX() < 0)
+			{
+				++iNewCitizens;
+			}
+			if ((YieldTypes)GC.getProfessionInfo(eOtherJob).getYieldsProduced(0) == YIELD_HAPPINESS)
+			{
+				iHappinessOnWay += wfOutput(kCity, eOtherJob, pLoopUnit->getUnitType(), NULL);
+			}
+		}
+		return iHappinessOnWay - wfUnhappinessWith(kCity, iNewCitizens);
+	}
+
+	// gold x100 of the output of a human player's colonist (job automation): learning at school 10 gold for a free colonist,
+	// 6 for an indentured servant, nothing for others; health 1 gold if the colony gains 2 health already; law 1 gold from 15
+	// law on; bells 9 gold; happiness 15 to 20 gold in an unhappy colony, 8 in a very happy one; everything else as in the workforce plan (wfYieldGold)
+	int wfHumanYieldGold(const CvCity& kCity, const CvUnitAI& kUnit, YieldTypes eYield, int iAmount, int iSlot)
+	{
+		switch (eYield)
+		{
+		case YIELD_EDUCATION:
+			{
+				const UnitClassTypes eClass = (UnitClassTypes)kUnit.getUnitInfo().getUnitClassType();
+				if (eClass == (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_COLONIST"))
+				{
+					return iAmount * 1000;
+				}
+				if (eClass == (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_INDENTURED_SERVANT"))
+				{
+					return iAmount * 600;
+				}
+				return 0;
+			}
+		case YIELD_HEALTH:
+			if (kCity.getCityHealthChange() >= 2)
+			{
+				return iAmount * 100;
+			}
+			break;
+		case YIELD_LAW:
+			if (kCity.getCityLaw() >= 15)
+			{
+				return iAmount * 100;
+			}
+			break;
+		case YIELD_BELLS:
+			return iAmount * 900;
+		case YIELD_HAPPINESS:
+			{
+				// (prostitutes) 15 gold in a colony with less than 1 happiness above its unhappiness, rising to 20 gold with more
+				// than 3 unhappiness above its happiness; 8 gold with more than 10 happiness above its unhappiness
+				// (with the colonists of the job automation on their way there)
+				const int iBalance = wfPlannedHappiness(kCity, &kUnit);
+				if (iBalance < 1)
+				{
+					return iAmount * std::min(2000, 1500 + 125 * -iBalance);
+				}
+				if (iBalance > 10)
+				{
+					return iAmount * 800;
+				}
+			}
+			break;
+		default:
+			break;
+		}
+		return wfYieldGold(kCity, eYield, iAmount, iSlot);
+	}
+
+	int wfHumanJobValue(const CvCity& kCity, const CvUnitAI& kUnit, ProfessionTypes eProfession, const CvPlot* pPlot, int iSlot, UnitTypes eColonist, int* piFood)
+	{
+		const UnitTypes eType = wfWorkingType(kUnit, eProfession, eColonist);
+		const int iOutput = wfOutput(kCity, eProfession, eType, pPlot);
+		if (iOutput <= 0)
+		{
+			return -1;
+		}
+		const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+		const YieldTypes eYield = (YieldTypes)kProfession.getYieldsProduced(0);
+		const int iFood = wfFoodOutput(eProfession, iOutput);
+		if (piFood != NULL)
+		{
+			*piFood = iFood;
+		}
+		int iGold = (eYield == YIELD_FOOD) ? 0 : wfHumanYieldGold(kCity, kUnit, eYield, iOutput, iSlot);
+		for (int k = 0; k < kProfession.getNumYieldsConsumed(); ++k)
+		{
+			const YieldTypes eInput = (YieldTypes)kProfession.getYieldsConsumed(k);
+			if (eInput != NO_YIELD)
+			{
+				iGold -= wfInputGold(kCity, eYield, eInput, iOutput);
+			}
+		}
+		return std::max(0, iGold) + iFood * WF_FOOD_GOLD;
+	}
+
+	// WTP: iAmount of eYield with the colony's yield modifier, as CvCity::getRawYieldProduced counts it (1 stays at least 1)
+	int wfModifiedOutput(const CvCity& kCity, YieldTypes eYield, int iAmount)
+	{
+		if (iAmount <= 0)
+		{
+			return 0;
+		}
+		const int iModified = iAmount * kCity.getBaseYieldRateModifier(eYield) / 100;
+		return (iAmount == 1) ? std::max(1, iModified) : iModified;
+	}
+
+	// WTP: fills what the job shows in the menu (HumanJob::iOutput, iOutputFood)
+	void wfSetJobOutput(CvPlayerAI::HumanJob& kJob, const CvCity& kCity, int iOutput)
+	{
+		const ProfessionTypes eProfession = kJob.eProfession;
+		const YieldTypes eYield = (YieldTypes)GC.getProfessionInfo(eProfession).getYieldsProduced(0);
+		kJob.iOutput = wfModifiedOutput(kCity, eYield, iOutput);
+		kJob.iOutputFood = (eYield == YIELD_FOOD) ? 0 : wfModifiedOutput(kCity, YIELD_FOOD, wfFoodOutput(eProfession, iOutput));
+	}
+}
+
+// WTP: colonists with the job automation on their way to kCity as new citizens (not replacing anybody)
+int CvPlayerAI::AI_humanIncomingCitizens(const CvCity& kCity) const
+{
+	int iCount = 0;
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		const CvUnitAI& kOther = static_cast<const CvUnitAI&>(*pLoopUnit);
+		if (kOther.AI_getWfTask() == CvUnitAI::WF_ASSIGN && kOther.AI_getWfCityID() == kCity.getID() && kOther.AI_getWfProfession() != NO_PROFESSION
+			&& kOther.AI_getWfVillageX() < 0)
+		{
+			++iCount;
+		}
+	}
+	return iCount;
+}
+
+// WTP: the unhappiness balance of kCity (unhappiness minus happiness) with iNewCitizens more citizens
+int CvPlayerAI::AI_humanUnhappinessWith(const CvCity& kCity, int iNewCitizens) const
+{
+	return wfUnhappinessWith(kCity, iNewCitizens);
+}
+
+// WTP: the happiness balance of kCity (happiness minus unhappiness) with the colonists of the job automation on their way
+// there (not pExclude)
+int CvPlayerAI::AI_humanPlannedHappiness(const CvCity& kCity, const CvUnit* pExclude) const
+{
+	return wfPlannedHappiness(kCity, pExclude);
+}
+
+namespace
+{
+	bool humanJobBetter(const CvPlayerAI::HumanJob& kA, const CvPlayerAI::HumanJob& kB)
+	{
+		return kA.iScore > kB.iScore;
+	}
+}
+
+// WTP: the best job for a human player's colonist (see AI_humanFindJobs); returns false if there is none
+bool CvPlayerAI::AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTypes& eBestProfession, int& iX, int& iY, int& iDisplaceID, int& iTurns, int& iGold)
+{
+	std::vector<HumanJob> aJobs;
+	AI_humanFindJobs(kUnit, aJobs, 1);
+	if (aJobs.empty())
+	{
+		return false;
+	}
+	iCityID = aJobs[0].iCityID;
+	eBestProfession = aJobs[0].eProfession;
+	iX = aJobs[0].iX;
+	iY = aJobs[0].iY;
+	iDisplaceID = aJobs[0].iDisplaceID;
+	iTurns = aJobs[0].iTurns;
+	iGold = aJobs[0].iGold;
+	return true;
+}
+
+// WTP: the best jobs for a human player's colonist (the best per colony and profession, best first, at most iMaxJobs): a free
+// plot or building slot in one of our colonies switched on for it in the city screen (CvCity::isAutoAssignTarget), or the job of a regular colonist in the expert's own trade (that colonist
+// makes room). Regular colonists only within 12 turns; the colony keeps 2 food to spare unless the job produces food; a
+// building job only if the colony produces its raw material (the menu: or has some in stock). A new citizen only if the colony's unhappiness stays at most
+// 2 above its happiness with all colonists on their way there. The menu shows one job of the expert's own trade even in a colony
+// without its raw material if there is none with it. Value per turn (gold x100, wfHumanJobValue), less for a long way.
+// paFoodJobs: for slaves, indentured servants, petty criminals and expert farmers and fishermen also the best food job (net
+// 3 food or more) in each colony short of food (less than +4 food with those on their way, storage below half the growth
+// threshold), the 3 best of them; such jobs are marked in aJobs too
+void CvPlayerAI::AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJobs, int iMaxJobs, std::vector<HumanJob>* paFoodJobs)
+{
+	const CvUnitAI& kUnitAI = static_cast<const CvUnitAI&>(kUnit);
+	const CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
+	const UnitTypes eColonist = kCiv.getCivilizationUnits(GLOBAL_DEFINE_DEFAULT_POPULATION_UNIT);
+	const int iConsumption = GLOBAL_DEFINE_FOOD_CONSUMPTION_PER_POPULATION;
+	// WTP (user 2026-10-24): with this much food stored a colony takes a new citizen even if its food goes down (shown as low food)
+	static const int HUMAN_JOB_FOOD_STOCK = 30;
+	const bool bNoShip = !AI_hasWfShip();
+	AI_wfEnsureTravel(kUnit);
+
+	// the best job per (colony, profession)
+	std::map<std::pair<int, int>, HumanJob> mapJobs;
+	// WTP (user 2026-10-24): the best job of the expert's own trade is always offered, even where food or happiness would
+	// keep it from the list, and even if better paid jobs fill the list
+	HumanJob kBestExpertJob;
+	kBestExpertJob.iScore = 0;
+	// WTP (user 2026-10-31): the same in a colony that does not produce the raw material of the job
+	HumanJob kBestUnsuppliedExpertJob;
+	kBestUnsuppliedExpertJob.iScore = 0;
+	// colonies short of food, and whether this worker is offered food jobs there
+	std::set<int> aFoodShortCities;
+	const UnitClassTypes eUnitClass = (UnitClassTypes)kUnit.getUnitInfo().getUnitClassType();
+	const char* const aszFoodWorkers[7] = { "UNITCLASS_AFRICAN_SLAVE", "UNITCLASS_NATIVE_SLAVE", "UNITCLASS_INDENTURED_SERVANT", "UNITCLASS_CRIMINAL",
+		"UNITCLASS_FARMER", "UNITCLASS_RICE_FARMER", "UNITCLASS_FISHERMAN" };
+	bool bFoodWorker = false;
+	for (int k = 0; k < 7 && !bFoodWorker; ++k)
+	{
+		bFoodWorker = eUnitClass == (UnitClassTypes)GC.getInfoTypeForString(aszFoodWorkers[k]);
+	}
+
+	std::map<int, int> mapIncoming; // city ID -> new citizens on their way (not replacing anybody)
+			else
+			{
+				++mapIncoming[kOther.AI_getWfCityID()];
+			}
+	// the jobs other colonists with the job automation are on their way to: their plots, their building slots (per colony and
+	// building) and the colonists they replace
+	std::set<std::pair<int, int> > aReservedPlots; // (city ID, plot number)
+	std::map<std::pair<int, int>, int> mapReservedSlots; // (city ID, special building) -> colonists on their way
+	std::set<int> aReplaced; // unit IDs
+	{
+		int iUnitLoop;
+		for (CvUnit* pLoopUnit = firstUnit(&iUnitLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iUnitLoop))
+		{
+			const CvUnitAI& kOther = static_cast<const CvUnitAI&>(*pLoopUnit);
+			if (pLoopUnit == &kUnit || kOther.AI_getWfTask() != CvUnitAI::WF_ASSIGN || kOther.AI_getWfProfession() == NO_PROFESSION)
+			{
+				continue;
+			}
+			if (kOther.AI_getWfPlotX() >= 0)
+			{
+				aReservedPlots.insert(std::make_pair(kOther.AI_getWfCityID(), GC.getMap().plotNumINLINE(kOther.AI_getWfPlotX(), kOther.AI_getWfPlotY())));
+			}
+			else
+			{
+				++mapReservedSlots[std::make_pair(kOther.AI_getWfCityID(), GC.getProfessionInfo(kOther.AI_getWfProfession()).getSpecialBuilding())];
+			}
+			if (kOther.AI_getWfVillageX() >= 0)
+			{
+				aReplaced.insert(kOther.AI_getWfVillageX());
+			}
+		}
+	}
+
+	std::vector<ProfessionTypes> aePlot;
+	std::vector<ProfessionTypes> aeBuilding;
+	for (ProfessionTypes eProfession = FIRST_PROFESSION; eProfession < NUM_PROFESSION_TYPES; ++eProfession)
+	{
+		const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+		if (!kProfession.isCitizen() || !kCiv.isValidProfession(eProfession) || (YieldTypes)kProfession.getYieldsProduced(0) == NO_YIELD
+			|| !isProfessionValid(eProfession, kUnit.getUnitType()))
+		{
+			continue;
+		}
+		(kProfession.isWorkPlot() ? aePlot : aeBuilding).push_back(eProfession);
+	}
+
+	int iLoop;
+	for (CvCity* pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
+	{
+		// WTP (user 2026-10-31): only the colonies switched on in the city screen take colonists of the job automation
+		if (!pCity->isAutoAssignTarget() || AI_isWfUnreachable(kUnit.getID(), pCity->getID()))
+		{
+			continue;
+		}
+		int iPort = -1;
+		// (also by ship and on foot from another colony: a colony inland on another coast)
+		const int iCityTurns = AI_wfTravelTurns(*kUnit.plot(), *pCity, &iPort, bNoShip, true);
+		if (iCityTurns == MAX_INT)
+		{
+			continue;
+		}
+		const int iSpare = pCity->foodDifference() - iConsumption;
+		// a new citizen only if the colony's unhappiness stays at most 2 above its happiness (with those on their way)
+		static const int WF_MAX_UNHAPPINESS_BALANCE = 2;
+		const std::map<int, int>::const_iterator itIncoming = mapIncoming.find(pCity->getID());
+		const int iIncoming = (itIncoming != mapIncoming.end()) ? itIncoming->second : 0;
+		const bool bCrowded = wfUnhappinessWith(*pCity, 1 + iIncoming) > WF_MAX_UNHAPPINESS_BALANCE;
+		// short of food: less than +4 food (with those on their way) and the storage below half the growth threshold
+		if (bFoodWorker && pCity->foodDifference() - iConsumption * iIncoming < 4 && pCity->getFood() * 2 < pCity->growthThreshold())
+		{
+			aFoodShortCities.insert(pCity->getID());
+		}
+
+		// plots
+		FOREACH(CityPlot)
+		{
+			if (eLoopCityPlot == CITY_HOME_PLOT)
+			{
+				continue;
+			}
+			CvPlot* const pLoopPlot = pCity->getCityIndexPlot(eLoopCityPlot);
+			if (pLoopPlot == NULL || (pLoopPlot->getWorkingCity() != pCity && pLoopPlot->getWorkingCity() != NULL))
+			{
+				continue;
+			}
+			CvUnit* const pHolder = pCity->getUnitWorkingPlot(eLoopCityPlot);
+			if (aReservedPlots.count(std::make_pair(pCity->getID(), GC.getMap().plotNumINLINE(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()))) > 0
+				|| (pHolder != NULL && aReplaced.count(pHolder->getID()) > 0))
+			{
+				continue;
+			}
+			if (pHolder == NULL && !pCity->canWork(pLoopPlot))
+			{
+				continue;
+			}
+			for (uint i = 0; i < aePlot.size(); ++i)
+			{
+				const ProfessionTypes eProfession = aePlot[i];
+				const bool bExpert = wfIsExpertFor(kUnitAI, eProfession);
+				if ((iCityTurns > 12 && !bExpert) || (pHolder != NULL && (!bExpert || pHolder->getProfession() != eProfession
+					|| wfIsExpertFor(static_cast<const CvUnitAI&>(*pHolder), eProfession))))
+				{
+					continue;
+				}
+				int iFood = 0;
+				const int iValue = wfHumanJobValue(*pCity, kUnitAI, eProfession, pLoopPlot, 0, eColonist, &iFood);
+				if (iValue <= 0)
+				{
+					continue;
+				}
+				// the expert takes the job of a regular colonist only if it earns more there
+				if (pHolder != NULL && iValue <= wfHumanJobValue(*pCity, static_cast<const CvUnitAI&>(*pHolder), eProfession, pLoopPlot, 0, eColonist, NULL))
+				{
+					continue;
+				}
+				const int iScore = iValue * 20 / (20 + iCityTurns);
+				if (iScore <= 0)
+				{
+					continue;
+				}
+				HumanJob kJob;
+				kJob.iScore = iScore;
+				kJob.iCityID = pCity->getID();
+				kJob.eProfession = eProfession;
+				kJob.iX = pLoopPlot->getX_INLINE();
+				kJob.iY = pLoopPlot->getY_INLINE();
+				kJob.iDisplaceID = (pHolder != NULL) ? pHolder->getID() : -1;
+				kJob.iTurns = iCityTurns;
+				kJob.iGold = iValue / 100;
+				kJob.iFood = iFood;
+				wfSetJobOutput(kJob, *pCity, wfOutput(*pCity, eProfession, wfWorkingType(kUnitAI, eProfession, eColonist), pLoopPlot));
+				kJob.bFoodShortage = false;
+				kJob.bLowFood = pHolder == NULL && iFood <= 0 && iSpare < 2;
+				if (bExpert && iScore > kBestExpertJob.iScore)
+				{
+					kBestExpertJob = kJob;
+				}
+				// a new citizen only where it does not make the colony unhappy and, without food of its own, where food is to spare
+				// or HUMAN_JOB_FOOD_STOCK is stored
+				if (pHolder == NULL && (bCrowded || (kJob.bLowFood && pCity->getFood() < HUMAN_JOB_FOOD_STOCK)))
+				{
+					continue;
+				}
+				const std::pair<int, int> kKey(pCity->getID(), (int)eProfession);
+				const std::map<std::pair<int, int>, HumanJob>::const_iterator itJob = mapJobs.find(kKey);
+				if (itJob == mapJobs.end() || iScore > itJob->second.iScore)
+				{
+					mapJobs[kKey] = kJob;
+				}
+			}
+		}
+
+		// buildings
+		for (uint i = 0; i < aeBuilding.size(); ++i)
+		{
+			const ProfessionTypes eProfession = aeBuilding[i];
+			const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+			const YieldTypes eYield = (YieldTypes)kProfession.getYieldsProduced(0);
+			const bool bExpert = wfIsExpertFor(kUnitAI, eProfession);
+			// (an expert never studies; happiness jobs only for units with a happiness bonus)
+			if ((iCityTurns > 12 && !bExpert) || !wfMayWorkInBuilding(kUnit, eYield) || (eYield == YIELD_EDUCATION && wfIsExpert(kUnitAI))
+				|| (eYield == YIELD_HAPPINESS && kUnit.getUnitInfo().getYieldChange(YIELD_HAPPINESS) <= 0 && kUnit.getUnitInfo().getYieldModifier(YIELD_HAPPINESS) <= 0))
+			{
+				continue;
+			}
+			// the slots of the building are shared by all its professions (coffee, cocoa and peanut roasters, ...)
+			const int iSlots = pCity->getNumProfessionBuildingSlots(eProfession);
+			const int iSpecial = kProfession.getSpecialBuilding();
+			const std::map<std::pair<int, int>, int>::const_iterator itReserved = mapReservedSlots.find(std::make_pair(pCity->getID(), iSpecial));
+			int iUsed = (itReserved != mapReservedSlots.end()) ? itReserved->second : 0;
+			CvUnit* pRegular = NULL;
+			for (int iPop = 0; iPop < pCity->getPopulation(); ++iPop)
+			{
+				CvUnit* const pCitizen = pCity->getPopulationUnitByIndex(iPop);
+				if (pCitizen != NULL && pCitizen->getProfession() != NO_PROFESSION && GC.getProfessionInfo(pCitizen->getProfession()).getSpecialBuilding() == iSpecial
+					&& !GC.getProfessionInfo(pCitizen->getProfession()).isWorkPlot())
+				{
+					++iUsed;
+					if (pRegular == NULL && pCitizen->getProfession() == eProfession && !wfIsExpertFor(static_cast<const CvUnitAI&>(*pCitizen), eProfession)
+						&& aReplaced.count(pCitizen->getID()) == 0)
+					{
+						pRegular = pCitizen;
+					}
+				}
+			}
+			CvUnit* const pHolder = (iUsed < iSlots) ? NULL : (bExpert ? pRegular : NULL);
+			if (iSlots <= 0 || (iUsed >= iSlots && pHolder == NULL))
+			{
+				continue;
+			}
+			// the raw material must be produced in the colony (the stock runs out; the colonist who makes room uses none any more).
+			// WTP (user 2026-10-31): without it the expert's own trade may still be offered (see kBestUnsuppliedExpertJob)
+			const int iOutput = wfOutput(*pCity, eProfession, wfWorkingType(kUnitAI, eProfession, eColonist), NULL);
+			const int iFreed = (pHolder != NULL) ? wfOutput(*pCity, eProfession, wfWorkingType(static_cast<const CvUnitAI&>(*pHolder), eProfession, eColonist), NULL) : 0;
+			bool bInput = true;
+			for (int k = 0; k < kProfession.getNumYieldsConsumed() && bInput; ++k)
+			{
+				const YieldTypes eInput = (YieldTypes)kProfession.getYieldsConsumed(k);
+				bInput = eInput == NO_YIELD || pCity->calculateNetYield(eInput) + iFreed >= std::max(1, iOutput / 2)
+					// WTP (user 2026-10-31): the menu (and the job chosen there) is content with some raw material in stock, more
+					// is expected to be delivered; the automatic choice (iMaxJobs 1) wants the colony to produce it
+					|| (iMaxJobs != 1 && pCity->getYieldStored(eInput) > 0);
+			}
+			if (!bInput && !bExpert)
+			{
+				continue;
+			}
+			int iFood = 0;
+			const int iSlot = (pHolder != NULL) ? iUsed - 1 : iUsed;
+			const int iValue = wfHumanJobValue(*pCity, kUnitAI, eProfession, NULL, iSlot, eColonist, &iFood);
+			if (iValue <= 0)
+			{
+				continue;
+			}
+			if (pHolder != NULL && iValue <= wfHumanJobValue(*pCity, static_cast<const CvUnitAI&>(*pHolder), eProfession, NULL, iSlot, eColonist, NULL))
+			{
+				continue;
+			}
+			const int iScore = iValue * 20 / (20 + iCityTurns);
+			if (iScore <= 0)
+			{
+				continue;
+			}
+			HumanJob kJob;
+			kJob.iScore = iScore;
+			kJob.iCityID = pCity->getID();
+			kJob.eProfession = eProfession;
+			kJob.iX = -1;
+			kJob.iY = -1;
+			kJob.iDisplaceID = (pHolder != NULL) ? pHolder->getID() : -1;
+			kJob.iTurns = iCityTurns;
+			kJob.iGold = iValue / 100;
+			kJob.iFood = iFood;
+			wfSetJobOutput(kJob, *pCity, iOutput);
+			kJob.bFoodShortage = false;
+			kJob.bLowFood = pHolder == NULL && iFood <= 0 && iSpare < 2;
+			if (!bInput)
+			{
+				if (iScore > kBestUnsuppliedExpertJob.iScore)
+				{
+					kBestUnsuppliedExpertJob = kJob;
+				}
+				continue;
+			}
+			if (bExpert && iScore > kBestExpertJob.iScore)
+			{
+				kBestExpertJob = kJob;
+			}
+			if (pHolder == NULL && (bCrowded || (kJob.bLowFood && pCity->getFood() < HUMAN_JOB_FOOD_STOCK)))
+			{
+				continue;
+			}
+			const std::pair<int, int> kKey(pCity->getID(), (int)eProfession);
+			const std::map<std::pair<int, int>, HumanJob>::const_iterator itJob = mapJobs.find(kKey);
+			if (itJob == mapJobs.end() || iScore > itJob->second.iScore)
+			{
+				mapJobs[kKey] = kJob;
+			}
+		}
+	}
+	// the menu (not the automatic choice of the best job): a job of the expert's trade in a colony without its raw material
+	// if there is none with it
+	if (kBestExpertJob.iScore <= 0 && iMaxJobs != 1)
+	{
+		kBestExpertJob = kBestUnsuppliedExpertJob;
+	}
+	// food jobs in colonies short of food: net 3 food or more (a new citizen eats too), the best per colony
+	std::map<int, HumanJob> mapFoodJobs;
+	for (std::map<std::pair<int, int>, HumanJob>::iterator it = mapJobs.begin(); it != mapJobs.end(); ++it)
+	{
+		HumanJob& kJob = it->second;
+		const int iNetFood = kJob.iFood - ((kJob.iDisplaceID < 0) ? iConsumption : 0);
+		if (aFoodShortCities.count(kJob.iCityID) > 0 && iNetFood >= 3)
+		{
+			kJob.bFoodShortage = true;
+			const std::map<int, HumanJob>::const_iterator itFood = mapFoodJobs.find(kJob.iCityID);
+			if (itFood == mapFoodJobs.end() || kJob.iScore > itFood->second.iScore)
+			{
+				mapFoodJobs[kJob.iCityID] = kJob;
+			}
+		}
+	}
+	if (paFoodJobs != NULL)
+	{
+		paFoodJobs->clear();
+		for (std::map<int, HumanJob>::const_iterator it = mapFoodJobs.begin(); it != mapFoodJobs.end(); ++it)
+		{
+			paFoodJobs->push_back(it->second);
+		}
+		std::stable_sort(paFoodJobs->begin(), paFoodJobs->end(), humanJobBetter);
+		if (paFoodJobs->size() > 3)
+		{
+			paFoodJobs->resize(3);
+		}
+	}
+	aJobs.clear();
+	for (std::map<std::pair<int, int>, HumanJob>::const_iterator it = mapJobs.begin(); it != mapJobs.end(); ++it)
+	{
+		aJobs.push_back(it->second);
+	}
+	std::stable_sort(aJobs.begin(), aJobs.end(), humanJobBetter);
+	// at most the 2 best jobs of each profession (a well paid one, like the student, would fill the list); WTP (user 2026-10-27):
+	// only the best preacher job (cross jobs)
+	std::map<int, int> mapProfessionJobs;
+	// WTP: all jobs (MAX_INT: the job the player picked from the menu is looked up again) keep every profession, so that a
+	// food job or the expert's job the menu added after the 2 of its profession is found again
+	const bool bAllJobs = iMaxJobs == MAX_INT;
+	for (uint i = 0; i < aJobs.size() && !bAllJobs; )
+	{
+		const int iMaxPerProfession = ((YieldTypes)GC.getProfessionInfo(aJobs[i].eProfession).getYieldsProduced(0) == YIELD_CROSSES) ? 1 : 2;
+		if (++mapProfessionJobs[aJobs[i].eProfession] > iMaxPerProfession)
+		{
+			aJobs.erase(aJobs.begin() + i);
+		}
+		else
+		{
+			++i;
+		}
+	}
+	if ((int)aJobs.size() > iMaxJobs)
+	{
+		aJobs.resize(iMaxJobs);
+	}
+	// all jobs: the expert's best job too (it may be kept from the list by food or happiness), unless its colony and profession are listed
+	if (bAllJobs && kBestExpertJob.iScore > 0)
+	{
+		bool bListed = false;
+		for (uint i = 0; i < aJobs.size() && !bListed; ++i)
+		{
+			bListed = aJobs[i].iCityID == kBestExpertJob.iCityID && aJobs[i].eProfession == kBestExpertJob.eProfession;
+		}
+		if (!bListed)
+		{
+			aJobs.push_back(kBestExpertJob);
+		}
+	}
+	// the expert's own trade: at least one job of it in the list (instead of the last one)
+	else if (kBestExpertJob.iScore > 0 && iMaxJobs > 0)
+	{
+		bool bHasExpertJob = false;
+		for (uint i = 0; i < aJobs.size() && !bHasExpertJob; ++i)
+		{
+			bHasExpertJob = wfIsExpertFor(kUnitAI, aJobs[i].eProfession);
+		}
+		if (!bHasExpertJob)
+		{
+			if ((int)aJobs.size() >= iMaxJobs)
+			{
+				aJobs.pop_back();
+			}
+			aJobs.push_back(kBestExpertJob);
+		}
+	}
+}
+
+// WTP: the colonist has arrived in the colony: it joins it in its job (a regular colonist it replaces is put on the colony
+// plot, awake) and is locked there. Returns false if the job is not free any more or the colonist cannot join
+bool CvPlayerAI::AI_humanSeat(CvUnit& kUnit, CvCity& kCity, ProfessionTypes eProfession, int iX, int iY, int iDisplaceID)
+{
+	if (!kUnit.canJoinCity(kCity.plot(), false, true))
+	{
+		return false;
+	}
+	const ProfessionTypes eDefaultProfession = GC.getCivilizationInfo(getCivilizationType()).getDefaultProfession();
+	CvPlot* const pPlot = (iX >= 0) ? GC.getMap().plotINLINE(iX, iY) : NULL;
+	const CityPlotTypes ePlot = (pPlot != NULL) ? kCity.getCityPlotIndex(pPlot) : NO_CITY_PLOT;
+	if (pPlot != NULL && ePlot == NO_CITY_PLOT)
+	{
+		return false;
+	}
+	CvUnit* pDisplaced = NULL;
+	if (pPlot != NULL)
+	{
+		CvUnit* const pHolder = kCity.getUnitWorkingPlot(ePlot);
+		if (pHolder != NULL && pHolder->getID() != iDisplaceID)
+		{
+			return false;
+		}
+		if (pHolder == NULL && !kCity.canWork(pPlot))
+		{
+			return false;
+		}
+		pDisplaced = pHolder;
+	}
+	else
+	{
+		// the slots of the building are shared by all its professions
+		const int iSpecial = GC.getProfessionInfo(eProfession).getSpecialBuilding();
+		int iUsed = 0;
+		for (int iPop = 0; iPop < kCity.getPopulation(); ++iPop)
+		{
+			CvUnit* const pCitizen = kCity.getPopulationUnitByIndex(iPop);
+			if (pCitizen != NULL && pCitizen->getProfession() != NO_PROFESSION && GC.getProfessionInfo(pCitizen->getProfession()).getSpecialBuilding() == iSpecial
+				&& !GC.getProfessionInfo(pCitizen->getProfession()).isWorkPlot())
+			{
+				++iUsed;
+				if (pCitizen->getID() == iDisplaceID && pCitizen->getProfession() == eProfession)
+				{
+					pDisplaced = pCitizen;
+				}
+			}
+		}
+		if (iUsed >= kCity.getNumProfessionBuildingSlots(eProfession) && pDisplaced == NULL)
+		{
+			return false;
+		}
+	}
+
+	kCity.addPopulationUnit(&kUnit, NO_PROFESSION);
+	if (pDisplaced != NULL)
+	{
+		if (pPlot != NULL)
+		{
+			kCity.clearUnitWorkingPlot(ePlot);
+		}
+		pDisplaced->setColonistLocked(false);
+		pDisplaced->setProfession(NO_PROFESSION);
+		if (kCity.removePopulationUnit(CREATE_ASSERT_DATA, pDisplaced, false, eDefaultProfession))
+		{
+			pDisplaced->AI_setUnitAIType(UNITAI_COLONIST);
+			CvWString szBuffer = gDLL->getText("TXT_KEY_AUTO_ASSIGN_DISPLACED", pDisplaced->getNameKey(), kCity.getNameKey(), kUnit.getNameKey());
+			gDLL->UI().addPlayerMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, pDisplaced->getButton(), COLOR_WHITE, kCity.getX_INLINE(), kCity.getY_INLINE());
+		}
+	}
+	if (kUnit.canHaveProfession(eProfession, false))
+	{
+		kUnit.setProfession(eProfession);
+		if (pPlot != NULL)
+		{
+			kCity.AI().AI_setUnitWorkingPlot(ePlot, kUnit.getID());
+		}
+	}
+	kUnit.setColonistLocked(true);
+	CvWString szBuffer = gDLL->getText("TXT_KEY_AUTO_ASSIGN_JOINED", kUnit.getNameKey(), GC.getProfessionInfo(eProfession).getTextKeyWide(), kCity.getNameKey());
+	gDLL->UI().addPlayerMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, kUnit.getButton(), COLOR_GREEN, kCity.getX_INLINE(), kCity.getY_INLINE());
+	return true;
 }

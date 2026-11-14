@@ -30,6 +30,8 @@ void CyCityPythonInterface3(python::class_<CyCity>& x)
 		.def("setBombarded", &CyCity::setBombarded, "void (iNewValue)")
 		.def("setAllCitizensAutomated", &CyCity::setAllCitizensAutomated, "void (bool bAutomated)")
 		.def("isProductionAutomated", &CyCity::isProductionAutomated, "bool () - is production under automation?")
+		.def("isAutoAssignTarget", &CyCity::isAutoAssignTarget, "bool ()") // WTP
+		.def("setAutoAssignTarget", &CyCity::setAutoAssignTarget, "void (bool bNewValue)") // WTP
 		.def("setProductionAutomated", &CyCity::setProductionAutomated, "void (bool bNewValue) - set city production automation to bNewValue")
 		.def("isWallOverride", &CyCity::isWallOverride, "bool isWallOverride()")
 		.def("setWallOverride", &CyCity::setWallOverride, "setWallOverride(bool bOverride)")

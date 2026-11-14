@@ -803,6 +803,9 @@ public:
 	int getMaintainLevel(YieldTypes eYield) const;
 	// R&R mod, vetiarvind, max yield import limit - Start
 	void setImportsLimit(YieldTypes eYield, int iValue);
+	// WTP: the colony takes colonists of the job automation (switch of the city screen, off by default)
+	bool isAutoAssignTarget() const { return m_bAutoAssignTarget; }
+	void setAutoAssignTarget(bool bNewValue) { m_bAutoAssignTarget = bNewValue; }
 	int getImportsLimit(YieldTypes eYield) const;
 	// R&R mod, vetiarvind, max yield import limit - End
 	// R&R, ray, finishing Custom House Screen START
@@ -944,6 +947,7 @@ protected:
 	mutable EnumMap<YieldTypes,bool> m_em_bYieldRankValid;
 
 	PlayerTypes m_eBesieger; // WTP: siege: the player who started it, NO_PLAYER: none
+	bool m_bAutoAssignTarget; // WTP: the colony takes colonists of the job automation
 	bool m_bHasHurried; // Needed to remember (cache) if a hurry was conducted and we should complete the current build
 	int m_iSlaveWorkerProductionBonus;
 

@@ -1396,6 +1396,26 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 		}
 		break;
 
+	// WTP: the job for the job automation (button: colony ID * number of professions + profession)
+	case BUTTONPOPUP_ASSIGN_JOB_MENU:
+		if (pPopupReturn->getButtonClicked() >= 0)
+		{
+			gDLL->sendDoCommand(info.getData1(), COMMAND_ASSIGN_JOB, pPopupReturn->getButtonClicked() / NUM_PROFESSION_TYPES, pPopupReturn->getButtonClicked() % NUM_PROFESSION_TYPES, false);
+		}
+		break;
+
+	// WTP: transport to a city
+	case BUTTONPOPUP_TRANSPORT_TO_MENU:
+		if (pPopupReturn->getButtonClicked() >= 0)
+		{
+			CvCity* pCity = GET_PLAYER(GC.getGameINLINE().getActivePlayer()).getCity(pPopupReturn->getButtonClicked());
+			if (pCity != NULL)
+			{
+				gDLL->sendPushMission(info.getData1(), MISSION_TRANSPORT_TO, pCity->getX(), pCity->getY(), 0, false);
+			}
+		}
+		break;
+
 	// TAC - Goto Menu - koma13 - START
 	case BUTTONPOPUP_GOTO_MENU:
 		if (pPopupReturn->getButtonClicked() >= 0)
@@ -1757,6 +1777,12 @@ bool CvDLLButtonPopup::launchButtonPopup(CvPopup* pPopup, CvPopupInfo &info)
 	// TAC - Goto Menu - koma13 - START
 	case BUTTONPOPUP_GOTO_MENU:
 		bLaunched = launchGotoMenuPopup(pPopup, info);
+		break;
+	case BUTTONPOPUP_TRANSPORT_TO_MENU: // WTP
+		bLaunched = launchTransportToMenuPopup(pPopup, info);
+		break;
+	case BUTTONPOPUP_ASSIGN_JOB_MENU: // WTP
+		bLaunched = launchAssignJobMenuPopup(pPopup, info);
 		break;
 	// TAC - Goto Menu - koma13 - END
 	case BUTTONPOPUP_CHOOSE_CITY_PLOT_YIELD:
@@ -4167,6 +4193,134 @@ bool CvDLLButtonPopup::launchGotoMenuPopup(CvPopup* pPopup, CvPopupInfo &info)
 	return true;
 }
 // TAC - Goto Menu - koma13 - END
+
+// WTP: the job automation: the 12 best jobs for the colonist (one per colony and profession) to pick from
+bool CvDLLButtonPopup::launchAssignJobMenuPopup(CvPopup* pPopup, CvPopupInfo &info)
+{
+	const PlayerTypes ePlayer = GC.getGameINLINE().getActivePlayer();
+	if (ePlayer == NO_PLAYER)
+	{
+		return false;
+	}
+	CvPlayerAI& kPlayer = GET_PLAYER(ePlayer);
+	CvUnit* const pUnit = kPlayer.getUnit(info.getData1());
+	if (pUnit == NULL || !pUnit->canAutomate(AUTOMATE_ASSIGN_JOB))
+	{
+		return false;
+	}
+	std::vector<CvPlayerAI::HumanJob> aJobs;
+	std::vector<CvPlayerAI::HumanJob> aFoodJobs;
+	kPlayer.AI_humanFindJobs(*pUnit, aJobs, 12, &aFoodJobs); // WTP (user 2026-10-27): 12 instead of 8
+	// food jobs in colonies short of food that are not among the best (marked)
+	for (uint i = 0; i < aFoodJobs.size(); ++i)
+	{
+		bool bListed = false;
+		for (uint j = 0; j < aJobs.size() && !bListed; ++j)
+		{
+			bListed = aJobs[j].iCityID == aFoodJobs[i].iCityID && aJobs[j].eProfession == aFoodJobs[i].eProfession;
+		}
+		if (!bListed)
+		{
+			aJobs.push_back(aFoodJobs[i]);
+		}
+	}
+	if (aJobs.empty())
+	{
+		CvWString szBuffer = gDLL->getText("TXT_KEY_AUTO_ASSIGN_NONE", pUnit->getNameKey());
+		gDLL->UI().addPlayerMessage(ePlayer, true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, pUnit->getButton(), COLOR_WARNING_TEXT, pUnit->getX_INLINE(), pUnit->getY_INLINE());
+		return false;
+	}
+	gDLL->getInterfaceIFace()->popupSetHeaderString(pPopup, gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_TITLE", pUnit->getNameKey()));
+	for (uint i = 0; i < aJobs.size(); ++i)
+	{
+		const CvPlayerAI::HumanJob& kJob = aJobs[i];
+		const CvCity* const pCity = kPlayer.getCity(kJob.iCityID);
+		const CvUnit* const pReplaced = (kJob.iDisplaceID >= 0) ? kPlayer.getUnit(kJob.iDisplaceID) : NULL;
+		if (pCity == NULL)
+		{
+			continue;
+		}
+		const CvProfessionInfo& kProfession = GC.getProfessionInfo(kJob.eProfession);
+		// (no gold for students and prostitutes: their value is a rating, not money)
+		const YieldTypes eJobYield = (YieldTypes)kProfession.getYieldsProduced(0);
+		const bool bNoGold = eJobYield == YIELD_EDUCATION || eJobYield == YIELD_HAPPINESS;
+		CvWString szJob = bNoGold
+			? ((pReplaced != NULL)
+				? gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_NO_GOLD_REPLACE", kProfession.getTextKeyWide(), pCity->getNameKey(), kJob.iTurns, pReplaced->getNameKey())
+				: gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_NO_GOLD", kProfession.getTextKeyWide(), pCity->getNameKey(), kJob.iTurns))
+			: ((pReplaced != NULL)
+				? gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_SELECTION_REPLACE", kProfession.getTextKeyWide(), pCity->getNameKey(), kJob.iGold, kJob.iTurns, pReplaced->getNameKey())
+				: gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_SELECTION", kProfession.getTextKeyWide(), pCity->getNameKey(), kJob.iGold, kJob.iTurns));
+		if (kJob.bFoodShortage)
+		{
+			szJob += gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_FOOD_SHORTAGE");
+		}
+		// WTP: the colony's food goes down with the new citizen (taken because enough food is stored)
+		if (kJob.bLowFood)
+		{
+			szJob += gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_LOW_FOOD");
+		}
+		// happiness jobs (prostitutes): the colony's happiness with the colonists already on their way there
+		if (eJobYield == YIELD_HAPPINESS)
+		{
+			szJob += gDLL->getText("TXT_KEY_AUTO_ASSIGN_MENU_HAPPINESS", kPlayer.AI_humanPlannedHappiness(*pCity, pUnit));
+		}
+		// WTP (user 2026-10-31): what the job really produces per turn, in front of the job
+		CvWString szOutput;
+		szOutput.Format(L"%d%c ", kJob.iOutput, GC.getYieldInfo(eJobYield).getChar());
+		if (kJob.iOutputFood > 0)
+		{
+			CvWString szFood;
+			szFood.Format(L"+%d%c ", kJob.iOutputFood, GC.getYieldInfo(YIELD_FOOD).getChar());
+			szOutput += szFood;
+		}
+		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, L"  " + szOutput + szJob, kProfession.getButton(), kJob.iCityID * NUM_PROFESSION_TYPES + kJob.eProfession, WIDGET_GENERAL, pUnit->getID(), -1);
+	}
+	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, L"  " + gDLL->getText("TXT_KEY_NEVER_MIND"), ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CANCEL")->getPath(), -1, WIDGET_GENERAL);
+	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, POPUPSTATE_IMMEDIATE);
+	return true;
+}
+
+// WTP: transport to a city: the player's colonies (the unit walks or takes an automated transport)
+bool CvDLLButtonPopup::launchTransportToMenuPopup(CvPopup* pPopup, CvPopupInfo &info)
+{
+	const PlayerTypes ePlayer = GC.getGameINLINE().getActivePlayer();
+	if (ePlayer == NO_PLAYER)
+	{
+		return false;
+	}
+	const CvPlayerAI& kPlayer = GET_PLAYER(ePlayer);
+	CvUnit* const pUnit = kPlayer.getUnit(info.getData1());
+	if (pUnit == NULL || !pUnit->canTransportTo())
+	{
+		return false;
+	}
+	gDLL->getInterfaceIFace()->popupSetHeaderString(pPopup, gDLL->getText("TXT_KEY_COMMAND_TRANSPORT_TO_MENU_TITLE"));
+	bool bValid = false;
+	int iLoop;
+	for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
+	{
+		if (pUnit->plot() != pLoopCity->plot())
+		{
+			// population and happiness (happiness minus unhappiness), also with the colonists of the job automation on their way there
+			const int iHappiness = pLoopCity->getCityHappiness() - pLoopCity->getCityUnHappiness();
+			const int iIncoming = kPlayer.AI_humanIncomingCitizens(*pLoopCity);
+			const CvWString szCity = (iIncoming > 0)
+				? gDLL->getText("TXT_KEY_COMMAND_TRANSPORT_TO_MENU_SELECTION_PLANNED", pLoopCity->getNameKey(), pLoopCity->getPopulation(), iHappiness, -kPlayer.AI_humanUnhappinessWith(*pLoopCity, iIncoming), iIncoming)
+				: gDLL->getText("TXT_KEY_COMMAND_TRANSPORT_TO_MENU_SELECTION", pLoopCity->getNameKey(), pLoopCity->getPopulation(), iHappiness);
+			gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, L"  " + szCity,
+				ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION")->getPath(), pLoopCity->getID(), WIDGET_GENERAL, pUnit->getID(), -1);
+			bValid = true;
+		}
+	}
+	if (!bValid)
+	{
+		return false;
+	}
+	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, L"  " + gDLL->getText("TXT_KEY_NEVER_MIND"), ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CANCEL")->getPath(), -1, WIDGET_GENERAL);
+	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, POPUPSTATE_IMMEDIATE);
+	return true;
+}
 
 /*** TRIANGLETRADE 10/24/08 by DPII ***/
 bool CvDLLButtonPopup::launchPurchaseAfricaUnitPopup(CvPopup* pPopup, CvPopupInfo &info)

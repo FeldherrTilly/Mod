@@ -3081,6 +3081,22 @@ bool CvUnit::canDoCommand(CommandTypes eCommand, int iData1, int iData2, bool bT
 		}
 		break;
 
+	// WTP: transport to a city (walks or takes an automated transport)
+	case COMMAND_TRANSPORT_TO_CITY:
+		if (canTransportTo())
+		{
+			return true;
+		}
+		break;
+
+	// WTP: the job the player picked for the job automation (colony iData1, profession iData2)
+	case COMMAND_ASSIGN_JOB:
+		if (canAutomate(AUTOMATE_ASSIGN_JOB))
+		{
+			return true;
+		}
+		break;
+
 	// WTP: reload the black powder of land artillery
 	case COMMAND_RELOAD_POWDER:
 		if (canReloadPowder())
@@ -3553,6 +3569,24 @@ void CvUnit::doCommand(CommandTypes eCommand, int iData1, int iData2)
 
 		case COMMAND_HOTKEY:
 			setHotKeyNumber(iData1);
+			break;
+
+		// WTP: the job the player picked for the job automation
+		case COMMAND_ASSIGN_JOB:
+			if (static_cast<CvUnitAI*>(this)->AI_startAutoAssign(iData1, (ProfessionTypes)iData2) && getGroup() != NULL)
+			{
+				getGroup()->setAutomateType(AUTOMATE_ASSIGN_JOB);
+			}
+			break;
+
+		// WTP: transport to a city: the player picks the colony
+		case COMMAND_TRANSPORT_TO_CITY:
+			if (getOwnerINLINE() == GC.getGameINLINE().getActivePlayer() && gDLL->getInterfaceIFace()->getHeadSelectedUnit() == this)
+			{
+				CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_TRANSPORT_TO_MENU);
+				pInfo->setData1(getID());
+				gDLL->getInterfaceIFace()->addPopup(pInfo, getOwnerINLINE(), true, true);
+			}
 			break;
 
 
@@ -4807,10 +4841,18 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 	case AUTOMATE_NATIVE_SUPPLY:
 		if (!isHuman() || isNative() || getDomainType() != DOMAIN_SEA || !isOnMap_() || cargoSpace() == 0 || getUnitInfo().isGatherBoat()
 			|| getUnitInfo().getDefaultUnitAIType() != UNITAI_TRANSPORT_COAST || GET_PLAYER(getOwnerINLINE()).getNumCities() == 0)
+	// WTP: automatic job assignment: a single colonist on the map (not aboard a ship) of a player with a colony
+	case AUTOMATE_ASSIGN_JOB:
+		if (getDomainType() != DOMAIN_LAND || !isOnMap_() || isCargo() || isNative() || !getUnitInfo().isFound()
+			|| getGroup() == NULL || getGroup()->getNumUnits() != 1 || GET_PLAYER(getOwnerINLINE()).getNumCities() == 0)
 		{
 			return false;
 		}
 		break;
+
+	// WTP: transport to a city or plot: set by its own buttons (COMMAND_TRANSPORT_TO_CITY, INTERFACEMODE_TRANSPORT_TO)
+	case AUTOMATE_TRAVEL:
+		return false;
 
 	// WTP: native trade automation: merchant ships (no warships, no fishing or whaling boats) of a colonial player with a colony
 	case AUTOMATE_NATIVE_TRADE:
@@ -4834,6 +4876,17 @@ void CvUnit::automate(AutomateTypes eAutomate)
 {
 	if (canAutomate(eAutomate))
 	{
+		// WTP: job automation of the active player's colonist: the player picks one of the best jobs (COMMAND_ASSIGN_JOB)
+		if (eAutomate == AUTOMATE_ASSIGN_JOB && getOwnerINLINE() == GC.getGameINLINE().getActivePlayer())
+		{
+			if (gDLL->getInterfaceIFace()->getHeadSelectedUnit() == this)
+			{
+				CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_ASSIGN_JOB_MENU);
+				pInfo->setData1(getID());
+				gDLL->getInterfaceIFace()->addPopup(pInfo, getOwnerINLINE(), true, true);
+			}
+			return;
+		}
 		getGroup()->setAutomateType(eAutomate);
 	}
 }
@@ -5155,6 +5208,18 @@ void CvUnit::loadUnit(CvUnit* pTransport)
 	}
 
 	setTransportUnit(pTransport);
+}
+
+// WTP: transport to a city or plot: a human player's land unit on the map (not aboard a ship) of a player with a colony
+// and an automated transport (Automate Transport) that may take it on the way
+bool CvUnit::canTransportTo() const
+{
+	if (!isHuman() || getDomainType() != DOMAIN_LAND || !isOnMap_() || isCargo() || isNative() || isDelayedDeath())
+	{
+		return false;
+	}
+	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	return kOwner.getNumCities() > 0 && kOwner.AI_hasWfShip();
 }
 
 bool CvUnit::shouldLoadOnMove(const CvPlot* pPlot) const
@@ -6176,6 +6241,21 @@ void CvUnit::unload()
 	}
 
 	setTransportUnit(NULL);
+
+	// WTP: a colonist with the job automation (lost while aboard) goes on with its job, a unit transported to a city or
+	// plot with its journey
+	if (isHuman() && getGroup() != NULL && getGroup()->getNumUnits() == 1 && getGroup()->getAutomateType() == NO_AUTOMATE)
+	{
+		const int iTask = static_cast<CvUnitAI*>(this)->AI_getWfTask();
+		if (iTask == CvUnitAI::WF_ASSIGN)
+		{
+			getGroup()->setAutomateType(AUTOMATE_ASSIGN_JOB);
+		}
+		else if (iTask == CvUnitAI::WF_TRAVEL)
+		{
+			getGroup()->setAutomateType(AUTOMATE_TRAVEL);
+		}
+	}
 }
 
 // returns true if the unit is still alive
@@ -14541,10 +14621,19 @@ bool CvUnit::setTransportUnit(CvUnit* pTransportUnit, bool bUnload)
 				}
 			}
 
+			// WTP: a colonist with the job automation or a unit transported to a city or plot keeps it on board (its new
+			// group would wake up and ask for orders)
+			const AutomateTypes eKeepAutomate = (getGroup() != NULL && (getGroup()->getAutomateType() == AUTOMATE_ASSIGN_JOB
+				|| getGroup()->getAutomateType() == AUTOMATE_TRAVEL)) ? getGroup()->getAutomateType() : NO_AUTOMATE;
+
 			joinGroup(NULL, true); // Because what if a group of 3 tries to get in a transport which can hold 2...
 
 			m_transportUnit = pTransportUnit->getIDInfo();
 
+			if (eKeepAutomate != NO_AUTOMATE)
+			{
+				getGroup()->setAutomateType(eKeepAutomate);
+			}
 			getGroup()->setActivityType(ACTIVITY_SLEEP);
 
 			if (pPlot != pTransportUnit->plot())

@@ -710,11 +710,39 @@ protected:
 	std::map<int, std::vector<int> > m_mapWfLandCost; // city ID -> movement cost of a colonist from each plot to the colony (MAX_INT: no way)
 	std::map<std::pair<int, int>, int> m_mapWfSeaTurns; // (port city ID, city ID) -> turns of a transport from the port to the colony
 	int m_iWfLandMoves; // movement points of a colonist per turn
+	int m_iWfTravelTurn; // WTP: turn the travel times were made for a human player's colonist (not saved)
 	void AI_wfUpdateTravel(const CvUnit& kColonist);
 public:
 	void AI_setWfUnreachable(int iUnitID, int iCityID);
 	bool AI_isWfUnreachable(int iUnitID, int iCityID) const;
-	int AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* piPortCityID = NULL) const;
+	int AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* piPortCityID = NULL, bool bNoShip = false, bool bShipThenWalk = false) const;
+	// WTP: automatic job assignment of a human player's colonist (AUTOMATE_ASSIGN_JOB)
+	void AI_wfEnsureTravel(const CvUnit& kColonist);
+	static bool AI_isWfShip(const CvUnit& kShip);
+	bool AI_hasWfShip() const;
+	// WTP: a job for a human player's colonist (AI_humanFindJobs)
+	struct HumanJob
+	{
+		int iScore;
+		int iCityID;
+		ProfessionTypes eProfession;
+		int iX;
+		int iY;
+		int iDisplaceID;
+		int iTurns;
+		int iGold;
+		int iFood;
+		int iOutput; // WTP: what the job produces per turn of the profession's first yield, with the colony's yield modifier (menu)
+		int iOutputFood; // WTP: the same for food as its second yield (hunters, ...); 0 if the first yield is food (menu)
+		bool bFoodShortage; // a food job (net 3 food or more) in a colony short of food, for a worker who may be offered it
+		bool bLowFood; // WTP: a new citizen without food of its own where food is not to spare (offered with HUMAN_JOB_FOOD_STOCK stored)
+	};
+	void AI_humanFindJobs(const CvUnit& kUnit, std::vector<HumanJob>& aJobs, int iMaxJobs, std::vector<HumanJob>* paFoodJobs = NULL);
+	bool AI_humanFindJob(const CvUnit& kUnit, int& iCityID, ProfessionTypes& eBestProfession, int& iX, int& iY, int& iDisplaceID, int& iTurns, int& iGold);
+	bool AI_humanSeat(CvUnit& kUnit, CvCity& kCity, ProfessionTypes eProfession, int iX, int iY, int iDisplaceID);
+	int AI_humanIncomingCitizens(const CvCity& kCity) const;
+	int AI_humanUnhappinessWith(const CvCity& kCity, int iNewCitizens) const;
+	int AI_humanPlannedHappiness(const CvCity& kCity, const CvUnit* pExclude) const;
 	bool AI_isEuropeBacklog() const;
 protected:
 	// WTP: native villages the native trade ship visited (plot key, turn), not saved
@@ -726,9 +754,6 @@ protected:
 	bool AI_doWfExpertPurchase();
 public:
 	int AI_wfLearnWaitTurns(int iUnitID, bool bStart);
-	// WTP: a transport a colonist may board on its way (the AI's transports; of a human player only the automated ones)
-	static bool AI_isWfShip(const CvUnit& kShip);
-	bool AI_hasWfShip() const;
 	void AI_clearWfLearnWait(int iUnitID);
 	void AI_setWfExpertToBuy(UnitClassTypes eExpertClass);
 	UnitClassTypes AI_getWfExpertToBuy() const { return m_eWfExpertToBuy; }
