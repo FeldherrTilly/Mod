@@ -548,6 +548,11 @@
 		<iDefineIntVal>300</iDefineIntVal>
 	</Define>
 	<Define>
+		<!-- AI: minimum number of a team's land plots bordering the AI's territory for it to count as a land target (vanilla 8) -->
+		<DefineName>LAND_TARGET_MIN_ADJACENT_PLOTS</DefineName>
+		<iDefineIntVal>3</iDefineIntVal>
+	</Define>
+	<Define>
 		<DefineName>MAX_NATIVE_BARGAIN_MODIFIER</DefineName>
 		<iDefineIntVal>75</iDefineIntVal>
 	</Define>
@@ -1793,5 +1798,15 @@
 		<!-- see comments for TRADE_DECAY_TURN -->
 		<DefineName>TRADE_DECAY_PRICE_CHANGE</DefineName>
 		<iDefineIntVal>128</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- WTP: native supply automation (coastal ships): villages within this many plots of the home colony are visited -->
+		<DefineName>NATIVE_SUPPLY_HOME_RANGE</DefineName>
+		<iDefineIntVal>35</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- WTP: native supply automation: the ship brings its goods home this many turns after it left (also the longest trip to a village); the help text TXT_KEY_ACTION_AUTOMATE_NATIVE_SUPPLY_HELP names it -->
+		<DefineName>NATIVE_SUPPLY_TRIP_TURNS</DefineName>
+		<iDefineIntVal>20</iDefineIntVal>
 	</Define>
 </Civ4Defines>

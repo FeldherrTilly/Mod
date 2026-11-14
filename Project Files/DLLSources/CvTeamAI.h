@@ -57,11 +57,16 @@ public:
 	bool AI_shareWar(TeamTypes eTeam) const;
 
 	AttitudeTypes AI_getAttitude(TeamTypes eTeam, bool bForced = true) const;
+	bool AI_mayDeclareWarAsNative(TeamTypes eTeam) const; // WTP
 	int AI_getAttitudeVal(TeamTypes eTeam, bool bForced = true) const;
 	int AI_getMemoryCount(TeamTypes eTeam, MemoryTypes eMemory) const;
 
 	int AI_startWarVal(TeamTypes eTeam) const;
 	int AI_endWarVal(TeamTypes eTeam) const;
+	// WTP: in a war of or against natives the ships do not count (it is fought on land)
+	bool AI_isLandWar(TeamTypes eOther) const;
+	int AI_warPowerVersus(TeamTypes eOther) const;
+	int AI_defensiveWarPowerOf(TeamTypes eTarget) const;
 	int AI_mapTradeVal(TeamTypes eTeam) const;
 	DenialTypes AI_mapTrade(TeamTypes eTeam) const;
 

@@ -830,7 +830,8 @@ namespace
 
 			if (kGroup.getDomainType() == DOMAIN_LAND)
 			{
-				if (kPlayer.AI_getPlotDanger(pPlot, 2, false) > 0)
+				// WTP: only hostile tribes and colonies count: animals and hostile natives are too weak
+				if (kPlayer.AI_getPlotDanger(pPlot, 2, false, false, true) > 0)
 					return false;
 			}
 		}
@@ -1424,7 +1425,9 @@ int pathValid_join(FAStarNode* parent, FAStarNode* node, CvSelectionGroup* pSele
 		!pSelectionGroup->canMoveAllTerrain()*/) // WTP: Not supported
 		return FALSE;
 
-	if (kToPlot.getTurnDamage() > 0 && !pSelectionGroup->getHeadUnit()->isAllowDangerousPath())
+	if (kToPlot.getTurnDamage() > 0 && !pSelectionGroup->getHeadUnit()->isAllowDangerousPath()
+		// WTP: the harbour entrance of an own colony may be its only water access
+		&& !(pSelectionGroup->AI_isControlled() && pSelectionGroup->getDomainType() == DOMAIN_SEA && kToPlot.isHarbourEntranceOf(pSelectionGroup->getOwnerINLINE())))
 	{
 		return FALSE;
 	}
@@ -1463,6 +1466,10 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 
 	if (iFlags & MOVE_NO_ENEMY_TERRITORY && kFromPlot.isOwned() &&
 		atWar(kFromPlot.getTeam(), pSelectionGroup->getHeadTeam()))
+		return FALSE;
+
+	// WTP: peaks with a road can be passed as usual
+	if ((iFlags & MOVE_NO_PEAK) && kFromPlot.isPeak() && kFromPlot.getRouteType() == NO_ROUTE)
 		return FALSE;
 
 	bool const bAIControl = pSelectionGroup->AI_isControlled();
@@ -1872,7 +1879,8 @@ int routeValid(FAStarNode* parent, FAStarNode* node, int data, const void* point
 
 	ePlayer = ((PlayerTypes)(gDLL->getFAStarIFace()->GetInfo(finder)));
 
-	if (!(pNewPlot->isOwned()) || (pNewPlot->getTeam() == GET_PLAYER(ePlayer).getTeam()))
+	// WTP: also through the land of others we are at peace with (natives): the AI's pioneers build roads there
+	if (!(pNewPlot->isOwned()) || (pNewPlot->getTeam() == GET_PLAYER(ePlayer).getTeam()) || !atWar(pNewPlot->getTeam(), GET_PLAYER(ePlayer).getTeam()))
 	{
 		if (pNewPlot->getRouteType() == GET_PLAYER(ePlayer).getBestRoute(pNewPlot))
 		{

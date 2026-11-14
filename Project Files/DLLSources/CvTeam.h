@@ -60,6 +60,8 @@ public:
 	int getAssets() const;
 	int getPower() const;
 	int getDefensivePower() const;
+	int getLandPower() const; // WTP: power without ships
+	int getDefensiveLandPower() const;
 	int getEnemyPower() const;
 	int getAtWarCount() const;
 	int getWarPlanCount(WarPlanTypes eWarPlan) const;
@@ -100,6 +102,7 @@ public:
 	bool isHuman() const;
 	bool hasNativePlayer() const;
 	bool hasColonialPlayer() const;
+	bool isNativeWarTooEarly(TeamTypes eTeam) const; // WTP: AI colonies plan no war against natives before turn 80
 	bool hasEuropePlayer() const;
 	bool isBarbarian() const;
 	PlayerTypes getLeaderID() const;

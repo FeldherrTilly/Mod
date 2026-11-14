@@ -444,6 +444,7 @@ public:
 	int getAssets() const;
 	void changeAssets(int iChange);
 	int getPower() const;
+	int getNavalPower() const; // WTP: power of the ships
 	void changePower(int iChange);
 	int getPopScore() const;
 	void changePopScore(int iChange);
@@ -849,6 +850,7 @@ public:
 	bool isEurope() const;
 	bool isInRevolution() const;
 	bool checkIndependence() const;
+	static bool isIndependenceMilitaryUnit(const CvUnit& kUnit); // WTP
 
 	void applyMissionaryPoints(CvCity* pCity);
 	int getMissionaryPoints(PlayerTypes ePlayer) const;
@@ -938,7 +940,7 @@ public:
 	virtual void AI_makeProductionDirty() = 0;
 	virtual void AI_conquerCity(CvCity* pCity) = 0;
 	virtual int AI_foundValue(int iX, int iY, int iMinUnitRange = -1, bool bStartingLoc = false) = 0;
-	virtual int AI_getPlotDanger(CvPlot* pPlot, int iRange = -1, bool bTestMoves = true, bool bOffensive = false) const = 0;
+	virtual int AI_getPlotDanger(CvPlot* pPlot, int iRange = -1, bool bTestMoves = true, bool bOffensive = false, bool bCivilian = false) const = 0;
 	virtual bool AI_isWillingToTalk(PlayerTypes ePlayer) = 0;
 	virtual bool AI_demandRebukedSneak(PlayerTypes ePlayer) = 0;
 	virtual bool AI_demandRebukedWar(PlayerTypes ePlayer) = 0;

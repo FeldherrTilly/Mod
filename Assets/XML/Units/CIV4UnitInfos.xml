@@ -76669,11 +76669,11 @@
             <YieldChanges>
                <YieldChange>
                     <YieldType>YIELD_FOOD</YieldType>
-                    <iChange>5</iChange>
+                    <iChange>3</iChange>
                 </YieldChange>
                 <YieldChange>
                     <YieldType>YIELD_FUR</YieldType>
-                    <iChange>5</iChange>
+                    <iChange>4</iChange>
                 </YieldChange>
                 <YieldChange>
                     <YieldType>YIELD_HORSES</YieldType>

@@ -29,4 +29,23 @@
 
 void logBBAI(char const* format, ... );
 
+// WTP: the WTP AI logs are split by topic and player (one file each, e.g. WTP_P14_Danish_ship.log) and by colony
+// (WTP_P14_Danish_colony_Trankebar.log), so that a single topic can be read without the whole BBAI.log
+enum WtpLogTopic
+{
+	WTP_LOG_STATUS,
+	WTP_LOG_BUY,
+	WTP_LOG_SETTLER,
+	WTP_LOG_SHIP,
+	WTP_LOG_PLAN,
+	WTP_LOG_MILITARY,
+	WTP_LOG_TRADE,
+	WTP_LOG_DIAG, // workforce plan diagnosis: every plot's job alternatives, every colonist's options
+	WTP_LOG_PIONEER, // the AI pioneers: each new task with its reason, finished improvements
+	NUM_WTP_LOG_TOPICS
+};
+class CvCity;
+void logWTP(WtpLogTopic eTopic, PlayerTypes ePlayer, char const* format, ... );
+void logWTPCity(const CvCity& kCity, char const* format, ... );
+
 #endif  //BETTERBTSAI_H

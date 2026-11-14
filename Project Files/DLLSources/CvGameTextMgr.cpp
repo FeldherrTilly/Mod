@@ -8808,7 +8808,8 @@ void CvGameTextMgr::setYieldHelp(CvWStringBuffer &szBuffer, CvCity& city, YieldT
 	for (ProfessionTypes eProfession = FIRST_PROFESSION; eProfession < NUM_PROFESSION_TYPES; ++eProfession)
 	{
 		const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
-		if (!kProfession.isCitizen() || kProfession.isWorkPlot())
+		// WTP: not for culture and happiness: an unworked entertainer slot read like a part of the sum
+		if (!kProfession.isCitizen() || kProfession.isWorkPlot() || eYieldType == YIELD_CULTURE || eYieldType == YIELD_HAPPINESS)
 		{
 			continue;
 		}
@@ -8968,7 +8969,9 @@ void CvGameTextMgr::setYieldHelp(CvWStringBuffer &szBuffer, CvCity& city, YieldT
 	// unproduced is lost production due to lack of input yields
 	iModifiedProduction -= iUnproduced;
 
-	if (iBaseProduction != 0)
+	// WTP: the modifiers apply to all the production (buildings and indoor jobs too), not only to the plots: culture
+	// never showed its percent bonus although the total contained it
+	if (city.yields().getBaseRawYieldProduced(eYieldType) != 0)
 	{
 		int iModifier = setCityYieldModifierString(szBuffer, eYieldType, city);
 		if (iModifier != 100)

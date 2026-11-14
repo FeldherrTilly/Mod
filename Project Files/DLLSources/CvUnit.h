@@ -400,6 +400,8 @@ public:
 	int bombardRate() const;
 	SpecialUnitTypes specialCargo() const;
 	DomainTypes domainCargo() const;
+	// WTP: a ship that can take colonists aboard (not a goods-only ship like the smuggling ship or a privateer)
+	bool canCarryPeople() const { return getDomainType() == DOMAIN_SEA && cargoSpace() > 0 && specialCargo() == NO_SPECIALUNIT && domainCargo() == DOMAIN_LAND; }
 	int cargoSpace() const;
 	void changeCargoSpace(int iChange);
 	bool isFull() const;
@@ -742,6 +744,7 @@ public:
 	int getYieldStored() const;
 	YieldTypes getYield() const;
 	bool isGoods() const;
+	bool isExpertNativeTrader() const; // WTP
 	bool hasAnyUnitInCargo() const;
 	bool isYield() const;
 
@@ -757,6 +760,7 @@ public:
 	void setUnitTravelState(UnitTravelStates eState, bool bShowEuropeScreen);
 
 	bool setSailEurope(EuropeTypes eEurope);
+	CvPlot* findEuropeArrivalPlot(const CvPlot& kTarget) const; // WTP: Europe plot nearest to kTarget by sea
 	bool canSailEurope(EuropeTypes eEurope) const;
 
 	void setHomeCity(CvCity* pNewValue);

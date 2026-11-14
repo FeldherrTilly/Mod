@@ -2171,6 +2171,9 @@ char const* CvPlayer::getUnitButton(UnitTypes eUnit) const
 
 void CvPlayer::doTurn()
 {
+#ifdef PROFILING_ENABLED
+	Profiler profileSession(isNative() ? "CvPlayer::doTurn (native)" : "CvPlayer::doTurn");
+#endif
 	OOS_LOG("CvPlayer::doTurn start", getID());
 	PROFILE_FUNC();
 
@@ -4575,7 +4578,7 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 					FAssertMsg(iAmountToTrade > 0, "Warning: iAmountToTrade in Native Trade is supposed to be larger 0");
 					// WTP, ray trying to fix negative storage bug - END
 
-					int priceToPay = GC.getYieldInfo(yieldToTrade).getNativeSellPrice() * iAmountToTrade;
+					int priceToPay = CvPlayerAI::AI_nativeDeliveryPrice(yieldToTrade) * iAmountToTrade; // WTP
 					// we have chosen to accept
 					if (choice == 1)
 					{
@@ -6295,8 +6298,47 @@ CvCity* CvPlayer::found(Coordinates foundCoord)
 		return NULL;
 	}
 
+	// WTP: why a colonial AI founds where it does (found value, distance to its nearest colony and to its primary colony)
+	if (gPlayerLogLevel >= 1 && !isHuman() && is(CIV_CATEGORY_COLONIAL) && getNumCities() > 0)
+	{
+		const CvPlot* const pFoundPlot = GC.getMap().plotINLINE(foundCoord.x(), foundCoord.y());
+		int iNearest = MAX_INT;
+		int iLoop;
+		for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+		{
+			const int iDistance = plotDistance(foundCoord.x(), foundCoord.y(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+			if (iDistance < iNearest)
+			{
+				iNearest = iDistance;
+			}
+		}
+		CvCity* const pPrimary = AI().AI_getPrimaryCity();
+		logWTP(WTP_LOG_SETTLER, getID(), "WTP found: Player %d (%S) turn %d founds at %d,%d: found value %d, area best %d, nearest own colony %d plots, primary colony %S %d plots%s, AI city distance %d, resource site value (gold, silver, gems around) %d",
+			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), foundCoord.x(), foundCoord.y(),
+			AI().AI_foundValue(foundCoord.x(), foundCoord.y()), pFoundPlot->area()->getBestFoundValue(getID()), iNearest,
+			(pPrimary != NULL) ? pPrimary->getName().GetCString() : L"-",
+			(pPrimary != NULL) ? plotDistance(foundCoord.x(), foundCoord.y(), pPrimary->getX_INLINE(), pPrimary->getY_INLINE()) : -1,
+			(pPrimary != NULL && pPrimary->area() != pFoundPlot->area()) ? " (other landmass)" : "",
+			AI().AI_cityDistance(const_cast<CvPlot*>(pFoundPlot)), AI().AI_earlyResourceSiteValue(*pFoundPlot));
+	}
+
 	CvCity* pCity = initCity(foundCoord, true);
 	FAssertMsg(pCity != NULL, "City is not assigned a valid value");
+
+	// WTP: AI colonial players get a hardy pioneer once, when they found their first colony
+	if (pCity != NULL && !isHuman() && is(CIV_CATEGORY_COLONIAL) && getNumCities() == 1 && getCitiesLost() == 0)
+	{
+		const UnitClassTypes ePioneerClass = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_PIONEER");
+		const ProfessionTypes ePioneerProfession = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_PIONEER");
+		if (ePioneerClass != NO_UNITCLASS && ePioneerProfession != NO_PROFESSION)
+		{
+			const UnitTypes ePioneer = GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(ePioneerClass);
+			if (ePioneer != NO_UNIT)
+			{
+				initUnit(ePioneer, ePioneerProfession, pCity->coord(), NO_UNITAI);
+			}
+		}
+	}
 
 	for (BuildingClassTypes eBuildingClass = FIRST_BUILDINGCLASS; eBuildingClass < NUM_BUILDINGCLASS_TYPES; ++eBuildingClass)
 	{
@@ -6331,6 +6373,22 @@ CvCity* CvPlayer::found(Coordinates foundCoord)
 
 	gDLL->getEventReporterIFace()->cityBuilt(pCity);
 	if (gPlayerLogLevel >= 1) logBBAI(" Player %d (%S) founds new city %S at %d, %d", getID(), getCivilizationDescription(0), pCity->getName(0).GetCString(), foundCoord.x(), foundCoord.y()); // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+
+	// WTP: a colonial AI gets a scout with its first colony (exploring brings gold and shows the villages nearby)
+	if (!isHuman() && !isNative() && !isEurope() && getParent() != NO_PLAYER && getNumCities() == 1)
+	{
+		// a free colonist with scout equipment, not a seasoned scout
+		const ProfessionTypes eScoutProfession = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_SCOUT");
+		const UnitTypes eScout = GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(GLOBAL_DEFINE_DEFAULT_POPULATION_UNIT);
+		if (eScout != NO_UNIT && eScoutProfession != NO_PROFESSION)
+		{
+			CvUnit* const pScout = initUnit(eScout, eScoutProfession, foundCoord, UNITAI_SCOUT);
+			if (pScout != NULL && gPlayerLogLevel >= 1)
+			{
+				logWTP(WTP_LOG_STATUS, getID(), " WTP: Player %d (%S) gets a free scout with its first colony", getID(), getCivilizationDescription(0));
+			}
+		}
+	}
 
 	return pCity;
 }
@@ -8104,6 +8162,21 @@ void CvPlayer::changeAssets(int iChange)
 int CvPlayer::getPower() const
 {
 	return m_iPower;
+}
+
+// WTP: the part of the power that comes from ships (transports count a lot, but do not fight on land)
+int CvPlayer::getNavalPower() const
+{
+	int iPower = 0;
+	int iLoop;
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->getDomainType() == DOMAIN_SEA)
+		{
+			iPower += pLoopUnit->getPower();
+		}
+	}
+	return iPower;
 }
 
 void CvPlayer::changePower(int iChange)
@@ -15582,6 +15655,9 @@ void CvPlayer::applyEvent(EventTypes eEvent, const EventTriggeredData& kTriggere
 					pUnitCity = getPrimaryCity();
 				}
 
+				if (gPlayerLogLevel >= 1 && !isHuman()) logWTP(WTP_LOG_BUY, getID(), " WTP event unit: Player %d (%S) turn %d gets %d x %S from event %S",
+					getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), kEvent.getNumUnits(), GC.getUnitInfo(eUnit).getDescription(), CvWString(kEvent.getType()).GetCString());
+
 				// WTP, ray, let us do this for all Ships, it is safer
 				// if (GC.getUnitInfo(eUnit).getDomainType() == DOMAIN_SEA && GC.getUnitInfo(eUnit).getTerrainImpassable(TERRAIN_SHALLOW_COAST))
 				if (GC.getUnitInfo(eUnit).getDomainType() == DOMAIN_SEA)
@@ -17472,6 +17548,9 @@ CvUnit* CvPlayer::buyYieldUnit(YieldTypes eYield, int iAmount, CvUnit* pTranspor
 			pTransport->groupTransportedYieldUnits(pUnit);
 		}
 		changeGold(-iPrice);
+		if (gPlayerLogLevel >= 1 && !isHuman()) logWTP(WTP_LOG_BUY, getID(), " WTP buy: Player %d (%S) turn %d buys %d %S in %s for %d gold (gold left %d)",
+			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), iAmount, GC.getYieldInfo(eYield).getDescription(),
+			eLocation == TRADE_LOCATION_EUROPE ? "EUROPE" : (eLocation == TRADE_LOCATION_AFRICA ? "AFRICA" : "PORT ROYAL"), iPrice, getGold());
 
 		// R&R, vetiarvind, Price dependent tax rate change - Start
 		const int iBuyValue = iYieldSellPrice / 2; // buying should only contribute 50% of sell to tax incr. score
@@ -18712,6 +18791,19 @@ CvUnit* CvPlayer::buyEuropeUnit(UnitTypes eUnit, int iPriceModifier)
 		return NULL;
 	}
 
+	// WTP: colonial AIs only buy warships from 3 colonies and turn 45 on (or during war plans), whatever path the purchase comes from
+	if (!isHuman() && !isNative() && !isEurope() && getParent() != NO_PLAYER)
+	{
+		const UnitAITypes eDefaultAI = (UnitAITypes)GC.getUnitInfo(eUnit).getDefaultUnitAIType();
+		if ((eDefaultAI == UNITAI_COMBAT_SEA || eDefaultAI == UNITAI_PIRATE_SEA || eDefaultAI == UNITAI_ASSAULT_SEA || eDefaultAI == UNITAI_ESCORT_SEA)
+			&& GET_TEAM(getTeam()).getAnyWarPlanCount() == 0 && (getNumCities() < 3 || GC.getGameINLINE().getGameTurn() < 45))
+		{
+			if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), " WTP buy: Player %d (%S) turn %d blocked warship %S (price modifier %d)",
+				getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), GC.getUnitInfo(eUnit).getDescription(), iPriceModifier);
+			return NULL;
+		}
+	}
+
 	int iPrice = getEuropeUnitBuyPrice(eUnit) * iPriceModifier / 100;
 	if (iPrice > getGold())
 	{
@@ -18751,8 +18843,8 @@ CvUnit* CvPlayer::buyEuropeUnit(UnitTypes eUnit, int iPriceModifier)
 		changeGold(-iPrice);
 		GET_TEAM(getTeam()).changeUnitsPurchasedHistory(pUnit->getUnitClassType(), 1);
 		gDLL->getEventReporterIFace()->unitBoughtFromEurope(getID(), pUnit->getID());
-		if (gPlayerLogLevel >= 1) logBBAI(" Player %d (%S) buys Unit:%S Gold:%d",
-			getID(), getCivilizationDescription(0), pUnit->getNameAndProfession().GetCString(), iPrice);
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), " WTP buy: Player %d (%S) turn %d buys %S in EUROPE for %d gold (gold left %d)",
+			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pUnit->getNameAndProfession().GetCString(), iPrice, getGold());
 	}
 
 
@@ -18894,6 +18986,8 @@ CvUnit* CvPlayer::buyAfricaUnit(UnitTypes eUnit, int iPriceModifier)
 		changeGold(-iPrice);
 		GET_TEAM(getTeam()).changeUnitsPurchasedHistory(pUnit->getUnitClassType(), 1);
 		//gDLL->getEventReporterIFace()->unitBoughtFromEurope(getID(), pUnit->getID());
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), " WTP buy: Player %d (%S) turn %d buys %S in AFRICA for %d gold (gold left %d)",
+			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pUnit->getNameAndProfession().GetCString(), iPrice, getGold());
 	}
 
 	return pUnit;
@@ -19006,6 +19100,8 @@ CvUnit* CvPlayer::buyPortRoyalUnit(UnitTypes eUnit, int iPriceModifier)
 		changeGold(-iPrice);
 		GET_TEAM(getTeam()).changeUnitsPurchasedHistory(pUnit->getUnitClassType(), 1);
 		//gDLL->getEventReporterIFace()->unitBoughtFromEurope(getID(), pUnit->getID());
+		if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), " WTP buy: Player %d (%S) turn %d buys %S in PORT ROYAL for %d gold (gold left %d)",
+			getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pUnit->getNameAndProfession().GetCString(), iPrice, getGold());
 	}
 
 	return pUnit;
@@ -19760,27 +19856,53 @@ bool CvPlayer::checkIndependence() const
 
 		if (kParent.isAlive() && GET_TEAM(kParent.getTeam()).isParentOf(getTeam()))
 		{
-			// land units on map
-			int iNumUnits = kParent.countNumTravelUnits(NO_UNIT_TRAVEL_STATE, DOMAIN_LAND);
-			if (iNumUnits > 0)
+			// WTP: only military land units count (a treasure of the king or the colonists of a city he took kept the war going forever)
+			// military land units on map
+			int iLoop;
+			int iNumLandUnits = 0;
+			for (CvUnit* pLoopUnit = kParent.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kParent.nextUnit(&iLoop))
 			{
-				return false;
+				if (isIndependenceMilitaryUnit(*pLoopUnit))
+				{
+					if (pLoopUnit->getUnitTravelState() == NO_UNIT_TRAVEL_STATE)
+					{
+						return false;
+					}
+					++iNumLandUnits;
+				}
 			}
 
-			// need both ships and land units
-			int iNumLandUnits = kParent.countNumDomainUnits(DOMAIN_LAND);
+			// need both ships and military land units
 			int iShips = kParent.countNumDomainUnits(DOMAIN_SEA);
+			const std::vector<CvUnit*>* const apOffMapUnits[3] = { &kParent.m_aEuropeUnits, &kParent.m_aAfricaUnits, &kParent.m_aPortRoyalUnits };
+			for (int iList = 0; iList < 3; ++iList)
+			{
+				for (uint i = 0; i < apOffMapUnits[iList]->size(); ++i)
+				{
+					if (isIndependenceMilitaryUnit(*(*apOffMapUnits[iList])[i]))
+					{
+						++iNumLandUnits;
+					}
+				}
+			}
 
 			for (int i = 0; i < getNumRevolutionEuropeUnits(); ++i)
 			{
-				switch (GC.getUnitInfo(getRevolutionEuropeUnit(i)).getDomainType())
+				const CvUnitInfo& kUnitInfo = GC.getUnitInfo(getRevolutionEuropeUnit(i));
+				switch (kUnitInfo.getDomainType())
 				{
 				case DOMAIN_SEA:
 					++iShips;
 					break;
 				case DOMAIN_LAND:
-					++iNumLandUnits;
+				{
+					const ProfessionTypes eProfession = getRevolutionEuropeProfession(i);
+					if (eProfession != NO_PROFESSION ? !GC.getProfessionInfo(eProfession).isUnarmed() : (kUnitInfo.getCombat() > 0 && !kUnitInfo.isOnlyDefensive()))
+					{
+						++iNumLandUnits;
+					}
 					break;
+				}
 				default:
 					break;
 				}
@@ -19796,6 +19918,12 @@ bool CvPlayer::checkIndependence() const
 	return true;
 }
 
+
+// WTP: a land unit that keeps the war of independence going: one that can attack (no treasure, no colonist)
+bool CvPlayer::isIndependenceMilitaryUnit(const CvUnit& kUnit)
+{
+	return kUnit.getDomainType() == DOMAIN_LAND && !kUnit.isOnlyDefensive() && !kUnit.isUnarmed();
+}
 
 void CvPlayer::applyMissionaryPoints(CvCity* pCity)
 {
@@ -20839,6 +20967,8 @@ void CvPlayer::hurry(HurryTypes eHurry, int iIndex)
 		if (kHurry.getGoldPerCross() > 0)
 		{
 			OOS_LOG("hurry gold", getHurryGold(eHurry, iIndex));
+			if (gPlayerLogLevel >= 1) logWTP(WTP_LOG_BUY, getID(), " WTP buy: Player %d (%S) turn %d hurries immigrant %S (dock %d) for %d gold (gold before %d)",
+				getID(), getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), GC.getUnitInfo(getDocksNextUnit(iIndex)).getDescription(), iIndex, getHurryGold(eHurry, iIndex), getGold());
 			changeGold(-getHurryGold(eHurry, iIndex));
 
 			int iMissingCrosses = immigrationThreshold() - getCrossesStored();

@@ -98,6 +98,7 @@ public:
 
 	int AI_estimatedColonistIncome(CvPlot* pPlot, CvUnit* pColonist);
 	int AI_foundValue(int iX, int iY, int iMinRivalRange = -1, bool bStartingLoc = false);
+	static const char* s_szFoundValueReason; // WTP: settler log: why the last AI_foundValue rejected its plot
 
 	int AI_foundValueNative(int iX, int iY, bool settleOnBonus = false) const;
 
@@ -110,7 +111,8 @@ public:
 	int AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreAttackers = false);
 	CvCity* AI_findTargetCity(CvArea* pArea);
 
-	int AI_getPlotDanger(CvPlot* pPlot, int iRange = -1, bool bTestMoves = true, bool bOffensive = false) const;
+	// WTP: bCivilian: for colonists and other land units without an escort: hostile natives are too weak to count (animals never do)
+	int AI_getPlotDanger(CvPlot* pPlot, int iRange = -1, bool bTestMoves = true, bool bOffensive = false, bool bCivilian = false) const;
 	int AI_getUnitDanger(CvUnit* pUnit, int iRange = -1, bool bTestMoves = true, bool bAnyDanger = true) const;
 
 	// TAC - AI Improved Naval AI - koma13 - START
@@ -161,6 +163,38 @@ public:
 
 	int AI_yieldTradeVal(YieldTypes eYield, const IDInfo& kTransport, PlayerTypes ePlayer);
 	DenialTypes AI_yieldTrade(YieldTypes eYield, const IDInfo& kTransport, PlayerTypes ePlayer) const;
+	// WTP: native trade prices without a ship on the spot (the native player is "this" of AI_nativeYieldTradeValue)
+	int AI_nativeYieldTradeValue(YieldTypes eYield, int iAmount, bool bNativeBuys, const CvCity* pCity) const;
+	bool AI_nativeBuyProfit(YieldTypes eYield, int iAmount, PlayerTypes eNative, int& iProfit) const;
+	bool AI_nativeSellProfit(YieldTypes eYield, int iAmount, const CvCity& kNativeCity, int& iProfit) const;
+	bool AI_bargainWithNatives(PlayerTypes eNative, int& iPrice);
+	bool AI_nativeCityBuys(YieldTypes eYield, const CvCity& kCity) const;
+	// WTP: native trade ship: which villages it visited when (not saved) and where the natives are unfriendly to
+	int AI_getNativeVillageVisitTurn(const CvCity& kCity) const;
+	void AI_setNativeVillageVisited(const CvCity& kCity);
+	bool AI_hasVisitedNativeVillage() const;
+	int AI_nativeVillageDistanceToColonies(const CvCity& kCity) const;
+	PlayerTypes AI_leastLikedColonialPlayer() const;
+	int AI_minTreasureTransportSize() const;
+	void AI_updateNativeTradeShip();
+	// WTP: early game. Phase 0 (until the first scout is bought) and the early strategy afterwards lock most spending
+	enum EarlyStrategies
+	{
+		EARLY_NONE,
+		EARLY_EXPLORER,
+		EARLY_NATIVE_TRADER,
+		EARLY_SHIP_TRADER,
+		EARLY_IMPROVEMENT,
+		EARLY_RESOURCES,
+		NUM_EARLY_STRATEGIES
+	};
+	bool AI_isEarlyPhaseActive() const;
+	bool AI_isEarlyImprovement() const { return m_iEarlyPhase == 1 && m_iEarlyStrategy == EARLY_IMPROVEMENT; }
+	bool AI_mayHurryBuildingEarly(BuildingTypes eBuilding) const;
+	void AI_doEarlyPhase();
+	bool AI_isEarlyResourceSettler(int iUnitID) const;
+	bool AI_isEarlyResourceSiteKnown() const { return AI_earlyResourceSite(NULL, NULL) != NULL; }
+	int AI_earlyResourceSiteValue(const CvPlot& kPlot) const;
 
 	int AI_calculateDamages(TeamTypes eTeam);
 
@@ -464,6 +498,59 @@ public:
 
 	// TAC - AI More Immigrants - koma13 - START
 	void AI_hurryDocks();
+	// WTP: civilian purchases in Europe (settlers, pioneers, experts) and hurrying immigrants
+	void AI_doCivilianPurchases();
+	void AI_logStatusSummary(); // WTP: per turn AI status in BBAI.log
+	// WTP: ship purchases that respect where the colonies are
+	int AI_shipReachableColonies(UnitTypes eUnit) const;
+	static bool AI_shipCanReachCity(UnitTypes eUnit, const CvCity& kCity);
+	bool AI_isRestrictedWaterCity(const CvCity& kCity) const;
+	UnitTypes AI_bestShipToBuy(UnitAITypes eUnitAI, bool bCheapest, TerrainTypes eRequiredTerrain = NO_TERRAIN);
+	bool AI_doTransportPurchase();
+	bool AI_doTreasureShipPurchase();
+	bool AI_doColonyTransportPurchase();
+	bool AI_doScoutPurchase(bool bExtra = false);
+	void AI_setSavingGold();
+	bool AI_isSavingGold() const;
+	bool AI_doUrgentHurrySaving();
+	void AI_doEquipPioneersInEurope();
+	bool AI_doNativeTraderPurchase();
+	bool AI_doNativeTradeShipPurchase();
+	bool AI_hasTradePostTarget() const;
+	bool AI_isUselessExpert(const CvUnitAI& kUnit, std::vector<int>& aiYieldAvailable);
+	UnitTypes AI_transportToBuy();
+	enum { WATER_ACCESS_NONE, WATER_ACCESS_DEEP, WATER_ACCESS_SHALLOW, WATER_ACCESS_RIVER };
+	static int AI_firstColonyMinDistance(); // WTP: first colonies of the Europeans are at least this many plots apart
+	static int AI_cityWaterAccess(const CvCity& kCity);
+	void AI_doSurplusPioneers();
+	void AI_doNativeMercDefense();
+	CvCity* AI_surplusPioneerCity(int iUnitID) const;
+	void AI_clearSurplusPioneer();
+	UnitTypes AI_treasureShipToBuy(int* piTreasures = NULL) const;
+	void AI_doCitizenRelocation(); // WTP
+	void AI_doWorkforcePlan(); // WTP
+	void AI_doPeaceWarships(); // WTP
+	void AI_updateFullStorage(); // WTP
+	std::map<int, int> m_mapFullStorageSince; // WTP: city ID -> first turn its storage was more than 90% full (not saved)
+	int AI_numWarshipsAsTransports() const; // WTP
+	bool AI_isWorkforcePlanned() const; // WTP: the workforce plan places all colonists of this player (colonial AI)
+	int AI_getWfIdleCount() const { return m_iWfIdleCount; } // WTP: colonists without a job in the last plan
+	static int AI_nativeDeliveryPrice(YieldTypes eYield); // WTP
+	CvCity* AI_wfTeachingVillage(UnitClassTypes eExpertClass, const CvCity& kNearCity, int iMaxDistance = 7) const; // WTP
+	int AI_foodSurplusForNewcomer(const CvCity& kCity, int iSkipUnitID = -1) const; // WTP
+	CvCity* AI_bestFoodSurplusCity(const CvCity& kFrom, const CvCity* pExclude, int iSkipUnitID = -1) const; // WTP
+	void AI_doReclaimTerritory(); // WTP
+	bool AI_isInForeignColonyRadius(const CvPlot& kPlot) const; // WTP
+	// WTP: food workers for colonies short of food when no new colonies are wanted
+	CvCity* AI_bestFoodWorkerCity(bool& bWater);
+	UnitTypes AI_africaFoodWorker();
+	bool AI_wantsAfricaFoodWorkers();
+	bool AI_canAffordCivilianPurchase(int iCost) const;
+	bool AI_buyCivilianUnit(UnitTypes eUnit, UnitAITypes eUnitAI, ProfessionTypes eProfession);
+	CvUnit* AI_hurryCheapImmigrant(bool bUnconditional, bool bNonExpertOnly = false);
+	bool AI_doMilitiaPurchase(); // WTP
+	bool AI_doWarMilitaryPurchase(); // WTP: war purchases as an even mix of the land military types
+	int AI_civilianExpertPriority(ProfessionTypes eProfession, UnitClassTypes& eExpertClass);
 	// TAC - AI More Immigrants - koma13 - END
 
 	bool AI_prepareAssaultSea();	// TAC - AI Assault Sea - koma13
@@ -503,6 +590,7 @@ public:
 	bool AI_shouldHurryUnit() const;
 	int AI_estimateUnemploymentCount() const;
 	int AI_firstCityFoundValue(const CvPlot& cityPlot);
+	bool AI_isFirstColonySiteAllowed(const CvPlot& kPlot) const;
 
 protected:
 
@@ -583,6 +671,87 @@ protected:
 	int m_iTurnLastProductionDirty;
 	int m_iTurnLastManagedPop;
 	int m_iMoveQueuePasses;
+	// WTP: the surplus pioneer on its way to join a colony (not saved, the choice is simply made again)
+	int m_iSurplusPioneerID;
+	int m_iSurplusPioneerCityID;
+	int m_iSavingGoldTurn; // WTP: last turn the AI saved gold for a ship or the militia (not saved)
+	// WTP: early game: phase 0 until the first scout is bought, then one of the early strategies; all saved
+	int m_iEarlyPhase; // 0 = before the first scout was bought, 1 = early strategy running, 2 = early game over
+	int m_iEarlyStrategy; // EarlyStrategies
+	int m_iEarlyProgress; // purchases made by the strategy
+	int m_iEarlyScoutsBought;
+	// WTP: gold spent in Europe during the current war (military / civilian, civilian purchases get up to 30%); saved
+	int m_iWarMilitarySpent;
+	int m_iWarCivilianSpent;
+	int m_iNativeTraderTurn; // WTP: the turn the last native trader was equipped in Europe (one about every 8 turns); saved
+	int m_aiEarlySettlerIDs[2]; // settlers of Opportunistic Resources
+	void AI_startEarlyStrategy();
+	bool AI_doEarlyExplorer();
+	bool AI_doEarlyNativeTrader();
+	bool AI_doEarlyShipTrader();
+	bool AI_doEarlyImprovement();
+	bool AI_doEarlyResources();
+	bool AI_earlyHurryDockUnit();
+	CvUnit* AI_earlyGetColonist(int iExtraCost);
+	int AI_earlyEquipCost(ProfessionTypes eProfession) const;
+	bool AI_earlyEquip(CvUnit* pUnit, ProfessionTypes eProfession, UnitAITypes eUnitAI);
+	void AI_earlyEnd();
+	UnitTypes AI_cheapestSeaUnitToBuy(int iMinCargo) const;
+	CvPlot* AI_earlyResourceSite(BonusTypes* peBonus, int* piValue) const;
+	void AI_logEarlyResourceSites(const CvUnit& kSettler) const;
+	// WTP: units waiting in a village to learn (unit id, first turn of waiting), not saved
+	std::map<int, int> m_mapWfLearnWait;
+	std::map<int, int> m_mapWfRecentBuy; // WTP: (city ID * 10000 + unit class) -> turn the plan bought that expert for it (not saved)
+	std::map<std::pair<int, int>, int> m_mapWfUnreachable; // WTP: (unit ID, city ID) -> turn the unit found no way there (not saved)
+	// WTP: travel times of the workforce plan, made at the start of each plan (not saved)
+	std::map<int, std::vector<int> > m_mapWfLandCost; // city ID -> movement cost of a colonist from each plot to the colony (MAX_INT: no way)
+	std::map<std::pair<int, int>, int> m_mapWfSeaTurns; // (port city ID, city ID) -> turns of a transport from the port to the colony
+	int m_iWfLandMoves; // movement points of a colonist per turn
+	void AI_wfUpdateTravel(const CvUnit& kColonist);
+public:
+	void AI_setWfUnreachable(int iUnitID, int iCityID);
+	bool AI_isWfUnreachable(int iUnitID, int iCityID) const;
+	int AI_wfTravelTurns(const CvPlot& kFrom, const CvCity& kTo, int* piPortCityID = NULL) const;
+	bool AI_isEuropeBacklog() const;
+protected:
+	// WTP: native villages the native trade ship visited (plot key, turn), not saved
+	std::map<int, int> m_mapNativeVillageVisit;
+	// WTP: the village (plot index) each native trader (unit ID) is on its way to, not saved
+	std::map<int, int> m_mapTraderTarget;
+	// WTP: expert to buy instead of learning it (learning was blocked for 15 turns), not saved
+	UnitClassTypes m_eWfExpertToBuy;
+	bool AI_doWfExpertPurchase();
+public:
+	int AI_wfLearnWaitTurns(int iUnitID, bool bStart);
+	// WTP: a transport a colonist may board on its way (the AI's transports; of a human player only the automated ones)
+	static bool AI_isWfShip(const CvUnit& kShip);
+	bool AI_hasWfShip() const;
+	void AI_clearWfLearnWait(int iUnitID);
+	void AI_setWfExpertToBuy(UnitClassTypes eExpertClass);
+	UnitClassTypes AI_getWfExpertToBuy() const { return m_eWfExpertToBuy; }
+	static bool AI_isProtectedSpecialty(UnitClassTypes eUnitClass);
+	bool AI_isWantedExpertOnDock(const CvUnit& kUnit) const;
+	void AI_setTraderTarget(int iUnitID, int iPlotIndex);
+	bool AI_isTraderTargetTaken(int iPlotIndex, int iUnitID) const;
+protected:
+	// WTP: colonists the last workforce plan wants to buy (not saved, made again each turn): an expert for a job, or a food
+	// provider (eExpertClass) for the food job eProfession/iPlotIndex; iValue is the gain in gold x100 per turn
+	struct WfOpenOpportunity
+	{
+		int iCityID;
+		ProfessionTypes eProfession;
+		int iPlotIndex; // -1 for building jobs
+		UnitClassTypes eExpertClass;
+		int iValue;
+		int iPrice;
+		bool bAfrica; // bought in Africa (an African slave as food provider)
+	};
+	std::vector<WfOpenOpportunity> m_aWfOpenOpportunities;
+	int m_iWfIdleCount; // WTP: colonists without a job in the last plan (not saved)
+	int m_iEuropeFallbackTurn; // WTP: the turn the idle transports in Europe were last checked (not saved)
+	int m_iWfFoodCityID; // WTP: the colony that needs a food provider most (not saved), -1
+	bool m_bWfFoodWater; // WTP: ... a fisherman (else a farmer or an African slave)
+	bool AI_buyExpertForOpportunity();
 
 	void AI_doTradeRoutes();
 	void AI_doCounter();
@@ -607,6 +776,7 @@ protected:
 
 	void AI_doMilitaryStrategy();
 	void AI_doSuppressRevolution();
+	int AI_siegePowderGold(int iAmount) const;
 	void AI_doUnitAIWeights();
 	void AI_doEmotions();
 	void AI_doStrategy();

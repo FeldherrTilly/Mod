@@ -525,9 +525,22 @@ bool CvTeam::canChangeWarPeace(TeamTypes eTeam) const
 }
 
 
+// WTP: AI colonies attacked natives far too early and spent their money on soldiers instead of experts. A war the natives
+// declare themselves is not affected
+bool CvTeam::isNativeWarTooEarly(TeamTypes eTeam) const
+{
+	static const int NATIVE_WAR_FIRST_TURN = 80;
+	return GC.getGameINLINE().getGameTurn() < NATIVE_WAR_FIRST_TURN && !isHuman() && hasColonialPlayer() && GET_TEAM(eTeam).hasNativePlayer();
+}
+
 bool CvTeam::canDeclareWar(TeamTypes eTeam) const
 {
 	if (eTeam == getID())
+	{
+		return false;
+	}
+
+	if (isNativeWarTooEarly(eTeam))
 	{
 		return false;
 	}
@@ -1239,6 +1252,35 @@ int CvTeam::getDefensivePower() const
 	return iCount;
 }
 
+
+// WTP: power without the ships (wars of and against natives are fought on land)
+int CvTeam::getLandPower() const
+{
+	int iCount = 0;
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
+	{
+		const CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
+		if (kLoopPlayer.isAlive() && kLoopPlayer.getTeam() == getID())
+		{
+			iCount += std::max(0, kLoopPlayer.getPower() - kLoopPlayer.getNavalPower());
+		}
+	}
+	return iCount;
+}
+
+int CvTeam::getDefensiveLandPower() const
+{
+	int iCount = 0;
+	for (int iI = 0; iI < MAX_TEAMS; iI++)
+	{
+		const CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iI);
+		if (kLoopTeam.isAlive() && (getID() == iI || isDefensivePact((TeamTypes)iI)))
+		{
+			iCount += kLoopTeam.getLandPower();
+		}
+	}
+	return iCount;
+}
 
 int CvTeam::getEnemyPower() const
 {

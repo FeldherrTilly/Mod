@@ -397,6 +397,7 @@ void CvUnit::convert(CvUnit* pUnit, bool bKill)
 
 	setName(pUnit->getNameNoDesc());
 	setLeaderUnitType(pUnit->getLeaderUnitType());
+	static_cast<CvUnitAI*>(this)->AI_copyWfTask(*static_cast<CvUnitAI*>(pUnit)); // WTP: workforce plan task
 
 	// WTP, Attached Land Leader - START
 	m_szAttachedLeaderName = pUnit->m_szAttachedLeaderName;
@@ -3811,7 +3812,9 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 
 	// Prevent the AI from moving through storms and sustaining damage
 	// Strictly speaking this should preferably be handled by either the path cost or a separate PF flag
-	if (getGroup()->AI_isControlled() && (eFeature != NO_FEATURE) &&  GC.getFeatureInfo(eFeature).getTurnDamage() > 0)
+	// WTP: except the harbour entrance of an own colony (it may be the colony's only water access)
+	if (getGroup()->AI_isControlled() && (eFeature != NO_FEATURE) &&  GC.getFeatureInfo(eFeature).getTurnDamage() > 0
+		&& !(getDomainType() == DOMAIN_SEA && kPlot.isHarbourEntranceOf(getOwnerINLINE())))
 	{
 		return false;
 	}
@@ -4672,6 +4675,24 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 
 	case AUTOMATE_FULL:
 		if (!GC.getGameINLINE().isDebugMode())
+		{
+			return false;
+		}
+		break;
+
+	// WTP: native supply automation: a human player's coastal ship (cargo, no fishing or whaling boat) on the map
+	case AUTOMATE_NATIVE_SUPPLY:
+		if (!isHuman() || isNative() || getDomainType() != DOMAIN_SEA || !isOnMap_() || cargoSpace() == 0 || getUnitInfo().isGatherBoat()
+			|| getUnitInfo().getDefaultUnitAIType() != UNITAI_TRANSPORT_COAST || GET_PLAYER(getOwnerINLINE()).getNumCities() == 0)
+		{
+			return false;
+		}
+		break;
+
+	// WTP: native trade automation: merchant ships (no warships, no fishing or whaling boats) of a colonial player with a colony
+	case AUTOMATE_NATIVE_TRADE:
+		if (getDomainType() != DOMAIN_SEA || cargoSpace() == 0 || getUnitInfo().isGatherBoat() || getUnitInfo().getDefaultUnitAIType() != UNITAI_TRANSPORT_SEA
+			|| isNative() || GET_PLAYER(getOwnerINLINE()).getNumCities() == 0 || !GET_PLAYER(getOwnerINLINE()).canTradeWithEurope())
 		{
 			return false;
 		}
@@ -8523,6 +8544,13 @@ bool CvUnit::build(BuildTypes eBuild)
 
 	if (bFinished)
 	{
+		// WTP: pioneer log
+		if (gUnitLogLevel >= 1 && !isHuman())
+		{
+			const CvCity* const pWorkingCity = plot()->getWorkingCity();
+			logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "%S #%d finishes %S at %d,%d (%S)", getName().GetCString(), getID(), GC.getBuildInfo(eBuild).getDescription(), getX_INLINE(), getY_INLINE(),
+				(pWorkingCity != NULL) ? pWorkingCity->getName().GetCString() : L"no colony");
+		}
 		// Super Forts begin *culture*
 		if (GC.getBuildInfo(eBuild).getImprovement() != NO_IMPROVEMENT)
 		{
@@ -15535,6 +15563,15 @@ YieldTypes CvUnit::getYieldUncached() const
 	return NO_YIELD;
 }
 
+// WTP: expert native traders (and courageous native traders, UNITCLASS_SEASONED_TRADER) should always found trade posts
+bool CvUnit::isExpertNativeTrader() const
+{
+	static const UnitClassTypes eExpertTrader = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_EXPERT_TRADER");
+	static const UnitClassTypes eSeasonedTrader = (UnitClassTypes)GC.getInfoTypeForString("UNITCLASS_SEASONED_TRADER");
+	const UnitClassTypes eClass = getUnitClassType();
+	return (eExpertTrader != NO_UNITCLASS && eClass == eExpertTrader) || (eSeasonedTrader != NO_UNITCLASS && eClass == eSeasonedTrader);
+}
+
 bool CvUnit::isGoods() const
 {
 	if (getYieldStored() > 0)
@@ -15885,11 +15922,12 @@ bool CvUnit::setSailEurope(EuropeTypes eEurope)
 	}
 
 	CvPlayerAI& kLoopPlayer = GET_PLAYER(getOwnerINLINE());
+	// WTP: the best distance is kept over all plots (it was reset for every plot, so the last plot of the map won: the northernmost)
+	int iBestDistance = MAX_INT;
 	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
 	{
 		CvPlot* pPlot = GC.getMap().plotByIndexINLINE(iI);
 		int iAvgDistance = 0;
-		int iBestDistance = 100000;
 		if (pPlot->getEurope() == eEurope)
 		{
 			if (pPlot->isRevealed(getTeam(), false))
@@ -15921,6 +15959,72 @@ bool CvUnit::setSailEurope(EuropeTypes eEurope)
 		return true;
 	}
 	return false;
+}
+
+// WTP: the plot a ship coming from Europe arrives at for kTarget (a colony or a water plot): the Europe plot nearest by sea,
+// found by a flood over the water plots the ship can enter (diagonal steps as ships move), the nearest as the crow flies among
+// equally near ones. Every water plot is visited once at most and the flood stops at the first Europe plots. NULL if no Europe
+// plot is linked to kTarget by water. (The nearest plots as the crow flies were taken before: for a colony behind a cape they
+// were all on its far side.)
+CvPlot* CvUnit::findEuropeArrivalPlot(const CvPlot& kTarget) const
+{
+	CvMap& kMap = GC.getMap();
+	std::vector<int> aiDist(kMap.numPlotsINLINE(), -1);
+	std::vector<int> aiQueue;
+	aiQueue.reserve(1024);
+	const int iStart = kMap.plotNumINLINE(kTarget.getX_INLINE(), kTarget.getY_INLINE());
+	aiDist[iStart] = 0;
+	aiQueue.push_back(iStart);
+
+	CvPlot* pBestPlot = NULL;
+	int iBestDist = MAX_INT;
+	int iBestAir = MAX_INT;
+	for (uint iHead = 0; iHead < aiQueue.size(); ++iHead)
+	{
+		CvPlot* const pPlot = kMap.plotByIndexINLINE(aiQueue[iHead]);
+		const int iDist = aiDist[aiQueue[iHead]];
+		if (iDist > iBestDist)
+		{
+			break;
+		}
+		if ((iDist > 0 || kTarget.isWater()) && pPlot->isEurope() && pPlot->isRevealed(getTeam(), false) && pPlot->getTurnDamage() <= 0
+			&& canCrossOcean(pPlot, UNIT_TRAVEL_STATE_FROM_EUROPE) && !pPlot->isVisibleEnemyDefender(this))
+		{
+			const int iAir = plotDistance(kTarget.getX_INLINE(), kTarget.getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+			if (iAir < iBestAir)
+			{
+				iBestAir = iAir;
+				iBestDist = iDist;
+				pBestPlot = pPlot;
+			}
+			continue;
+		}
+		if (iBestDist != MAX_INT)
+		{
+			continue; // the plots as near as the Europe plot found are checked, no further plots
+		}
+		for (int iDir = 0; iDir < NUM_DIRECTION_TYPES; ++iDir)
+		{
+			CvPlot* const pAdjacent = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), (DirectionTypes)iDir);
+			if (pAdjacent == NULL || !pAdjacent->isWater())
+			{
+				continue;
+			}
+			const int iAdjacent = kMap.plotNumINLINE(pAdjacent->getX_INLINE(), pAdjacent->getY_INLINE());
+			if (aiDist[iAdjacent] >= 0 || pAdjacent->isImpassable() || m_pUnitInfo->getTerrainImpassable(pAdjacent->getTerrainType())
+				|| (pAdjacent->getFeatureType() != NO_FEATURE && m_pUnitInfo->getFeatureImpassable(pAdjacent->getFeatureType())))
+			{
+				continue;
+			}
+			if (pPlot->isWater() && !pPlot->isAdjacentWaterPassable(pAdjacent))
+			{
+				continue;
+			}
+			aiDist[iAdjacent] = iDist + 1;
+			aiQueue.push_back(iAdjacent);
+		}
+	}
+	return pBestPlot;
 }
 
 bool CvUnit::canSailEurope(EuropeTypes eEurope) const

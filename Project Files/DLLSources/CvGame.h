@@ -455,6 +455,10 @@ protected:
 
 	unsigned int m_uiInitialTime;
 	unsigned int m_uiWorldBuilderUseCount;
+	int m_iLogGameStart; // WTP: time the game was started (time_t): names its log folder
+public:
+	int getLogGameStart() const { return m_iLogGameStart; }
+protected:
 
 	bool m_bScoreDirty;
 	bool m_bDebugMode;

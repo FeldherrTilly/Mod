@@ -148,6 +148,13 @@ public:
     int AI_calculateAlarm(PlayerTypes eIndex) const;
 
 	int AI_estimateYieldValue(YieldTypes eYield, int iAmount) const;
+	int AI_hammerJobMinValue() const;
+	bool AI_canClearLumberFeature(const CvPlot* pPlot) const;
+	void AI_getYieldsTaughtNearby(bool* abYields) const; // WTP
+	int AI_projectedLumberWithout(const CvUnit* pUnit) const; // WTP
+	bool AI_isLumberShort(const CvUnit* pUnit) const; // WTP
+	int AI_nativeFoodSurplus() const; // WTP
+	bool AI_assignFreeJob(CvUnit& kUnit); // WTP
 
 	int AI_getTargetSize() const;
 	void AI_setTargetSize(int iNewValue);
@@ -206,6 +213,8 @@ public:
 	void AI_doSettlerProfessionCheat();
 
 	void AI_doHurry(bool bForce = false);
+	bool AI_isUrgentHurryBuilding(BuildingTypes eBuilding) const;
+	BuildingTypes AI_urgentHurryBuilding(int& iCost);
 	bool canHaveCitizenProfession(const CvUnit& kUnit, ProfessionTypes eProfession, bool bBumpOther) const;
 
 protected:
@@ -244,6 +253,33 @@ protected:
 	EnumMap<EmphasizeTypes,bool> m_em_bEmphasize;
 
 	mutable int m_iCachePlayerClosenessTurn;
+	// WTP: per-turn cache for AI_hammerJobMinValue, not saved
+	mutable int m_iCacheHammerJobMinTurn;
+	mutable int m_iCacheHammerJobMinValue;
+	// WTP: per-turn cache for AI_getYieldsTaughtNearby, not saved
+	mutable int m_iCacheTaughtYieldsTurn;
+	// WTP: food surplus of a native village, refreshed every 5 turns, not saved
+	mutable int m_iCacheNativeFoodTurn;
+	mutable int m_iCacheNativeFoodSurplus;
+	// WTP: last full job assignment of a native village, not saved
+	int m_iNativeAssignTurn;
+	int m_iNativeAssignPopulation;
+	int m_iNativeAssignIdle; // WTP: villagers without a job (or plot) when the village last reassigned (not saved)
+	// WTP: extra defenders against angry natives nearby, refreshed every turn, not saved
+	mutable int m_iCacheAngryNativeTurn;
+	mutable int m_iCacheAngryNativeDefenders;
+	// WTP: last turn colonists were put on food plots because of a food shortage, not saved
+	int m_iFoodShortageTurn;
+	// WTP: last turn the workforce plan left a job out for lack of food (pioneers improve food plots), not saved
+	int m_iWfFoodRequestTurn;
+public:
+	bool AI_isFoodShortage() const;
+	void AI_setWfFoodRequest();
+	// WTP: the workforce plan puts a citizen on a plot (CvCity::setUnitWorkingPlot is protected)
+	void AI_setUnitWorkingPlot(CityPlotTypes ePlot, int iUnitId) { setUnitWorkingPlot(ePlot, iUnitId); }
+protected:
+	void AI_fixFoodShortage();
+	mutable bool m_abCacheTaughtYields[NUM_YIELD_TYPES];
 	mutable int m_iCachePlayerClosenessDistance;
 	EnumMap<PlayerTypes,int> m_em_iPlayerCloseness;
 

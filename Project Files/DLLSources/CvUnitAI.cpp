@@ -80,6 +80,17 @@ void CvUnitAI::AI_reset()
 // Note that the PF is not reset here anymore since K-Mod PF will do that as needed in KmodPathFinder::SetSettings
 bool CvUnitAI::AI_update()
 {
+#ifdef PROFILING_ENABLED
+	// WTP: one sample per unit AI type, natives separately
+	static std::string aszProfileNames[2][NUM_UNITAI_TYPES + 1];
+	const int iProfileAI = (AI_getUnitAIType() >= 0 && AI_getUnitAIType() < NUM_UNITAI_TYPES) ? (int)AI_getUnitAIType() : NUM_UNITAI_TYPES;
+	std::string& szProfileName = aszProfileNames[isNative() ? 1 : 0][iProfileAI];
+	if (szProfileName.empty())
+	{
+		szProfileName = CvString::format("CvUnitAI::AI_update unitAI %d%s", iProfileAI, isNative() ? " (native)" : "");
+	}
+	Profiler profileSession(szProfileName.c_str());
+#endif
 	PROFILE_FUNC();
 
 	//FAssertMsg(getUnitTravelState() != NO_UNIT_TRAVEL_STATE || canMove(), "canMove is expected to be true");
@@ -177,6 +188,18 @@ bool CvUnitAI::AI_update()
 				AI_workerSeaMove();
 				break;
 			//End TAC Whaling, ray
+			// WTP: native supply automation of a human player's coastal ship
+			case AUTOMATE_NATIVE_SUPPLY:
+				AI_nativeSupplyMove();
+				break;
+			// WTP: native trade automation of a human player's ship
+			case AUTOMATE_NATIVE_TRADE:
+				if (!AI_isNativeTradeShip() || AI_nativeTradeHomeCity() == NULL)
+				{
+					AI_startNativeTrade();
+				}
+				AI_nativeTradeShipMove();
+				break;
 			case AUTOMATE_FULL:
 				FAssert(false);
 				break;
@@ -196,6 +219,17 @@ bool CvUnitAI::AI_update()
 		else if (canMove() || isCargo())
 		{
 			FAssert(getGroup() != NULL);
+			// WTP: a passenger of the explorer ship does nothing until the ship puts it ashore in our colony
+			if (AI_getUnitAIState() == UNITAI_STATE_EXPLORER_PASSENGER)
+			{
+				const CvUnit* const pTransport = getTransportUnit();
+				if (pTransport != NULL && pTransport->AI_getUnitAIState() == UNITAI_STATE_EXPLORER_SHIP)
+				{
+					getGroup()->pushMission(MISSION_SKIP);
+					return true;
+				}
+				AI_setUnitAIState(UNITAI_STATE_DEFAULT);
+			}
 			switch (AI_getUnitAIType())
 			{
 			case UNITAI_UNKNOWN:
@@ -218,6 +252,7 @@ bool CvUnitAI::AI_update()
 
 			case UNITAI_SETTLER:
 				AI_settlerMove();
+				AI_logSettler();
 				break;
 
 			case UNITAI_WORKER:
@@ -320,7 +355,25 @@ bool CvUnitAI::AI_update()
 				break;
 			//End TAC Whaling, ray
 			case UNITAI_TRANSPORT_SEA:
-				AI_transportSeaMove();
+				s_szWtpShipReason = "other";
+				if (AI_isNativeTradeShip())
+				{
+					AI_nativeTradeShipMove();
+				}
+				// WTP: the king's transports (galleons) land his troops like the royal troop ships
+				else if (kOwner.AI_isKing())
+				{
+					AI_imperialTransportMove();
+				}
+				else if (AI_getUnitAIState() == UNITAI_STATE_EXPLORER_SHIP)
+				{
+					AI_explorerShipMove();
+				}
+				else
+				{
+					AI_transportSeaMove();
+				}
+				AI_logShipTarget();
 				break;
 
 			case UNITAI_ASSAULT_SEA:
@@ -397,6 +450,17 @@ bool CvUnitAI::AI_europeUpdate()
 	}
 	else
 	{
+		// WTP: the native trade ship has its own routine in Europe
+		if (AI_isNativeTradeShip() && getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE)
+		{
+			AI_nativeTradeEurope();
+			return false;
+		}
+		if (AI_getUnitAIState() == UNITAI_STATE_EXPLORER_SHIP && getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE)
+		{
+			AI_crossFromEurope();
+			return false;
+		}
 		if (getGroup()->isAutomated() && (getGroup()->getAutomateType() == AUTOMATE_FULL))
 		{
 			if (getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE)
@@ -417,7 +481,11 @@ bool CvUnitAI::AI_europeUpdate()
 
 	if (!(getGroup()->isAutomated() && (getGroup()->getAutomateType() != AUTOMATE_FULL)))
 	{
-		if (isHurt() && (healRate(plot()) > 0))
+		// WTP: a transport in Europe or Africa does not wait to heal. Healing there is slow and
+		// the ship would lie idle for several turns, so it loads and sails off damaged.
+		const bool bTransportInEurope = (AI_getUnitAIType() == UNITAI_TRANSPORT_SEA &&
+			(getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE || getUnitTravelState() == UNIT_TRAVEL_STATE_IN_AFRICA));
+		if (isHurt() && (healRate(plot()) > 0) && !bTransportInEurope)
 		{
 			if (hasCargo() && getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE)
 			{
@@ -690,7 +758,9 @@ int CvUnitAI::AI_groupFirstVal()
 		break;
 
 	case UNITAI_SETTLER:
-		return 5;
+		// WTP: a settler must lead its escort, otherwise the group follows the escort's AI (e.g. guarding a city)
+		// and the settler never moves; was 5, below all military unit AIs
+		return 22;
 		break;
 
 	case UNITAI_WORKER:
@@ -953,6 +1023,9 @@ bool CvUnitAI::AI_bestCityBuild(CvCity* pCity, CvPlot** ppBestPlot, BuildTypes* 
 												int iMaxWorkers = iPathTurns > 1 ? 1 : AI_calculatePlotWorkersNeeded(pLoopPlot, eBuild);
 												if (pUnit && pUnit->plot()->isCity() && iPathTurns == 1)
 													iMaxWorkers += 10;
+												// WTP: the colonial AI puts one pioneer on an improvement at a time
+												if (GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned())
+													iMaxWorkers = 1;
 											// K-Mod end
 
 												if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_BUILD, getGroup()) < iMaxWorkers)
@@ -1010,6 +1083,9 @@ bool CvUnitAI::AI_bestCityBuild(CvCity* pCity, CvPlot** ppBestPlot, BuildTypes* 
 					int iMaxWorkers = iPathTurns > 1 ? 1 : AI_calculatePlotWorkersNeeded(pBestPlot, eBestBuild);
 					if (pUnit && pUnit->plot()->isCity() && iPathTurns == 1)
 						iMaxWorkers += 10;
+					// WTP: the colonial AI puts one pioneer on an improvement at a time
+					if (GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned())
+						iMaxWorkers = 1;
 				// K-Mod end
 					const int iWorkerCount = GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pBestPlot, MISSIONAI_BUILD, getGroup());
 					if (iWorkerCount < iMaxWorkers)
@@ -1430,9 +1506,11 @@ void CvUnitAI::AI_colonistMove()
 {
 	// WTP, Slave AI - START
 	const UnitClassTypes eUnitClass = getUnitInfo().getUnitClassType();
+	// WTP: the workforce plan of the colonial AI places every colonist (slaves too): nobody joins a colony on its own
+	const bool bPlanned = GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned();
 
-	if (eUnitClass == GLOBAL_DEFINE_UNITCLASS_AFRICAN_SLAVE ||
-		eUnitClass == GLOBAL_DEFINE_UNITCLASS_NATIVE_SLAVE)
+	if (!bPlanned && (eUnitClass == GLOBAL_DEFINE_UNITCLASS_AFRICAN_SLAVE ||
+		eUnitClass == GLOBAL_DEFINE_UNITCLASS_NATIVE_SLAVE))
 	{
 		CvCity* pCity = plot() != NULL ? plot()->getPlotCity() : NULL;
 
@@ -1496,6 +1574,33 @@ void CvUnitAI::AI_colonistMove()
 	}
 	// WTP, Slave AI - END
 
+	// WTP: the workforce plan comes first
+	if (AI_doWfTask())
+	{
+		return;
+	}
+
+	// WTP: no task yet (new this turn): wait in the nearest own colony until the next plan
+	if (bPlanned)
+	{
+		if (isCargo())
+		{
+			getGroup()->pushMission(MISSION_SKIP);
+			return;
+		}
+		const CvCity* const pHere = plot()->getPlotCity();
+		if ((pHere == NULL || pHere->getOwnerINLINE() != getOwnerINLINE()) && AI_retreatToCity())
+		{
+			return;
+		}
+		if (AI_changeUnitAIType(99) || AI_changeUnitAIType(49))
+		{
+			return;
+		}
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
+	}
+
 	if (isCargo())
 	{
 		if (AI_joinOptimalCity())
@@ -1510,7 +1615,7 @@ void CvUnitAI::AI_colonistMove()
 		return;
 	}
 
-	const bool bDanger = GET_PLAYER(getOwnerINLINE()).AI_getPlotDanger(plot(), 2) > 0;
+	const bool bDanger = GET_PLAYER(getOwnerINLINE()).AI_getPlotDanger(plot(), 2, true, false, true) > 0;
 
 	if (bDanger && plot()->getOwnerINLINE() != getOwnerINLINE())
 	{
@@ -1577,40 +1682,69 @@ void CvUnitAI::AI_settlerMove()
 {
 	PROFILE_FUNC();
 
+	s_szSettlerStep = "start";
 	const bool bDanger = GET_PLAYER(getOwnerINLINE()).AI_getUnitDanger(this, 2, false, false);
 	const int iMinFoundValue = (GC.getGame().getGameTurn() > 20) ? 1 : 2;
 	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	const bool bFirstCityPhase = (kOwner.getNumCities() == 0);
 
+	// WTP: natives found their villages near home only (within 10 plots): the search over the whole map, made twice and again
+	// for every move of the turn when no site was found, took almost a tenth of the game's time. Without a site the settler
+	// waits for the turn and becomes a brave after 10 turns (was 20)
 	if (isNative())
 	{
 		if (AI_foundRange(10))
 		{
 			return;
 		}
-		if (AI_found())
-		{
-			return;
-		}
-		if (GC.getGame().getGameTurn() - AI_getLastAIChangeTurn() > 20)
+		if (GC.getGame().getGameTurn() - AI_getLastAIChangeTurn() > 10)
 		{
 			AI_setUnitAIType(UNITAI_DEFENSIVE);
+			return;
+		}
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
+	}
+
+	// WTP: a settler that cannot found (e.g. a missionary given the settler AI) becomes a colonist again or changes
+	// its profession in an own colony; it used to stand around for many turns
+	if (!isNative() && !canFound(NULL))
+	{
+		const ProfessionTypes eDefault = GC.getCivilizationInfo(getCivilizationType()).getDefaultProfession();
+		CvCity* const pHere = plot()->getPlotCity();
+		if (!isCargo() && pHere != NULL && pHere->getOwnerINLINE() == getOwnerINLINE() && getProfession() != eDefault && canHaveProfession(eDefault, false))
+		{
+			setProfession(eDefault);
+		}
+		if (!canFound(NULL))
+		{
+			AI_setUnitAIType(UNITAI_COLONIST);
+			getGroup()->pushMission(MISSION_SKIP);
 			return;
 		}
 	}
 
 	if (isCargo())
 	{
+		s_szSettlerStep = "aboard: a site was chosen";
 		if (AI_found(iMinFoundValue, bFirstCityPhase))
 		{
 			return;
 		}
+		s_szSettlerStep = "aboard: no site, waits";
 
 		// If we cannot find any suitable city spot, disembark
 		// so that we don't needlessly occupy a cargo hold
 		// TODO: Check if the ship has other cargo
 		//if (canUnload())
 		//	unload();
+
+		// WTP: in an own colony get off the ship and look for a site over land
+		if (!bFirstCityPhase && plot()->isCity() && plot()->getOwnerINLINE() == getOwnerINLINE() && canUnload())
+		{
+			unload();
+			return;
+		}
 
 		getGroup()->pushMission(MISSION_SKIP);
 		return;
@@ -1627,6 +1761,7 @@ void CvUnitAI::AI_settlerMove()
 			return;
 		}
 
+		s_szSettlerStep = "first colony: cannot found here, waits for pickup";
 		// Do not move; signal for pickup right here.
 		// (Avoid AI_requestPickup() if it would try to walk. Advertise the pickup explicitly.)
 		getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_AWAIT_PICKUP, plot());
@@ -1643,6 +1778,14 @@ void CvUnitAI::AI_settlerMove()
 		}
 	}
 
+	// WTP: a settler that has reached its site founds there instead of leaving again because of an enemy nearby
+	if (canMove() && canFound(plot()) && getGroup()->AI_getMissionAIType() == MISSIONAI_FOUND && getGroup()->AI_getMissionAIPlot() == plot())
+	{
+		s_szSettlerStep = "founds on its site";
+		found();
+		return;
+	}
+
 	if (bDanger)
 	{
 		// Don't be so eager to join
@@ -1654,6 +1797,7 @@ void CvUnitAI::AI_settlerMove()
 		}
 		*/
 
+		s_szSettlerStep = "danger: retreats to a city";
 		if (AI_retreatToCity(false, MAX_INT, true))
 		{
 			return;
@@ -1662,6 +1806,7 @@ void CvUnitAI::AI_settlerMove()
 
 	if (!isCargo())
 	{
+		s_szSettlerStep = "walks: a site was chosen";
 		if (AI_found(iMinFoundValue))
 		{
 			return;
@@ -1671,11 +1816,13 @@ void CvUnitAI::AI_settlerMove()
 	// Settlers should always be on their way towards a spot to settle
 	// So if we get here, this is evidence that we may need to be picked
 	// up by a ship
+	s_szSettlerStep = "no site: asks for a ship";
 	if (AI_requestPickup())
 	{
 		return;
 	}
 
+	s_szSettlerStep = "no site, no ship: retreats to a city";
 	if (AI_retreatToCity())
 	{
 		return;
@@ -1683,17 +1830,64 @@ void CvUnitAI::AI_settlerMove()
 
 	if (canJoinCity(plot()))
 	{
+		s_szSettlerStep = "no site: joins the city";
 		joinCity();
 		return;
 	}
 
+	s_szSettlerStep = "no site: seeks safety";
 	if (AI_safety())
 	{
 		return;
 	}
 
+	s_szSettlerStep = "no site: skips the turn";
 	getGroup()->pushMission(MISSION_SKIP);
 	return;
+}
+
+// WTP: pioneer log: the reason of a pioneer's new task and the mission it got (build, road or move with its plot, target of
+// the mission AI); a pioneer keeps its mission over several turns, so each line is a new task
+// WTP: a pioneer is at most this many turns on its way to a task: English pioneers walked 45 plots to a colony for 70 turns
+static const int PIONEER_MAX_PATH_TURNS = 10;
+
+void CvUnitAI::AI_logPioneer(const char* szReason)
+{
+	if (gUnitLogLevel < 1 || isHuman())
+	{
+		return;
+	}
+	CvWString szMission = L"no mission";
+	const CLLNode<MissionData>* const pNode = getGroup()->headMissionQueueNode();
+	if (pNode != NULL)
+	{
+		const MissionData& kData = pNode->m_data;
+		if (kData.eMissionType == MISSION_BUILD && kData.iData1 >= 0 && kData.iData1 < GC.getNumBuildInfos())
+		{
+			szMission = CvWString::format(L"builds %s at %d,%d", GC.getBuildInfo((BuildTypes)kData.iData1).getDescription(), getX_INLINE(), getY_INLINE());
+		}
+		else if (kData.eMissionType == MISSION_ROUTE_TO)
+		{
+			szMission = CvWString::format(L"road to %d,%d", kData.iData1, kData.iData2);
+		}
+		else if (kData.eMissionType == MISSION_MOVE_TO)
+		{
+			szMission = CvWString::format(L"moves to %d,%d", kData.iData1, kData.iData2);
+		}
+		else if (kData.eMissionType == MISSION_SKIP)
+		{
+			szMission = L"waits";
+		}
+		else
+		{
+			szMission = CvWString::format(L"mission %d", (int)kData.eMissionType);
+		}
+	}
+	const CvPlot* const pTarget = getGroup()->AI_getMissionAIPlot();
+	const CvCity* const pHome = getHomeCity();
+	logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "%S #%d at %d,%d (home %S): %s -> %S%s", getName().GetCString(), getID(), getX_INLINE(), getY_INLINE(),
+		(pHome != NULL) ? pHome->getName().GetCString() : L"-", szReason, szMission.GetCString(),
+		(pTarget != NULL && pTarget != plot()) ? CvString::format(", target %d,%d", pTarget->getX_INLINE(), pTarget->getY_INLINE()).c_str() : "");
 }
 
 void CvUnitAI::AI_workerMove()
@@ -1708,23 +1902,63 @@ void CvUnitAI::AI_workerMove()
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	CvCity* pCity = (plot()->getOwnerINLINE() == getOwnerINLINE()) ? plot()->getPlotCity() : NULL;
 	bool bDanger = GET_PLAYER(getOwnerINLINE()).AI_getUnitDanger(this, 2, false, false);
+	// WTP (user 2026-10-31): in its own colony a pioneer does not wait while enemies are near: it builds where none is (roads,
+	// improvement stages, the next colony; the paths avoid unsafe plots) and waits only if there is nothing (pioneers stood in
+	// their colony for up to 12 turns); in the field it retreats as before
+	bool bSafeWorkOnly = false;
+	CvCity* const pDangerCity = pCity;
 	if (bDanger)
 	{
 		if (pCity != NULL)
 		{
-			if (canJoinCity(plot()))
+			if (canJoinCity(plot()) && AI_mayPioneerJoinCity())
 			{
+				AI_logPioneer("danger: joins the colony");
 				joinCity();
 				return;
 			}
 		}
-		if (AI_retreatToCity())
+		bSafeWorkOnly = pCity != NULL && !isCargo();
+		if (!bSafeWorkOnly)
 		{
+			if (AI_retreatToCity())
+			{
+				AI_logPioneer("danger: retreats to a colony");
+				return;
+			}
+			if (AI_safety())
+			{
+				AI_logPioneer("danger: to safety");
+				return;
+			}
+		}
+	}
+	// WTP: a surplus pioneer chosen by the player goes to its colony and joins it
+	CvCity* const pSurplusCity = kOwner.AI_surplusPioneerCity(getID());
+	if (pSurplusCity != NULL && !isCargo())
+	{
+		if (atPlot(pSurplusCity->plot()))
+		{
+			if (canJoinCity(plot()))
+			{
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "WTP decision: Player %d (%S) turn %d surplus pioneer %S joins %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+					GC.getGameINLINE().getGameTurn(), getNameAndProfession().GetCString(), pSurplusCity->getName().GetCString());
+				kOwner.AI_clearSurplusPioneer();
+				AI_logPioneer("surplus pioneer: joins the colony");
+				joinCity();
+				return;
+			}
+			kOwner.AI_clearSurplusPioneer();
+		}
+		else if (generatePath(pSurplusCity->plot(), MOVE_NO_ENEMY_TERRITORY, true))
+		{
+			getGroup()->pushMission(MISSION_MOVE_TO, pSurplusCity->getX_INLINE(), pSurplusCity->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY);
+			AI_logPioneer("surplus pioneer: goes to its colony");
 			return;
 		}
-		if (AI_safety())
+		else
 		{
-			return;
+			kOwner.AI_clearSurplusPioneer();
 		}
 	}
 
@@ -1742,8 +1976,10 @@ void CvUnitAI::AI_workerMove()
 	{
 		if ((pCity != NULL) && (pCity->getOwnerINLINE() == getOwnerINLINE()))
 		{
+			const CvWString szCity = pCity->getName();
 			if (AI_betterJob())
 			{
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "%S #%d takes a job in %S (better job)", getName().GetCString(), getID(), szCity.GetCString());
 				return;
 			}
 		}
@@ -1753,9 +1989,9 @@ void CvUnitAI::AI_workerMove()
 	{
 		if (AI_unloadWhereNeeded())
 		{
+			AI_logPioneer("aboard: unloads");
 			return;
 		}
-
 		getGroup()->pushMission(MISSION_SKIP);
 		return;
 	}
@@ -1775,6 +2011,34 @@ void CvUnitAI::AI_workerMove()
 		}
 	}
 
+	// WTP: connecting the own colonies by road comes first
+	if (bCanRoute && AI_routeCityNear(12))
+	{
+		AI_logPioneer("road between colonies");
+		return;
+	}
+
+	// WTP: the colonial AI improves its colonies in stages (bonus resources, lumber, food) before the usual improvements
+	if (GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned() && AI_wfImproveStages())
+	{
+		AI_logPioneer("improvement stages (resources, lumber, food)");
+		return;
+	}
+
+	// WTP: with enemies near its colony only plots without danger: the roads and stages above, else the next colony (not this
+	// one); with nothing it waits there
+	if (bSafeWorkOnly)
+	{
+		if (AI_nextCityToImprove(pDangerCity))
+		{
+			AI_logPioneer("danger near its colony: improves another colony");
+			return;
+		}
+		getGroup()->pushMission(MISSION_SKIP);
+		AI_logPioneer("danger near its colony: nothing safe to build, waits there");
+		return;
+	}
+
 	if (pCity != NULL)
 	{
 		if (pCity->AI_getWorkersNeeded() > 0)
@@ -1785,6 +2049,7 @@ void CvUnitAI::AI_workerMove()
 				{
 					setHomeCity(pCity);
 				}
+				AI_logPioneer("improves its colony (pioneers needed there)");
 				return;
 			}
 		}
@@ -1792,6 +2057,7 @@ void CvUnitAI::AI_workerMove()
 
 	if (AI_nextCityToImprove(pCity))
 	{
+		AI_logPioneer("improves the next colony");
 		return;
 	}
 
@@ -1804,6 +2070,7 @@ void CvUnitAI::AI_workerMove()
 
 		if (AI_fortTerritory(bCanal))
 		{
+			AI_logPioneer("fort");
 			return;
 		}
 	}
@@ -1820,12 +2087,14 @@ void CvUnitAI::AI_workerMove()
 				{
 					setHomeCity(pCity);
 				}
+				AI_logPioneer("improves its colony (no pioneer needed there)");
 				return;
 			}
 		}
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
+	AI_logPioneer("idle: nothing to improve");
 	return;
 }
 
@@ -1953,7 +2222,7 @@ void CvUnitAI::AI_nativeTraderMove()
 	bool bDanger = GET_PLAYER(getOwnerINLINE()).AI_getUnitDanger(this, 2, false, false);
 	if (bDanger)
 	{
-		if (pCity != NULL)
+		if (pCity != NULL && !isExpertNativeTrader()) // WTP: experts stay traders
 		{
 			if (canJoinCity(plot()))
 			{
@@ -1971,12 +2240,10 @@ void CvUnitAI::AI_nativeTraderMove()
 		}
 	}
 
-	if (!isHuman() && pCity != NULL)
+	// WTP: on its way by ship to a village on another land area
+	if (AI_tradePostVoyage())
 	{
-		if (AI_betterJob())
-		{
-			return;
-		}
+		return;
 	}
 
 	if (isCargo())
@@ -1987,22 +2254,34 @@ void CvUnitAI::AI_nativeTraderMove()
 		}
 	}
 
-	pCity = plot()->getPlotCity();
-	if (pCity != NULL)
+	CvCity* const pVillage = plot()->getPlotCity();
+	if (pVillage != NULL)
 	{
-		if (!pCity->isScoutVisited(getTeam()))
+		if (!pVillage->isScoutVisited(getTeam()))
 		{
 			if (canSpeakWithChief(plot()))
 			{
 				speakWithChief();
-				FAssert(pCity->isScoutVisited(getTeam()));
+				FAssert(pVillage->isScoutVisited(getTeam()));
 			}
 		}
 	}
 
+	// WTP: a trade post first; only without one a job in the colony (a trader equipped for a trade post joined the
+	// colony it was landed in)
 	if (AI_spreadTradePosts())
 	{
 		return;
+	}
+
+	if (!isHuman() && pCity != NULL)
+	{
+		if (AI_betterJob())
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S finds no village for a trade post and takes a job in %S",
+				getOwnerINLINE(), GET_PLAYER(getOwnerINLINE()).getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pCity->getName().GetCString());
+			return;
+		}
 	}
 
 	if (area()->getNumUnrevealedTiles(getTeam()) > 0)
@@ -2021,8 +2300,24 @@ void CvUnitAI::AI_nativeTraderMove()
 	//We should try and convert profession to something else
 	//When this is possible.
 
+	// WTP: expert native traders wait in a colony for the next trade post instead of becoming colonists
+	if (isExpertNativeTrader())
+	{
+		if (plot()->getPlotCity() == NULL || plot()->getOwnerINLINE() != getOwnerINLINE())
+		{
+			if (AI_retreatToCity())
+			{
+				return;
+			}
+		}
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
+	}
+
 	if (AI_retreatToCity())
 	{
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S finds no village for a trade post and becomes a colonist",
+			getOwnerINLINE(), GET_PLAYER(getOwnerINLINE()).getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString());
 		AI_setUnitAIType(UNITAI_COLONIST);
 		GET_PLAYER(getOwnerINLINE()).AI_changeNumRetiredAIUnits(UNITAI_MISSIONARY, 1);
 		return;
@@ -2063,7 +2358,25 @@ void CvUnitAI::AI_scoutMove()
 			}
 		}
 		*/
-		if (AI_exploreFromShip(6))
+		// WTP: a scout does not steer a transport that carries other passengers (settlers and colonists were
+		// taken along on exploring trips for many turns); after the early game scouts on ships retire
+		bool bOtherPassengers = false;
+		CvUnit* const pScoutTransport = getTransportUnit();
+		if (pScoutTransport != NULL)
+		{
+			CLLNode<IDInfo>* pPassengerNode = plot()->headUnitNode();
+			while (pPassengerNode != NULL)
+			{
+				const CvUnit* const pPassenger = plot()->getUnitNodeLoop(pPassengerNode);
+				if (pPassenger != NULL && pPassenger != this && pPassenger->getTransportUnit() == pScoutTransport && !pPassenger->isGoods()
+					&& pPassenger->AI_getUnitAIType() != UNITAI_SCOUT)
+				{
+					bOtherPassengers = true;
+					break;
+				}
+			}
+		}
+		if (!bOtherPassengers && GC.getGameINLINE().getGameTurn() <= 60 && AI_exploreFromShip(6))
 		{
 			return;
 		}
@@ -2302,7 +2615,8 @@ void CvUnitAI::AI_treasureMove()
 		}
 		// R&R, ray , Native Treasures - END
 
-		if (!GET_PLAYER(getOwnerINLINE()).AI_hasSeaTransport(this) || bAtWar)
+		// WTP: from 8 waiting treasures the king transports them too, even with a galleon (it could not keep up)
+		if (!GET_PLAYER(getOwnerINLINE()).AI_hasSeaTransport(this) || bAtWar || GET_PLAYER(getOwnerINLINE()).AI_totalUnitAIs(UNITAI_TREASURE) >= 8)
 		{
 			if (canKingTransport())
 			{
@@ -3448,6 +3762,7 @@ void CvUnitAI::AI_counterMove()
 
 void CvUnitAI::AI_defensiveBraveMove()
 {
+	MOD_PROFILE("CvUnitAI::AI_defensiveBraveMove");
 	FAssert(canMove());
 	bool bAtWar = GET_TEAM(getTeam()).getAnyWarPlanCount();
 
@@ -3470,7 +3785,8 @@ void CvUnitAI::AI_defensiveBraveMove()
 		? GC.getDefineINT("NATIVE_MILITARY_INITIAL_UNITS_PER_CITY_BORDER_CONTACT")
 		: GC.getDefineINT("NATIVE_MILITARY_INITIAL_UNITS_PER_CITY");
 
-	const int iMaxWanderers = std::max(1, iMilitaryTarget - 1);
+	// WTP: one wanderer per village at most (aimless walking costs a lot of path finding)
+	const int iMaxWanderers = 1;
 
 	bool bDanger = kOwner.AI_getPlotDanger(plot(), 2, false);
 
@@ -3586,7 +3902,9 @@ void CvUnitAI::AI_defensiveBraveMove()
 
 					if (AI_getUnitAIState() == UNITAI_STATE_DEFAULT)
 					{
-						if (kOwner.AI_countNumHomedUnits(pCity, NO_UNITAI, UNITAI_STATE_WANDER) < iMaxWanderers)
+						// WTP: and only now and then
+						if (kOwner.AI_countNumHomedUnits(pCity, NO_UNITAI, UNITAI_STATE_WANDER) < iMaxWanderers
+							&& GC.getGameINLINE().getSorenRandNum(4, "AI native start wandering") == 0)
 						{
 							AI_setUnitAIState(UNITAI_STATE_WANDER);
 							//fall through.
@@ -3670,7 +3988,7 @@ void CvUnitAI::AI_defensiveBraveMove()
 		{
 			return;
 		}
-		if ((kOwner.AI_cityDistance(plot()) > 6) || (GC.getGameINLINE().getGameTurn() - AI_getLastAIChangeTurn() > 8))
+		if ((kOwner.AI_cityDistance(plot()) > 4) || (GC.getGameINLINE().getGameTurn() - AI_getLastAIChangeTurn() > 4))
 		{
 			AI_setUnitAIState(UNITAI_STATE_RETURN_HOME);
 		}
@@ -3772,9 +4090,18 @@ void CvUnitAI::AI_defensiveBraveMove()
 		return;
 	}
 
+	// WTP: a brave at home without a task (gift, trade, raid, wandering) stays there in peace instead of
+	// looking for groups to join or other moves without a goal
+	if (!bAtWar && !bDanger && pCity != NULL && pCity == getHomeCity() && AI_getUnitAIState() == UNITAI_STATE_DEFAULT)
+	{
+		getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_GUARD_CITY, NULL);
+		return;
+	}
+
 	// Raiding parties use their own movement logic above. During war, however,
 	// they are still limited by the wartime native group cap.
-	if (AI_getUnitAIState() != UNITAI_STATE_RAIDING_PARTY)
+	// WTP: in peace braves do not form groups (each one goes home on its own)
+	if (AI_getUnitAIState() != UNITAI_STATE_RAIDING_PARTY && bAtWar)
 	{
 		AI_breakOversizedNativeDefensiveGroup();
 
@@ -3813,6 +4140,7 @@ void CvUnitAI::AI_defensiveBraveMove()
 
 void CvUnitAI::AI_offensiveBraveMove()
 {
+	MOD_PROFILE("CvUnitAI::AI_offensiveBraveMove");
 	FAssert(canMove());
 	bool bAtWar = GET_TEAM(getTeam()).getAnyWarPlanCount();
 
@@ -4737,6 +5065,25 @@ bool CvUnitAI::AI_sailToPreferredPort(bool bMove)
 	{
 		const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 
+		// WTP: fetch farm workers from Africa if a colony needs food and slaves are the cheaper choice
+		// WTP: no trips to Africa while more than 3 units wait in Europe
+		const bool bEuropeWaiting = GET_PLAYER(getOwnerINLINE()).getNumEuropeUnits() > 3;
+		if (!bEuropeWaiting && AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && GET_PLAYER(getOwnerINLINE()).AI_wantsAfricaFoodWorkers())
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) ship %S sails to Africa for farm workers", getOwnerINLINE(),
+				kOwner.getCivilizationDescription(0), getName().GetCString());
+			return AI_sailToAfrica(bMove);
+		}
+
+		// WTP: people waiting in Europe come first: with a shipload of them waiting (or an empty hold and anybody
+		// waiting) the transport sails to Europe, whatever goods it has. An empty transport used to stay here
+		// because its cargo was "worthless", so nobody was picked up
+		if (kOwner.getParent() != NO_PLAYER && kOwner.getNumEuropeUnits() > 0
+			&& (kOwner.getNumEuropeUnits() >= cargoSpace() || getCargo() == 0))
+		{
+			return AI_sailToEurope(bMove);
+		}
+
 		// In general we should prefer Europe, but we will consider going to Africa if:
 		// 1) We cannot fill our transport ship with more than half the capacity of colonists for the return journey, rounded down
 		//const bool bAfricaRatio = (kOwner.getNumEuropeUnits() / static_cast<double>(cargoSpace()) <= 0.5);
@@ -4755,12 +5102,12 @@ bool CvUnitAI::AI_sailToPreferredPort(bool bMove)
 
 		// We should expand on this in a future iteration but this will suffice for now
 		//if (bAfricaRatio && bAfricaBetterValue && iPriceDifference > 0)
-		if (iAfricaBetterValue > 0 && iPriceDifference > 0)
+		if (!bEuropeWaiting && iAfricaBetterValue > 0 && iPriceDifference > 0)
 		{
 			return AI_sailToAfrica(bMove);
 		}
 		// Pick Africa if much better value
-		else if (iAfricaBetterValue >= 100 * cargoSpace())
+		else if (!bEuropeWaiting && iAfricaBetterValue >= 100 * cargoSpace())
 		{
 			return AI_sailToAfrica(bMove);
 		}
@@ -4807,6 +5154,38 @@ void CvUnitAI::AI_transportCoastMove()
 		}
 	}
 	*/
+	// WTP: the colonial AI's coastal transports ferry its colonists between the colonies before they serve the trade routes:
+	// passengers aboard are delivered; an empty one takes the colonists waiting in its port for a ship, or fetches those
+	// waiting within 3 turns (colonists from Europe piled up in La Isabela waiting for a ship to the other colonies while
+	// the coastal transports were idle)
+	if (GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned())
+	{
+		CvCity* const pHere = plot()->getPlotCity();
+		const bool bOwnPort = pHere != NULL && pHere->getOwnerINLINE() == getOwnerINLINE();
+		if (hasAnyUnitInCargo())
+		{
+			if (bOwnPort)
+			{
+				AI_unloadPassengers(false);
+			}
+			if (AI_deliverUnits())
+			{
+				return;
+			}
+		}
+		if (getCargo() == 0)
+		{
+			if (bOwnPort && AI_loadUnits(NO_UNITAI, MISSIONAI_AWAIT_PICKUP) && AI_deliverUnits())
+			{
+				return;
+			}
+			if (AI_respondToPickup(3))
+			{
+				return;
+			}
+		}
+	}
+
 	if (getGroup()->AI_tradeRoutes())
 	{
 		return;
@@ -4819,6 +5198,161 @@ void CvUnitAI::AI_transportCoastMove()
 
 	getGroup()->pushMission(MISSION_SKIP);
 	return;
+}
+
+// WTP: the colony a unit waiting for a ship wants to go to (an expert on its way to its job), NULL if unknown
+CvCity* CvUnitAI::AI_transportDestinationCity() const
+{
+	if (m_iWfTask == WF_EXPERT_JOB || m_iWfTask == WF_JOIN_CITY || m_iWfTask == WF_WAIT)
+	{
+		return GET_PLAYER(getOwnerINLINE()).getCity(m_iWfCityID);
+	}
+	return NULL;
+}
+
+// WTP: a colonist on its way to a colony by ship walks to the port (pPreferredPort, or the nearest own coastal colony), boards a
+// transport there (or waits for one) and is carried to its destination; returns false if no port is useful or if it
+// waited 6 turns for a ship in vain and can walk
+bool CvUnitAI::AI_wfTravelByShip(const CvCity& kTarget, CvCity* pPreferredPort)
+{
+	static const int WF_MAX_SHIP_WAIT = 6;
+	const int iMinOcean = GC.getMIN_WATER_SIZE_FOR_OCEAN();
+	if (!kTarget.isCoastal(iMinOcean))
+	{
+		return false;
+	}
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	// at least one of our transports has to reach the target (e.g. a colony on a large river only by a caravel)
+	bool bReachable = false;
+	int iShipLoop;
+	for (CvUnit* pLoopUnit = kOwner.firstUnit(&iShipLoop); pLoopUnit != NULL && !bReachable; pLoopUnit = kOwner.nextUnit(&iShipLoop))
+	{
+		// (coastal transports too: they ferry colonists between the colonies)
+		bReachable = (pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA || pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_COAST) && CvPlayerAI::AI_shipCanReachCity(pLoopUnit->getUnitType(), kTarget);
+	}
+	if (!bReachable)
+	{
+		return false;
+	}
+	const int iDistance = plotDistance(getX_INLINE(), getY_INLINE(), kTarget.getX_INLINE(), kTarget.getY_INLINE());
+	if (kOwner.AI_wfLearnWaitTurns(getID(), false) >= WF_MAX_SHIP_WAIT && generatePath(kTarget.plot(), MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, true))
+	{
+		return false;
+	}
+
+	CvCity* pPort = plot()->getPlotCity();
+	if (pPort == NULL || pPort->getOwnerINLINE() != getOwnerINLINE() || !pPort->isCoastal(iMinOcean) || (pPreferredPort != NULL && pPort != pPreferredPort))
+	{
+		if (pPreferredPort != NULL)
+		{
+			if (!generatePath(pPreferredPort->plot(), MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, true))
+			{
+				return false;
+			}
+			getGroup()->pushMission(MISSION_MOVE_TO, pPreferredPort->getX_INLINE(), pPreferredPort->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, false, false, MISSIONAI_AWAIT_PICKUP, pPreferredPort->plot());
+			return true;
+		}
+		// nearest own coastal colony (nearest ones by distance, then by path), clearly closer to us than the target
+		std::vector<std::pair<int, int> > aPorts;
+		int iLoop;
+		for (CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kOwner.nextCity(&iLoop))
+		{
+			if (pLoopCity != &kTarget && pLoopCity->isCoastal(iMinOcean) && pLoopCity->area() == area())
+			{
+				const int iPortDistance = plotDistance(getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+				if (iPortDistance < iDistance / 2)
+				{
+					aPorts.push_back(std::make_pair(iPortDistance, pLoopCity->getID()));
+				}
+			}
+		}
+		std::sort(aPorts.begin(), aPorts.end());
+		pPort = NULL;
+		int iBestTurns = MAX_INT;
+		for (uint i = 0; i < aPorts.size() && i < 3; ++i)
+		{
+			CvCity* const pLoopCity = kOwner.getCity(aPorts[i].second);
+			int iPathTurns;
+			if (pLoopCity != NULL && generatePath(pLoopCity->plot(), MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, true, &iPathTurns) && iPathTurns < iBestTurns)
+			{
+				iBestTurns = iPathTurns;
+				pPort = pLoopCity;
+			}
+		}
+		if (pPort == NULL)
+		{
+			return false;
+		}
+		generatePath(pPort->plot(), MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, true);
+		getGroup()->pushMission(MISSION_MOVE_TO, pPort->getX_INLINE(), pPort->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, false, false, MISSIONAI_AWAIT_PICKUP, pPort->plot());
+		return true;
+	}
+
+	// in port: board an own transport with room (it delivers passengers to their destination), otherwise wait for one
+	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit != this && pLoopUnit->getOwnerINLINE() == getOwnerINLINE() && pLoopUnit->getDomainType() == DOMAIN_SEA
+			&& (pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA || pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_COAST) && CvPlayerAI::AI_shipCanReachCity(pLoopUnit->getUnitType(), kTarget)
+			&& canLoadUnit(pLoopUnit, plot(), true))
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S boards %S in %S for its job in %S (waited %d turns)", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+				GC.getGameINLINE().getGameTurn(), getName().GetCString(), pLoopUnit->getName().GetCString(), pPort->getName().GetCString(), kTarget.getName().GetCString(),
+				kOwner.AI_wfLearnWaitTurns(getID(), false));
+			kOwner.AI_clearWfLearnWait(getID());
+			loadUnit(pLoopUnit);
+			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_FOUND, kTarget.plot());
+			return true;
+		}
+	}
+	// waiting for a ship (counted: after 6 turns it walks if it can)
+	const int iWaited = kOwner.AI_wfLearnWaitTurns(getID(), true);
+	if (gUnitLogLevel >= 1 && iWaited == 0) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S waits in %S for a ship to %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+		GC.getGameINLINE().getGameTurn(), getName().GetCString(), pPort->getName().GetCString(), kTarget.getName().GetCString());
+	getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_AWAIT_PICKUP, plot());
+	return true;
+}
+
+// WTP: a ship carries a passenger only if it can reach the passenger's colony (no galleon for a colony on shallow coast
+// or a large river only: a Danish galleon took two prospectors for river colonies aboard and could not deliver them);
+// land transports and passengers without a colony as destination are not restricted
+bool CvUnitAI::AI_canCarryTo(const CvUnit& kPassenger) const
+{
+	if (getDomainType() != DOMAIN_SEA)
+	{
+		return true;
+	}
+	const CvCity* const pDestination = static_cast<const CvUnitAI&>(kPassenger).AI_transportDestinationCity();
+	return pDestination == NULL || CvPlayerAI::AI_shipCanReachCity(getUnitType(), *pDestination);
+}
+
+// WTP: put passengers ashore whose destination is this plot or who have none; settlers and treasures stay aboard
+// (bAll: everybody except treasures). In an own colony also those whose colony this ship cannot reach (another ship
+// takes them)
+void CvUnitAI::AI_unloadPassengers(bool bAll)
+{
+	std::vector<CvUnit*> apPassengers;
+	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && !pLoopUnit->isGoods() && pLoopUnit->AI_getUnitAIType() != UNITAI_TREASURE)
+		{
+			CvSelectionGroup* const pGroup = pLoopUnit->getGroup();
+			const CvPlot* const pTarget = (pGroup != NULL && pGroup->AI_getMissionAIType() != NO_MISSIONAI) ? pGroup->AI_getMissionAIPlot() : NULL;
+			// a settler decides itself (it gets off in a colony when it finds no site)
+			if (bAll || (pLoopUnit->AI_getUnitAIType() != UNITAI_SETTLER && (pTarget == NULL || pTarget == plot()))
+				|| (plot()->isCity() && plot()->getOwnerINLINE() == getOwnerINLINE() && !AI_canCarryTo(*pLoopUnit)))
+			{
+				apPassengers.push_back(pLoopUnit);
+			}
+		}
+	}
+	for (uint i = 0; i < apPassengers.size(); ++i)
+	{
+		apPassengers[i]->unload();
+	}
 }
 
 void CvUnitAI::AI_transportSettler()
@@ -4844,6 +5378,15 @@ void CvUnitAI::AI_transportSettler()
 
 		if (AI_deliverUnits(UNITAI_SETTLER))
 			return;
+
+		// WTP: nothing legal in sight - explore further instead of waiting until someone else reveals a site
+		if (kOwner.getNumCities() == 0)
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d settler ship %S finds no first colony site, explores",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString());
+			if (AI_exploreCoast(3) || AI_exploreOcean(2) || AI_exploreDeep())
+				return;
+		}
 
 		getGroup()->pushMission(MISSION_SKIP);
 		return;
@@ -4902,6 +5445,186 @@ void CvUnitAI::AI_transportSettler()
 }
 
 
+// WTP: why a transport chose its target this turn (for the ship log)
+const char* CvUnitAI::s_szWtpShipReason = "other";
+const char* CvUnitAI::s_szSettlerStep = "";
+
+// WTP: a site this settler could not reach is left alone for 10 turns
+void CvUnitAI::AI_blockFoundSite(int iPlot)
+{
+	int iOldest = 0;
+	for (int iSite = 0; iSite < NUM_FOUND_BLOCKED_SITES; ++iSite)
+	{
+		if (m_aiFoundBlockedPlot[iSite] == iPlot)
+		{
+			iOldest = iSite;
+			break;
+		}
+		if (m_aiFoundBlockedTurn[iSite] < m_aiFoundBlockedTurn[iOldest])
+		{
+			iOldest = iSite;
+		}
+	}
+	m_aiFoundBlockedPlot[iOldest] = iPlot;
+	m_aiFoundBlockedTurn[iOldest] = GC.getGameINLINE().getGameTurn();
+}
+
+bool CvUnitAI::AI_isFoundSiteBlocked(int iPlot) const
+{
+	for (int iSite = 0; iSite < NUM_FOUND_BLOCKED_SITES; ++iSite)
+	{
+		if (m_aiFoundBlockedPlot[iSite] == iPlot && GC.getGameINLINE().getGameTurn() - m_aiFoundBlockedTurn[iSite] < 10)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+// WTP: experts for bells, crosses and hammers rather stay in their trade; they may found, e.g. as the settler of the start
+// (not by unit type: the student job makes a free colonist an expert)
+bool CvUnitAI::AI_isUnwantedSettler() const
+{
+	const ProfessionTypes eIdeal = AI_getIdealProfession();
+	if (eIdeal == NO_PROFESSION || GC.getProfessionInfo(eIdeal).getNumYieldsProduced() <= 0)
+	{
+		return false;
+	}
+	const int iYield = GC.getProfessionInfo(eIdeal).getYieldsProduced(0);
+	return iYield == YIELD_BELLS || iYield == YIELD_CROSSES || iYield == YIELD_HAMMERS;
+}
+
+// WTP: the settler log names the site of every settler each time it moves and whether it can found there
+void CvUnitAI::AI_logSettler()
+{
+	// a settler that founded is a citizen now (not on the map)
+	if (gUnitLogLevel < 1 || isDelayedDeath() || !isOnMap() || getGroup() == NULL || AI_getUnitAIType() != UNITAI_SETTLER)
+	{
+		return;
+	}
+	CvSelectionGroup* const pGroup = getGroup();
+	const CvPlot* const pTarget = pGroup->AI_getMissionAIType() == MISSIONAI_FOUND ? pGroup->AI_getMissionAIPlot() : NULL;
+	const MissionTypes eMission = pGroup->headMissionQueueNode() != NULL ? pGroup->headMissionQueueNode()->m_data.eMissionType : NO_MISSION;
+	// a group that does not get on is updated up to 100 times per turn: its first lines and then every 25th
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+	if (m_iSettlerLogTurn != iTurn)
+	{
+		m_iSettlerLogTurn = iTurn;
+		m_iSettlerLogCount = 0;
+	}
+	++m_iSettlerLogCount;
+	if (m_iSettlerLogCount > 3 && m_iSettlerLogCount % 25 != 0)
+	{
+		return;
+	}
+	if (m_iSettlerLogCount == 1)
+	{
+		for (CLLNode<IDInfo>* pNode = pGroup->headUnitNode(); pNode != NULL; pNode = pGroup->nextUnitNode(pNode))
+		{
+			const CvUnit* const pMember = ::getUnit(pNode->m_data);
+			if (pMember != NULL && pGroup->getNumUnits() > 1)
+			{
+				logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler   group of %S: %S, unit AI %d, moves left %d", getName().GetCString(), pMember->getNameAndProfession().GetCString(), (int)pMember->AI_getUnitAIType(), pMember->movesLeft());
+			}
+		}
+		const int iValueHere = canFound(plot()) ? AI_foundValue(plot()) : 0;
+		logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler   %S here at %d,%d: can found %d, value %d (%s)", getName().GetCString(), getX_INLINE(), getY_INLINE(), (int)canFound(plot()), iValueHere, canFound(plot()) ? CvPlayerAI::s_szFoundValueReason : "no");
+	}
+	logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler %S at %d,%d%s update %d [%s] moves %d, group %d units (all can move %d), mission %d, missionAI %d, site %d,%d%s, can found here %d, site value %d",
+		getNameAndProfession().GetCString(), getX_INLINE(), getY_INLINE(), isCargo() ? " (on a ship)" : "", m_iSettlerLogCount, s_szSettlerStep, (int)canMove(), pGroup->getNumUnits(), (int)pGroup->canAllMove(),
+		(int)eMission, (int)pGroup->AI_getMissionAIType(), pTarget != NULL ? pTarget->getX_INLINE() : -1, pTarget != NULL ? pTarget->getY_INLINE() : -1,
+		(pTarget != NULL && atPlot(pTarget)) ? " (at the site)" : "", (int)canFound(plot()), pTarget != NULL ? AI_foundValue(const_cast<CvPlot*>(pTarget)) : -1);
+}
+
+// WTP: the ship log names the target of every transport each time it moves
+void CvUnitAI::AI_logShipTarget()
+{
+	if (gUnitLogLevel < 1 || isDelayedDeath())
+	{
+		return;
+	}
+	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	CvSelectionGroup* const pGroup = getGroup();
+	const MissionAITypes eMissionAI = pGroup->AI_getMissionAIType();
+	const CvPlot* const pTarget = pGroup->AI_getMissionAIPlot();
+	const char* szMission;
+	switch (eMissionAI)
+	{
+	case NO_MISSIONAI: szMission = "none"; break;
+	case MISSIONAI_EXPLORE: szMission = "explore"; break;
+	case MISSIONAI_FOUND: szMission = "found"; break;
+	case MISSIONAI_PICKUP: szMission = "pickup"; break;
+	case MISSIONAI_AWAIT_PICKUP: szMission = "await pickup"; break;
+	case MISSIONAI_SAIL_TO_EUROPE: szMission = "sail to Europe"; break;
+	case MISSIONAI_SAIL_TO_AFRICA: szMission = "sail to Africa"; break;
+	case MISSIONAI_SAIL_TO_PORT_ROYAL: szMission = "sail to Port Royal"; break;
+	case MISSIONAI_TRANSPORT: szMission = "transport"; break;
+	case MISSIONAI_TRANSPORT_SEA: szMission = "transport sea"; break;
+	default: szMission = "other"; break;
+	}
+	CvWString szTarget;
+	if (pTarget != NULL)
+	{
+		szTarget.Format(L"%d,%d", pTarget->getX_INLINE(), pTarget->getY_INLINE());
+		if (pTarget->getPlotCity() != NULL)
+		{
+			szTarget += L" ";
+			szTarget += pTarget->getPlotCity()->getName();
+		}
+	}
+	else
+	{
+		szTarget = L"-";
+	}
+	logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "%S (%S) at %d,%d moves %d state %d cargo %d/%d (passengers %d, treasures %d): %s -> %s %S; Europe waiting %d, room of other ships sailing there %d",
+		getName().GetCString(), getUnitInfo().getDescription(), getX_INLINE(), getY_INLINE(), (int)canMove(), (int)AI_getUnitAIState(), getCargo(), cargoSpace(),
+		getUnitAICargo(UNITAI_SETTLER) + getUnitAICargo(UNITAI_COLONIST) + getUnitAICargo(UNITAI_WORKER) + getUnitAICargo(UNITAI_SCOUT), getUnitAICargo(UNITAI_TREASURE),
+		s_szWtpShipReason, szMission, szTarget.GetCString(), kOwner.getNumEuropeUnits(), GET_PLAYER(getOwnerINLINE()).AI_cargoSpaceToEurope(pGroup));
+}
+
+// WTP: units bought in Africa (the slaves of the workforce plan) are fetched by one transport without passengers. (The
+// rule that sent a transport to Europe at once when 5 or more units waited there beyond the room of the ships sailing
+// there is gone, user 2026-10-24.)
+bool CvUnitAI::AI_sailForAfricaUnits()
+{
+	// (a goods-only ship such as the smuggling ship cannot bring the waiting units)
+	if (hasAnyUnitInCargo() || getDomainType() != DOMAIN_SEA || !canCarryPeople())
+	{
+		return false;
+	}
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	// WTP: units bought in Africa (the slaves of the workforce plan) are fetched by one transport: an empty one sails there
+	// if no other transport is on its way to Africa or there, whatever waits in Europe
+	if (kOwner.getNumCities() > 0 && kOwner.getNumAfricaUnits() > 0 && AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && kOwner.canTradeWithAfrica())
+	{
+		bool bFetched = false;
+		int iLoop;
+		for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL && !bFetched; pLoopUnit = kOwner.nextUnit(&iLoop))
+		{
+			bFetched = pLoopUnit != this && pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA
+				&& (pLoopUnit->getUnitTravelState() == UNIT_TRAVEL_STATE_TO_AFRICA || pLoopUnit->getUnitTravelState() == UNIT_TRAVEL_STATE_IN_AFRICA
+					|| (pLoopUnit->getGroup() != NULL && pLoopUnit->getGroup()->AI_getMissionAIType() == MISSIONAI_SAIL_TO_AFRICA));
+		}
+		// (not a transport with goods aboard that Africa pays much less for than Europe)
+		bool bCargoFits = true;
+		for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_YIELD_TYPES && bCargoFits; ++eYield)
+		{
+			bCargoFits = getLoadedYieldAmount(eYield) == 0 || AI_isAfricaWorthy(eYield);
+		}
+		if (!bFetched && bCargoFits)
+		{
+			AI_collectGoodsForAfrica();
+		}
+		if (!bFetched && bCargoFits && AI_sailToAfrica())
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) ship %S sails to Africa for %d waiting units",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString(), kOwner.getNumAfricaUnits());
+			return true;
+		}
+	}
+	return false;
+}
+
 void CvUnitAI::AI_transportSeaMove()
 {
 	PROFILE_FUNC();
@@ -4909,6 +5632,7 @@ void CvUnitAI::AI_transportSeaMove()
 	// TAC - AI Improved Naval AI - koma13 - START
 	if (AI_retreatFromDanger())
 	{
+		s_szWtpShipReason = "flees danger";
 		return;
 	}
 	// TAC - AI Improved Naval AI - koma13 - END
@@ -4930,25 +5654,20 @@ void CvUnitAI::AI_transportSeaMove()
 	}
 
 	if (AI_getUnitAIState() == UNITAI_STATE_TRANSPORT_SETTLER)
+	{
+		s_szWtpShipReason = "first settler";
 		AI_transportSettler();
+	}
 	else
 	{
 		CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 		const bool bEmpty = !getGroup()->hasCargo();
 
-		
-		if (AI_goodyRange(baseMoves(), /*bIgnoreCity*/true))
+		// WTP: units bought in Africa are fetched by one transport without passengers
+		if (AI_sailForAfricaUnits())
 		{
+			s_szWtpShipReason = "Africa units";
 			return;
-		}
-
-		if (kOwner.AI_totalUnitAIs(UNITAI_TREASURE) > 0)
-		{
-			if (AI_respondToPickup(20, UNITAI_TREASURE))
-			{
-				AI_setUnitAIState(UNITAI_STATE_SAIL);
-				return;
-			}
 		}
 
 		CvCity* pCity = NULL;
@@ -4956,6 +5675,7 @@ void CvUnitAI::AI_transportSeaMove()
 		{
 			if (AI_tradeWithCity())
 			{
+				s_szWtpShipReason = "trades with the city";
 				return;
 			}
 
@@ -4973,8 +5693,103 @@ void CvUnitAI::AI_transportSeaMove()
 
 		int iGoodsCount = 0;
 		UnitAIStates eStartingState = AI_getUnitAIState();
+
+		// WTP: passengers without a destination (e.g. left over from the first voyage) are put ashore in the nearest own
+		// colony; with units aboard a transport never sails to Europe again and just kept exploring
+		if (hasAnyUnitInCargo() && kOwner.getNumCities() > 0 && getUnitAICargo(UNITAI_TREASURE) == 0)
+		{
+			// passengers that arrived (or have no destination) get off in port first; otherwise the transport went to
+			// the settler's site and back to the colony every other turn
+			if (pCity != NULL)
+			{
+				AI_unloadPassengers(false);
+			}
+			// settlers first: they are carried to their site
+			if (AI_deliverUnits(UNITAI_SETTLER))
+			{
+				s_szWtpShipReason = "delivers a settler";
+				return;
+			}
+			if (AI_deliverUnits())
+			{
+				s_szWtpShipReason = "delivers passengers";
+				return;
+			}
+			if (getUnitAICargo(UNITAI_SETTLER) > 0 && gUnitLogLevel >= 1)
+			{
+				logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d ship %S at %d,%d cannot deliver its settler, takes it to a colony", getOwnerINLINE(),
+					kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), getX_INLINE(), getY_INLINE());
+			}
+			if (pCity != NULL)
+			{
+				std::vector<CvUnit*> apPassengers;
+				CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+				while (pUnitNode != NULL)
+				{
+					CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+					if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && !pLoopUnit->isGoods())
+					{
+						apPassengers.push_back(pLoopUnit);
+					}
+				}
+				for (uint i = 0; i < apPassengers.size(); ++i)
+				{
+					apPassengers[i]->unload();
+				}
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) ship %S puts %d passengers without destination ashore in %S", getOwnerINLINE(),
+					kOwner.getCivilizationDescription(0), getName().GetCString(), (int)apPassengers.size(), pCity->getName().GetCString());
+			}
+			else
+			{
+				CvCity* pNearest = NULL;
+				int iBestTurns = MAX_INT;
+				int iLoop;
+				for (CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kOwner.nextCity(&iLoop))
+				{
+					int iPathTurns;
+					if (pLoopCity->isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN()) && generatePath(pLoopCity->plot(), 0, true, &iPathTurns) && iPathTurns < iBestTurns)
+					{
+						iBestTurns = iPathTurns;
+						pNearest = pLoopCity;
+					}
+				}
+				if (pNearest != NULL)
+				{
+					s_szWtpShipReason = "passengers without destination to a colony";
+					getGroup()->pushMission(MISSION_MOVE_TO, pNearest->getX_INLINE(), pNearest->getY_INLINE(), MOVE_BUST_FOG);
+					return;
+				}
+			}
+		}
+
+		// WTP (user 2026-10-24): treasures right before the sail state. A ship carrying treasures collects those waiting
+		// nearby (within 6 turns), then sails to Europe; a ship without passengers fetches waiting treasures (an empty one
+		// wherever they wait, one with goods aboard within 10 turns). Only ships that can carry treasures respond.
+		if (getUnitAICargo(UNITAI_TREASURE) > 0)
+		{
+			if (!isFull() && AI_respondToPickup(6, UNITAI_TREASURE))
+			{
+				s_szWtpShipReason = "more treasures nearby";
+				AI_setUnitAIState(UNITAI_STATE_PICKUP);
+				return;
+			}
+			if (AI_sailToEurope())
+			{
+				s_szWtpShipReason = "treasures to Europe";
+				return;
+			}
+		}
+		else if (!hasAnyUnitInCargo() && !isFull() && kOwner.AI_totalUnitAIs(UNITAI_TREASURE) > 0
+			&& AI_respondToPickup(bEmpty ? MAX_INT : 10, UNITAI_TREASURE))
+		{
+			s_szWtpShipReason = bEmpty ? "treasure pickup" : "treasure pickup with goods aboard";
+			AI_setUnitAIState(UNITAI_STATE_PICKUP);
+			return;
+		}
+
 		if (AI_getUnitAIState() == UNITAI_STATE_SAIL)
 		{
+			s_szWtpShipReason = "sail state";
 			if (AI_deliverUnits(UNITAI_SETTLER))
 			{
 				return;
@@ -5004,18 +5819,11 @@ void CvUnitAI::AI_transportSeaMove()
 			{
 				if (AI_sailToPreferredPort(false))
 				{
+					s_szWtpShipReason = "sail state: to port (Europe units or cargo)";
 					return;
 				}
 			}
 
-
-			if (kOwner.AI_totalUnitAIs(UNITAI_TREASURE) > 0)
-			{
-				if (AI_respondToPickup(2, UNITAI_TREASURE))
-				{
-					return;
-				}
-			}
 
 			// If we happen to be in a city we own, attempt to load as many goods as possible
 			if (pCity != NULL && pCity->getOwnerINLINE() == getOwnerINLINE())
@@ -5023,18 +5831,11 @@ void CvUnitAI::AI_transportSeaMove()
 				AI_collectGoods();
 			}
 
-			if (kOwner.AI_totalUnitAIs(UNITAI_TREASURE) > 0)
-			{
-				if (AI_respondToPickup(10, UNITAI_TREASURE))
-				{
-					return;
-				}
-			}
-
 			if (isFull())
 			{
 				if (AI_sailToPreferredPort(true))
 				{
+					s_szWtpShipReason = "sail state: full, to port";
 					return;
 				}
 			}
@@ -5044,6 +5845,7 @@ void CvUnitAI::AI_transportSeaMove()
 				// Custom_House_Mod Start
 				if (AI_travelToPort(15, 6))
 				{
+					s_szWtpShipReason = "sail state: collects goods in a colony";
 					return;
 				}
 				// Custom_House_Mod End
@@ -5059,6 +5861,7 @@ void CvUnitAI::AI_transportSeaMove()
 			{
 				if (AI_sailToPreferredPort(true))
 				{
+					s_szWtpShipReason = "sail state: to port with cargo";
 					return;
 				}
 			}
@@ -5067,11 +5870,15 @@ void CvUnitAI::AI_transportSeaMove()
 		}
 
 		if (AI_deliverUnits())
+		{
+			s_szWtpShipReason = "delivers passengers";
 			return;
+		}
 
 		if (AI_getUnitAIState() == UNITAI_STATE_PICKUP)
 		{
-			if (AI_respondToPickup(2))
+			s_szWtpShipReason = "pickup state";
+			if (AI_respondToPickup(2, NO_UNITAI, true))
 			{
 				return;
 			}
@@ -5091,18 +5898,45 @@ void CvUnitAI::AI_transportSeaMove()
 		{
 			if (AI_respondToPickup(MAX_INT, UNITAI_SETTLER))
 			{
+				s_szWtpShipReason = "empty: settler pickup";
 				AI_setUnitAIState(UNITAI_STATE_PICKUP);
 				return;
 			}
 
+			// WTP: outside a colony an empty transport waits beside a settler (within 3 plots) that is about to found its colony
+			// or has just lost its site: the settler may lose the site to another settler, and then the transport is there
+			// to take it on (a Swedish transport sailed home while the settler it had put ashore was stranded)
+			if (pCity == NULL)
+			{
+				int iUnitLoop;
+				for (CvUnit* pLoopUnit = kOwner.firstUnit(&iUnitLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iUnitLoop))
+				{
+					if (pLoopUnit->AI_getUnitAIType() != UNITAI_SETTLER || !pLoopUnit->isOnMap() || pLoopUnit->isCargo() || pLoopUnit->getGroup() == NULL
+						|| plotDistance(getX_INLINE(), getY_INLINE(), pLoopUnit->getX_INLINE(), pLoopUnit->getY_INLINE()) > 3)
+					{
+						continue;
+					}
+					const MissionAITypes eSettlerMissionAI = pLoopUnit->getGroup()->AI_getMissionAIType();
+					const CvPlot* const pSite = pLoopUnit->getGroup()->AI_getMissionAIPlot();
+					const bool bAboutToFound = eSettlerMissionAI == MISSIONAI_FOUND && pSite != NULL
+						&& plotDistance(pLoopUnit->getX_INLINE(), pLoopUnit->getY_INLINE(), pSite->getX_INLINE(), pSite->getY_INLINE()) <= 1;
+					if (bAboutToFound || eSettlerMissionAI == NO_MISSIONAI)
+					{
+						s_szWtpShipReason = "empty: waits beside a settler";
+						getGroup()->pushMission(MISSION_SKIP);
+						return;
+					}
+				}
+			}
+
 			if (AI_respondToPickup(5))
 			{
+				s_szWtpShipReason = "empty: pickup within 5 turns";
 				AI_setUnitAIState(UNITAI_STATE_PICKUP);
 				return;
 			}
 		}
 
-		int iNativeSaleGoods = 0;
 		int iSettlerCount = 0;
 		if (!bEmpty)
 		{
@@ -5127,10 +5961,6 @@ void CvUnitAI::AI_transportSeaMove()
 					{
 						FAssert(pLoopUnit->getYieldStored() > 0);
 						iGoodsCount++;
-						if (pLoopUnit->AI_getUnitAIState() == UNITAI_STATE_SELL_TO_NATIVES)
-						{
-							iNativeSaleGoods++;
-						}
 					}
 					if (pLoopUnit->AI_getUnitAIType() == UNITAI_SETTLER)
 					{
@@ -5140,20 +5970,11 @@ void CvUnitAI::AI_transportSeaMove()
 			}
 		}
 
-		if (kOwner.AI_totalUnitAIs(UNITAI_TREASURE) > 0)
-		{
-			if (AI_respondToPickup(MAX_INT, UNITAI_TREASURE))
-			{
-				AI_setUnitAIState(UNITAI_STATE_SAIL);
-				return;
-			}
-
-		}
-
 		if (bEmpty && GC.getGameINLINE().getSorenRandNum(100, "AI Respond to Pickup 1") < 25)
 		{
 			if (AI_respondToPickup())
 			{
+				s_szWtpShipReason = "empty: random pickup";
 				AI_setUnitAIState(UNITAI_STATE_PICKUP);
 				return;
 			}
@@ -5161,13 +5982,29 @@ void CvUnitAI::AI_transportSeaMove()
 
 		// Don't attempt trade route jobs unless we have no cargo		
 		if (bEmpty && getGroup()->AI_tradeRoutes())
-			return;
-		
-		// TAC - AI Improved Naval AI - koma13 - START
-		//if (iSettlerCount > 0 || iNativeSaleGoods > 0 || ((kOwner.getNumEuropeUnits() == 0) && (kOwner.AI_countYieldWaiting() < 3)))
-		if (iSettlerCount > 0 || iNativeSaleGoods > 0 || (!bPickupUnitsFromEurope && (kOwner.AI_countYieldWaiting() < 3)))
-			// TAC - AI Improved Naval AI - koma13 - END
 		{
+			s_szWtpShipReason = "empty: trade route";
+			return;
+		}
+		
+		// WTP: exploring and goodies come last: only an empty ship explores, when hardly any goods wait in the colonies,
+		// fewer than 3 units wait in Europe and nobody on the map waits for a ship (ships do not trade with natives; goods
+		// aboard go to Europe). Goodies were chased before everything else and kept the Danish ships from Europe.
+		const bool bIdle = bEmpty && kOwner.getNumEuropeUnits() < 3 && kOwner.AI_countYieldWaiting() < 3;
+		if (bIdle && AI_respondToPickup())
+		{
+			s_szWtpShipReason = "idle: pickup";
+			AI_setUnitAIState(UNITAI_STATE_PICKUP);
+			return;
+		}
+		if (bIdle && AI_goodyRange(baseMoves() * 2, /*bIgnoreCity*/true, 2))
+		{
+			s_szWtpShipReason = "idle: goody";
+			return;
+		}
+		if (iSettlerCount > 0 || bIdle)
+		{
+			s_szWtpShipReason = iSettlerCount > 0 ? "explores with a settler" : "idle: explores";
 			if (AI_exploreCoast(2))
 			{
 				return;
@@ -5186,12 +6023,16 @@ void CvUnitAI::AI_transportSeaMove()
 
 		// Don't attempt trade route jobs unless we have no cargo		
 		if (bEmpty && AI_isObsoleteTradeShip() && getGroup()->AI_tradeRoutes())
+		{
+			s_szWtpShipReason = "obsolete ship: trade route";
 			return;
+		}
 
 		if (pCity != NULL)
 		{
 			if (AI_collectGoods())
 			{
+				s_szWtpShipReason = "collects goods";
 				AI_setUnitAIState(UNITAI_STATE_SAIL);
 				return;
 			}
@@ -5201,29 +6042,22 @@ void CvUnitAI::AI_transportSeaMove()
 		{
 			if (AI_travelToPort(40))
 			{
+				s_szWtpShipReason = "travels to a colony for goods";
 				AI_setUnitAIState(UNITAI_STATE_SAIL);
-				return;
-			}
-		}
-
-		if (iNativeSaleGoods > 0)
-		{
-			if (AI_exploreCoast(2))
-			{
-				return;
-			}
-			if (AI_exploreDeep())
-			{
 				return;
 			}
 		}
 
 		// TAC - AI Improved Naval AI - koma13 - START
 		//if ((GET_PLAYER(getOwnerINLINE()).getNumEuropeUnits() > 0) || isFull())
-		if (bPickupUnitsFromEurope || isFull())
+		// WTP: goods aboard go to Europe (collecting more on the way in the sail state)
+		// (not again if this move started in the sail state: it found nothing to do there, and switching back without a
+		// mission looped forever; a king's galleon full of troops crashed the game)
+		if ((bPickupUnitsFromEurope || isFull() || hasCargo()) && eStartingState != UNITAI_STATE_SAIL)
 			// TAC - AI Improved Naval AI - koma13 - END
 		{
 			FAssert(AI_getUnitAIState() != UNITAI_STATE_SAIL);
+			s_szWtpShipReason = "switches to sail state";
 			AI_setUnitAIState(UNITAI_STATE_SAIL);
 			return;
 		}
@@ -5264,6 +6098,40 @@ void CvUnitAI::AI_transportSeaMove()
 		getGroup()->pushMission(MISSION_SKIP);
 		return;
 	}
+}
+
+// WTP: the king's transports (galleons): with troops aboard they land them near a rebel colony (like the royal troop
+// ships); empty they fetch new troops in Europe. They used the colonial transport AI before: it found no port for the
+// troops, fled from danger and sailed the troops back to Europe, again and again.
+void CvUnitAI::AI_imperialTransportMove()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	if (getGroup()->hasCargo())
+	{
+		if (GET_TEAM(getTeam()).getAnyWarPlanCount() > 0 && AI_imperialSeaAssault())
+		{
+			return;
+		}
+		if (AI_retreatToCity())
+		{
+			return;
+		}
+		if (AI_safety())
+		{
+			return;
+		}
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
+	}
+	if (kOwner.getNumEuropeUnits() > 0 && AI_sailToEurope())
+	{
+		return;
+	}
+	if (AI_retreatToCity())
+	{
+		return;
+	}
+	getGroup()->pushMission(MISSION_SKIP);
 }
 
 // Attempt to determine if a great admiral is waiting in a city
@@ -6240,6 +7108,95 @@ void CvUnitAI::AI_exploreSeaMove()
 	return;
 }
 
+// WTP: the ship of the early strategy Explorer explores until turn 70 or until nothing is left to explore. Then it puts the
+// people it rescued from shipwrecks ashore in our nearest colony and becomes a normal transport. Until then its passengers
+// stay aboard, inactive (UNITAI_STATE_EXPLORER_PASSENGER: AI_update and the workforce planner leave them alone).
+void CvUnitAI::AI_explorerShipMove()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+
+	std::vector<CvUnit*> apPassengers;
+	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && !pLoopUnit->isGoods() && pLoopUnit->AI_getUnitAIType() != UNITAI_TREASURE)
+		{
+			apPassengers.push_back(pLoopUnit);
+			if (pLoopUnit->AI_getUnitAIState() != UNITAI_STATE_EXPLORER_PASSENGER)
+			{
+				pLoopUnit->AI_setUnitAIState(UNITAI_STATE_EXPLORER_PASSENGER);
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP explorer ship: Player %d (%S) turn %d %S has %S aboard, it waits until the ship ends exploring",
+					getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pLoopUnit->getName().GetCString());
+			}
+		}
+	}
+
+	if (iTurn < 70)
+	{
+		s_szWtpShipReason = "explorer ship";
+		if (AI_goodyRange(baseMoves(), /*bIgnoreCity*/true) || AI_exploreCoast(2) || AI_exploreOcean(1) || AI_exploreDeep())
+		{
+			return;
+		}
+	}
+	const char* const szWhy = (iTurn < 70) ? "nothing left to explore" : "turn 70";
+
+	// the role ends in one of our colonies (at once if nobody is aboard)
+	CvCity* const pHere = plot()->getPlotCity();
+	if (apPassengers.empty() || (pHere != NULL && pHere->getOwnerINLINE() == getOwnerINLINE()))
+	{
+		for (uint i = 0; i < apPassengers.size(); ++i)
+		{
+			apPassengers[i]->AI_setUnitAIState(UNITAI_STATE_DEFAULT);
+		}
+		if (!apPassengers.empty())
+		{
+			AI_unloadPassengers(true);
+		}
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP explorer ship: Player %d (%S) turn %d %S ends exploring (%s), puts %d passengers ashore%s%S, becomes a normal transport",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), szWhy, (int)apPassengers.size(),
+			pHere != NULL ? " in " : "", pHere != NULL ? pHere->getName().GetCString() : L"");
+		AI_setUnitAIState(UNITAI_STATE_DEFAULT);
+		s_szWtpShipReason = "explorer ship: role ended";
+		AI_transportSeaMove();
+		return;
+	}
+
+	CvCity* pNearest = NULL;
+	int iNearestTurns = MAX_INT;
+	int iLoop;
+	for (CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kOwner.nextCity(&iLoop))
+	{
+		int iPathTurns;
+		if (CvPlayerAI::AI_shipCanReachCity(getUnitType(), *pLoopCity) && generatePath(pLoopCity->plot(), 0, true, &iPathTurns) && iPathTurns < iNearestTurns)
+		{
+			iNearestTurns = iPathTurns;
+			pNearest = pLoopCity;
+		}
+	}
+	if (pNearest != NULL)
+	{
+		getGroup()->pushMission(MISSION_MOVE_TO, pNearest->getX_INLINE(), pNearest->getY_INLINE(), 0, false, false, MISSIONAI_TRANSPORT_SEA, pNearest->plot());
+		s_szWtpShipReason = "explorer ship: brings its passengers home";
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP explorer ship: Player %d (%S) turn %d %S ends exploring (%s), brings %d passengers to %S (%d turns)",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), szWhy, (int)apPassengers.size(), pNearest->getName().GetCString(), iNearestTurns);
+		return;
+	}
+
+	// no colony to reach: the passengers become active again and the ship a normal transport, which takes care of them
+	for (uint i = 0; i < apPassengers.size(); ++i)
+	{
+		apPassengers[i]->AI_setUnitAIState(UNITAI_STATE_DEFAULT);
+	}
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP explorer ship: Player %d (%S) turn %d %S ends exploring (%s), reaches no colony with its %d passengers, becomes a normal transport",
+		getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), szWhy, (int)apPassengers.size());
+	AI_setUnitAIState(UNITAI_STATE_DEFAULT);
+	s_szWtpShipReason = "explorer ship: role ended";
+	AI_transportSeaMove();
+}
+
 void CvUnitAI::AI_networkAutomated()
 {
 	FAssertMsg(canBuildRoute(), "canBuildRoute is expected to be true");
@@ -6768,6 +7725,17 @@ bool CvUnitAI::AI_africa()
 	}
 #endif
 
+	// WTP: buy farm workers for colonies short of food (at most 2 per visit); the workforce plan buys its slaves itself
+	for (int iBuy = 0; iBuy < 2 && !kOwner.AI_isWorkforcePlanned() && cargoSpace() - getCargo() - kOwner.getNumAfricaUnits() > 0 && kOwner.AI_wantsAfricaFoodWorkers(); ++iBuy)
+	{
+		CvUnit* const pSlave = kOwner.buyAfricaUnit(kOwner.AI_africaFoodWorker(), 100);
+		if (pSlave == NULL)
+		{
+			break;
+		}
+		pSlave->AI_setUnitAIType(UNITAI_COLONIST);
+	}
+
 	//Pick up units from Africa (FIFO)
 	std::deque<CvUnit*> aUnits;
 	for (int i = 0; i < kOwner.getNumAfricaUnits(); ++i)
@@ -6838,12 +7806,110 @@ bool CvUnitAI::AI_africa()
 	return true;
 }
 
+// WTP: the treasure a ship in Europe sails to (the pickup plot of the most valuable treasure waiting for a ship that no
+// other ship fetches already and that this ship can carry); pArrival: the plot it appears at coming from Europe (the
+// nearest one to the treasure); bFar: the treasure waits more than TREASURE_NEAR_RANGE plots from our best port
+CvPlot* CvUnitAI::AI_europeTreasureTarget(CvPlot*& pArrival, bool& bFar)
+{
+	static const int TREASURE_NEAR_RANGE = 20;
+	pArrival = NULL;
+	bFar = false;
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	if (kOwner.getNumCities() == 0 || kOwner.AI_totalUnitAIs(UNITAI_TREASURE) == 0 || getDomainType() != DOMAIN_SEA)
+	{
+		return NULL;
+	}
+	int iLoop;
+	CvPlot* pBest = NULL;
+	int iBestGold = 0;
+	for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
+	{
+		if (pLoopUnit->AI_getUnitAIType() != UNITAI_TREASURE || !pLoopUnit->isOnMap() || pLoopUnit->isCargo()
+			|| pLoopUnit->getUnitInfo().getRequiredTransportSize() > cargoSpace())
+		{
+			continue;
+		}
+		CvSelectionGroup* const pGroup = pLoopUnit->getGroup();
+		if (pGroup == NULL || pGroup->AI_getMissionAIType() != MISSIONAI_AWAIT_PICKUP)
+		{
+			continue;
+		}
+		CvPlot* const pPickup = (pGroup->AI_getMissionAIPlot() != NULL) ? pGroup->AI_getMissionAIPlot() : pLoopUnit->plot();
+		if (kOwner.AI_plotTargetMissionAIs(pPickup, MISSIONAI_PICKUP, getGroup()) > 0)
+		{
+			continue; // another ship fetches it
+		}
+		if (pLoopUnit->getYieldStored() > iBestGold)
+		{
+			iBestGold = pLoopUnit->getYieldStored();
+			pBest = pPickup;
+		}
+	}
+	if (pBest == NULL)
+	{
+		return NULL;
+	}
+	// the ship sails into an own colony, else to water beside the pickup plot
+	CvPlot* pShipPlot = NULL;
+	const CvCity* const pPickupCity = pBest->getPlotCity();
+	if (pPickupCity != NULL && pPickupCity->getOwnerINLINE() == getOwnerINLINE())
+	{
+		pShipPlot = pBest;
+	}
+	for (int iDir = 0; iDir < NUM_DIRECTION_TYPES && pShipPlot == NULL; ++iDir)
+	{
+		CvPlot* const pAdjacent = plotDirection(pBest->getX_INLINE(), pBest->getY_INLINE(), (DirectionTypes)iDir);
+		if (pAdjacent != NULL && pAdjacent->isWater() && !pAdjacent->isImpassable() && !m_pUnitInfo->getTerrainImpassable(pAdjacent->getTerrainType()))
+		{
+			pShipPlot = pAdjacent;
+		}
+	}
+	if (pShipPlot == NULL)
+	{
+		return NULL;
+	}
+	pArrival = findNearbyOceanPlot(*pShipPlot);
+	if (pArrival == NULL)
+	{
+		return NULL;
+	}
+	// near our colonies: within TREASURE_NEAR_RANGE plots of the best port (else of any colony)
+	const CvCity* pBestPort = NULL;
+	for (const CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL && pBestPort == NULL; pLoopCity = kOwner.nextCity(&iLoop))
+	{
+		if (pLoopCity->isBestPortCity())
+		{
+			pBestPort = pLoopCity;
+		}
+	}
+	if (pBestPort != NULL)
+	{
+		bFar = plotDistance(pBestPort->getX_INLINE(), pBestPort->getY_INLINE(), pBest->getX_INLINE(), pBest->getY_INLINE()) > TREASURE_NEAR_RANGE;
+	}
+	else
+	{
+		bFar = true;
+		for (const CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL && bFar; pLoopCity = kOwner.nextCity(&iLoop))
+		{
+			bFar = plotDistance(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), pBest->getX_INLINE(), pBest->getY_INLINE()) > TREASURE_NEAR_RANGE;
+		}
+	}
+	return pBest;
+}
+
 bool CvUnitAI::AI_europe()
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 
 	AI_sellYieldUnits(TRADE_LOCATION_EUROPE);
 	AI_unloadUnits(TRADE_LOCATION_EUROPE);
+
+	// WTP (user 2026-10-24): a ship that can carry treasures sails from Europe straight to a treasure waiting for pickup;
+	// empty if it waits far from our colonies, else with colonists as usual
+	CvPlot* pTreasureArrival = NULL;
+	bool bTreasureFar = false;
+	const CvPlot* const pTreasure = isHuman() ? NULL : AI_europeTreasureTarget(pTreasureArrival, bTreasureFar);
+	const bool bLoadUnits = pTreasure == NULL || !bTreasureFar;
 
 	// TAC - AI King no Europe trading bugfix - koma13 - START
 	//kOwner.AI_doEurope();
@@ -6853,7 +7919,7 @@ bool CvUnitAI::AI_europe()
 		kOwner.AI_doEurope();
 	}
 
-	if (!kOwner.getNumCities() == 0)
+	if (!kOwner.getNumCities() == 0 && bLoadUnits)
 	{	// only do this if we have not lost all our cities!
 		// Otherwise we'll get our transport units stuck in a loop to Europe and back
 	// TAC - AI purchases military units - koma13 - START
@@ -6897,9 +7963,13 @@ bool CvUnitAI::AI_europe()
 
 	const int iEstimatedUnemploymentCount = kOwner.AI_estimateUnemploymentCount();
 
-	if (kOwner.AI_shouldHurryUnit() && iEstimatedUnemploymentCount < kOwner.getNumCities() * 2)
+	// WTP: hurrying immigrants is only done now and then: at most one per visit, on about every third visit and with the
+	// gold reserve of civilian purchases (it used to fill every transport's free space, all gold went into immigrants)
+	if (bLoadUnits && kOwner.AI_shouldHurryUnit() && iEstimatedUnemploymentCount < kOwner.getNumCities() * 2
+		&& GC.getGameINLINE().getSorenRandNum(3, "AI hurry dock unit on visit") == 0
+		&& kOwner.AI_canAffordCivilianPurchase(kOwner.getHurryGold(HURRY_IMMIGRANT, 0)))
 	{
-		const int iPotentialColonistsToHurry = std::max(0, cargoSpace() - getCargo() - kOwner.getNumEuropeUnits());
+		const int iPotentialColonistsToHurry = std::min(1, std::max(0, cargoSpace() - getCargo() - kOwner.getNumEuropeUnits()));
 
 		if (iPotentialColonistsToHurry > 0)
 		{
@@ -6922,7 +7992,7 @@ bool CvUnitAI::AI_europe()
 
 	// Pick up settlers first
 	// TODO: Refactor this into a list of priorities
-	while (!aUnits.empty() && !isFull())
+	while (bLoadUnits && !aUnits.empty() && !isFull())
 	{
 		CvUnit* pUnit = aUnits.front();
 		aUnits.pop_front();
@@ -6943,7 +8013,7 @@ bool CvUnitAI::AI_europe()
 		aUnits.push_back(kOwner.getEuropeUnit(i));
 	}
 
-	while (!aUnits.empty() && !isFull())
+	while (bLoadUnits && !aUnits.empty() && !isFull())
 	{
 		CvUnit* pUnit = aUnits.front();
 		aUnits.pop_front();
@@ -6975,7 +8045,7 @@ bool CvUnitAI::AI_europe()
 		*/
 		// TAC - AI Economy - koma13 - END
 
-		if (kOwner.AI_getEuropeYieldSpending() < kOwner.AI_getTotalIncome() / 12)	// TAC - AI Economy - koma13
+		if (bLoadUnits && kOwner.AI_getEuropeYieldSpending() < kOwner.AI_getTotalIncome() / 12 && !kOwner.AI_isEarlyPhaseActive())	// TAC - AI Economy - koma13
 		{
 			if (!kOwner.AI_isStrategy(STRATEGY_MILITARY_BUILDUP))	// TAC - AI Military Buildup - koma13
 			{
@@ -6991,7 +8061,13 @@ bool CvUnitAI::AI_europe()
 	// TAC - AI Improved Naval AI - koma13 - START
 	if (kOwner.getNumCities() > 0)
 	{
-		CvPlot* pNewPlot = AI_bestDestinationPlot();
+		CvPlot* pNewPlot = (pTreasureArrival != NULL) ? pTreasureArrival : AI_bestDestinationPlot();
+		if (pTreasureArrival != NULL && gUnitLogLevel >= 1)
+		{
+			logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d ship %S sails from Europe for the treasure at %d,%d (arrives at %d,%d, %s)",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pTreasure->getX_INLINE(), pTreasure->getY_INLINE(),
+				pTreasureArrival->getX_INLINE(), pTreasureArrival->getY_INLINE(), bTreasureFar ? "empty: far from our colonies" : "with colonists: near our colonies");
+		}
 
 		if (pNewPlot == NULL)
 		{
@@ -7027,9 +8103,36 @@ bool CvUnitAI::AI_europe()
 	FAssert(plot()->isEurope());
 	FAssert(canCrossOcean(plot(), UNIT_TRAVEL_STATE_FROM_EUROPE));
 
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d ship %S (unitAI %d) leaves Europe with cargo %d/%d, %d units still wait in Europe",
+		getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), (int)AI_getUnitAIType(),
+		getCargo(), cargoSpace(), kOwner.getNumEuropeUnits());
 	crossOcean(UNIT_TRAVEL_STATE_FROM_EUROPE);
 	finishMoves();
 	return true;
+}
+
+// WTP: a transport still in Europe with its moves left after the AI moved its units: it was not updated (or its Europe
+// routine did nothing). Its state goes to the ship log, then the Europe routine runs for it.
+void CvUnitAI::AI_europeIdleFallback()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d ship %S idle in Europe (unitAI %d state %d, activity %d, missions %d, missionAI %d, group of %d, head %d, hurt %d, moves %d/%d, move priority %d), %d units wait",
+		getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), (int)AI_getUnitAIType(), (int)AI_getUnitAIState(),
+		(int)getGroup()->getActivityType(), getGroup()->getLengthMissionQueue(), (int)getGroup()->AI_getMissionAIType(), getGroup()->getNumUnits(), (int)isGroupHead(), (int)isHurt(),
+		getMoves(), maxMoves(), AI_getMovePriority(), kOwner.getNumEuropeUnits());
+	if (!isGroupHead())
+	{
+		joinGroup(NULL);
+	}
+	getGroup()->clearMissionQueue();
+	getGroup()->setActivityType(ACTIVITY_AWAKE);
+	AI_europeUpdate();
+	if (getUnitTravelState() == UNIT_TRAVEL_STATE_IN_EUROPE)
+	{
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) ship %S still in Europe after its Europe routine", getOwnerINLINE(),
+			kOwner.getCivilizationDescription(0), getName().GetCString());
+		finishMoves();
+	}
 }
 
 bool CvUnitAI::AI_europeAssaultSea()
@@ -7124,11 +8227,19 @@ bool CvUnitAI::AI_sailTo(const SailToHelper& sth, bool bMove, bool bIgnoreDanger
 	int iBestDelayedTotal = INT_MAX;
 	int iBestDelayedRemainingMoves = INT_MAX;
 
-	// Loop over candidate Europe plots.
+	// WTP: the candidate Europe plots, the nearest (by distance in turns plus the travel time off the map) first; paths are
+	// searched to the nearest 8 (a path to every Europe plot of the map took several percent of the AI's time), and on to the
+	// next ones while none of them can be reached (an enemy ship in the way: the "sail to Europe" button did nothing). Plots
+	// in another body of water are left out
+	std::vector<std::pair<int, int> > aCandidates;
+	const int iShipMoves = std::max(1, baseMoves());
+	const CvArea* const pWaterArea = plot()->isWater() ? plot()->area() : NULL;
 	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
 	{
 		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
 		if (!pLoopPlot->isRevealed(getTeam(), false))
+			continue;
+		if (pWaterArea != NULL && pLoopPlot->area() != pWaterArea)
 			continue;
 		if (!pLoopPlot->isEurope())
 			continue;
@@ -7136,6 +8247,15 @@ bool CvUnitAI::AI_sailTo(const SailToHelper& sth, bool bMove, bool bIgnoreDanger
 			continue;
 		if (!canCrossOcean(pLoopPlot, sth.unitTravelState))
 			continue;
+		const int iEstimate = 10 * (plotDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) / iShipMoves
+			+ GET_PLAYER(getOwnerINLINE()).calculateEuropeTravelTime(pLoopPlot->getEurope()));
+		aCandidates.push_back(std::make_pair(iEstimate, iI));
+	}
+	std::sort(aCandidates.begin(), aCandidates.end());
+	// Loop over candidate Europe plots.
+	for (uint iCandidate = 0; iCandidate < aCandidates.size() && (iCandidate < 8 || (pBestImmediatePlot == NULL && pBestDelayedPlot == NULL)); ++iCandidate)
+	{
+		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(aCandidates[iCandidate].second);
 
 		// Compute off-map travel time using our new helper.
 		int iTravelTime = GET_PLAYER(getOwnerINLINE()).calculateEuropeTravelTime(pLoopPlot->getEurope());
@@ -7270,9 +8390,19 @@ bool CvUnitAI::AI_sailTo(const SailToHelper& sth, bool bMove, bool bIgnoreDanger
 // TAC - AI Improved Naval AI - koma13 - START
 CvPlot* CvUnitAI::findNearbyOceanPlot(const CvPlot& kPlot) const
 {
+	// WTP: the Europe plot nearest by sea (findEuropeArrivalPlot), if the ship finds a path from there; else the old search below
+	CvPlot* const pArrival = findEuropeArrivalPlot(kPlot);
+	if (pArrival != NULL && AI_plotValid(pArrival) && getGroup()->generatePath(&kPlot, pArrival, 0, true))
+	{
+		return pArrival;
+	}
+
 	CvPlot* pBestPlot = NULL;
 	int iBestValue = 0;
 
+	// WTP: the plots one can cross the ocean from, nearest first; a path is searched to the nearest few only (a path to every
+	// such plot of the map from every colony took a tenth of the AI's time)
+	std::vector<std::pair<int, int> > aCandidates;
 	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
@@ -7303,19 +8433,26 @@ CvPlot* CvUnitAI::findNearbyOceanPlot(const CvPlot& kPlot) const
 			{
 				if (canCrossOcean(pLoopPlot, UNIT_TRAVEL_STATE_FROM_EUROPE))
 				{
-					int iPathTurns;
-					if (getGroup()->generatePath(&kPlot, pLoopPlot, 0, true, &iPathTurns))
-					{
-						int iValue = 10000;
-						iValue /= 100 + getPathCost();
-
-						if ((kPlot.getY_INLINE() == pLoopPlot->getY_INLINE()) ? (iValue >= iBestValue) : (iValue > iBestValue))
-						{
-							iBestValue = iValue;
-							pBestPlot = pLoopPlot;
-						}
-					}
+					aCandidates.push_back(std::make_pair(plotDistance(kPlot.getX_INLINE(), kPlot.getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()), iI));
 				}
+			}
+		}
+	}
+	std::sort(aCandidates.begin(), aCandidates.end());
+	// the nearest 8, and on while none of them can be reached
+	for (uint i = 0; i < aCandidates.size() && (i < 8 || pBestPlot == NULL); ++i)
+	{
+		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(aCandidates[i].second);
+		int iPathTurns;
+		if (getGroup()->generatePath(&kPlot, pLoopPlot, 0, true, &iPathTurns))
+		{
+			int iValue = 10000;
+			iValue /= 100 + getPathCost();
+
+			if ((kPlot.getY_INLINE() == pLoopPlot->getY_INLINE()) ? (iValue >= iBestValue) : (iValue > iBestValue))
+			{
+				iBestValue = iValue;
+				pBestPlot = pLoopPlot;
 			}
 		}
 	}
@@ -7349,7 +8486,8 @@ bool CvUnitAI::AI_travelToPort(int iMinPercent, int iMaxPath)
 	int iLoop;
 	for (CvCity* pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
 	{
-		if (!atPlot(pLoopCity->plot()) && AI_plotValid(pLoopCity->plot()))
+		// WTP: only colonies this ship type can enter (no galleon to a colony on shallow coast or a large river)
+		if (!atPlot(pLoopCity->plot()) && AI_plotValid(pLoopCity->plot()) && CvPlayerAI::AI_shipCanReachCity(getUnitType(), *pLoopCity))
 		{
 			if (!(pLoopCity->plot()->isVisibleEnemyUnit(this)))
 			{
@@ -7488,6 +8626,59 @@ bool CvUnitAI::AI_collectGoods()
 	return bLoaded;
 }
 
+// WTP: a good worth taking to Africa: Africa pays at least 70% of what Europe pays for it (user decision)
+bool CvUnitAI::AI_isAfricaWorthy(YieldTypes eYield) const
+{
+	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	if (kOwner.getParent() == NO_PLAYER || !kOwner.isYieldAfricaTradable(eYield))
+	{
+		return false;
+	}
+	const CvPlayer& kEurope = GET_PLAYER(kOwner.getParent());
+	const int iAfrica = kEurope.getYieldAfricaBuyPrice(eYield);
+	return iAfrica > 0 && iAfrica * 10 >= kEurope.getYieldBuyPrice(eYield) * 7;
+}
+
+// WTP: a transport sailing to Africa (to fetch the units bought there) takes the goods of this colony that sell there for
+// at least 70% of the Europe price, the most valuable first
+bool CvUnitAI::AI_collectGoodsForAfrica()
+{
+	CvCity* const pCity = plot()->getPlotCity();
+	if (pCity == NULL || pCity->getOwnerINLINE() != getOwnerINLINE())
+	{
+		return false;
+	}
+	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const CvPlayer& kEurope = GET_PLAYER(kOwner.getParent());
+	const int iCargoHold = GC.getGameINLINE().getCargoYieldCapacity();
+	bool bLoaded = false;
+	while (!isFull())
+	{
+		YieldTypes eBestYield = NO_YIELD;
+		int iBestValue = 0;
+		for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_YIELD_TYPES; ++eYield)
+		{
+			if (!kOwner.AI_isYieldForSale(eYield) || !AI_isAfricaWorthy(eYield) || pCity->getExportAvailable(eYield) == 0)
+			{
+				continue;
+			}
+			const int iStored = getMaxLoadYieldAmount(eYield);
+			if (iStored > iCargoHold / 10 && iStored * kEurope.getYieldAfricaBuyPrice(eYield) > iBestValue)
+			{
+				iBestValue = iStored * kEurope.getYieldAfricaBuyPrice(eYield);
+				eBestYield = eYield;
+			}
+		}
+		if (eBestYield == NO_YIELD)
+		{
+			break;
+		}
+		loadYield(eBestYield, false);
+		bLoaded = true;
+	}
+	return bLoaded;
+}
+
 // Returns true if a cargo unit has pushed a mission for us, false otherwise. If eUnitAI is valid, then only units with this UnitAI will be allowed to push a mission.
 bool CvUnitAI::AI_deliverUnits(UnitAITypes eUnitAI)
 {
@@ -7517,7 +8708,8 @@ bool CvUnitAI::AI_deliverUnits(UnitAITypes eUnitAI)
 	{
 		pLoopUnit = pPlot->getUnitNodeLoop(pUnitNode);
 
-		if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this)
+		// WTP: (not a passenger whose colony this ship cannot reach: it gets off in the next own colony instead)
+		if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && AI_canCarryTo(*pLoopUnit))
 		{
 			if (eUnitAI == NO_UNITAI || eUnitAI == pLoopUnit->AI_getUnitAIType())
 			{
@@ -7636,6 +8828,12 @@ CvPlot* CvUnitAI::AI_bestDestinationPlot(bool bIgnoreDanger) const
 						else
 						{
 							iTempValue += 100000;
+							// WTP: the colony the passenger is planned for comes first (colonists from Europe were put ashore in one
+							// colony and had to wait there for another ship to their own)
+							if (static_cast<const CvUnitAI*>(pLoopUnit)->AI_transportDestinationCity() == pCity)
+							{
+								iTempValue += 1000000;
+							}
 							int iNumAIUnits = pCityPlot->plotCount(PUF_isUnitAIType, pLoopUnit->AI_getUnitAIType(), -1, getOwnerINLINE());
 
 							for (int i = 0; i < pCity->getPopulation(); ++i)
@@ -7694,7 +8892,7 @@ bool CvUnitAI::AI_loadUnits(UnitAITypes eUnitAI, MissionAITypes eMissionAI)
 			{
 				if ((eMissionAI == NO_MISSIONAI) || (pLoopUnit->getGroup()->AI_getMissionAIType() == eMissionAI))
 				{
-					if (pLoopUnit->canLoadUnit(this, plot(), true))
+					if (pLoopUnit->canLoadUnit(this, plot(), true) && AI_canCarryTo(*pLoopUnit))
 					{
 						pLoopUnit->loadUnit(this);
 						pLoopUnit->jumpTo(this->plot());
@@ -8689,8 +9887,30 @@ bool CvUnitAI::AI_unloadWhereNeeded(int iMaxPath)
 	return false;
 }
 
+// WTP: colonial soldiers never become citizens again
+bool CvUnitAI::AI_isSoldier() const
+{
+	const UnitAITypes eUnitAI = AI_getUnitAIType();
+	return !isNative() && (eUnitAI == UNITAI_DEFENSIVE || eUnitAI == UNITAI_OFFENSIVE || eUnitAI == UNITAI_COUNTER);
+}
+
 bool CvUnitAI::AI_betterJob()
 {
+	MOD_PROFILE("CvUnitAI::AI_betterJob");
+	if (AI_isSoldier())
+	{
+		return false;
+	}
+	// WTP: units with a planned job keep it
+	if (m_iWfTask == WF_EXPERT_JOB)
+	{
+		return false;
+	}
+	// WTP: expert native traders found trade posts and never swap into a city job
+	if (isExpertNativeTrader())
+	{
+		return false;
+	}
 
 	CvCity* const pCity = plot()->getPlotCity();
 	if (pCity == NULL)
@@ -8698,6 +9918,12 @@ bool CvUnitAI::AI_betterJob()
 		return false;
 	}
 	if (pCity->getOwnerINLINE() != getOwnerINLINE())
+	{
+		return false;
+	}
+
+	// WTP: hardy pioneers keep their job, regular pioneers only switch if there are more than needed
+	if (!AI_mayPioneerJoinCity())
 	{
 		return false;
 	}
@@ -8750,7 +9976,9 @@ bool CvUnitAI::AI_betterJob()
 				if (eLoopProfession == NO_PROFESSION)
 					continue;
 
-				if (pLoopUnit->canHaveProfession(eOriginalProfession, true, NULL, /*bForceCheck*/true) && canHaveProfession(eLoopProfession, true, NULL, /*bForceCheck*/true))
+				// WTP: an expert does not give up its place for a job outside the colony (scout, pioneer, soldier)
+				if (pLoopUnit->canHaveProfession(eOriginalProfession, true, NULL, /*bForceCheck*/true) && canHaveProfession(eLoopProfession, true, NULL, /*bForceCheck*/true)
+					&& (GC.getProfessionInfo(eOriginalProfession).isCitizen() || pLoopUnit->AI_getIdealProfession() == NO_PROFESSION))
 				{
 					units.push_back(pLoopUnit);
 				}
@@ -8767,7 +9995,9 @@ bool CvUnitAI::AI_betterJob()
 			{
 				if (!pLoopUnit->AI_hasAIChanged(5))
 				{
-					if (pLoopUnit->canHaveProfession(eOriginalProfession, true, NULL, /*bForceCheck*/true) && canHaveProfession(pLoopUnit->getProfession(), true, NULL, /*bForceCheck*/true))
+					// WTP: an expert does not give up its place for a job outside the colony (scout, pioneer, soldier)
+					if (pLoopUnit->canHaveProfession(eOriginalProfession, true, NULL, /*bForceCheck*/true) && canHaveProfession(pLoopUnit->getProfession(), true, NULL, /*bForceCheck*/true)
+						&& (GC.getProfessionInfo(eOriginalProfession).isCitizen() || pLoopUnit->AI_getIdealProfession() == NO_PROFESSION))
 					{
 						units.push_back(pLoopUnit);
 					}
@@ -8825,6 +10055,12 @@ bool CvUnitAI::AI_betterJob()
 
 	if (pBestUnit != NULL)
 	{
+		if (gUnitLogLevel >= 1)
+		{
+			logWTP(WTP_LOG_PLAN, getOwnerINLINE(), "WTP betterJob: Player %S turn %d %S (%S) swaps jobs with %S (%S) in %S, value %d", kOwner.getCivilizationDescription(), GC.getGameINLINE().getGameTurn(),
+				getName().GetCString(), getNameAndProfession().GetCString(), pBestUnit->getName().GetCString(), pBestUnit->getNameAndProfession().GetCString(),
+				pCity->getName().GetCString(), iBestValue);
+		}
 		kOwner.AI_swapUnitJobs(this, pBestUnit);
 		m_iLastAIChangeTurn = GC.getGameINLINE().getGameTurn();
 	}
@@ -8927,6 +10163,11 @@ bool CvUnitAI::AI_changeUnitAIType(int iMinMultiplier)
 							if (iProfessionValue > iMinMultiplier)
 							{
 								int iValue = iProfessionValue * iMultiplier;
+								// WTP: experts for bells, crosses and hammers become settlers only if nothing else is left
+								if (eLoopUnitAI == UNITAI_SETTLER && AI_isUnwantedSettler())
+								{
+									iValue /= 1000;
+								}
 
 								if (iValue > iBestValue)
 								{
@@ -9311,10 +10552,16 @@ bool CvUnitAI::AI_moveTowardsDanger(int iMaxPath)
 
 		if ((pLoopPlot != NULL) && AI_plotValid(pLoopPlot) && !atPlot(pLoopPlot))
 		{
+			// WTP: a plot without danger is no target: the danger is checked before the path (a path to every water plot of
+			// the map took several percent of the AI's time); same result as before
+			iDanger = kOwner.AI_getWaterDanger(pLoopPlot, iRange, true, false, true);
+			if (iDanger <= 0 && pLoopPlot->getDangerMap(getOwnerINLINE()) <= 0)
+			{
+				continue;
+			}
 			int iPathTurns;
 			if (generatePath(pLoopPlot, MOVE_THROUGH_ENEMY, true, &iPathTurns, iMaxPath))
 			{
-				iDanger = kOwner.AI_getWaterDanger(pLoopPlot, iRange, true, false, true);
 				iIncoming = kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_PIRACY, getGroup());
 
 				if ((iDanger > iIncoming) || ((iPathTurns < pLoopPlot->getDangerMap(getOwnerINLINE())) && (iIncoming == 0)))
@@ -9528,9 +10775,15 @@ bool CvUnitAI::AI_spreadReligion()
 }
 
 // WTP, ray, Native Trade Posts - START
+// WTP: native traders found trade posts. A village on our land area is walked to (up to 12 turns, experts 25); a coastal
+// village on another land area is reached by ship: the trader walks to the nearest own coastal colony, boards one of our
+// transports there (or waits for one, at most 8 turns) and goes ashore beside the village (AI_tradePostVoyage)
 bool CvUnitAI::AI_spreadTradePosts()
 {
 	PROFILE_FUNC();
+
+	static const int TRADE_POST_SHIP_WAIT = 8;
+	static const int TRADE_POST_SHIP_MOVES = 4; // estimate of the turns at sea: plots per turn
 
 	// WTP, ray, AI imporevment - START
 	// AI was running around with Missionaries and Native Traders too much
@@ -9538,22 +10791,40 @@ bool CvUnitAI::AI_spreadTradePosts()
 
 	if (canEstablishTradePost())
 	{
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S founds a trade post in %S (%S)", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+			GC.getGameINLINE().getGameTurn(), getName().GetCString(), plot()->getPlotCity()->getName().GetCString(), GET_PLAYER(plot()->getOwnerINLINE()).getCivilizationDescription(0));
+		kOwner.AI_clearWfLearnWait(getID());
+		kOwner.AI_setTraderTarget(getID(), -1);
 		establishTradePost();
 		kOwner.AI_changeNumRetiredAIUnits(UNITAI_TRADER, 1); // line moved
 		return true;
 	}
 	// WTP, ray, AI imporevment - END
 
+	if (isCargo())
+	{
+		return false;
+	}
+
+	const int iMaxTurns = isExpertNativeTrader() ? 25 : 12;
+	const int iMinOcean = GC.getMIN_WATER_SIZE_FOR_OCEAN();
+	// the port for villages on other land areas: the nearest own coastal colony on our land area (looked for once)
+	bool bPortSearched = false;
+	CvCity* pPort = NULL;
+	int iPortTurns = 0;
+	const bool bShipAllowed = kOwner.AI_wfLearnWaitTurns(getID(), false) < TRADE_POST_SHIP_WAIT && kOwner.AI_hasWfShip();
+
 	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;
 	CvPlot* pBestSpreadPlot = NULL;
+	CvPlot* pBestWaterPlot = NULL; // set: the village is reached by ship (the water plot beside it)
 
 	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; iPlayer++)
 	{
 		CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
 		if (kLoopPlayer.isAlive())
 		{
-			if (kLoopPlayer.canHaveTradePost(getOwnerINLINE()) && getNativeTradePostSuccessPercent() > 50)
+			if (kLoopPlayer.canHaveTradePost(getOwnerINLINE()) && getNativeTradePostSuccessPercent() >= 40)
 			{
 				// Do not consider cities belonging to players that we have a war plan against
 				if (GET_TEAM(getTeam()).AI_getWarPlan(kLoopPlayer.getTeam()) != NO_WARPLAN)
@@ -9561,43 +10832,110 @@ bool CvUnitAI::AI_spreadTradePosts()
 
 				if (kLoopPlayer.AI_getAttitude(getOwnerINLINE()) >= ATTITUDE_ANNOYED)
 				{
+					// WTP: our trade posts of this tribe
+					int ownTradePostsOfTribe = 0;
+					int iPostLoop;
+					for (const CvCity* pPostCity = kLoopPlayer.firstCity(&iPostLoop); pPostCity != NULL; pPostCity = kLoopPlayer.nextCity(&iPostLoop))
+					{
+						if (pPostCity->getTradePostCivilization() == getCivilizationType())
+						{
+							++ownTradePostsOfTribe;
+						}
+					}
+					if (ownTradePostsOfTribe >= 2)
+					{
+						continue; // WTP: at most 2 trade posts of our own per tribe
+					}
 					int iLoop;
 					for (CvCity* pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kLoopPlayer.nextCity(&iLoop))
 					{
 						CvPlot* pLoopPlot = pLoopCity->plot();
-						if (pLoopPlot->isRevealed(getTeam(), false))
+						// (revealed: discovered once, it need not be in sight)
+						if (!pLoopPlot->isRevealed(getTeam(), false) || pLoopCity->getTradePostCivilization() == getCivilizationType()
+							|| pLoopPlot->calculateCulturePercent(pLoopPlot->getOwnerINLINE()) != 100)
 						{
-							if (pLoopPlot->getArea() == getArea())
+							continue;
+						}
+						// (nor the village another trader of ours is on its way to)
+						if (kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_SPREAD, getGroup()) > 0
+							|| kOwner.AI_isTraderTargetTaken(GC.getMap().plotNumINLINE(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()), getID()))
+						{
+							continue;
+						}
+						int iPathTurns = MAX_INT;
+						CvPlot* pWaterPlot = NULL;
+						CvPlot* pMovePlot = NULL;
+						if (pLoopPlot->getArea() == getArea())
+						{
+							if (generatePath(pLoopPlot, MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns))
 							{
-								if ((pLoopCity->getTradePostCivilization() != getCivilizationType()) && (pLoopPlot->calculateCulturePercent(pLoopPlot->getOwnerINLINE()) == 100))
+								pMovePlot = getPathEndTurnPlot();
+							}
+						}
+						else if (bShipAllowed && pLoopPlot->isCoastalLand(iMinOcean))
+						{
+							// WTP: another land area: by ship from our port
+							if (!bPortSearched)
+							{
+								bPortSearched = true;
+								int iCityLoop;
+								for (CvCity* pOwnCity = kOwner.firstCity(&iCityLoop); pOwnCity != NULL; pOwnCity = kOwner.nextCity(&iCityLoop))
 								{
-									if (kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_SPREAD, getGroup()) == 0)
+									if (pOwnCity->area() != area() || !pOwnCity->isCoastal(iMinOcean))
 									{
-										int iPathTurns;
-										if (generatePath(pLoopPlot, MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns))
-										{
-											if (iPathTurns < 10)
-											{
-												int iValue = pLoopCity->getPopulation();
-
-												if (pLoopPlot->getCulture(getOwnerINLINE()) > 0)
-												{
-													iValue /= 4;
-												}
-
-												iValue *= 100 + GC.getGameINLINE().getSorenRandNum(25, "AI best spread plot");
-												iValue /= 400 + getPathCost();
-												if (iValue > iBestValue)
-												{
-													iBestValue = iValue;
-													pBestSpreadPlot = pLoopPlot;
-													pBestPlot = getPathEndTurnPlot();
-												}
-											}
-										}
+										continue;
+									}
+									int iTurns = 0;
+									if (!atPlot(pOwnCity->plot()) && !generatePath(pOwnCity->plot(), MOVE_NO_ENEMY_TERRITORY, true, &iTurns))
+									{
+										continue;
+									}
+									if (pPort == NULL || iTurns < iPortTurns)
+									{
+										pPort = pOwnCity;
+										iPortTurns = iTurns;
 									}
 								}
 							}
+							if (pPort == NULL)
+							{
+								continue;
+							}
+							for (int iDir = 0; iDir < NUM_DIRECTION_TYPES && pWaterPlot == NULL; ++iDir)
+							{
+								CvPlot* const pAdjacent = plotDirection(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), (DirectionTypes)iDir);
+								if (pAdjacent != NULL && pAdjacent->isWater() && !pAdjacent->isImpassable() && pAdjacent->waterArea() == pPort->plot()->waterArea())
+								{
+									pWaterPlot = pAdjacent;
+								}
+							}
+							if (pWaterPlot == NULL)
+							{
+								continue;
+							}
+							iPathTurns = iPortTurns + 1 + stepDistance(pPort->getX_INLINE(), pPort->getY_INLINE(), pWaterPlot->getX_INLINE(), pWaterPlot->getY_INLINE()) / TRADE_POST_SHIP_MOVES;
+							pMovePlot = pPort->plot();
+						}
+						// WTP: experts travel further for a trade post
+						if (pMovePlot == NULL || iPathTurns > iMaxTurns)
+						{
+							continue;
+						}
+						int iValue = pLoopCity->getPopulation();
+
+						if (pLoopPlot->getCulture(getOwnerINLINE()) > 0)
+						{
+							iValue /= 4;
+						}
+
+						iValue *= 100 + GC.getGameINLINE().getSorenRandNum(25, "AI best spread plot");
+						iValue /= 4 + iPathTurns;
+						if (iValue > iBestValue)
+						{
+							iBestValue = iValue;
+							pBestSpreadPlot = pLoopPlot;
+							pBestPlot = pMovePlot;
+							pBestWaterPlot = pWaterPlot;
 						}
 					}
 				}
@@ -9605,26 +10943,91 @@ bool CvUnitAI::AI_spreadTradePosts()
 		}
 	}
 
+	if ((pBestPlot == NULL) || (pBestSpreadPlot == NULL))
+	{
+		kOwner.AI_setTraderTarget(getID(), -1);
+		return false;
+	}
+	const CvCity* const pBestVillage = pBestSpreadPlot->getPlotCity();
+	kOwner.AI_setTraderTarget(getID(), GC.getMap().plotNumINLINE(pBestSpreadPlot->getX_INLINE(), pBestSpreadPlot->getY_INLINE()));
 
-	if ((pBestPlot != NULL) && (pBestSpreadPlot != NULL))
+	if (pBestWaterPlot == NULL)
 	{
 		// WTP, ray, for safety I added this
 		// I noticed that if 2 Native Traders are placed on a Native Village at the same time, both try to establish a Trade Post
 		if (atPlot(pBestSpreadPlot) && canEstablishTradePost())
 		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S founds a trade post in %S (%S)", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+				GC.getGameINLINE().getGameTurn(), getName().GetCString(), pBestVillage->getName().GetCString(), GET_PLAYER(pBestSpreadPlot->getOwnerINLINE()).getCivilizationDescription(0));
+			kOwner.AI_setTraderTarget(getID(), -1);
 			establishTradePost();
 			kOwner.AI_changeNumRetiredAIUnits(UNITAI_TRADER, 1);
 			return true;
 		}
-		else
+		FAssert(!atPlot(pBestPlot));
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S goes to %S for a trade post", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+			GC.getGameINLINE().getGameTurn(), getName().GetCString(), pBestVillage->getName().GetCString());
+		getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_SPREAD, pBestSpreadPlot);
+		return true;
+	}
+
+	// WTP: by ship: walk to the port, there board a transport that finds a way to the village (not the native trade ship or
+	// the explorer ship, they go their own ways), else wait for one
+	if (!atPlot(pBestPlot))
+	{
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S goes to %S to take a ship to %S for a trade post", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+			GC.getGameINLINE().getGameTurn(), getName().GetCString(), pPort->getName().GetCString(), pBestVillage->getName().GetCString());
+		getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_AWAIT_PICKUP, pBestPlot);
+		return true;
+	}
+	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit != this && pLoopUnit->getOwnerINLINE() == getOwnerINLINE() && pLoopUnit->getDomainType() == DOMAIN_SEA
+			&& CvPlayerAI::AI_isWfShip(*pLoopUnit) && !static_cast<CvUnitAI*>(pLoopUnit)->AI_isNativeTradeShip()
+			&& pLoopUnit->AI_getUnitAIState() != UNITAI_STATE_EXPLORER_SHIP && canLoadUnit(pLoopUnit, plot(), true)
+			&& pLoopUnit->getGroup()->generatePath(plot(), pBestWaterPlot, MOVE_IGNORE_DANGER, true, NULL))
 		{
-			FAssert(!atPlot(pBestPlot));
-			getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_SPREAD, pBestSpreadPlot);
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S boards %S in %S for a trade post in %S (waited %d turns)", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+				GC.getGameINLINE().getGameTurn(), getName().GetCString(), pLoopUnit->getName().GetCString(), plot()->getPlotCity()->getName().GetCString(), pBestVillage->getName().GetCString(),
+				kOwner.AI_wfLearnWaitTurns(getID(), false));
+			loadUnit(pLoopUnit);
+			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_SPREAD, pBestWaterPlot);
 			return true;
 		}
 	}
+	const int iWaited = kOwner.AI_wfLearnWaitTurns(getID(), true);
+	if (gUnitLogLevel >= 1 && iWaited == 0) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S waits in %S for a ship to %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0),
+		GC.getGameINLINE().getGameTurn(), getName().GetCString(), plot()->getPlotCity()->getName().GetCString(), pBestVillage->getName().GetCString());
+	getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_AWAIT_PICKUP, plot());
+	return true;
+}
 
-	return false;
+// WTP: a native trader aboard a transport on its way to a village on another land area (mission plot: the water plot beside
+// the village): beside a village for a trade post it goes ashore into it, otherwise it stays aboard
+bool CvUnitAI::AI_tradePostVoyage()
+{
+	CvSelectionGroup* const pGroup = getGroup();
+	if (!isCargo() || pGroup->AI_getMissionAIType() != MISSIONAI_SPREAD || pGroup->AI_getMissionAIPlot() == NULL)
+	{
+		return false;
+	}
+	CvPlot* const pWaterPlot = pGroup->AI_getMissionAIPlot();
+	for (int iDir = 0; iDir < NUM_DIRECTION_TYPES; ++iDir)
+	{
+		CvPlot* const pAdjacent = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iDir);
+		const CvCity* const pVillage = (pAdjacent != NULL) ? pAdjacent->getPlotCity() : NULL;
+		if (pVillage != NULL && pVillage->isNative() && pVillage->getTradePostCivilization() != getCivilizationType() && canMoveInto(*pAdjacent))
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trader: Player %d (%S) turn %d %S goes ashore into %S for a trade post", getOwnerINLINE(),
+				GET_PLAYER(getOwnerINLINE()).getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pVillage->getName().GetCString());
+			pGroup->pushMission(MISSION_MOVE_TO, pAdjacent->getX_INLINE(), pAdjacent->getY_INLINE(), 0, false, false, MISSIONAI_SPREAD, pAdjacent);
+			return true;
+		}
+	}
+	pGroup->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_SPREAD, pWaterPlot);
+	return true;
 }
 // WTP, ray, Native Trade Posts - END
 
@@ -9803,6 +11206,8 @@ bool CvUnitAI::AI_requestPickup(int iMaxPath)
 
 	if (pBestPlot != NULL)
 	{
+		// WTP: a settler that starts to wait wakes an empty transport nearby (see AI_wakeTransportForPickup)
+		const bool bNewWait = getGroup()->AI_getMissionAIType() != MISSIONAI_AWAIT_PICKUP || getGroup()->AI_getMissionAIPlot() != pBestMissionPlot;
 		if (atPlot(pBestPlot))
 		{
 			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_AWAIT_PICKUP, pBestMissionPlot);
@@ -9811,18 +11216,97 @@ bool CvUnitAI::AI_requestPickup(int iMaxPath)
 		{
 			getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_AWAIT_PICKUP, pBestMissionPlot);
 		}
+		if (bNewWait && AI_getUnitAIType() == UNITAI_SETTLER)
+		{
+			AI_wakeTransportForPickup(pBestMissionPlot);
+		}
 		return true;
 	}
 	return false;
 }
 
+// WTP: a settler waiting for a ship: the nearest empty transport (within 5 turns) on a voyage that can wait (not to or from
+// Europe, not a native trade ship, not already picking up) drops its mission and plans anew; empty, it answers the settler's
+// pickup first. A Swedish transport sailed home empty while the settler it had put ashore was stranded behind it
+void CvUnitAI::AI_wakeTransportForPickup(const CvPlot* pPickupPlot)
+{
+	if (pPickupPlot == NULL || GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(const_cast<CvPlot*>(pPickupPlot), MISSIONAI_PICKUP, NULL, 0) > 0)
+	{
+		return;
+	}
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	CvUnit* pBest = NULL;
+	int iBestTurns = 6;
+	int iLoop;
+	for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
+	{
+		if (pLoopUnit->AI_getUnitAIType() != UNITAI_TRANSPORT_SEA || !pLoopUnit->isOnMap() || pLoopUnit->getGroup() == NULL || pLoopUnit->getGroup()->hasCargo()
+			|| pLoopUnit->cargoSpace() <= 0)
+		{
+			continue;
+		}
+		const UnitAIStates eState = pLoopUnit->AI_getUnitAIState();
+		const MissionAITypes eMissionAI = pLoopUnit->getGroup()->AI_getMissionAIType();
+		if (eState == UNITAI_STATE_NATIVE_TRADE_BUY || eState == UNITAI_STATE_NATIVE_TRADE_SELL || eState == UNITAI_STATE_NATIVE_TRADE_EUROPE
+			|| eMissionAI == MISSIONAI_PICKUP || eMissionAI == MISSIONAI_SAIL_TO_EUROPE || eMissionAI == MISSIONAI_SAIL_FROM_EUROPE)
+		{
+			continue;
+		}
+		int iTurns = 0;
+		if (pLoopUnit->generatePath(pPickupPlot, 0, false, &iTurns) && iTurns < iBestTurns)
+		{
+			iBestTurns = iTurns;
+			pBest = pLoopUnit;
+		}
+	}
+	if (pBest != NULL)
+	{
+		pBest->getGroup()->clearMissionQueue();
+		pBest->getGroup()->AI_setMissionAI(NO_MISSIONAI, NULL, NULL);
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S drops its voyage for settler %S waiting at %d,%d (%d turns)", getOwnerINLINE(),
+			kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), pBest->getName().GetCString(), getNameAndProfession().GetCString(),
+			pPickupPlot->getX_INLINE(), pPickupPlot->getY_INLINE(), iBestTurns);
+	}
+}
+
 //This is very fast when no units need picking up.
-bool CvUnitAI::AI_respondToPickup(int iMaxPath, UnitAITypes eUnitAI)
+bool CvUnitAI::AI_respondToPickup(int iMaxPath, UnitAITypes eUnitAI, bool bAlongTheWay)
 {
 	PROFILE_FUNC();
 	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;
 	CvPlot* pBestMissionPlot = NULL;
+
+	// WTP: a transport with passengers picks up more only along its way: not when its passengers are 2 turns or less from
+	// their colony, and only if the detour delays them by 1 turn at most (a ship turned back 3 plots before the colony)
+	const CvPlot* pDeliverTo = NULL;
+	const int iShipMoves = std::max(1, baseMoves());
+	if (bAlongTheWay)
+	{
+		int iDeliverDistance = MAX_INT;
+		CLLNode<IDInfo>* pCargoNode = plot()->headUnitNode();
+		while (pCargoNode != NULL)
+		{
+			CvUnit* const pCargo = plot()->getUnitNodeLoop(pCargoNode);
+			if (pCargo != NULL && pCargo->getTransportUnit() == this)
+			{
+				const CvCity* const pDestination = static_cast<CvUnitAI*>(pCargo)->AI_transportDestinationCity();
+				if (pDestination != NULL)
+				{
+					const int iDistance = stepDistance(getX_INLINE(), getY_INLINE(), pDestination->getX_INLINE(), pDestination->getY_INLINE());
+					if (iDistance < iDeliverDistance)
+					{
+						iDeliverDistance = iDistance;
+						pDeliverTo = pDestination->plot();
+					}
+				}
+			}
+		}
+		if (pDeliverTo != NULL && iDeliverDistance <= 2 * iShipMoves)
+		{
+			return false;
+		}
+	}
 
 	CvArea* pWaterArea = plot()->waterArea();
 	int iLoop;
@@ -9840,6 +11324,13 @@ bool CvUnitAI::AI_respondToPickup(int iMaxPath, UnitAITypes eUnitAI)
 					FAssert(pHeadUnit != NULL);
 
 					CvPlot* pMissionPlot = pLoopSelectionGroup->AI_getMissionAIPlot();
+					if (pMissionPlot != NULL && pDeliverTo != NULL
+						&& stepDistance(getX_INLINE(), getY_INLINE(), pMissionPlot->getX_INLINE(), pMissionPlot->getY_INLINE())
+						+ stepDistance(pMissionPlot->getX_INLINE(), pMissionPlot->getY_INLINE(), pDeliverTo->getX_INLINE(), pDeliverTo->getY_INLINE())
+						- stepDistance(getX_INLINE(), getY_INLINE(), pDeliverTo->getX_INLINE(), pDeliverTo->getY_INLINE()) > iShipMoves)
+					{
+						continue; // too far off the way of the passengers aboard
+					}
 					if (pMissionPlot != NULL)
 					{
 						if ((stepDistance(pMissionPlot->getX_INLINE(), pMissionPlot->getY_INLINE(), getX_INLINE(), getY_INLINE()) / std::max(1, baseMoves())) <= iMaxPathTurns)
@@ -9872,6 +11363,22 @@ bool CvUnitAI::AI_respondToPickup(int iMaxPath, UnitAITypes eUnitAI)
 							}
 							// TAC - AI Improved Naval AI - koma13 - END
 
+							// WTP: only pick up a unit whose destination this ship can reach (no galleon for a colony on
+							// shallow coast or a large river); such destinations are preferred by the ships reaching them
+							const CvCity* const pDestination = static_cast<CvUnitAI*>(pHeadUnit)->AI_transportDestinationCity();
+							bool bRestricted = false;
+							if (bValid && pDestination != NULL)
+							{
+								if (!CvPlayerAI::AI_shipCanReachCity(getUnitType(), *pDestination))
+								{
+									bValid = false;
+								}
+								else
+								{
+									bRestricted = kOwner.AI_isRestrictedWaterCity(*pDestination);
+								}
+							}
+
 							int iBestDirectionValue = MAX_INT;
 
 							if (bValid)
@@ -9881,6 +11388,9 @@ bool CvUnitAI::AI_respondToPickup(int iMaxPath, UnitAITypes eUnitAI)
 								if ((atPlot(pMissionPlot) || (canMoveInto(*pMissionPlot) && generatePath(pMissionPlot, MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns))) && (iPathTurns <= iMaxPathTurns))
 								{
 									pLoopPlot = pMissionPlot;
+									// WTP: the path cost of the direct path; it stayed MAX_INT and the value below overflowed to
+									// nothing, so units waiting in a colony (settlers, experts, treasures) were never picked up
+									iBestDirectionValue = atPlot(pMissionPlot) ? 0 : getPathCost();
 								}
 								else
 								{
@@ -9921,6 +11431,10 @@ bool CvUnitAI::AI_respondToPickup(int iMaxPath, UnitAITypes eUnitAI)
 									iValue *= 100;
 									iValue /= 100 + ((100 * iDistance) / pLoopSelectionGroup->baseMoves());
 									if (pHeadUnit->AI_getUnitAIType() == UNITAI_TREASURE)
+									{
+										iValue *= 3;
+									}
+									if (bRestricted)
 									{
 										iValue *= 3;
 									}
@@ -9991,7 +11505,8 @@ bool CvUnitAI::AI_pickupAdjacantUnits()
 				{
 					CvUnit* pLoopUnit = pLoopPlot->getUnitNodeLoop(pUnitNode);
 
-					if (pLoopUnit != NULL && pLoopUnit->getGroup()->AI_getMissionAIType() == MISSIONAI_AWAIT_PICKUP && pLoopUnit->canLoadUnit(this, plot(), false))
+					if (pLoopUnit != NULL && pLoopUnit->getGroup()->AI_getMissionAIType() == MISSIONAI_AWAIT_PICKUP && pLoopUnit->canLoadUnit(this, plot(), false)
+						&& AI_canCarryTo(*pLoopUnit))
 					{
 						units.push_back(pLoopUnit);
 					}
@@ -11984,7 +13499,7 @@ bool CvUnitAI::AI_goody(bool bIgnoreCity)
 
 }
 
-bool CvUnitAI::AI_goodyRange(int iRange, bool bIgnoreCity)
+bool CvUnitAI::AI_goodyRange(int iRange, bool bIgnoreCity, int iMaxPathTurns)
 {
 	PROFILE_FUNC();
 
@@ -12025,7 +13540,7 @@ bool CvUnitAI::AI_goodyRange(int iRange, bool bIgnoreCity)
 						if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_EXPLORE, getGroup(), 1) == 0)
 						{
 							int iPathTurns = 0;
-							if (!atPlot(pLoopPlot) && generatePath(pLoopPlot, MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns))
+							if (!atPlot(pLoopPlot) && generatePath(pLoopPlot, MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns) && iPathTurns <= iMaxPathTurns)
 							{
 								iValue += GC.getGameINLINE().getSorenRandNum(250 * abs(xDistance(getX_INLINE(), pLoopPlot->getX_INLINE())) + abs(yDistance(getY_INLINE(), pLoopPlot->getY_INLINE())), "AI explore");
 
@@ -15238,6 +16753,7 @@ int CvUnitAI::AI_foundValue(CvPlot* pPlot)
 // Returns true if a mission was pushed...
 bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 {
+	MOD_PROFILE("CvUnitAI::AI_found");
 	PROFILE_FUNC();
 
 	if (!canFound(NULL))
@@ -15248,79 +16764,311 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 	CvUnit* pTransportUnit = getTransportUnit();
 
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	// WTP: a settler of the early strategy Opportunistic Resources founds next to a precious resource, however far away; with
+	// no such site known it founds like any other settler (two Dutch settlers waited 20 turns for a resource site)
+	const bool bEarlyResourceSettler = kOwner.AI_isEarlyResourceSettler(getID()) && kOwner.AI_isEarlyResourceSiteKnown();
 
 	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;
 	CvPlot* pBestFoundPlot = NULL;
 	bool bBestIsTransport = false;
 	bool bTransportPath = false;
+	int iBestPathTurns = 0;
+
+	std::vector<std::pair<int, std::pair<int, int> > > aCandidates; // WTP: (estimated value, (value, plot index))
+	// WTP: settler log: why the sites were rejected, once per turn for each settler
+	const bool bSearchLog = gUnitLogLevel >= 1 && m_iSettlerSearchLogTurn != GC.getGameINLINE().getGameTurn();
+	if (bSearchLog)
+	{
+		m_iSettlerSearchLogTurn = GC.getGameINLINE().getGameTurn();
+	}
+	int iLogForeign = 0, iLogOwn = 0, iLogSettler = 0, iLogBlocked = 0, iLogCannotFound = 0, iLogLow = 0, iLogEnemy = 0, iLogAimed = 0;
+	std::vector<std::pair<const char*, int> > aLogReasons;
+	// WTP: the site chosen before is kept unless another one is clearly better: switching between nearly equal sites
+	// on different sea routes made transports go back and forth for many turns
+	const CvPlot* const pCurrentTarget = (getGroup()->AI_getMissionAIType() == MISSIONAI_FOUND) ? getGroup()->AI_getMissionAIPlot() : NULL;
+	// WTP: a settler that has been at sea for 10 turns stops looking for the best site: it lands at the next good one, in
+	// spite of enemies nearby, and stays with it (a Dutch settler went back and forth for 27 turns)
+	if (pTransportUnit == NULL)
+	{
+		m_iSettlerAboardTurn = -1;
+	}
+	else if (m_iSettlerAboardTurn < 0 && pTransportUnit->isOnMap())
+	{
+		m_iSettlerAboardTurn = GC.getGameINLINE().getGameTurn();
+	}
+	const bool bOverdue = m_iSettlerAboardTurn >= 0 && GC.getGameINLINE().getGameTurn() - m_iSettlerAboardTurn >= 10;
+	const int iLandFlags = bOverdue ? MOVE_IGNORE_DANGER : 0;
+
+	// WTP: first colonies: sites other Europeans are already heading for (closer than 16 plots, 12 after 15 turns) are taken;
+	// otherwise all AIs race for the same best site and the losers have to start over
+	std::vector<const CvPlot*> aForeignFoundTargets;
+	if (bFirstCity)
+	{
+		for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
+		{
+			const CvPlayer& kOther = GET_PLAYER((PlayerTypes)iPlayer);
+			if (iPlayer == getOwnerINLINE() || !kOther.isAlive() || kOther.isNative() || kOther.isEurope())
+			{
+				continue;
+			}
+			int iGroupLoop;
+			for (CvSelectionGroup* pGroup = kOther.firstSelectionGroup(&iGroupLoop); pGroup != NULL; pGroup = kOther.nextSelectionGroup(&iGroupLoop))
+			{
+				if (pGroup->AI_getMissionAIType() == MISSIONAI_FOUND && pGroup->AI_getMissionAIPlot() != NULL)
+				{
+					aForeignFoundTargets.push_back(pGroup->AI_getMissionAIPlot());
+				}
+			}
+		}
+	}
+
+	// WTP: own settlers keep their distance too: no site within 3 plots of another own settler's site (two settlers
+	// walked to neighbouring plots for many turns)
+	std::vector<const CvPlot*> aOwnFoundTargets;
+	static const ProfessionTypes eSettlerProfession = (ProfessionTypes)GC.getInfoTypeForString("PROFESSION_SETTLER");
+	{
+		int iUnitLoop;
+		for (CvUnit* pLoopUnit = kOwner.firstUnit(&iUnitLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iUnitLoop))
+		{
+			if (pLoopUnit != this && pLoopUnit->AI_getUnitAIType() == UNITAI_SETTLER && pLoopUnit->getGroup() != getGroup()
+				&& pLoopUnit->getGroup()->AI_getMissionAIType() == MISSIONAI_FOUND && pLoopUnit->getGroup()->AI_getMissionAIPlot() != NULL)
+			{
+				aOwnFoundTargets.push_back(pLoopUnit->getGroup()->AI_getMissionAIPlot());
+			}
+		}
+	}
 
 	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
 		if (pLoopPlot->isRevealed(getTeam(), false) && ((pTransportUnit != NULL) || AI_plotValid(pLoopPlot)))
 		{
-			if (canFound(pLoopPlot))
+			// WTP: a site this settler could not move towards (see below) is left alone for 10 turns
+			bool bTakenByOthers = AI_isFoundSiteBlocked(iI);
+			iLogBlocked += bTakenByOthers ? 1 : 0;
+			for (uint iTarget = 0; iTarget < aForeignFoundTargets.size(); ++iTarget)
+			{
+				if (plotDistance(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), aForeignFoundTargets[iTarget]->getX_INLINE(), aForeignFoundTargets[iTarget]->getY_INLINE()) < CvPlayerAI::AI_firstColonyMinDistance())
+				{
+					bTakenByOthers = true;
+					++iLogForeign;
+					break;
+				}
+			}
+			for (uint iTarget = 0; iTarget < aOwnFoundTargets.size() && !bTakenByOthers; ++iTarget)
+			{
+				if (plotDistance(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), aOwnFoundTargets[iTarget]->getX_INLINE(), aOwnFoundTargets[iTarget]->getY_INLINE()) <= 3)
+				{
+					bTakenByOthers = true;
+					++iLogOwn;
+				}
+			}
+			// WTP: a site another settler (ours or foreign) already stands on is taken (a Swedish settler reached a gold site
+			// a Dutch settler stood on and lost it the next turn)
+			if (!bTakenByOthers && pLoopPlot->getNumUnits() > 0 && pLoopPlot->isVisible(getTeam(), false))
+			{
+				CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
+				while (pUnitNode != NULL && !bTakenByOthers)
+				{
+					const CvUnit* const pLoopUnit = pLoopPlot->getUnitNodeLoop(pUnitNode);
+					if (pLoopUnit != NULL && pLoopUnit->getGroup() != getGroup() && !pLoopUnit->isCargo() && pLoopUnit->canFound(NULL)
+						&& (pLoopUnit->AI_getUnitAIType() == UNITAI_SETTLER || (eSettlerProfession != NO_PROFESSION && pLoopUnit->getProfession() == eSettlerProfession)))
+					{
+						bTakenByOthers = true;
+						++iLogSettler;
+					}
+				}
+			}
+			if (!bTakenByOthers && !canFound(pLoopPlot))
+			{
+				++iLogCannotFound;
+			}
+			if (!bTakenByOthers && canFound(pLoopPlot))
 			{
 				int iValue = 0;
-				if (bFirstCity)
+				CvPlayerAI::s_szFoundValueReason = "rule of a special site search";
+				if (bEarlyResourceSettler)
+					iValue = kOwner.AI_earlyResourceSiteValue(*pLoopPlot);
+				else if (bFirstCity)
 					iValue = kOwner.AI_firstCityFoundValue(*pLoopPlot);
 				else
 					iValue = AI_foundValue(pLoopPlot);
 
-				if (iValue > iMinValue)
+				if (iValue > (bEarlyResourceSettler ? 0 : iMinValue))
 				{
 					if (!(pLoopPlot->isVisibleEnemyUnit(this)))
 					{
+						iLogAimed += kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_FOUND, getGroup(), 0) == 0 ? 0 : 1;
 						if (kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_FOUND, getGroup(), 0) == 0)
 						{
-							int iPathTurns = 0;
-							bool bValid = atPlot(pLoopPlot);
-							bool bTransport = false;
-
-							if (!bValid)
-							{
-								bTransport = pTransportUnit != NULL;
-								if (bTransport && canMove())
-								{
-									if (stepDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) <= 1)
-									{
-										bTransport = false;
-									}
-								}
-								if (bTransport)
-								{
-									bValid = pTransportUnit->generatePath(pLoopPlot, 0, bTransportPath, &iPathTurns);
-								}
-								else
-								{
-									// Due to the step <= 1 check, we know that we're adjacent to land. Check if we can move into the plot
-									//bValid = canMoveInto(pLoopPlot);
-
-									bValid = generatePath(pLoopPlot, 0, !bTransportPath, &iPathTurns);
-								}
-								bTransportPath = bTransport;
-							}
-
-							if (bValid)
-							{
-								iValue *= 10;
-								iValue /= 5 + iPathTurns;
-								if (iValue > iBestValue)
-								{
-									iBestValue = iValue;
-									pBestPlot = atPlot(pLoopPlot) ? pLoopPlot : (bTransport ? pTransportUnit->getPathEndTurnPlot() : getPathEndTurnPlot());
-									pBestFoundPlot = pLoopPlot;
-									bBestIsTransport = bTransport;
-								}
-							}
+							// WTP: path finding for every valid site was very slow with many sites (relaxed first colony
+							// rules); rate them by distance first and only find paths for the best ones (below)
+							const int iMoves = std::max(1, (pTransportUnit != NULL) ? pTransportUnit->baseMoves() : baseMoves());
+							const int iEstimatedTurns = plotDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) / iMoves;
+							const int iKeep = (pLoopPlot == pCurrentTarget) ? 2 : 1; // the current site is always rated
+							aCandidates.push_back(std::make_pair(iKeep * iValue * 10 / (5 + iEstimatedTurns), std::make_pair(iValue, iI)));
 						}
 					}
+					else
+					{
+						++iLogEnemy;
+					}
+				}
+				else if (bSearchLog)
+				{
+					++iLogLow;
+					// the value of later colonies comes from a cache: the reason needs the search again, for a sample of the plots
+					if (bEarlyResourceSettler || bFirstCity || iLogLow > 30)
+					{
+						continue;
+					}
+					kOwner.AI_foundValue(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+					uint iReason = 0;
+					while (iReason < aLogReasons.size() && aLogReasons[iReason].first != CvPlayerAI::s_szFoundValueReason)
+					{
+						++iReason;
+					}
+					if (iReason == aLogReasons.size())
+					{
+						aLogReasons.push_back(std::make_pair(CvPlayerAI::s_szFoundValueReason, 0));
+					}
+					++aLogReasons[iReason].second;
 				}
 			}
 		}
 	}
 
+	std::sort(aCandidates.begin(), aCandidates.end(), std::greater<std::pair<int, std::pair<int, int> > >());
+	if (bSearchLog)
+	{
+		logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler   search of %S at %d,%d (min value %d, first colony %d, resource settler %d): candidates %d; rejected plots: near foreign settler target %d, within 3 of own settler target %d, other settler stands there %d, could not move there lately %d, cannot found %d, value too low %d, enemy there %d, own settler aims there %d",
+			getName().GetCString(), getX_INLINE(), getY_INLINE(), iMinValue, (int)bFirstCity, (int)bEarlyResourceSettler, (int)aCandidates.size(), iLogForeign, iLogOwn, iLogSettler, iLogBlocked, iLogCannotFound, iLogLow, iLogEnemy, iLogAimed);
+		for (uint iReason = 0; iReason < aLogReasons.size(); ++iReason)
+		{
+			logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler     value too low, of the first 30: %d plots: %s", aLogReasons[iReason].second, aLogReasons[iReason].first);
+		}
+	}
+	int iEvaluated = 0; // sites with an enemy nearby do not use up the search for paths
+	for (uint iCandidate = 0; iCandidate < aCandidates.size() && iCandidate < 30 && iEvaluated < 10; ++iCandidate)
+	{
+		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(aCandidates[iCandidate].second.second);
+		bool bLandingDanger = false;
+		int iValue = aCandidates[iCandidate].second.first;
+		int iPathTurns = 0;
+		bool bValid = atPlot(pLoopPlot);
+		bool bTransport = false;
+
+		if (!bValid)
+		{
+			bTransport = pTransportUnit != NULL;
+			if (bTransport && canMove())
+			{
+				if (stepDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) <= 1)
+				{
+					bTransport = false;
+				}
+			}
+			if (bTransport)
+			{
+				bValid = pTransportUnit->generatePath(pLoopPlot, 0, bTransportPath, &iPathTurns);
+				// WTP: later colonies are founded near the existing ones; far targets made transports dither for many turns
+				if (bValid && !bFirstCity && !bEarlyResourceSettler && iPathTurns > 6)
+				{
+					bValid = false;
+				}
+				// WTP: the ship finds a path to a site where the settler may not land: a settler has no path to a plot with an
+				// enemy within 2 plots (isPlotSafe). The ship arrived, the settler chose another site, the ship sailed there...
+				if (bValid && !bOverdue && iPathTurns <= 2 && kOwner.AI_getPlotDanger(pLoopPlot, 2, false, false, true) > 0)
+				{
+					bValid = false;
+					bLandingDanger = true;
+				}
+			}
+			else
+			{
+				// Due to the step <= 1 check, we know that we're adjacent to land. Check if we can move into the plot
+				//bValid = canMoveInto(pLoopPlot);
+
+				bValid = generatePath(pLoopPlot, iLandFlags, !bTransportPath, &iPathTurns);
+				if (!bValid && pTransportUnit != NULL)
+				{
+					if (gUnitLogLevel >= 1)
+					{
+						logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler %S at %d,%d cannot land at %d,%d: can enter %d, hostile tribe or colony within 2 plots %d, enemy on the plot %d, goody %d, owner %d, at sea since turn %d",
+							getNameAndProfession().GetCString(), getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), (int)canMoveInto(*pLoopPlot),
+							kOwner.AI_getPlotDanger(pLoopPlot, 2, false, false, true), (int)pLoopPlot->isVisibleEnemyUnit(this), (int)pLoopPlot->isGoody(), (int)pLoopPlot->getOwnerINLINE(), m_iSettlerAboardTurn);
+					}
+					AI_blockFoundSite(aCandidates[iCandidate].second.second);
+				}
+			}
+			bTransportPath = bTransport;
+		}
+		iEvaluated += bLandingDanger ? 0 : 1;
+
+		if (bSearchLog)
+		{
+			logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler     candidate %d,%d value %d: %s, %d path turns%s", pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), iValue,
+				bValid ? "reachable" : (bLandingDanger ? "enemy near the site" : "NOT reachable"), iPathTurns, bTransport ? " by ship" : "");
+		}
+
+		if (bValid)
+		{
+			iValue *= 10;
+			iValue /= 5 + (bOverdue ? 3 : 1) * iPathTurns;
+			if (pLoopPlot == pCurrentTarget)
+			{
+				// WTP: on a ship the site is kept unless another one is 50% better: the path turns change with every
+				// move of the ship and an English settler switched between three sites every turn for 9 turns
+				iValue = bOverdue ? iValue * 4 : ((pTransportUnit != NULL) ? iValue * 3 / 2 : iValue * 5 / 4);
+			}
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				pBestPlot = atPlot(pLoopPlot) ? pLoopPlot : (bTransport ? pTransportUnit->getPathEndTurnPlot() : getPathEndTurnPlot());
+				pBestFoundPlot = pLoopPlot;
+				bBestIsTransport = bTransport;
+				iBestPathTurns = iPathTurns;
+			}
+		}
+	}
+
+	// WTP: a walk of more than 5 turns to a coastal site is made by ship (a Swedish settler walked 11 turns through forest
+	// and hills to a site 5 plots away): the settler waits for a transport if one of ours could sail there within 5 turns
+	// (estimated by distance; aboard, the site has to be reachable within 6 turns, see above). One of the transports has to
+	// find a path to the site: a lake shore counts as coastal land, but no ship gets there
+	if (pBestFoundPlot != NULL && !bBestIsTransport && !isCargo() && !bFirstCity && iBestPathTurns > 5 && pBestFoundPlot->isCoastalLand())
+	{
+		int iBestShipMoves = 0;
+		int iUnitLoop;
+		for (CvUnit* pLoopUnit = kOwner.firstUnit(&iUnitLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iUnitLoop))
+		{
+			if (pLoopUnit->AI_getUnitAIType() == UNITAI_TRANSPORT_SEA && pLoopUnit->isOnMap() && pLoopUnit->cargoSpace() > 0
+				&& pLoopUnit->baseMoves() > iBestShipMoves && pLoopUnit->generatePath(pBestFoundPlot, 0, false))
+			{
+				iBestShipMoves = pLoopUnit->baseMoves();
+			}
+		}
+		if (iBestShipMoves > 0 && plotDistance(getX_INLINE(), getY_INLINE(), pBestFoundPlot->getX_INLINE(), pBestFoundPlot->getY_INLINE()) <= 5 * iBestShipMoves
+			&& AI_requestPickup())
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler %S at %d,%d waits for a ship: the walk to %d,%d takes %d turns",
+				getNameAndProfession().GetCString(), getX_INLINE(), getY_INLINE(), pBestFoundPlot->getX_INLINE(), pBestFoundPlot->getY_INLINE(), iBestPathTurns);
+			return true;
+		}
+	}
+
+	if (bSearchLog)
+	{
+		logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler   result of %S: site %d,%d, first stop %d,%d, %d path turns%s", getName().GetCString(),
+			pBestFoundPlot != NULL ? pBestFoundPlot->getX_INLINE() : -1, pBestFoundPlot != NULL ? pBestFoundPlot->getY_INLINE() : -1,
+			pBestPlot != NULL ? pBestPlot->getX_INLINE() : -1, pBestPlot != NULL ? pBestPlot->getY_INLINE() : -1, iBestPathTurns, bBestIsTransport ? " by ship" : "");
+	}
+	if (gUnitLogLevel >= 1 && pTransportUnit != NULL && pCurrentTarget != NULL && pCurrentTarget != pBestFoundPlot)
+	{
+		logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler %S at %d,%d aboard changes its site from %d,%d to %d,%d (at sea since turn %d, in a hurry %d)", getName().GetCString(), getX_INLINE(), getY_INLINE(),
+			pCurrentTarget->getX_INLINE(), pCurrentTarget->getY_INLINE(), pBestFoundPlot != NULL ? pBestFoundPlot->getX_INLINE() : -1, pBestFoundPlot != NULL ? pBestFoundPlot->getY_INLINE() : -1, m_iSettlerAboardTurn, (int)bOverdue);
+	}
 	if ((pBestPlot != NULL) && (pBestFoundPlot != NULL))
 	{
 		if (bBestIsTransport)
@@ -15332,13 +17080,54 @@ bool CvUnitAI::AI_found(int iMinValue, bool bFirstCity)
 		{
 			if (atPlot(pBestFoundPlot))
 			{
+				// WTP: log why the colony was not founded (the settler stood on its site for several turns)
+				const bool bCanMove = canMove();
+				const bool bAllMove = getGroup()->canAllMove();
+				const int iGroupUnits = getGroup()->getNumUnits();
 				getGroup()->pushMission(MISSION_FOUND, -1, -1, 0, false, false, MISSIONAI_FOUND, pBestFoundPlot);
+				if (gUnitLogLevel >= 1 && !pBestFoundPlot->isCity())
+				{
+					logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler %S could not found at %d,%d: can found %d, moves %d, group %d units (all can move %d), cargo %d",
+						getNameAndProfession().GetCString(), pBestFoundPlot->getX_INLINE(), pBestFoundPlot->getY_INLINE(), (int)canFound(pBestFoundPlot), (int)bCanMove,
+						iGroupUnits, (int)bAllMove, (int)isCargo());
+				}
 				return true;
 			}
 			else
 			{
 				FAssert(!atPlot(pBestPlot));
-				getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_FOUND, pBestFoundPlot);
+				const CvPlot* const pBefore = plot();
+				getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), iLandFlags, false, false, MISSIONAI_FOUND, pBestFoundPlot);
+				// WTP: the move did nothing and the group can still move: without this the group tries again and again, stands
+				// there for good and its site keeps the other settlers away (three Portuguese units stood 3 plots from their site
+				// from turn 43 on). The settler leaves its group; alone it gives up the site for a while
+				if (!isDelayedDeath() && plot() == pBefore && getGroup()->headMissionQueueNode() == NULL && getGroup()->canAllMove())
+				{
+					const int iGroupUnits = getGroup()->getNumUnits();
+					if (gUnitLogLevel >= 1)
+					{
+						logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler %S at %d,%d can't move towards %d,%d (first stop %d,%d), group of %d:",
+							getNameAndProfession().GetCString(), getX_INLINE(), getY_INLINE(), pBestFoundPlot->getX_INLINE(), pBestFoundPlot->getY_INLINE(),
+							pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), iGroupUnits);
+						for (CLLNode<IDInfo>* pNode = getGroup()->headUnitNode(); pNode != NULL; pNode = getGroup()->nextUnitNode(pNode))
+						{
+							const CvUnit* const pMember = ::getUnit(pNode->m_data);
+							if (pMember != NULL)
+							{
+								logWTP(WTP_LOG_SETTLER, getOwnerINLINE(), "settler   group member %S, unit AI %d, moves %d, can enter the first stop %d", pMember->getNameAndProfession().GetCString(), (int)pMember->AI_getUnitAIType(), pMember->movesLeft(), (int)pMember->canMoveInto(*pBestPlot));
+							}
+						}
+					}
+					if (iGroupUnits > 1)
+					{
+						joinGroup(NULL);
+					}
+					else
+					{
+						AI_blockFoundSite(GC.getMap().plotNumINLINE(pBestFoundPlot->getX_INLINE(), pBestFoundPlot->getY_INLINE()));
+					}
+					getGroup()->pushMission(MISSION_SKIP);
+				}
 				return true;
 			}
 		}
@@ -15504,6 +17293,12 @@ bool CvUnitAI::AI_joinCity(int iMaxPath)
 			{
 				ProfessionTypes eProfession;
 				int iValue = pCity->AI().AI_unitJoinCityValueInternal(*this, &eProfession);
+
+				// WTP: do not crowd a starving colony with workers who do not produce food
+				if (pCity->foodDifference() < 0 && (eProfession == NO_PROFESSION || GC.getProfessionInfo(eProfession).getYieldsProduced(0) != YIELD_FOOD))
+				{
+					iValue /= 4;
+				}
 
 				const int iIncoming = kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_FOUND, getGroup());
 				// TAC - AI Economy- koma13 - START
@@ -15772,6 +17567,10 @@ bool CvUnitAI::AI_joinOptimalCity()
 
 bool CvUnitAI::AI_joinCityDefender()
 {
+	if (AI_isSoldier())
+	{
+		return false;
+	}
 	CvCity* pCity = plot()->getPlotCity();
 	if (pCity == NULL || pCity->getOwnerINLINE() != getOwnerINLINE())
 	{
@@ -15983,6 +17782,1337 @@ bool CvUnitAI::AI_tradeWithCity()
 		}
 	}
 	return bSaleMade;
+}
+
+// WTP: native trade automation of a human player's ship (AUTOMATE_NATIVE_TRADE): villages within this range of the home colony
+// are visited; in Europe it buys Trade Goods for at most this budget per trip and leaves the reserve in the treasury. It sells
+// no weapons or horses to the natives and takes no passengers
+namespace
+{
+	const int NATIVE_TRADE_HOME_RANGE = 25;
+	// a village visited within this many turns is avoided: not chosen to buy from if there is another one, and each turn
+	// missing counts like one plot of distance when selling
+	const int NATIVE_TRADE_HUMAN_VISIT_TURNS = 14;
+	const int NATIVE_TRADE_HUMAN_BUDGET = 1000;
+	const int NATIVE_TRADE_HUMAN_RESERVE = 500;
+
+	bool isNativeTradeWeapon(YieldTypes eYield)
+	{
+		return eYield == YIELD_MUSKETS || eYield == YIELD_HORSES || eYield == YIELD_BLADES || eYield == YIELD_CANNONS;
+	}
+}
+
+// WTP: native trade ship: sells the goods aboard to the native village on this plot, bargaining once per sale.
+// Returns 1 if something was sold, 0 if not, -1 if the natives refuse to trade with us for some turns (angry).
+int CvUnitAI::AI_nativeTradeSell(CvWString* pszDeals)
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	CvCity* const pCity = plot()->getPlotCity();
+	if (pCity == NULL || !GET_PLAYER(pCity->getOwnerINLINE()).isNative() || !canTradeYield(plot()))
+	{
+		return 0;
+	}
+	const PlayerTypes eNative = pCity->getOwnerINLINE();
+	CvPlayerAI& kNative = GET_PLAYER(eNative);
+
+	int iResult = 0;
+	const bool bHuman = AI_isHumanNativeTrade();
+	for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
+	{
+		const int iAmount = kOwner.getTradeYieldAmount(eYield, this);
+		if (iAmount <= 0 || (bHuman && isNativeTradeWeapon(eYield)))
+		{
+			continue;
+		}
+		if (kNative.getTimeNoTrade(getOwnerINLINE()) > 0)
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trade: Player %d (%S) turn %d %S: %S refuse to trade (angry for %d more turns)",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), kNative.getCivilizationDescription(0), kNative.getTimeNoTrade(getOwnerINLINE()));
+			return -1;
+		}
+		if (!kOwner.AI_nativeCityBuys(eYield, *pCity))
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trade: Player %d (%S) turn %d %S: %S does not buy %S",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pCity->getName().GetCString(), GC.getYieldInfo(eYield).getDescription());
+			continue;
+		}
+		int iGold = std::min(kNative.AI_nativeYieldTradeValue(eYield, iAmount, true, pCity), pCity->AI_maxGoldTrade(getOwnerINLINE()));
+		if (iGold <= 0)
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trade: Player %d (%S) turn %d %S: %S has no gold to pay for %d %S",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pCity->getName().GetCString(), iAmount, GC.getYieldInfo(eYield).getDescription());
+			continue;
+		}
+		// WTP: muskets only with a profit of NATIVE_TRADE_MUSKET_MIN_PROFIT over the Europe price (else the ship sails on)
+		if (eYield == YIELD_MUSKETS && iGold < AI_nativeMusketMinPrice(iAmount))
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trade: Player %d (%S) turn %d %S: %S offers only %d gold for %d %S (needs %d), sails on",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pCity->getName().GetCString(), iGold, iAmount,
+				GC.getYieldInfo(eYield).getDescription(), AI_nativeMusketMinPrice(iAmount));
+			continue;
+		}
+
+		// bargain once for this sale; if the natives take offence they sell nothing more to us for a while
+		const int iBasePrice = iGold;
+		const bool bBargained = kOwner.AI_bargainWithNatives(eNative, iGold);
+		if (kNative.getTimeNoTrade(getOwnerINLINE()) > 0)
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trade: Player %d (%S) turn %d %S: bargaining with %S failed, they are angry for %d turns and trade nothing",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), kNative.getCivilizationDescription(0), kNative.getTimeNoTrade(getOwnerINLINE()));
+			return -1;
+		}
+
+		CLinkList<TradeData> ourList;
+		CLinkList<TradeData> theirList;
+		TradeData item;
+		setTradeItem(&item, TRADE_YIELD, eYield, &getIDInfo());
+		ourList.insertAtEnd(item);
+		setTradeItem(&item, TRADE_GOLD, iGold, &getIDInfo());
+		theirList.insertAtEnd(item);
+
+		const int iGoldBefore = kOwner.getGold();
+		GC.getGameINLINE().implementDeal(getOwnerINLINE(), eNative, &ourList, &theirList, true);
+		const int iGained = kOwner.getGold() - iGoldBefore;
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trade: Player %d (%S) turn %d %S sells %d %S to %S (%S): asked %d gold%s, got %d gold",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), iAmount, GC.getYieldInfo(eYield).getDescription(),
+			pCity->getName().GetCString(), kNative.getCivilizationDescription(0), iGold, bBargained ? " (bargained up from base price)" : "", iGained);
+		if (iGained > 0)
+		{
+			iResult = 1;
+			if (pszDeals != NULL)
+			{
+				if (!pszDeals->empty())
+				{
+					*pszDeals += L", ";
+				}
+				*pszDeals += CvWString::format(L"%d %s (%d)", iAmount, GC.getYieldInfo(eYield).getDescription(), iGained);
+			}
+		}
+	}
+	return iResult;
+}
+
+// WTP: native trade ship: buys goods from the native village on this plot for the free cargo space. Furs, silver, gold and
+// gems always, any other yield only if the village has more than 50 of it. Takes the yield with the best absolute profit per
+// cargo slot first (the profit ratio only decides ties). Returns the number of deals made.
+int CvUnitAI::AI_nativeTradeBuy(CvWString* pszDeals)
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	CvCity* const pCity = plot()->getPlotCity();
+	if (pCity == NULL || !GET_PLAYER(pCity->getOwnerINLINE()).isNative() || !canTradeYield(plot()))
+	{
+		return 0;
+	}
+	const PlayerTypes eNative = pCity->getOwnerINLINE();
+	CvPlayerAI& kNative = GET_PLAYER(eNative);
+	const int iCapacity = std::max(1, GC.getGameINLINE().getCargoYieldCapacity());
+
+	int iDeals = 0;
+	// partly filled slots are topped up (getLoadYieldAmount counts their free room)
+	for (int iRound = 0; iRound < 8 && !isFullToBrim(); ++iRound)
+	{
+		if (kNative.getTimeNoTrade(getOwnerINLINE()) > 0)
+		{
+			break;
+		}
+
+		YieldTypes eBestYield = NO_YIELD;
+		int iBestAmount = 0;
+		int iBestCost = 0;
+		int iBestProfit = 0;
+		int iBestScore = 0;
+		int iBestRatio = 0;
+		const int iGoldAvailable = kOwner.getGold();
+		for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_CARGO_YIELD_TYPES; ++eYield)
+		{
+			// the natives sell only what they produce (never horses); the AI buys only what it can sell in Europe
+			if (eYield == YIELD_HORSES || GC.getYieldInfo(eYield).getNativeSellPrice() <= 0 || !pCity->canProduceYield(eYield) || !kOwner.isYieldEuropeTradable(eYield))
+			{
+				continue;
+			}
+			int iAmount = kNative.getTradeYieldAmount(eYield, this);
+			if (iAmount <= 0)
+			{
+				continue;
+			}
+			// furs, silver, gold and gems are always worth the trip; any other yield only from a stock of more than 50
+			const bool bAlwaysBuy = eYield == YIELD_FUR || eYield == YIELD_PREMIUM_FUR || eYield == YIELD_SILVER || eYield == YIELD_GOLD || eYield == YIELD_GEMS;
+			if (!bAlwaysBuy && pCity->getYieldStored(eYield) <= 50)
+			{
+				continue;
+			}
+			int iCost = kNative.AI_nativeYieldTradeValue(eYield, iAmount, false, NULL);
+			// only the whole amount the village offers: a part of it needs setDiploYieldAmount, which calls into the UI
+			// (gDLL->updateDiplomacyAttitude) and crashed the game in an AI deal
+			int iProfit;
+			if (iAmount <= 0 || iCost <= 0 || iCost > iGoldAvailable || !kOwner.AI_nativeBuyProfit(eYield, iAmount, eNative, iProfit) || iProfit <= 0)
+			{
+				continue;
+			}
+			const int iScore = iProfit / ((iAmount + iCapacity - 1) / iCapacity);
+			const int iRatio = iProfit * 100 / iCost;
+			if (iScore > iBestScore || (iScore == iBestScore && iRatio > iBestRatio))
+			{
+				eBestYield = eYield;
+				iBestAmount = iAmount;
+				iBestCost = iCost;
+				iBestProfit = iProfit;
+				iBestScore = iScore;
+				iBestRatio = iRatio;
+			}
+		}
+		if (eBestYield == NO_YIELD)
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trade: Player %d (%S) turn %d %S: nothing worth buying in %S (%S), gold %d, free cargo %d",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pCity->getName().GetCString(), kNative.getCivilizationDescription(0), iGoldAvailable, cargoSpace() - getCargo());
+			break;
+		}
+
+		CLinkList<TradeData> ourList;
+		CLinkList<TradeData> theirList;
+		TradeData item;
+		setTradeItem(&item, TRADE_GOLD, iBestCost, &getIDInfo());
+		ourList.insertAtEnd(item);
+		setTradeItem(&item, TRADE_YIELD, eBestYield, &getIDInfo());
+		theirList.insertAtEnd(item);
+
+		GC.getGameINLINE().implementDeal(getOwnerINLINE(), eNative, &ourList, &theirList, true);
+
+		const int iSpent = iGoldAvailable - kOwner.getGold();
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP trade: Player %d (%S) turn %d %S buys %d %S from %S (%S) for %d gold (planned %d), expected profit %d (%d per cargo slot), cargo now %d/%d",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), iBestAmount, GC.getYieldInfo(eBestYield).getDescription(),
+			pCity->getName().GetCString(), kNative.getCivilizationDescription(0), iSpent, iBestCost, iBestProfit, iBestScore, getCargo(), cargoSpace());
+		if (iSpent <= 0)
+		{
+			break;
+		}
+		++iDeals;
+		if (pszDeals != NULL)
+		{
+			if (!pszDeals->empty())
+			{
+				*pszDeals += L", ";
+			}
+			*pszDeals += CvWString::format(L"%d %s (%d)", iBestAmount, GC.getYieldInfo(eBestYield).getDescription(), iSpent);
+		}
+	}
+	return iDeals;
+}
+
+// WTP: another native trade ship of ours heads for this village or trades there now
+bool CvUnitAI::AI_isNativeVillageTargeted(const CvCity& kVillage) const
+{
+	int iLoop;
+	for (CvUnit* pLoopUnit = GET_PLAYER(getOwnerINLINE()).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER(getOwnerINLINE()).nextUnit(&iLoop))
+	{
+		if (pLoopUnit == this || pLoopUnit->getDomainType() != DOMAIN_SEA || !pLoopUnit->isOnMap_()
+			|| (!static_cast<CvUnitAI*>(pLoopUnit)->AI_isNativeTradeShip() && !static_cast<CvUnitAI*>(pLoopUnit)->AI_isNativeSupplyShip()))
+		{
+			continue;
+		}
+		if (pLoopUnit->atPlot(kVillage.plot()) || (pLoopUnit->getGroup() != NULL && pLoopUnit->getGroup()->AI_getMissionAIPlot() == kVillage.plot()))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool CvUnitAI::AI_isHumanNativeTrade() const
+{
+	return isHuman() && ((getGroup() != NULL && getGroup()->getAutomateType() == AUTOMATE_NATIVE_TRADE) || AI_hasNativeTradeAutomation());
+}
+
+// the automation of the group is lost when the ship leaves the map for Europe or comes back; the ship keeps its home colony
+// and trade state (cleared when the player stops the automation) and gets the automation back
+bool CvUnitAI::AI_hasNativeTradeAutomation() const
+{
+	return isHuman() && AI_isNativeTradeShip() && AI_nativeTradeHomeCity() != NULL;
+}
+
+CvCity* CvUnitAI::AI_nativeTradeHomeCity() const
+{
+	return (m_iNativeTradeHomeCityID >= 0) ? GET_PLAYER(getOwnerINLINE()).getCity(m_iNativeTradeHomeCityID) : NULL;
+}
+
+bool CvUnitAI::AI_nativeTradeInHomeArea(const CvCity& kVillage) const
+{
+	if (!AI_isHumanNativeTrade() && !AI_isNativeSupplyShip())
+	{
+		return true;
+	}
+	const CvCity* const pHome = AI_nativeTradeHomeCity();
+	// WTP: the native supply automation has its own range (NATIVE_SUPPLY_HOME_RANGE in GlobalDefinesAlt.xml)
+	const int iRange = AI_isNativeSupplyShip() ? GC.getDefineINT("NATIVE_SUPPLY_HOME_RANGE") : NATIVE_TRADE_HOME_RANGE;
+	return pHome == NULL || plotDistance(pHome->getX_INLINE(), pHome->getY_INLINE(), kVillage.getX_INLINE(), kVillage.getY_INLINE()) <= iRange;
+}
+
+// WTP: native trade automation switched on: the home colony is the nearest one the ship can reach (off the map: a port with
+// access to Europe, the best port first); the state follows where the ship is and what it carries
+void CvUnitAI::AI_startNativeTrade()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const bool bOnMap = isOnMap_();
+	CvCity* const pHome = AI_nativeTradeFindHome();
+	m_iNativeTradeHomeCityID = (pHome != NULL) ? pHome->getID() : -1;
+	m_iNativeTradeArriveTurn = -1;
+	m_iNativeTradeSlotsFullTurn = -1;
+
+	UnitAIStates eState = UNITAI_STATE_NATIVE_TRADE_BUY;
+	if (getUnitTravelState() == UNIT_TRAVEL_STATE_FROM_EUROPE)
+	{
+		eState = (getCargo() > 0) ? UNITAI_STATE_NATIVE_TRADE_SELL : UNITAI_STATE_NATIVE_TRADE_BUY;
+	}
+	else if (!bOnMap)
+	{
+		eState = UNITAI_STATE_NATIVE_TRADE_EUROPE;
+	}
+	else if (AI_nativeTradeCargoCount(true, NULL) > 0)
+	{
+		eState = UNITAI_STATE_NATIVE_TRADE_SELL;
+	}
+	AI_setUnitAIState(eState);
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S gets the native trade automation, home colony %S, state %d",
+		getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(),
+		pHome != NULL ? pHome->getName().GetCString() : L"-", (int)eState);
+}
+
+// WTP: the home colony of the native trade and supply automations: the nearest one the ship can reach (off the map: a port with
+// access to Europe, the best port first)
+CvCity* CvUnitAI::AI_nativeTradeFindHome() const
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const bool bOnMap = isOnMap_();
+	CvCity* pHome = NULL;
+	int iBestValue = MAX_INT;
+	int iLoop;
+	for (CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kOwner.nextCity(&iLoop))
+	{
+		if (!CvPlayerAI::AI_shipCanReachCity(getUnitType(), *pLoopCity))
+		{
+			continue;
+		}
+		int iValue;
+		if (bOnMap)
+		{
+			int iPathTurns;
+			if (!generatePath(pLoopCity->plot(), 0, true, &iPathTurns))
+			{
+				continue;
+			}
+			iValue = iPathTurns * 1000 + plotDistance(getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+		}
+		else
+		{
+			if (!pLoopCity->plot()->isEuropeAccessable())
+			{
+				continue;
+			}
+			iValue = pLoopCity->isBestPortCity() ? 0 : 1;
+		}
+		if (iValue < iBestValue)
+		{
+			iBestValue = iValue;
+			pHome = pLoopCity;
+		}
+	}
+	return pHome;
+}
+
+// WTP: native supply automation switched on: the home colony is the nearest one the ship can reach
+void CvUnitAI::AI_startNativeSupply()
+{
+	CvCity* const pHome = AI_nativeTradeFindHome();
+	m_iNativeTradeHomeCityID = (pHome != NULL) ? pHome->getID() : -1;
+	m_iNativeTradeArriveTurn = GC.getGameINLINE().getGameTurn();
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native supply: Player %d (%S) turn %d %S gets the native supply automation, home colony %S",
+		getOwnerINLINE(), GET_PLAYER(getOwnerINLINE()).getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(),
+		pHome != NULL ? pHome->getName().GetCString() : L"-");
+}
+
+bool CvUnitAI::AI_isNativeSupplyShip() const
+{
+	return isHuman() && getGroup() != NULL && getGroup()->getAutomateType() == AUTOMATE_NATIVE_SUPPLY;
+}
+
+// WTP: native supply ship, called when it has no mission. In its home colony it puts the goods aboard ashore; then it visits
+// the villages around the colony (the same choice and purchases as the native trade ship) and brings the goods home when all
+// cargo slots are taken, no village is worth a visit or NATIVE_SUPPLY_TRIP_TURNS (GlobalDefinesAlt.xml) after it left
+void CvUnitAI::AI_nativeSupplyMove()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+
+	if (AI_retreatFromDanger())
+	{
+		s_szWtpShipReason = "native supply: flees danger";
+		return;
+	}
+
+	CvCity* pHome = AI_nativeTradeHomeCity();
+	if (pHome == NULL)
+	{
+		AI_startNativeSupply();
+		pHome = AI_nativeTradeHomeCity();
+		if (pHome == NULL)
+		{
+			s_szWtpShipReason = "native supply: no home colony";
+			getGroup()->pushMission(MISSION_SKIP);
+			return;
+		}
+	}
+
+	CvCity* const pHere = plot()->getPlotCity();
+	if (pHere == pHome)
+	{
+		// the goods aboard go into the colony
+		std::vector<CvUnit*> apGoods;
+		CvWString szGoods;
+		CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+		while (pUnitNode != NULL)
+		{
+			CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+			if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && pLoopUnit->isGoods() && pLoopUnit->canUnload())
+			{
+				apGoods.push_back(pLoopUnit);
+			}
+		}
+		for (uint i = 0; i < apGoods.size(); ++i)
+		{
+			if (!szGoods.empty())
+			{
+				szGoods += L", ";
+			}
+			szGoods += CvWString::format(L"%d %s", apGoods[i]->getYieldStored(), GC.getYieldInfo(apGoods[i]->getYield()).getDescription());
+			apGoods[i]->unload();
+		}
+		if (!szGoods.empty())
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native supply: Player %d (%S) turn %d %S brings %S to %S",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), szGoods.GetCString(), pHome->getName().GetCString());
+			if (isHuman())
+			{
+				CvWString szBuffer = gDLL->getText("TXT_KEY_NATIVE_SUPPLY_REPORT_HOME", getName().GetCString(), szGoods.GetCString(), pHome->getNameKey());
+				gDLL->UI().addPlayerMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, NULL, MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE, getX_INLINE(), getY_INLINE());
+			}
+		}
+		m_iNativeTradeArriveTurn = iTurn; // the trip starts here
+	}
+
+	// buying in the village it reached
+	const bool bAtVillage = pHere != NULL && GET_PLAYER(pHere->getOwnerINLINE()).isNative();
+	if (bAtVillage && kOwner.AI_getNativeVillageVisitTurn(*pHere) != iTurn)
+	{
+		CvWString szBought;
+		const int iDeals = AI_nativeTradeBuy(&szBought);
+		kOwner.AI_setNativeVillageVisited(*pHere);
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native supply: Player %d (%S) turn %d %S visited %S to buy: %d deals, cargo %d/%d",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pHere->getName().GetCString(), iDeals, getCargo(), cargoSpace());
+		if (isHuman() && !szBought.empty())
+		{
+			const CvWString szNothing = gDLL->getText("TXT_KEY_NATIVE_TRADE_REPORT_NOTHING");
+			CvWString szBuffer = gDLL->getText("TXT_KEY_NATIVE_TRADE_REPORT_VILLAGE", getName().GetCString(), pHere->getNameKey(), szNothing.GetCString(), szBought.GetCString());
+			gDLL->UI().addPlayerMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, NULL, MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE, getX_INLINE(), getY_INLINE());
+		}
+	}
+
+	const int iGoods = AI_nativeTradeCargoCount(true, NULL);
+	const char* szHome = NULL;
+	if (iGoods > 0)
+	{
+		if (isFull())
+		{
+			szHome = "all cargo slots are taken";
+		}
+		else if (m_iNativeTradeArriveTurn >= 0 && iTurn - m_iNativeTradeArriveTurn >= GC.getDefineINT("NATIVE_SUPPLY_TRIP_TURNS"))
+		{
+			szHome = "trip time is over (NATIVE_SUPPLY_TRIP_TURNS)";
+		}
+	}
+
+	if (szHome == NULL)
+	{
+		CvCity* const pTarget = AI_nativeTradeBuyVillage();
+		if (pTarget != NULL)
+		{
+			getGroup()->pushMission(MISSION_MOVE_TO, pTarget->getX_INLINE(), pTarget->getY_INLINE(), 0, false, false, MISSIONAI_TRANSPORT_SEA, pTarget->plot());
+			s_szWtpShipReason = "native supply: buys goods";
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native supply: Player %d (%S) turn %d %S sails to %S (%S) to buy, gold %d, cargo %d/%d",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pTarget->getName().GetCString(),
+				GET_PLAYER(pTarget->getOwnerINLINE()).getCivilizationDescription(0), kOwner.getGold(), getCargo(), cargoSpace());
+			return;
+		}
+		szHome = "no village worth a visit";
+	}
+
+	if (pHere == pHome)
+	{
+		s_szWtpShipReason = "native supply: waits at home";
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
+	}
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native supply: Player %d (%S) turn %d %S sails home to %S with %d goods units (%s)",
+		getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pHome->getName().GetCString(), iGoods, szHome);
+	s_szWtpShipReason = "native supply: brings goods home";
+	if (generatePath(pHome->plot(), 0, true))
+	{
+		getGroup()->pushMission(MISSION_MOVE_TO, pHome->getX_INLINE(), pHome->getY_INLINE(), 0, false, false, MISSIONAI_TRANSPORT_SEA, pHome->plot());
+	}
+	else
+	{
+		getGroup()->pushMission(MISSION_SKIP);
+	}
+}
+
+// WTP: a human player's ship with the native trade automation in Europe (called at the start of the player's turn)
+bool CvUnitAI::AI_humanNativeTradeEurope()
+{
+	if (!AI_isHumanNativeTrade() || getUnitTravelState() != UNIT_TRAVEL_STATE_IN_EUROPE || getUnitTravelTimer() > 0)
+	{
+		return false;
+	}
+	if (AI_getUnitAIState() != UNITAI_STATE_NATIVE_TRADE_EUROPE && !AI_isNativeTradeShip())
+	{
+		AI_startNativeTrade();
+	}
+	return AI_nativeTradeEurope();
+}
+
+// WTP: the native trade ship is a transport whose role is its UnitAI state
+bool CvUnitAI::AI_isNativeTradeShip() const
+{
+	const UnitAIStates eState = AI_getUnitAIState();
+	return getDomainType() == DOMAIN_SEA && (eState == UNITAI_STATE_NATIVE_TRADE_BUY || eState == UNITAI_STATE_NATIVE_TRADE_EUROPE || eState == UNITAI_STATE_NATIVE_TRADE_SELL);
+}
+
+// WTP: units aboard that are goods (bGoods) or passengers; pbMuskets tells whether muskets are among the goods
+int CvUnitAI::AI_nativeTradeCargoCount(bool bGoods, bool* pbMuskets) const
+{
+	int iCount = 0;
+	if (pbMuskets != NULL)
+	{
+		*pbMuskets = false;
+	}
+	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		const CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && pLoopUnit->isGoods() == bGoods)
+		{
+			++iCount;
+			if (pbMuskets != NULL && bGoods && pLoopUnit->getYield() == YIELD_MUSKETS)
+			{
+				*pbMuskets = true;
+			}
+		}
+	}
+	return iCount;
+}
+
+// WTP: native trade ship on the map, called when it has no mission (it is at its target or idle). Buying: visits the villages
+// and buys goods; with a hold full to the brim, 2 turns after all cargo slots were taken or 12 turns after its arrival from
+// Europe it sails to Europe (with goods aboard; the checks run when it reaches a target). Selling: brings the goods from
+// Europe to the villages. Passengers come first: they are put ashore in the nearest colony.
+void CvUnitAI::AI_nativeTradeShipMove()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+
+	if (m_iNativeTradeArriveTurn < 0)
+	{
+		m_iNativeTradeArriveTurn = iTurn;
+	}
+
+	if (AI_retreatFromDanger())
+	{
+		s_szWtpShipReason = "native trade: flees danger";
+		return;
+	}
+
+	CvCity* const pHere = plot()->getPlotCity();
+	const bool bAtVillage = pHere != NULL && GET_PLAYER(pHere->getOwnerINLINE()).isNative();
+
+	if (AI_nativeTradeCargoCount(false, NULL) > 0)
+	{
+		if (pHere != NULL && pHere->getOwnerINLINE() == getOwnerINLINE())
+		{
+			AI_unloadPassengers(true);
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S puts its passengers ashore in %S",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pHere->getName().GetCString());
+		}
+		else
+		{
+			CvCity* pNearest = NULL;
+			int iNearestTurns = MAX_INT;
+			int iLoop;
+			for (CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kOwner.nextCity(&iLoop))
+			{
+				int iPathTurns;
+				if (CvPlayerAI::AI_shipCanReachCity(getUnitType(), *pLoopCity) && generatePath(pLoopCity->plot(), 0, true, &iPathTurns) && iPathTurns < iNearestTurns)
+				{
+					iNearestTurns = iPathTurns;
+					pNearest = pLoopCity;
+				}
+			}
+			if (pNearest != NULL)
+			{
+				getGroup()->pushMission(MISSION_MOVE_TO, pNearest->getX_INLINE(), pNearest->getY_INLINE(), 0, false, false, MISSIONAI_TRANSPORT_SEA, pNearest->plot());
+				s_szWtpShipReason = "native trade: brings passengers to the nearest colony";
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S brings %d passengers to %S (%d turns)",
+					getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), AI_nativeTradeCargoCount(false, NULL), pNearest->getName().GetCString(), iNearestTurns);
+				return;
+			}
+		}
+	}
+
+	bool bMuskets;
+	int iGoods = AI_nativeTradeCargoCount(true, &bMuskets);
+	const bool bHuman = AI_isHumanNativeTrade();
+	if (bHuman)
+	{
+		bMuskets = false; // the human automation sells no weapons to the natives
+	}
+
+	if (AI_getUnitAIState() == UNITAI_STATE_NATIVE_TRADE_EUROPE)
+	{
+		s_szWtpShipReason = "native trade: sails to Europe";
+		if (!AI_sailToEurope())
+		{
+			getGroup()->pushMission(MISSION_SKIP);
+		}
+		return;
+	}
+
+	// WTP: the human player gets a message with the deals of each village visit
+	CvWString szSold;
+	CvWString szBought;
+	bool bSoldHere = false;
+	if (AI_getUnitAIState() == UNITAI_STATE_NATIVE_TRADE_SELL)
+	{
+		if (bAtVillage && kOwner.AI_getNativeVillageVisitTurn(*pHere) != iTurn)
+		{
+			bSoldHere = true;
+			const int iSold = AI_nativeTradeSell(&szSold);
+			kOwner.AI_setNativeVillageVisited(*pHere);
+			iGoods = AI_nativeTradeCargoCount(true, &bMuskets);
+			if (bHuman)
+			{
+				bMuskets = false;
+			}
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S visited %S to sell: result %d, %d goods units left",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pHere->getName().GetCString(), iSold, iGoods);
+		}
+		if (iGoods == 0)
+		{
+			AI_setUnitAIState(UNITAI_STATE_NATIVE_TRADE_BUY);
+		}
+		else
+		{
+			// muskets go to the nearest village of a tribe with more than NATIVE_TRADE_MUSKET_GOLD gold, the other goods to any
+			// village; muskets no such tribe is left for go back to Europe
+			// WTP: NATIVE_TRADE_SELL_TURNS after its arrival from Europe the ship takes what is left back to Europe
+			const bool bSellTimeOver = iTurn - m_iNativeTradeArriveTurn >= NATIVE_TRADE_SELL_TURNS;
+			CvCity* const pFavourite = bSellTimeOver ? NULL : AI_nativeTradeBuyVillage(false);
+			CvCity* pTarget = bSellTimeOver ? NULL : AI_nativeTradeSellVillage(pFavourite, bMuskets);
+			if (pTarget == NULL && bMuskets && !bSellTimeOver)
+			{
+				pTarget = AI_nativeTradeSellVillage(pFavourite, false);
+			}
+			if (pTarget == NULL)
+			{
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S %s, sails back to Europe with %d goods units",
+					getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(),
+					bSellTimeOver ? "is out of sale time (NATIVE_TRADE_SELL_TURNS)" : "finds no village that buys its goods", iGoods);
+				AI_setUnitAIState(UNITAI_STATE_NATIVE_TRADE_EUROPE);
+				s_szWtpShipReason = bSellTimeOver ? "native trade: sale time over" : "native trade: no buyer for the goods";
+				if (!AI_sailToEurope())
+				{
+					getGroup()->pushMission(MISSION_SKIP);
+				}
+				return;
+			}
+			getGroup()->pushMission(MISSION_MOVE_TO, pTarget->getX_INLINE(), pTarget->getY_INLINE(), 0, false, false, MISSIONAI_TRANSPORT_SEA, pTarget->plot());
+			s_szWtpShipReason = "native trade: sells goods";
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S sails to %S (%S, gold %d) to sell%s",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pTarget->getName().GetCString(),
+				GET_PLAYER(pTarget->getOwnerINLINE()).getCivilizationDescription(0), GET_PLAYER(pTarget->getOwnerINLINE()).getGold(), bMuskets ? " (muskets)" : "");
+			return;
+		}
+	}
+
+	// buying (also right after selling everything here)
+	if (bAtVillage && (kOwner.AI_getNativeVillageVisitTurn(*pHere) != iTurn || bSoldHere))
+	{
+		const int iDeals = AI_nativeTradeBuy(&szBought);
+		kOwner.AI_setNativeVillageVisited(*pHere);
+		if (iDeals > 0)
+		{
+			m_iNativeTradeBuyTurn = iTurn;
+		}
+		iGoods = AI_nativeTradeCargoCount(true, NULL);
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S visited %S to buy: %d deals, cargo %d/%d",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pHere->getName().GetCString(), iDeals, getCargo(), cargoSpace());
+	}
+	if (bAtVillage && isHuman() && (bSoldHere || !szBought.empty()))
+	{
+		const CvWString szNothing = gDLL->getText("TXT_KEY_NATIVE_TRADE_REPORT_NOTHING");
+		CvWString szBuffer = gDLL->getText("TXT_KEY_NATIVE_TRADE_REPORT_VILLAGE", getName().GetCString(), pHere->getNameKey(),
+			szSold.empty() ? szNothing.GetCString() : szSold.GetCString(), szBought.empty() ? szNothing.GetCString() : szBought.GetCString());
+		gDLL->UI().addPlayerMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, NULL, MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE, getX_INLINE(), getY_INLINE());
+	}
+
+	// back to Europe: all cargo slots taken (the visits to top up partly filled slots mostly found nothing), or 12 turns after
+	// the arrival from Europe
+	if (isFull() && m_iNativeTradeSlotsFullTurn < 0)
+	{
+		m_iNativeTradeSlotsFullTurn = iTurn;
+	}
+	const char* szEurope = NULL;
+	if (isFullToBrim())
+	{
+		szEurope = "hold is full";
+	}
+	else if (isFull())
+	{
+		szEurope = "all cargo slots are taken";
+	}
+	else if (iTurn - m_iNativeTradeArriveTurn >= 12)
+	{
+		szEurope = "12 turns since the arrival from Europe";
+	}
+	if (iGoods > 0 && szEurope != NULL)
+	{
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S sails to Europe with %d goods units (%s)",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), iGoods, szEurope);
+		AI_setUnitAIState(UNITAI_STATE_NATIVE_TRADE_EUROPE);
+		s_szWtpShipReason = "native trade: brings goods to Europe";
+		if (!AI_sailToEurope())
+		{
+			getGroup()->pushMission(MISSION_SKIP);
+		}
+		return;
+	}
+
+	// pulled off for a while: many immigrants wait in Europe and the colonies have work for few of them
+	if (!bHuman && iGoods == 0 && kOwner.canTradeWithEurope() && kOwner.getNumEuropeUnits() > 10 && kOwner.AI_estimateUnemploymentCount() <= 2)
+	{
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S is pulled off to fetch the %d units waiting in Europe",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), kOwner.getNumEuropeUnits());
+		AI_setUnitAIState(UNITAI_STATE_NATIVE_TRADE_EUROPE);
+		s_szWtpShipReason = "native trade: pulled off for Europe";
+		if (!AI_sailToEurope())
+		{
+			getGroup()->pushMission(MISSION_SKIP);
+		}
+		return;
+	}
+
+	CvCity* const pTarget = AI_nativeTradeBuyVillage();
+	if (pTarget == NULL)
+	{
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S finds no village to buy from within 15 turns (gold %d)",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), kOwner.getGold());
+		s_szWtpShipReason = "native trade: no village worth visiting";
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
+	}
+	getGroup()->pushMission(MISSION_MOVE_TO, pTarget->getX_INLINE(), pTarget->getY_INLINE(), 0, false, false, MISSIONAI_TRANSPORT_SEA, pTarget->plot());
+	s_szWtpShipReason = "native trade: buys goods";
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S sails to %S (%S) to buy, gold %d, cargo %d/%d",
+		getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pTarget->getName().GetCString(),
+		GET_PLAYER(pTarget->getOwnerINLINE()).getCivilizationDescription(0), kOwner.getGold(), getCargo(), cargoSpace());
+}
+
+// WTP: native trade ship in Europe: sells its goods, takes the experts the workforce plan wants if any wait at the dock and
+// fills the free cargo slots with Trade Goods (up to 300), or with 100 muskets if it knows a village of a tribe with more
+// than NATIVE_TRADE_MUSKET_GOLD gold that buys them (user 2026-10-24). No gold reserve applies to these purchases.
+bool CvUnitAI::AI_nativeTradeEurope()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+	if (kOwner.getParent() == NO_PLAYER)
+	{
+		return false;
+	}
+
+	const int iGoldBefore = kOwner.getGold();
+	// WTP: what is sold, for the human player's message
+	CvWString szSold;
+	if (isHuman() && plot() != NULL)
+	{
+		CLLNode<IDInfo>* pCargoNode = plot()->headUnitNode();
+		while (pCargoNode != NULL)
+		{
+			const CvUnit* const pCargo = plot()->getUnitNodeLoop(pCargoNode);
+			if (pCargo != NULL && pCargo->getTransportUnit() == this && pCargo->isGoods() && pCargo->getYield() != NO_YIELD)
+			{
+				if (!szSold.empty())
+				{
+					szSold += L", ";
+				}
+				szSold += CvWString::format(L"%d %s", pCargo->getYieldStored(), GC.getYieldInfo(pCargo->getYield()).getDescription());
+			}
+		}
+	}
+	AI_sellYieldUnits(TRADE_LOCATION_EUROPE);
+	AI_unloadUnits(TRADE_LOCATION_EUROPE);
+	const int iSoldFor = kOwner.getGold() - iGoldBefore;
+	CvWString szBought;
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S in Europe sold its goods for %d gold (gold now %d), %d units wait at the dock",
+		getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), kOwner.getGold() - iGoldBefore, kOwner.getGold(), kOwner.getNumEuropeUnits());
+
+	const bool bHuman = AI_isHumanNativeTrade();
+	CvPlot* pArrival = NULL;
+	if (kOwner.getNumCities() > 0)
+	{
+		// WTP: only experts the workforce plan wants for a job (not free colonists and the like: the other transports bring them)
+		std::deque<CvUnit*> aUnits;
+		if (!bHuman && canCarryPeople())
+		{
+			kOwner.sortEuropeUnits();
+			for (int i = 0; i < kOwner.getNumEuropeUnits(); ++i)
+			{
+				CvUnit* const pUnit = kOwner.getEuropeUnit(i);
+				if (pUnit != NULL && kOwner.AI_isWantedExpertOnDock(*pUnit))
+				{
+					aUnits.push_back(pUnit);
+				}
+			}
+		}
+		int iLoaded = 0;
+		if (!aUnits.empty())
+		{
+			while (!aUnits.empty() && !isFull())
+			{
+				CvUnit* pUnit = aUnits.front();
+				aUnits.pop_front();
+				if (pUnit->canLoadUnit(this, plot(), false))
+				{
+					kOwner.loadUnitFromEurope(pUnit, this);
+					++iLoaded;
+				}
+			}
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S takes %d wanted experts from the dock (%d units wait there)",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), iLoaded, kOwner.getNumEuropeUnits());
+		}
+		// WTP: the cargo slots the experts leave free take goods for the natives (the experts are put ashore first)
+		if (isFull())
+		{
+			AI_setUnitAIState(UNITAI_STATE_NATIVE_TRADE_BUY);
+		}
+		else
+		{
+			CvPlayer& kEurope = GET_PLAYER(kOwner.getParent());
+			bool bBought = false;
+			bool bMuskets = !bHuman && AI_knowsMusketVillage();
+			// the human automation: at most NATIVE_TRADE_HUMAN_BUDGET per trip, NATIVE_TRADE_HUMAN_RESERVE stays in the treasury
+			int iBudget = bHuman ? std::min(NATIVE_TRADE_HUMAN_BUDGET, kOwner.getGold() - NATIVE_TRADE_HUMAN_RESERVE) : MAX_INT;
+			for (int iTry = 0; iTry < 2 && !bBought; ++iTry)
+			{
+				const YieldTypes eYield = bMuskets ? YIELD_MUSKETS : YIELD_TRADE_GOODS;
+				const int iPrice = kEurope.getYieldSellPrice(eYield);
+				// muskets: 100; Trade Goods: up to 300, one cargo slot (load) after the other
+				int iWanted = bMuskets ? 100 : 300;
+				for (int iLoad = 0; iLoad < 3 && iWanted > 0 && kOwner.isYieldEuropeTradable(eYield); ++iLoad)
+				{
+					int iAmount = std::min(iWanted, getLoadYieldAmount(eYield));
+					if (iPrice > 0)
+					{
+						iAmount = std::min(iAmount, std::min(kOwner.getGold(), iBudget) / iPrice);
+					}
+					if (iAmount <= 0 || kOwner.buyYieldUnitFromEurope(eYield, iAmount, this) == NULL)
+					{
+						break;
+					}
+					bBought = true;
+					iWanted -= iAmount;
+					if (!szBought.empty())
+					{
+						szBought += L", ";
+					}
+					szBought += CvWString::format(L"%d %s (%d)", iAmount, GC.getYieldInfo(eYield).getDescription(), iAmount * iPrice);
+					if (bHuman)
+					{
+						iBudget -= iAmount * iPrice;
+					}
+					if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S buys %d %S in Europe for %d gold (%d each), gold now %d",
+						getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), iAmount, GC.getYieldInfo(eYield).getDescription(),
+						iAmount * iPrice, iPrice, kOwner.getGold());
+				}
+				if (!bBought && bMuskets)
+				{
+					// muskets are not affordable: Trade Goods instead
+					bMuskets = false;
+				}
+				else
+				{
+					break;
+				}
+			}
+			if (!bBought && gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S cannot buy goods in Europe (gold %d), returns %s",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), kOwner.getGold(), iLoaded > 0 ? "with the experts only" : "empty");
+			AI_setUnitAIState(bBought ? UNITAI_STATE_NATIVE_TRADE_SELL : UNITAI_STATE_NATIVE_TRADE_BUY);
+			// WTP: with goods and without passengers the ship appears near a village that buys them (else next to a colony)
+			if (bBought && !bHuman && iLoaded == 0)
+			{
+				CvCity* pVillage = NULL;
+				int iVillageTurns = 0;
+				pArrival = AI_nativeTradeArrivalPlot(bMuskets, pVillage, iVillageTurns);
+				if (pArrival != NULL && gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S comes from Europe to %d,%d near %S (%S, %d turns from there)",
+					getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pArrival->getX_INLINE(), pArrival->getY_INLINE(),
+					pVillage->getName().GetCString(), GET_PLAYER(pVillage->getOwnerINLINE()).getCivilizationDescription(0), iVillageTurns);
+			}
+		}
+	}
+
+	if (isHuman())
+	{
+		const CvWString szNothing = gDLL->getText("TXT_KEY_NATIVE_TRADE_REPORT_NOTHING");
+		CvWString szBuffer = gDLL->getText("TXT_KEY_NATIVE_TRADE_REPORT_EUROPE", getName().GetCString(), szSold.empty() ? szNothing.GetCString() : szSold.GetCString(),
+			iSoldFor, szBought.empty() ? szNothing.GetCString() : szBought.GetCString());
+		gDLL->UI().addPlayerMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, NULL, MESSAGE_TYPE_INFO, getButton(), COLOR_WHITE);
+	}
+
+	// a new round trip: its clock starts with the first move on the map
+	m_iNativeTradeArriveTurn = -1;
+	m_iNativeTradeSlotsFullTurn = -1;
+	return AI_crossFromEurope(pArrival);
+}
+
+// WTP: native trade ship in Europe with goods for the natives: the plot it appears at coming from Europe, the Europe crossing
+// plot next to a village that buys the goods (muskets: of a tribe with more than NATIVE_TRADE_MUSKET_GOLD gold after the sales
+// of our other ships, AI_nativeMusketGold; Trade Goods: of a tribe with 2000 gold) from which the ship reaches the village
+// within NATIVE_TRADE_ARRIVAL_TURNS turns. Of the villages nearest to a crossing plot (air distance) the one of the fewest
+// path turns wins. NULL: none (the ship appears next to a colony as usual).
+CvPlot* CvUnitAI::AI_nativeTradeArrivalPlot(bool bMuskets, CvCity*& pVillage, int& iVillageTurns)
+{
+	static const int NATIVE_TRADE_ARRIVAL_CANDIDATES = 6;
+	pVillage = NULL;
+	iVillageTurns = 0;
+	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const YieldTypes eYield = bMuskets ? YIELD_MUSKETS : YIELD_TRADE_GOODS;
+
+	// the plots a ship can come from Europe to
+	std::vector<const CvPlot*> apCrossing;
+	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); ++iI)
+	{
+		const CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
+		if (!pLoopPlot->isImpassable() && pLoopPlot->isRevealed(getTeam(), false) && canCrossOcean(pLoopPlot, UNIT_TRAVEL_STATE_FROM_EUROPE))
+		{
+			apCrossing.push_back(pLoopPlot);
+		}
+	}
+	if (apCrossing.empty())
+	{
+		return NULL;
+	}
+
+	// the villages that buy the goods, by the air distance to their nearest crossing plot (ties: player and city ID)
+	std::vector<std::pair<std::pair<int, int>, CvCity*> > aVillages;
+	for (PlayerTypes eNative = FIRST_PLAYER; eNative < NUM_PLAYER_TYPES; ++eNative)
+	{
+		CvPlayerAI& kNative = GET_PLAYER(eNative);
+		if (!kNative.isAlive() || !kNative.isNative() || (bMuskets ? AI_nativeMusketGold(eNative) <= NATIVE_TRADE_MUSKET_GOLD : kNative.getGold() < 2000))
+		{
+			continue;
+		}
+		int iLoop;
+		for (CvCity* pCity = kNative.firstCity(&iLoop); pCity != NULL; pCity = kNative.nextCity(&iLoop))
+		{
+			if (!AI_canTradeWithVillage(*pCity) || !kOwner.AI_nativeCityBuys(eYield, *pCity))
+			{
+				continue;
+			}
+			int iDistance = MAX_INT;
+			for (uint i = 0; i < apCrossing.size(); ++i)
+			{
+				iDistance = std::min(iDistance, plotDistance(pCity->getX_INLINE(), pCity->getY_INLINE(), apCrossing[i]->getX_INLINE(), apCrossing[i]->getY_INLINE()));
+			}
+			aVillages.push_back(std::make_pair(std::make_pair(iDistance, eNative * 100000 + pCity->getID()), pCity));
+		}
+	}
+	std::sort(aVillages.begin(), aVillages.end());
+
+	CvPlot* pBestArrival = NULL;
+	int iBestTurns = NATIVE_TRADE_ARRIVAL_TURNS + 1;
+	for (uint i = 0; i < aVillages.size() && (int)i < NATIVE_TRADE_ARRIVAL_CANDIDATES; ++i)
+	{
+		CvCity* const pCity = aVillages[i].second;
+		CvPlot* const pCrossing = findNearbyOceanPlot(*pCity->plot());
+		int iPathTurns;
+		if (pCrossing != NULL && getGroup()->generatePath(pCrossing, pCity->plot(), 0, true, &iPathTurns) && iPathTurns < iBestTurns)
+		{
+			iBestTurns = iPathTurns;
+			pBestArrival = pCrossing;
+			pVillage = pCity;
+		}
+	}
+	if (pBestArrival != NULL)
+	{
+		iVillageTurns = iBestTurns;
+	}
+	return pBestArrival;
+}
+
+// WTP: leave Europe for the colonies like AI_europe does (the ship appears next to the colony AI_bestDestinationPlot names)
+bool CvUnitAI::AI_crossFromEurope(CvPlot* pArrival)
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	CvPlot* const pStartingPlot = kOwner.getStartingPlot();
+	if (kOwner.getNumCities() > 0)
+	{
+		CvPlot* pNewPlot = pArrival;
+		// WTP: the human native trade automation comes back to its home colony
+		const CvCity* const pHome = AI_isHumanNativeTrade() ? AI_nativeTradeHomeCity() : NULL;
+		if (pNewPlot == NULL && pHome != NULL && pHome->plot()->isEuropeAccessable())
+		{
+			pNewPlot = findNearbyOceanPlot(*pHome->plot());
+		}
+		if (pNewPlot == NULL)
+		{
+			pNewPlot = AI_bestDestinationPlot();
+		}
+		if (pNewPlot == NULL)
+		{
+			pNewPlot = pStartingPlot;
+		}
+		if (pNewPlot == NULL)
+		{
+			getGroup()->pushMission(MISSION_SKIP);
+			return true;
+		}
+		if (plot() != pNewPlot)
+		{
+			setXY(pNewPlot->getX_INLINE(), pNewPlot->getY_INLINE());
+		}
+	}
+	else if (plot() == NULL && pStartingPlot != NULL)
+	{
+		setXY(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE());
+	}
+	crossOcean(UNIT_TRAVEL_STATE_FROM_EUROPE);
+	finishMoves();
+	return true;
+}
+
+// WTP: the native trade ship knows a village it can trade with of a tribe with more than NATIVE_TRADE_MUSKET_GOLD gold
+// (AI_nativeMusketGold) that buys muskets (it then takes muskets from Europe instead of Trade Goods)
+bool CvUnitAI::AI_knowsMusketVillage() const
+{
+	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	for (PlayerTypes eNative = FIRST_PLAYER; eNative < NUM_PLAYER_TYPES; ++eNative)
+	{
+		CvPlayerAI& kNative = GET_PLAYER(eNative);
+		if (!kNative.isAlive() || !kNative.isNative() || AI_nativeMusketGold(eNative) <= NATIVE_TRADE_MUSKET_GOLD)
+		{
+			continue;
+		}
+		int iLoop;
+		for (const CvCity* pCity = kNative.firstCity(&iLoop); pCity != NULL; pCity = kNative.nextCity(&iLoop))
+		{
+			if (AI_canTradeWithVillage(*pCity) && kOwner.AI_nativeCityBuys(YIELD_MUSKETS, *pCity))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+// WTP: the gold of the tribe less what our other native trade ships will take that head for one of its villages with
+// muskets (the ships of the other players are not foreseeable)
+int CvUnitAI::AI_nativeMusketGold(PlayerTypes eNative) const
+{
+	const CvPlayerAI& kNative = GET_PLAYER(eNative);
+	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	int iReserved = 0;
+	int iLoop;
+	for (CvUnit* pLoopUnit = kOwner.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kOwner.nextUnit(&iLoop))
+	{
+		if (pLoopUnit == this || pLoopUnit->getDomainType() != DOMAIN_SEA || !pLoopUnit->isOnMap_() || !static_cast<CvUnitAI*>(pLoopUnit)->AI_isNativeTradeShip())
+		{
+			continue;
+		}
+		const int iMuskets = static_cast<CvUnitAI*>(pLoopUnit)->AI_nativeTradeMusketsAboard();
+		if (iMuskets <= 0)
+		{
+			continue;
+		}
+		const CvPlot* pTargetPlot = (pLoopUnit->getGroup() != NULL) ? pLoopUnit->getGroup()->AI_getMissionAIPlot() : NULL;
+		if (pTargetPlot == NULL)
+		{
+			pTargetPlot = pLoopUnit->plot();
+		}
+		const CvCity* const pTarget = (pTargetPlot != NULL) ? pTargetPlot->getPlotCity() : NULL;
+		if (pTarget != NULL && pTarget->getOwnerINLINE() == eNative)
+		{
+			iReserved += std::max(0, kNative.AI_nativeYieldTradeValue(YIELD_MUSKETS, iMuskets, true, pTarget));
+		}
+	}
+	return std::max(0, kNative.getGold() - iReserved);
+}
+
+// WTP: the least a village has to pay for iAmount muskets: their Europe price plus NATIVE_TRADE_MUSKET_MIN_PROFIT
+int CvUnitAI::AI_nativeMusketMinPrice(int iAmount) const
+{
+	const PlayerTypes eParent = GET_PLAYER(getOwnerINLINE()).getParent();
+	const int iPrice = (eParent != NO_PLAYER) ? GET_PLAYER(eParent).getYieldSellPrice(YIELD_MUSKETS) : 0;
+	return iAmount * iPrice + NATIVE_TRADE_MUSKET_MIN_PROFIT;
+}
+
+// WTP: native trade ship: the muskets in its cargo
+int CvUnitAI::AI_nativeTradeMusketsAboard() const
+{
+	int iMuskets = 0;
+	if (plot() == NULL)
+	{
+		return 0;
+	}
+	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		const CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && pLoopUnit->isGoods() && pLoopUnit->getYield() == YIELD_MUSKETS)
+		{
+			iMuskets += pLoopUnit->getYieldStored();
+		}
+	}
+	return iMuskets;
+}
+
+// WTP: native trade ship: may it trade with this village at all (peace, not angry, no fort, known, reachable by this ship)?
+bool CvUnitAI::AI_canTradeWithVillage(const CvCity& kCity) const
+{
+	const CvPlayerAI& kNative = GET_PLAYER(kCity.getOwnerINLINE());
+	return kNative.isAlive() && kNative.isNative() && !atWar(getTeam(), kNative.getTeam()) && kNative.getTimeNoTrade(getOwnerINLINE()) == 0
+		&& kCity.plot()->isRevealed(getTeam(), false)
+		&& CvPlayerAI::AI_shipCanReachCity(getUnitType(), kCity);
+}
+
+// WTP: native trade ship: the village to buy goods from next. The AI does not know what a village has in stock: it draws
+// one of the villages it can reach within 15 turns at random. The weight falls with the air distance from the ship (for
+// the very first target: from our first colony) and with the path turns; a village visited lately weighs less (full
+// weight again after 25 turns), so that the ship widens its circle and comes back. bDraw false: no draw, the village of
+// the highest weight (a reference point for selling). Returns NULL if there is none.
+CvCity* CvUnitAI::AI_nativeTradeBuyVillage(bool bDraw)
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+
+	// the first target is chosen from the first colony, every other one from where the ship is
+	const CvPlot* pFrom = plot();
+	int iLoop;
+	CvCity* const pFirstColony = kOwner.firstCity(&iLoop);
+	// WTP: the human native trade and supply automations choose from their home colony
+	const CvCity* const pHome = (AI_isHumanNativeTrade() || AI_isNativeSupplyShip()) ? AI_nativeTradeHomeCity() : NULL;
+	const bool bFirstTarget = pHome == NULL && !kOwner.AI_hasVisitedNativeVillage() && m_iNativeTradeBuyTurn < 0 && pFirstColony != NULL;
+	if (bFirstTarget)
+	{
+		pFrom = pFirstColony->plot();
+	}
+	else if (pHome != NULL)
+	{
+		pFrom = pHome->plot();
+	}
+	if (pFrom == NULL)
+	{
+		return NULL;
+	}
+
+	std::vector<std::pair<CvCity*, int> > aCandidates;
+	int iTotalWeight = 0;
+	CvCity* pBestCity = NULL;
+	int iBestWeight = 0;
+	// WTP: villages one of our ships visited in the last 8 turns only if there is no other one (a schooner went back to the
+	// village it had just bought everything from); the human automation avoids them for longer
+	const bool bHumanTrade = AI_isHumanNativeTrade();
+	const int iAvoidTurns = bHumanTrade ? NATIVE_TRADE_HUMAN_VISIT_TURNS : 8;
+	const int iFullWeightTurns = bHumanTrade ? 2 * NATIVE_TRADE_HUMAN_VISIT_TURNS : 25;
+	for (int iPass = 0; iPass < 2 && aCandidates.empty(); ++iPass)
+	for (PlayerTypes eNative = FIRST_PLAYER; eNative < NUM_PLAYER_TYPES; ++eNative)
+	{
+		CvPlayerAI& kNative = GET_PLAYER(eNative);
+		if (!kNative.isAlive() || !kNative.isNative())
+		{
+			continue;
+		}
+		for (CvCity* pCity = kNative.firstCity(&iLoop); pCity != NULL; pCity = kNative.nextCity(&iLoop))
+		{
+			if (atPlot(pCity->plot()) || !AI_canTradeWithVillage(*pCity) || !AI_nativeTradeInHomeArea(*pCity))
+			{
+				continue;
+			}
+			if (iPass == 0 && kOwner.AI_getNativeVillageVisitTurn(*pCity) >= 0 && iTurn - kOwner.AI_getNativeVillageVisitTurn(*pCity) < iAvoidTurns)
+			{
+				continue;
+			}
+			int iPathTurns;
+			// WTP: the native supply ship looks as far as its trip time (its range can be large)
+			if (!generatePath(pCity->plot(), 0, true, &iPathTurns, AI_isNativeSupplyShip() ? std::max(15, GC.getDefineINT("NATIVE_SUPPLY_TRIP_TURNS")) : 15))
+			{
+				continue;
+			}
+			const int iAirDistance = plotDistance(pFrom->getX_INLINE(), pFrom->getY_INLINE(), pCity->getX_INLINE(), pCity->getY_INLINE());
+			int iWeight = 100000 / ((iAirDistance + 3) * (iPathTurns + 3));
+			const int iLastVisit = kOwner.AI_getNativeVillageVisitTurn(*pCity);
+			if (iLastVisit >= 0)
+			{
+				iWeight = iWeight * std::min(100, std::max(5, 100 * (iTurn - iLastVisit) / iFullWeightTurns)) / 100;
+			}
+			// another of our native trade ships heads there (several ships around the same colonies went to the same villages)
+			if (AI_isNativeVillageTargeted(*pCity))
+			{
+				iWeight /= 20;
+			}
+			iWeight = std::max(1, iWeight);
+			aCandidates.push_back(std::make_pair(pCity, iWeight));
+			iTotalWeight += iWeight;
+			if (iWeight > iBestWeight)
+			{
+				iBestWeight = iWeight;
+				pBestCity = pCity;
+			}
+		}
+	}
+	if (!bDraw || aCandidates.empty())
+	{
+		return pBestCity;
+	}
+
+	int iRoll = GC.getGameINLINE().getSorenRandNum(iTotalWeight, "AI native trade village");
+	CvCity* pChosen = aCandidates.back().first;
+	int iChosenWeight = aCandidates.back().second;
+	for (uint i = 0; i < aCandidates.size(); ++i)
+	{
+		if (iRoll < aCandidates[i].second)
+		{
+			pChosen = aCandidates[i].first;
+			iChosenWeight = aCandidates[i].second;
+			break;
+		}
+		iRoll -= aCandidates[i].second;
+	}
+	if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP native trade: Player %d (%S) turn %d %S draws %S out of %d villages within 15 turns (weight %d of %d%s)",
+		getOwnerINLINE(), kOwner.getCivilizationDescription(0), iTurn, getName().GetCString(), pChosen->getName().GetCString(), (int)aCandidates.size(),
+		iChosenWeight, iTotalWeight, bFirstTarget ? ", first target, distances from the first colony" : "");
+	return pChosen;
+}
+
+// WTP: native trade ship: the village to sell the goods aboard to. The tribe needs more than 2000 gold; the nearest one
+// to the reference wins: the village we buy from next (pFavourite, or our colonies). bMuskets: only the muskets count, the
+// tribe needs more than NATIVE_TRADE_MUSKET_GOLD gold after the sales of our other ships (AI_nativeMusketGold) and the nearest
+// village by path turns wins (a village that wants muskets wins among the near ones). Without such a tribe the nearest village with gold
+// at all is taken, except for muskets (NULL then; without bMuskets the muskets aboard do not count).
+CvCity* CvUnitAI::AI_nativeTradeSellVillage(const CvCity* pFavourite, bool bMuskets)
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	const int iTurn = GC.getGameINLINE().getGameTurn();
+
+	// what we carry
+	std::vector<YieldTypes> aeCarried;
+	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		const CvUnit* const pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && pLoopUnit->isGoods() && pLoopUnit->getYield() != NO_YIELD
+			&& !(AI_isHumanNativeTrade() && isNativeTradeWeapon(pLoopUnit->getYield())))
+		{
+			aeCarried.push_back(pLoopUnit->getYield());
+		}
+	}
+	if (aeCarried.empty())
+	{
+		return NULL;
+	}
+
+	CvCity* pBestCity = NULL;
+	int iBestDistance = MAX_INT;
+	bool bBestWantsMuskets = false;
+	CvCity* pFallbackCity = NULL;
+	int iFallbackDistance = MAX_INT;
+	for (PlayerTypes eNative = FIRST_PLAYER; eNative < NUM_PLAYER_TYPES; ++eNative)
+	{
+		CvPlayerAI& kNative = GET_PLAYER(eNative);
+		if (!kNative.isAlive() || !kNative.isNative() || kNative.getGold() <= 0)
+		{
+			continue;
+		}
+		int iLoop;
+		for (CvCity* pCity = kNative.firstCity(&iLoop); pCity != NULL; pCity = kNative.nextCity(&iLoop))
+		{
+			if (!AI_canTradeWithVillage(*pCity) || !AI_nativeTradeInHomeArea(*pCity))
+			{
+				continue;
+			}
+			// the village must want something we carry, and not be one we have just tried
+			bool bBuys = false;
+			for (uint i = 0; i < aeCarried.size() && !bBuys; ++i)
+			{
+				// WTP: without bMuskets the muskets do not count (only a village that pays enough for them gets them)
+				bBuys = kOwner.AI_nativeCityBuys(aeCarried[i], *pCity) && (bMuskets == (aeCarried[i] == YIELD_MUSKETS));
+			}
+			const int iLastVisit = kOwner.AI_getNativeVillageVisitTurn(*pCity);
+			if (!bBuys || (iLastVisit >= 0 && iTurn - iLastVisit < 3))
+			{
+				continue;
+			}
+			int iPathTurns;
+			if (!generatePath(pCity->plot(), 0, true, &iPathTurns, 40))
+			{
+				continue;
+			}
+
+			// distance to the reference
+			int iDistance = MAX_INT;
+			if (bMuskets)
+			{
+				// WTP: muskets go to the nearest village (path turns) of a tribe with more than NATIVE_TRADE_MUSKET_GOLD gold
+				// after the sales of our other ships heading there (the sale itself needs NATIVE_TRADE_MUSKET_MIN_PROFIT)
+				if (AI_nativeMusketGold(eNative) <= NATIVE_TRADE_MUSKET_GOLD)
+				{
+					continue;
+				}
+				iDistance = iPathTurns;
+			}
+			else if (pFavourite != NULL)
+			{
+				iDistance = plotDistance(pCity->getX_INLINE(), pCity->getY_INLINE(), pFavourite->getX_INLINE(), pFavourite->getY_INLINE());
+			}
+			else
+			{
+				iDistance = kOwner.AI_nativeVillageDistanceToColonies(*pCity);
+			}
+			// another of our native trade ships heads there: its sale takes the natives' gold
+			if (iDistance < MAX_INT - 20 && AI_isNativeVillageTargeted(*pCity))
+			{
+				iDistance += 20;
+			}
+			// WTP: the human automation sold to the same few nearest villages again and again
+			if (AI_isHumanNativeTrade() && iLastVisit >= 0 && iTurn - iLastVisit < NATIVE_TRADE_HUMAN_VISIT_TURNS && iDistance < MAX_INT - NATIVE_TRADE_HUMAN_VISIT_TURNS)
+			{
+				iDistance += NATIVE_TRADE_HUMAN_VISIT_TURNS - (iTurn - iLastVisit);
+			}
+
+			if (bMuskets || kNative.getGold() >= 2000)
+			{
+				const bool bWantsMuskets = bMuskets && pCity->AI_getDesiredYield() == YIELD_MUSKETS;
+				// near villages (within 2 plots of the nearest) are told apart by wanting muskets
+				if (pBestCity == NULL || iDistance + 2 < iBestDistance || (iDistance <= iBestDistance + 2 && bWantsMuskets && !bBestWantsMuskets)
+					|| (iDistance < iBestDistance && bWantsMuskets == bBestWantsMuskets))
+				{
+					pBestCity = pCity;
+					iBestDistance = iDistance;
+					bBestWantsMuskets = bWantsMuskets;
+				}
+			}
+			else if (!bMuskets && iDistance < iFallbackDistance)
+			{
+				pFallbackCity = pCity;
+				iFallbackDistance = iDistance;
+			}
+		}
+	}
+	return (pBestCity != NULL) ? pBestCity : pFallbackCity;
 }
 
 // TAC - AI Assault Sea - koma13, jdog5000(BBAI) - START
@@ -16835,9 +19965,15 @@ bool CvUnitAI::AI_improveCity(CvCity* pCity)
 	BuildTypes eBestBuild;
 	MissionTypes eMission;
 
+	// WTP: the pioneers of the colonial AI build roads only between colonies (AI_routeCityNear), not on every way
+	const bool bNoWayRoads = GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned();
 	if (plot()->getWorkingCity() != pCity)
 	{
-		if (canBuildRoute())
+		if (!generatePath(pCity->plot(), 0, true, NULL, PIONEER_MAX_PATH_TURNS))
+		{
+			return false;
+		}
+		if (canBuildRoute() && !bNoWayRoads)
 		{
 			getGroup()->pushMission(MISSION_ROUTE_TO, pCity->getX_INLINE(), pCity->getY_INLINE(), 0, false, false, MISSIONAI_BUILD, pCity->plot());
 		}
@@ -16853,10 +19989,18 @@ bool CvUnitAI::AI_improveCity(CvCity* pCity)
 		BuildTypes eBuild = pCity->AI_getBestBuild(pCity->getCityPlotIndex(plot()));
 		if (eBuild != NO_BUILD)
 		{
-			if (canBuild(plot(), eBuild, true))
+			// (the colonial AI: not if another pioneer works on this plot already)
+			if (canBuild(plot(), eBuild, true) && (!bNoWayRoads || GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(plot(), MISSIONAI_BUILD, getGroup()) == 0))
 			{
 				getGroup()->pushMission(MISSION_BUILD, eBuild, -1, 0, false, false, MISSIONAI_BUILD, plot());
-				return true;
+				// WTP: a build that cannot start (the mission is gone at once) is no task: a Swedish pioneer stood on its plot
+				// for 7 turns without a mission and tried nothing else
+				if (getGroup()->getLengthMissionQueue() > 0)
+				{
+					return true;
+				}
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "%S #%d at %d,%d: %S does not start here (can build %d)", getName().GetCString(), getID(),
+					getX_INLINE(), getY_INLINE(), GC.getBuildInfo(eBuild).getDescription(), (int)canBuild(plot(), eBuild));
 			}
 		}
 	}
@@ -16900,12 +20044,26 @@ bool CvUnitAI::AI_improveCity(CvCity* pCity)
 			}
 		}
 
-		eBestBuild = AI_betterPlotBuild(pBestPlot, eBestBuild);
+		if (bNoWayRoads && GC.getBuildInfo(eBestBuild).getRoute() == NO_ROUTE)
+		{
+			eMission = MISSION_MOVE_TO;
+		}
+		else
+		{
+			eBestBuild = AI_betterPlotBuild(pBestPlot, eBestBuild);
+		}
 
 		getGroup()->pushMission(eMission, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_BUILD, pBestPlot);
 		getGroup()->pushMission(MISSION_BUILD, eBestBuild, -1, 0, (getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pBestPlot);
 
-		return true;
+		// WTP: a build that cannot start is no task (see above)
+		if (getGroup()->getLengthMissionQueue() > 0)
+		{
+			return true;
+		}
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PIONEER, getOwnerINLINE(), "%S #%d at %d,%d: %S at %d,%d does not start (can build %d)", getName().GetCString(), getID(),
+			getX_INLINE(), getY_INLINE(), GC.getBuildInfo(eBestBuild).getDescription(), pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(),
+			(int)canBuild(pBestPlot, eBestBuild));
 	}
 
 	return false;
@@ -17092,7 +20250,8 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity* pCity)
 
 			if (iValue > 0)
 			{
-				if (AI_bestCityBuild(pLoopCity, &pPlot, &eBuild, NULL, this))
+				if (AI_bestCityBuild(pLoopCity, &pPlot, &eBuild, NULL, this)
+					&& GET_PLAYER(getOwnerINLINE()).AI_getPlotDanger(pPlot, 2, false) == 0) // WTP: not a plot an enemy is near
 				{
 					FAssert(pPlot != NULL);
 					FAssert(eBuild != NO_BUILD);
@@ -17104,7 +20263,10 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity* pCity)
 					    iValue *= 2;
 					}
 
-					generatePath(pPlot, 0, true, &iPathTurns);
+					if (!generatePath(pPlot, 0, true, &iPathTurns, PIONEER_MAX_PATH_TURNS))
+					{
+						continue;
+					}
 					iValue /= (iPathTurns + 1);
 
 					if (iValue > iBestValue)
@@ -17130,7 +20292,8 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity* pCity)
 			setHomeCity(pOtherCity);
 		}
 
-		if (pThisCity != NULL && pOtherCity != NULL)
+		// WTP: not for the colonial AI: only AI_routeCityNear connects its colonies
+		if (pThisCity != NULL && pOtherCity != NULL && !GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned())
 		{
 			if (!(gDLL->getFAStarIFace()->GeneratePath(&GC.getRouteFinder(), pThisCity->getX_INLINE(), pThisCity->getY_INLINE(), pOtherCity->getX_INLINE(), pOtherCity->getY_INLINE(), false, getOwnerINLINE(), true)))
 			{
@@ -17140,7 +20303,10 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity* pCity)
 			}
 		}
 
-		eBestBuild = AI_betterPlotBuild(pBestPlot, eBestBuild);
+		if (!GET_PLAYER(getOwnerINLINE()).AI_isWorkforcePlanned())
+		{
+			eBestBuild = AI_betterPlotBuild(pBestPlot, eBestBuild);
+		}
 
 		getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_BUILD, pBestPlot);
 		getGroup()->pushMission(MISSION_BUILD, eBestBuild, -1, 0, (getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pBestPlot);
@@ -17251,7 +20417,7 @@ bool CvUnitAI::AI_fortTerritory(bool bCanal)
 									if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_BUILD, getGroup(), 1/*3*/) == 0) //super forts - change 3 to 1
 									{
 										int iPathTurns;
-										if (generatePath(pLoopPlot, 0, true, &iPathTurns))
+										if (generatePath(pLoopPlot, 0, true, &iPathTurns, PIONEER_MAX_PATH_TURNS))
 										{
 
 											iValue = iPlotValue * 100; //iValue *= 1000; --original		// Super Forts *canal* *choke*
@@ -17453,6 +20619,201 @@ BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot* pPlot, BuildTypes eBuild)
 
 
 // Returns true if a mission was pushed...
+// WTP: like AI_routeCity, but cheap enough for every pioneer every turn: only connections of at most iMaxDistance
+// plots that no other pioneer works on, and path finding only for those
+bool CvUnitAI::AI_routeCityNear(int iMaxDistance)
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	int iLoop;
+	// WTP: the colonial AI connects its colonies with at most 2 pioneers or 30% of its pioneers at a time, whichever is more
+	// (the others improve the colonies' plots)
+	if (kOwner.AI_isWorkforcePlanned())
+	{
+		int iRoadBuilders = 0;
+		for (CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kOwner.nextCity(&iLoop))
+		{
+			iRoadBuilders += kOwner.AI_plotTargetMissionAIs(pLoopCity->plot(), MISSIONAI_BUILD, getGroup());
+		}
+		if (iRoadBuilders >= std::max(2, kOwner.AI_totalUnitAIs(UNITAI_WORKER) * 30 / 100))
+		{
+			return false;
+		}
+	}
+	for (CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kOwner.nextCity(&iLoop))
+	{
+		CvCity* const pRouteToCity = pLoopCity->AI_getRouteToCity();
+		// (one pioneer per connection: nobody builds it from the other end either)
+		if (pRouteToCity == NULL || pLoopCity->area() != area()
+			|| plotDistance(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), pRouteToCity->getX_INLINE(), pRouteToCity->getY_INLINE()) > iMaxDistance
+			|| kOwner.AI_plotTargetMissionAIs(pRouteToCity->plot(), MISSIONAI_BUILD, getGroup()) > 0
+			|| (pRouteToCity->AI_getRouteToCity() == pLoopCity && kOwner.AI_plotTargetMissionAIs(pLoopCity->plot(), MISSIONAI_BUILD, getGroup()) > 0)
+			|| pLoopCity->plot()->isVisibleEnemyUnit(this) || pRouteToCity->plot()->isVisibleEnemyUnit(this)
+			|| kOwner.AI_getPlotDanger(pLoopCity->plot(), 2, false) > 0 || kOwner.AI_getPlotDanger(pRouteToCity->plot(), 2, false) > 0)
+		{
+			continue;
+		}
+		// WTP: the road itself must be buildable; it may lead through the land of others (natives), not through the land of a
+		// player we are at war with (in safe territory only, between colonies with native land in between, the road mission
+		// found no way and ended at once, and the pioneer chose the same road again every turn)
+		if (generatePath(pLoopCity->plot(), MOVE_NO_ENEMY_TERRITORY, true, NULL, PIONEER_MAX_PATH_TURNS)
+			&& getGroup()->generatePath(pLoopCity->plot(), pRouteToCity->plot(), MOVE_NO_ENEMY_TERRITORY, false))
+		{
+			getGroup()->pushMission(MISSION_MOVE_TO, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_BUILD, pRouteToCity->plot());
+			getGroup()->pushMission(MISSION_ROUTE_TO, pRouteToCity->getX_INLINE(), pRouteToCity->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, (getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pRouteToCity->plot());
+			// (the road exists already or the mission failed at once: the next connection)
+			if (getGroup()->getLengthMissionQueue() > 0)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+// WTP: the colonial AI's pioneers improve the plots of a colony in stages: 1. bonus resources with their improvement,
+// 2. one lodge or sawmill, 3. food improvements (farms) while the colony lacks food, 4. two more lodges or sawmills; after
+// that as usual (AI_improveCity). The lowest stage of all colonies first; within a stage the best yield value by distance
+// (plots of the pioneer's own colony count half the distance). One pioneer per improvement. Returns true if a mission was
+// pushed
+bool CvUnitAI::AI_wfImproveStages()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	static const ImprovementTypes eLodge = (ImprovementTypes)GC.getInfoTypeForString("IMPROVEMENT_LODGE");
+	static const ImprovementTypes eLumberjackCamp = (ImprovementTypes)GC.getInfoTypeForString("IMPROVEMENT_LUMBERJACK_CAMP");
+	static const ImprovementTypes eSawmill = (ImprovementTypes)GC.getInfoTypeForString("IMPROVEMENT_LUMBERMILL");
+	const PlayerTypes eParent = kOwner.getParent();
+	const CvCity* const pHome = getHomeCity();
+
+	// candidates: (key, index); the key orders by stage, then by value per distance
+	std::vector<std::pair<int, int> > aCandidates;
+	std::vector<CvPlot*> apPlots;
+	std::vector<BuildTypes> aeBuilds;
+	std::vector<CvCity*> apCities;
+	std::vector<int> aiStages;
+	int iLoop;
+	for (CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kOwner.nextCity(&iLoop))
+	{
+		if (pLoopCity->area() != area())
+		{
+			continue;
+		}
+		// lodges and sawmills the colony has
+		int iLumberImprovements = 0;
+		FOREACH(CityPlot)
+		{
+			const CvPlot* const pLoopPlot = plotCity(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), eLoopCityPlot);
+			if (pLoopPlot != NULL && pLoopPlot->getWorkingCity() == pLoopCity)
+			{
+				const ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
+				if (eImprovement != NO_IMPROVEMENT && (eImprovement == eLodge || eImprovement == eLumberjackCamp || eImprovement == eSawmill))
+				{
+					++iLumberImprovements;
+				}
+			}
+		}
+		const bool bFoodShortage = pLoopCity->AI().AI_isFoodShortage();
+		FOREACH(CityPlot)
+		{
+			if (eLoopCityPlot == CITY_HOME_PLOT)
+			{
+				continue;
+			}
+			CvPlot* const pLoopPlot = plotCity(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), eLoopCityPlot);
+			if (pLoopPlot == NULL || pLoopPlot->isWater() || pLoopPlot->area() != area() || pLoopPlot->getWorkingCity() != pLoopCity
+				|| pLoopPlot->isVisibleEnemyUnit(this) || kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_BUILD, getGroup()) > 0
+				|| kOwner.AI_getPlotDanger(pLoopPlot, 2, false) > 0) // WTP: no plot an enemy is near
+			{
+				continue;
+			}
+			const BonusTypes eBonus = pLoopPlot->getBonusType();
+			for (int iBuild = 0; iBuild < GC.getNumBuildInfos(); ++iBuild)
+			{
+				const BuildTypes eBuild = (BuildTypes)iBuild;
+				const CvBuildInfo& kBuild = GC.getBuildInfo(eBuild);
+				const ImprovementTypes eImprovement = (ImprovementTypes)kBuild.getImprovement();
+				if (eImprovement == NO_IMPROVEMENT || kBuild.getRoute() != NO_ROUTE || !canBuild(pLoopPlot, eBuild))
+				{
+					continue;
+				}
+				// the forest a colony keeps for its lumber is not cleared
+				if (pLoopPlot->getFeatureType() != NO_FEATURE && kBuild.isFeatureRemove(pLoopPlot->getFeatureType()) && !pLoopCity->AI().AI_canClearLumberFeature(pLoopPlot))
+				{
+					continue;
+				}
+				int iStage = 0;
+				int iValue = 0;
+				for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_YIELD_TYPES && iStage == 0; ++eYield)
+				{
+					const int iGain = pLoopPlot->getYieldWithBuild(eBuild, eYield, true) - pLoopPlot->getYield(eYield);
+					if (iGain <= 0)
+					{
+						continue;
+					}
+					const int iPrice = (eYield == YIELD_FOOD) ? 4 : std::max(1, (eParent != NO_PLAYER) ? GET_PLAYER(eParent).getYieldBuyPrice(eYield) : 1);
+					if (eBonus != NO_BONUS && GC.getBonusInfo(eBonus).getYieldChange(eYield) > 0)
+					{
+						iStage = 1; // the improvement of the bonus resource
+					}
+					else if ((eImprovement == eLodge || eImprovement == eSawmill) && eYield == YIELD_LUMBER && iLumberImprovements < 3)
+					{
+						iStage = (iLumberImprovements < 1) ? 2 : 4;
+					}
+					else if (bFoodShortage && eYield == YIELD_FOOD)
+					{
+						iStage = 3;
+					}
+					iValue = iGain * iPrice;
+				}
+				if (iStage == 0)
+				{
+					continue;
+				}
+				int iDistance = stepDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+				// out of reach even on roads
+				if (iDistance > 3 * PIONEER_MAX_PATH_TURNS * std::max(1, baseMoves()))
+				{
+					continue;
+				}
+				if (pLoopCity == pHome)
+				{
+					iDistance /= 2;
+				}
+				const int iKey = iStage * 1000000 - std::min(999999, iValue * 1000 / (iDistance + 2));
+				aCandidates.push_back(std::make_pair(iKey, (int)apPlots.size()));
+				apPlots.push_back(pLoopPlot);
+				aeBuilds.push_back(eBuild);
+				apCities.push_back(pLoopCity);
+				aiStages.push_back(iStage);
+			}
+		}
+	}
+	std::sort(aCandidates.begin(), aCandidates.end());
+	// (a stage out of reach: the next lower one; the search is limited, 24 plots are plenty)
+	for (uint i = 0; i < aCandidates.size() && i < 24; ++i)
+	{
+		const int k = aCandidates[i].second;
+		CvPlot* const pPlot = apPlots[k];
+		CvCity* const pCity = apCities[k];
+		if (!atPlot(pPlot) && !generatePath(pPlot, MOVE_NO_ENEMY_TERRITORY, true, NULL, PIONEER_MAX_PATH_TURNS))
+		{
+			continue;
+		}
+		if (getHomeCity() != pCity)
+		{
+			setHomeCity(pCity);
+		}
+		if (gUnitLogLevel >= 1) logWTPCity(*pCity, "WTP pioneer: %S builds %S at %d,%d for %S (stage %d)", getName().GetCString(),
+			GC.getBuildInfo(aeBuilds[k]).getDescription(), pPlot->getX_INLINE(), pPlot->getY_INLINE(), pCity->getName().GetCString(), aiStages[k]);
+		if (!atPlot(pPlot))
+		{
+			getGroup()->pushMission(MISSION_MOVE_TO, pPlot->getX_INLINE(), pPlot->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_BUILD, pPlot);
+		}
+		getGroup()->pushMission(MISSION_BUILD, aeBuilds[k], -1, 0, (getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pPlot);
+		return true;
+	}
+	return false;
+}
+
 bool CvUnitAI::AI_routeCity()
 {
 	PROFILE_FUNC();
@@ -17806,6 +21167,8 @@ bool CvUnitAI::AI_retreatFromDanger()
 		{
 			return false;
 		}
+		if (gUnitLogLevel >= 1 && hasAnyUnitInCargo()) logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d ship %S with passengers retreats from danger %d at %d,%d",
+			getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), iWaterDanger, getX_INLINE(), getY_INLINE());
 	}
 
 	if (AI_sailToEurope(false))
@@ -17914,12 +21277,39 @@ bool CvUnitAI::AI_treasureRetreat(int iMaxPathTurns)
 		return false;
 	}
 
-	for (int iPass = 0; iPass < 2; iPass++)
+	// WTP: a treasure already waiting in an own colony with a deep water harbour stays there for the galleon (it searched a
+	// path to every colony every turn)
 	{
+		const CvCity* const pHere = plot()->getPlotCity();
+		if (pHere != NULL && pHere->getOwnerINLINE() == getOwnerINLINE() && plot()->hasDeepWaterCoast() && pHere->isEuropeAccessable()
+			&& plot()->getNearestEurope() == eMainEurope)
+		{
+			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_AWAIT_PICKUP, plot());
+			return true;
+		}
+	}
+
+	// WTP: treasures go to the nearest own colony with a deep water harbour, where a galleon can pick them up; other
+	// colonies only if there is no such harbour within reach. Paths only to the 3 nearest colonies (by distance) of a pass
+	for (int iPass = 0; iPass < 4; iPass++)
+	{
+		const bool bDeepWaterOnly = iPass < 2;
+		std::vector<std::pair<int, int> > aCities; // (distance, city ID)
 		int iLoop;
 		for (CvCity* pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
 		{
+			aCities.push_back(std::make_pair(plotDistance(getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE()), pLoopCity->getID()));
+		}
+		std::sort(aCities.begin(), aCities.end());
+		int iSearched = 0;
+		for (uint iCity = 0; iCity < aCities.size() && iSearched < 3; ++iCity)
+		{
+			CvCity* const pLoopCity = GET_PLAYER(getOwnerINLINE()).getCity(aCities[iCity].second);
 			CvPlot* pLoopPlot = pLoopCity->plot();
+			if (bDeepWaterOnly && !(pLoopPlot->hasDeepWaterCoast() && pLoopCity->isEuropeAccessable()))
+			{
+				continue;
+			}
 			if (AI_plotValid(pLoopPlot))
 			{
 				if (!(pLoopPlot->isVisibleEnemyUnit(this)))
@@ -17927,11 +21317,23 @@ bool CvUnitAI::AI_treasureRetreat(int iMaxPathTurns)
 					if (pLoopPlot->getNearestEurope() == eMainEurope)
 					{
 						int iPathTurns = 0;
-						if (atPlot(pLoopPlot) || generatePath(pLoopPlot, ((iPass > 0) ? MOVE_IGNORE_DANGER : 0), true, &iPathTurns, iMaxPathTurns))
+						++iSearched;
+						if (atPlot(pLoopPlot) || generatePath(pLoopPlot, ((iPass % 2 > 0) ? MOVE_IGNORE_DANGER : 0), true, &iPathTurns, iMaxPathTurns))
 						{
 							int iValue = 3 + pLoopPlot->getDistanceToOcean();
-
 							iValue *= 3 + iPathTurns;
+							// WTP (user 2026-10-24): a port where other treasures of ours wait is preferred (they are merged there)
+							int iWaiting = 0;
+							CLLNode<IDInfo>* pTreasureNode = pLoopPlot->headUnitNode();
+							while (pTreasureNode != NULL)
+							{
+								const CvUnit* const pOther = pLoopPlot->getUnitNodeLoop(pTreasureNode);
+								if (pOther != NULL && pOther != this && pOther->getOwnerINLINE() == getOwnerINLINE() && pOther->getUnitInfo().isTreasure() && !pOther->isCargo())
+								{
+									++iWaiting;
+								}
+							}
+							iValue = iValue * 2 / (2 + iWaiting);
 
 							if (iValue < iBestValue)
 							{
@@ -17965,7 +21367,7 @@ bool CvUnitAI::AI_treasureRetreat(int iMaxPathTurns)
 		}
 		else
 		{
-			getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), ((iPass > 0) ? MOVE_IGNORE_DANGER : 0), false, false, MISSIONAI_AWAIT_PICKUP, pBestMissionPlot);
+			getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), ((iPass % 2 > 0) ? MOVE_IGNORE_DANGER : 0), false, false, MISSIONAI_AWAIT_PICKUP, pBestMissionPlot);
 			return true;
 		}
 	}
@@ -19061,7 +22463,7 @@ bool CvUnitAI::AI_poach()
 	if (pBestPoachPlot != NULL)
 	{
 		//No war roll.
-		if (!GET_TEAM(getTeam()).AI_performNoWarRolls(eBestPoachTeam))
+		if (GET_TEAM(getTeam()).AI_mayDeclareWarAsNative(eBestPoachTeam) && !GET_TEAM(getTeam()).AI_performNoWarRolls(eBestPoachTeam))
 		{
 			GET_TEAM(getTeam()).declareWar(eBestPoachTeam, true, WARPLAN_LIMITED);
 
@@ -19422,8 +22824,36 @@ bool CvUnitAI::AI_loadAdjacent(CvPlot* pPlot, bool bTestCity)
 	return false;
 }
 
+// WTP: AI hardy pioneers never give up their profession to join a city; regular pioneers only when the AI has
+// more pioneers than it needs
+bool CvUnitAI::AI_mayPioneerJoinCity() const
+{
+	if (isHuman() || AI_getUnitAIType() != UNITAI_WORKER)
+	{
+		return true;
+	}
+
+	const UnitClassTypes eUnitClass = getUnitClassType();
+	for (ProfessionTypes eProfession = FIRST_PROFESSION; eProfession < NUM_PROFESSION_TYPES; ++eProfession)
+	{
+		const CvProfessionInfo& kProfession = GC.getProfessionInfo(eProfession);
+		if (kProfession.getWorkRate() > 0 && kProfession.LbD_getExpert() == eUnitClass)
+		{
+			return false;
+		}
+	}
+
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	return kOwner.AI_totalUnitAIs(UNITAI_WORKER) > kOwner.AI_neededWorkers(NULL);
+}
+
 bool CvUnitAI::AI_allowedToJoin(const CvCity& kCity) const
 {
+	if (!AI_mayPioneerJoinCity() || AI_isSoldier())
+	{
+		return false;
+	}
+
 	// Bail if we're the leader of other units
 	if (getGroup() != NULL && getGroup()->getNumUnits() > 1)
 		return false;
@@ -19645,7 +23075,16 @@ void CvUnitAI::AI_sellYieldUnits(TradeLocationTypes eLocation)
 	{
 		if (eLocation == TRADE_LOCATION_EUROPE)
 		{
-			kOwner.sellYieldUnitToEurope(apUnits[i], apUnits[i]->getYieldStored(), 0);
+			// WTP: every sale in Europe goes to the trade log, with the kind of ship that brought it
+			const YieldTypes eYield = apUnits[i]->getYield();
+			const bool bTreasure = apUnits[i]->getUnitInfo().isTreasure();
+			const int iAmount = apUnits[i]->getYieldStored();
+			const int iGoldBefore = kOwner.getGold();
+			kOwner.sellYieldUnitToEurope(apUnits[i], iAmount, 0);
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_TRADE, getOwnerINLINE(), "WTP Europe sale: Player %d (%S) turn %d %S (%s) sells %d %S for %d gold (gold now %d)",
+				getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(),
+				AI_isNativeTradeShip() ? "native trade ship" : "transport", iAmount,
+				bTreasure ? L"treasure" : (eYield != NO_YIELD ? GC.getYieldInfo(eYield).getDescription() : L"?"), kOwner.getGold() - iGoldBefore, kOwner.getGold());
 		}
 		else if (eLocation == TRADE_LOCATION_AFRICA)
 		{
@@ -19838,3 +23277,254 @@ CvSelectionGroupAI* CvUnitAI::AI_getGroup()
 	return static_cast<CvSelectionGroupAI*>(getGroup());
 	//return GET_PLAYER(getOwner()).AI_getSelectionGroup(getGroupID());
 } // </advc.003u>
+
+// WTP: workforce plan tasks
+void CvUnitAI::AI_setWfTask(int iTask, int iCityID, ProfessionTypes eProfession, int iPlotX, int iPlotY, int iVillageX, int iVillageY)
+{
+	// WTP: a new destination: a move still under way would go on to the old one (the AI continues missions before it asks
+	// the unit again), and a colonist in a group would follow the head of the group; it sets out alone
+	const bool bLearnTask = iTask == WF_LEARN || iTask == WF_FOOD_LEARN;
+	const bool bWasLearnTask = m_iWfTask == WF_LEARN || m_iWfTask == WF_FOOD_LEARN;
+	const bool bNewDestination = iTask != WF_NONE && (m_iWfTask == WF_NONE || bLearnTask != bWasLearnTask
+		|| (bLearnTask ? (iVillageX != m_iWfVillageX || iVillageY != m_iWfVillageY) : iCityID != m_iWfCityID));
+	if (bNewDestination)
+	{
+		GET_PLAYER(getOwnerINLINE()).AI_clearWfLearnWait(getID()); // (also the waiting for a ship)
+	}
+	if (bNewDestination && isOnMap() && !isCargo() && getGroup() != NULL)
+	{
+		if (getGroup()->getNumUnits() > 1)
+		{
+			joinGroup(NULL);
+		}
+		else
+		{
+			getGroup()->clearMissionQueue();
+		}
+	}
+	m_iWfTask = iTask;
+	m_iWfCityID = iCityID;
+	m_eWfProfession = eProfession;
+	m_iWfPlotX = iPlotX;
+	m_iWfPlotY = iPlotY;
+	m_iWfVillageX = iVillageX;
+	m_iWfVillageY = iVillageY;
+}
+
+void CvUnitAI::AI_clearWfTask()
+{
+	AI_setWfTask(WF_NONE, -1, NO_PROFESSION, -1, -1, -1, -1);
+}
+
+// called when a unit is replaced by a new one (giving up the specialty, learning): the task moves on
+void CvUnitAI::AI_copyWfTask(const CvUnitAI& kOther)
+{
+	if (kOther.getOwnerINLINE() != getOwnerINLINE())
+	{
+		AI_clearWfTask(); // captured or converted to another player
+		return;
+	}
+	AI_setWfTask(kOther.m_iWfTask, kOther.m_iWfCityID, kOther.m_eWfProfession, kOther.m_iWfPlotX, kOther.m_iWfPlotY, kOther.m_iWfVillageX, kOther.m_iWfVillageY);
+	// WTP: the learned food expert goes back to its starving colony and works the food job there
+	if (m_iWfTask == WF_FOOD_LEARN && AI_getIdealProfession() != NO_PROFESSION)
+	{
+		m_iWfTask = (AI_getIdealProfession() == m_eWfProfession) ? WF_EXPERT_JOB : WF_JOIN_CITY;
+	}
+	if (m_iWfTask == WF_RETRAIN && AI_getIdealProfession() == NO_PROFESSION)
+	{
+		m_iWfTask = WF_LEARN;
+	}
+	else if (m_iWfTask == WF_LEARN && AI_getIdealProfession() != NO_PROFESSION)
+	{
+		m_iWfTask = (AI_getIdealProfession() == m_eWfProfession) ? WF_EXPERT_JOB : WF_NONE;
+	}
+}
+
+bool CvUnitAI::AI_isWfJob(const CvCity& kCity, ProfessionTypes eProfession, const CvPlot* pPlot) const
+{
+	if (m_iWfTask != WF_EXPERT_JOB || m_iWfCityID != kCity.getID() || m_eWfProfession != eProfession)
+	{
+		return false;
+	}
+	if (m_iWfPlotX < 0)
+	{
+		return pPlot == NULL;
+	}
+	return pPlot != NULL && pPlot->getX_INLINE() == m_iWfPlotX && pPlot->getY_INLINE() == m_iWfPlotY;
+}
+
+// carry out the task; returns true if a mission was pushed or the unit was replaced
+bool CvUnitAI::AI_doWfTask()
+{
+	MOD_PROFILE("CvUnitAI::AI_doWfTask");
+	if (m_iWfTask == WF_NONE)
+	{
+		return false;
+	}
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+
+	if (m_iWfTask == WF_RETRAIN)
+	{
+		if (!isCargo() && canClearSpecialty())
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PLAN, getOwnerINLINE(), "WTP plan: Player %d (%S) %S gives up its specialty", getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString());
+			clearSpecialty(); // this unit is replaced, the new one has the task as WF_LEARN
+			return true;
+		}
+		AI_clearWfTask();
+		return false;
+	}
+
+	if (m_iWfTask == WF_LEARN || m_iWfTask == WF_FOOD_LEARN)
+	{
+		CvPlot* const pVillage = GC.getMap().plotINLINE(m_iWfVillageX, m_iWfVillageY);
+		if (pVillage == NULL || !pVillage->isCity() || isCargo())
+		{
+			if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PLAN, getOwnerINLINE(), "WTP plan: Player %d (%S) %S cannot learn: village gone or on a ship", getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString());
+			AI_clearWfTask();
+			return false;
+		}
+		if (atPlot(pVillage))
+		{
+			// the natives do not teach while they are furious
+			const bool bFurious = GET_PLAYER(pVillage->getOwnerINLINE()).AI_getAttitude(getOwnerINLINE()) == ATTITUDE_FURIOUS;
+			if (!bFurious && canLearn())
+			{
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PLAN, getOwnerINLINE(), "WTP plan: Player %d (%S) %S learns in %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString(),
+					pVillage->getPlotCity()->getName().GetCString());
+				kOwner.AI_clearWfLearnWait(getID());
+				learn();
+				return true;
+			}
+			// WTP: learning is blocked (another colonist learns here, or the natives are furious): wait in the village and try
+			// again; after 15 turns the expert is bought in Europe or Africa instead and this unit is free again
+			const int iWaited = kOwner.AI_wfLearnWaitTurns(getID(), true);
+			if (iWaited >= 15 && m_iWfTask == WF_FOOD_LEARN)
+			{
+				// WTP: a food expert is not bought instead; the colonist is free again
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PLAN, getOwnerINLINE(), "WTP plan: Player %d (%S) %S gives up learning a food expert in %S after %d turns", getOwnerINLINE(),
+					kOwner.getCivilizationDescription(0), getName().GetCString(), pVillage->getPlotCity()->getName().GetCString(), iWaited);
+				kOwner.AI_clearWfLearnWait(getID());
+				AI_clearWfTask();
+				return false;
+			}
+			if (iWaited >= 15)
+			{
+				const UnitClassTypes eTeach = pVillage->getPlotCity()->getTeachUnitClass();
+				if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PLAN, getOwnerINLINE(), "WTP plan: Player %d (%S) %S gives up learning in %S after %d turns, %S is bought instead", getOwnerINLINE(),
+					kOwner.getCivilizationDescription(0), getName().GetCString(), pVillage->getPlotCity()->getName().GetCString(), iWaited,
+					eTeach != NO_UNITCLASS ? GC.getUnitClassInfo(eTeach).getDescription() : L"-");
+				kOwner.AI_setWfExpertToBuy(eTeach);
+				kOwner.AI_clearWfLearnWait(getID());
+				AI_clearWfTask();
+				return false;
+			}
+			if (gUnitLogLevel >= 1 && iWaited == 0) logWTP(WTP_LOG_PLAN, getOwnerINLINE(), "WTP plan: Player %d (%S) %S waits in %S to learn (learn unit %d, moves %d)", getOwnerINLINE(),
+				kOwner.getCivilizationDescription(0), getName().GetCString(), pVillage->getPlotCity()->getName().GetCString(), (int)getLearnUnitType(pVillage), (int)canMove());
+			getGroup()->pushMission(MISSION_SKIP);
+			return true;
+		}
+		if (generatePath(pVillage, MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, true))
+		{
+			getGroup()->pushMission(MISSION_MOVE_TO, pVillage->getX_INLINE(), pVillage->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, false, false, MISSIONAI_LEARN, pVillage);
+			return true;
+		}
+		if (gUnitLogLevel >= 1) logWTP(WTP_LOG_PLAN, getOwnerINLINE(), "WTP plan: Player %d (%S) %S cannot learn: no path to %S", getOwnerINLINE(), kOwner.getCivilizationDescription(0), getName().GetCString(),
+			pVillage->getPlotCity()->getName().GetCString());
+		AI_clearWfTask();
+		return false;
+	}
+
+	if (m_iWfTask == WF_EXPERT_JOB || m_iWfTask == WF_JOIN_CITY || m_iWfTask == WF_WAIT)
+	{
+		CvCity* pCity = kOwner.getCity(m_iWfCityID);
+		if (pCity == NULL)
+		{
+			AI_clearWfTask();
+			return false;
+		}
+		// WTP: a colonist moving for food checks its target on the way and on arrival: if the colony has no food to
+		// spare any more (it would lose food after he joined), he looks for another one or is free again
+		if (m_iWfTask == WF_JOIN_CITY && kOwner.AI_foodSurplusForNewcomer(*pCity, getID()) < 0)
+		{
+			CvCity* const pNew = kOwner.AI_bestFoodSurplusCity(*pCity, pCity, getID());
+			if (gUnitLogLevel >= 1) logWTPCity(*pCity, "WTP food: %S does not join %S (food %+d), %s %S", getName().GetCString(), pCity->getName().GetCString(),
+				pCity->foodDifference(), pNew != NULL ? "goes to" : "finds no other colony with food to spare", pNew != NULL ? pNew->getName().GetCString() : L"");
+			if (pNew == NULL)
+			{
+				AI_clearWfTask();
+				return false;
+			}
+			m_iWfCityID = pNew->getID();
+			pCity = pNew;
+		}
+		if (atPlot(pCity->plot()))
+		{
+			kOwner.AI_clearWfLearnWait(getID()); // (the waiting for a ship on the way)
+			// WTP: a planned colonist (or one without a job) waits on the colony plot; the workforce plan seats it when the
+			// food allows it (it eats nothing out here)
+			if (m_iWfTask == WF_EXPERT_JOB || m_iWfTask == WF_WAIT)
+			{
+				// a colonist without a job becomes a soldier, pioneer, ... if the AI needs one
+				if (m_iWfTask == WF_WAIT && (AI_changeUnitAIType(99) || AI_changeUnitAIType(49)))
+				{
+					AI_clearWfTask();
+					return true;
+				}
+				getGroup()->pushMission(MISSION_SKIP);
+				return true;
+			}
+			if (canJoinCity(plot()))
+			{
+				// WTP: a unit that only moved for food is an ordinary citizen there
+				if (m_iWfTask == WF_JOIN_CITY)
+				{
+					if (gUnitLogLevel >= 1) logWTPCity(*pCity, "WTP food: %S joins %S (food %+d)", getName().GetCString(), pCity->getName().GetCString(), pCity->foodDifference());
+					AI_clearWfTask();
+				}
+				joinCity();
+				return true;
+			}
+			AI_clearWfTask();
+			return false;
+		}
+		if (isCargo())
+		{
+			// the transport takes us there
+			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_FOUND, pCity->plot());
+			return true;
+		}
+		// WTP: the faster way of the plan's travel times: over land, or walking to a port and taking a ship there (a colonist
+		// that waited too long for a ship walks if it can)
+		int iPortID = -1;
+		kOwner.AI_wfTravelTurns(*plot(), *pCity, &iPortID);
+		CvCity* const pPort = (iPortID >= 0) ? kOwner.getCity(iPortID) : NULL;
+		if (pPort != NULL && AI_wfTravelByShip(*pCity, pPort))
+		{
+			return true;
+		}
+		if (generatePath(pCity->plot(), MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, true))
+		{
+			getGroup()->pushMission(MISSION_MOVE_TO, pCity->getX_INLINE(), pCity->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY | MOVE_NO_PEAK, false, false, MISSIONAI_FOUND, pCity->plot());
+			return true;
+		}
+		// WTP: over peaks without a road only if there is no other way
+		if (generatePath(pCity->plot(), MOVE_NO_ENEMY_TERRITORY, true))
+		{
+			getGroup()->pushMission(MISSION_MOVE_TO, pCity->getX_INLINE(), pCity->getY_INLINE(), MOVE_NO_ENEMY_TERRITORY, false, false, MISSIONAI_FOUND, pCity->plot());
+			return true;
+		}
+		// no way over land (mountains, water): the nearest port
+		if (AI_wfTravelByShip(*pCity, NULL))
+		{
+			return true;
+		}
+		// the colony cannot be reached: the plan does not send this colonist there for a while
+		if (gUnitLogLevel >= 1) logWTPCity(*pCity, "WTP plan: %S at %d,%d cannot reach %S (no path over land, no ship), task %d dropped",
+			getName().GetCString(), getX_INLINE(), getY_INLINE(), pCity->getName().GetCString(), m_iWfTask);
+		kOwner.AI_setWfUnreachable(getID(), pCity->getID());
+		AI_clearWfTask();
+		return false;
+	}
+	return false;
+}

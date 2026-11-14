@@ -83,9 +83,11 @@ public:
 	ProfessionTypes AI_getOldProfession() const;
 	void AI_setOldProfession(ProfessionTypes eProfession);
 	ProfessionTypes AI_getIdealProfession() const;
+	bool AI_isUnwantedSettler() const; // WTP: experts for bells, crosses and hammers rather stay in their trade
 
 	bool AI_loadAdjacent(CvPlot* pPlot, bool bTestCity);
 	bool AI_allowedToJoin(const CvCity& kCity) const;
+	bool AI_mayPioneerJoinCity() const;
 
 	void read(CvSavegameReader reader);
 	void write(CvSavegameWriter writer);
@@ -98,6 +100,49 @@ public:
 
 	bool is(UnitAIStates) const;
 	bool is(UnitAITypes) const;
+
+	// WTP: workforce plan task of a colonist (set by CvPlayerAI::AI_doWorkforcePlan, saved)
+	enum WorkforceTask
+	{
+		WF_NONE = 0,
+		WF_EXPERT_JOB = 1, // work profession eProfession in city (on plot X/Y, or in a building if X < 0)
+		WF_RETRAIN = 2,    // give up the specialty, then learn in the village and do the job
+		WF_LEARN = 3,      // learn in the village at VillageX/Y, then do the job
+		WF_JOIN_CITY = 4,  // move to the city and join it (it has food to spare; the plan keeps this task)
+		WF_FOOD_LEARN = 5, // learn a food expert in the village at VillageX/Y, then work the food job in the city (kept)
+		WF_WAIT = 6,       // no job: go to the city and wait on its plot (the workforce plan seats it when a job is free)
+	};
+	int AI_getWfTask() const { return m_iWfTask; }
+	int AI_getWfCityID() const { return m_iWfCityID; }
+	ProfessionTypes AI_getWfProfession() const { return m_eWfProfession; }
+	int AI_getWfPlotX() const { return m_iWfPlotX; }
+	int AI_getWfPlotY() const { return m_iWfPlotY; }
+	int AI_getWfVillageX() const { return m_iWfVillageX; }
+	int AI_getWfVillageY() const { return m_iWfVillageY; }
+	void AI_setWfTask(int iTask, int iCityID, ProfessionTypes eProfession, int iPlotX, int iPlotY, int iVillageX, int iVillageY);
+	void AI_clearWfTask();
+	void AI_copyWfTask(const CvUnitAI& kOther);
+	bool AI_isWfJob(const CvCity& kCity, ProfessionTypes eProfession, const CvPlot* pPlot) const;
+	bool AI_doWfTask();
+
+	// WTP: native trade automation of a human player's ship: it trades with the villages around its home colony (the nearest
+	// colony when the automation was switched on) and comes back there from Europe
+	void AI_startNativeTrade();
+	// WTP: a transport that has done nothing in Europe this turn: logs its state and runs its Europe routine
+	void AI_europeIdleFallback();
+	bool AI_isHumanNativeTrade() const;
+	bool AI_hasNativeTradeAutomation() const; // a human player's native trade ship (home colony and trade state)
+	bool AI_isNativeVillageTargeted(const CvCity& kVillage) const;
+	CvCity* AI_nativeTradeHomeCity() const;
+	bool AI_nativeTradeInHomeArea(const CvCity& kVillage) const;
+	bool AI_humanNativeTradeEurope();
+	CvCity* AI_nativeTradeFindHome() const;
+	void AI_clearNativeTradeHome() { m_iNativeTradeHomeCityID = -1; }
+	// WTP: native supply automation of a human player's coastal ship (AUTOMATE_NATIVE_SUPPLY): it buys goods in the villages
+	// around its home colony (the nearest colony when switched on), brings them there and starts again; no trips to Europe
+	void AI_startNativeSupply();
+	bool AI_isNativeSupplyShip() const;
+	void AI_nativeSupplyMove();
 
 protected:
 
@@ -113,7 +158,28 @@ protected:
 	ProfessionTypes m_eOldProfession;
 
 	int m_iAutomatedAbortTurn;
-	
+	// WTP: workforce plan task
+	int m_iWfTask;
+	int m_iWfCityID;
+	ProfessionTypes m_eWfProfession;
+	int m_iWfPlotX;
+	int m_iWfPlotY;
+	int m_iWfVillageX;
+	int m_iWfVillageY;
+	enum { NUM_FOUND_BLOCKED_SITES = 4 };
+	int m_aiFoundBlockedPlot[NUM_FOUND_BLOCKED_SITES]; // WTP (not saved): sites this settler could not reach lately
+	int m_aiFoundBlockedTurn[NUM_FOUND_BLOCKED_SITES];
+	int m_iSettlerAboardTurn; // WTP (not saved): the turn this settler began to look for a site from a ship at sea
+	void AI_blockFoundSite(int iPlot);
+	bool AI_isFoundSiteBlocked(int iPlot) const;
+	int m_iSettlerLogTurn; // WTP: settler log (not saved): the turn of the counts below
+	int m_iSettlerLogCount; // updates of this settler in that turn
+	int m_iSettlerSearchLogTurn; // the turn its site search was logged in
+	int m_iNativeTradeBuyTurn; // WTP: native trade ship: turn of its last purchase at a village
+	int m_iNativeTradeArriveTurn; // WTP: native trade ship: turn of its first move on the map after Europe (-1: not yet)
+	int m_iNativeTradeSlotsFullTurn; // WTP: native trade ship: turn all its cargo slots were taken (-1: not yet)
+	int m_iNativeTradeHomeCityID; // WTP: native trade automation (human): the colony it trades around (-1: none)
+
 	mutable ProfessionTypes m_eIdealProfessionCache;
 
 	// < JAnimals Mod Start >
@@ -158,6 +224,12 @@ protected:
 	void AI_workerSeaMove();
 	//End TAC Whaling, ray
 	void AI_transportSeaMove();
+	void AI_imperialTransportMove(); // WTP
+	void AI_logShipTarget();
+	void AI_logSettler();
+	bool AI_sailForAfricaUnits();
+	static const char* s_szSettlerStep; // WTP: the branch of AI_settlerMove the settler ended in (settler log)
+	static const char* s_szWtpShipReason; // WTP: why a transport chose its target this turn (ship log)
 	void AI_transportCoastMove();
 	void AI_assaultSeaMove();
 	void AI_escortSeaMove();	// TAC - AI Escort Sea - koma13
@@ -188,6 +260,7 @@ protected:
 
 	bool AI_sailToPreferredPort(bool bMove = true);
 	bool AI_sailToEurope(bool bMove = true);
+	CvPlot* AI_europeTreasureTarget(CvPlot*& pArrival, bool& bFar);
 	bool AI_sailToAfrica(bool bMove = true); /*** TRIANGLETRADE 10/28/08 by DPII ***/
 	bool AI_sailToPortRoyal(bool bMove = true); // R&R, ray, Port Royal
 
@@ -222,11 +295,16 @@ protected:
 	bool AI_spreadReligion();
 
 	bool AI_spreadTradePosts(); // WTP, ray, Native Trade Posts - START
+	bool AI_tradePostVoyage();
 
 	bool AI_learn(int iRange = 8);
+	bool AI_routeCityNear(int iMaxDistance);
+	bool AI_wfImproveStages(); // WTP
+	void AI_logPioneer(const char* szReason); // WTP
 
 	bool AI_requestPickup(int iMaxPath = MAX_INT);
-	bool AI_respondToPickup(int iMaxPath = MAX_INT, UnitAITypes eUnitAI = NO_UNITAI);
+	void AI_wakeTransportForPickup(const CvPlot* pPickupPlot); // WTP
+	bool AI_respondToPickup(int iMaxPath = MAX_INT, UnitAITypes eUnitAI = NO_UNITAI, bool bAlongTheWay = false);
 
 	bool AI_pickupAdjacantUnits();
 
@@ -280,7 +358,7 @@ protected:
 	bool AI_safety();
 	bool AI_hide();
 	bool AI_goody(bool bIgnoreCity = false);
-	bool AI_goodyRange(int iRange, bool bIgnoreCity = false);
+	bool AI_goodyRange(int iRange, bool bIgnoreCity = false, int iMaxPathTurns = MAX_INT);
 
 	bool AI_isValidExplore(CvPlot* pPlot) const;
 	int AI_explorePlotValue(CvPlot* pPlot, bool bImportantOnly = false) const;
@@ -340,6 +418,27 @@ protected:
 	bool AI_yieldDestination(int iMaxPath = MAX_INT);
 	bool AI_yieldNativeDestination(int iMaxPath = MAX_INT);
 	bool AI_tradeWithCity();
+	// WTP: native trade ship, deals with the native village on this plot
+	bool AI_isNativeTradeShip() const;
+	bool AI_knowsMusketVillage() const;
+	static const int NATIVE_TRADE_MUSKET_GOLD = 2500; // WTP: a tribe with more gold gets muskets from the native trade ship
+	static const int NATIVE_TRADE_MUSKET_MIN_PROFIT = 500; // WTP: a village gets the muskets only if it pays this much more than they cost in Europe
+	static const int NATIVE_TRADE_SELL_TURNS = 15; // WTP: the native trade ship takes unsold goods back to Europe this many turns after its arrival
+	static const int NATIVE_TRADE_ARRIVAL_TURNS = 8; // WTP: the native trade ship comes from Europe near a village it reaches within this many turns
+	CvPlot* AI_nativeTradeArrivalPlot(bool bMuskets, CvCity*& pVillage, int& iVillageTurns);
+	int AI_nativeMusketGold(PlayerTypes eNative) const;
+	int AI_nativeMusketMinPrice(int iAmount) const;
+	int AI_nativeTradeMusketsAboard() const;
+	int AI_nativeTradeCargoCount(bool bGoods, bool* pbMuskets) const;
+	void AI_nativeTradeShipMove();
+	void AI_explorerShipMove();
+	bool AI_nativeTradeEurope();
+	bool AI_crossFromEurope(CvPlot* pArrival = NULL);
+	int AI_nativeTradeSell(CvWString* pszDeals = NULL);
+	int AI_nativeTradeBuy(CvWString* pszDeals = NULL);
+	bool AI_canTradeWithVillage(const CvCity& kCity) const;
+	CvCity* AI_nativeTradeBuyVillage(bool bDraw = true);
+	CvCity* AI_nativeTradeSellVillage(const CvCity* pFavourite, bool bMuskets);
 	
 	// TAC - AI Assault Sea - koma13, jdog5000(BBAI) - START
 	bool AI_assaultSeaTransport(bool bNative = false);
@@ -420,6 +519,13 @@ protected:
 	void AI_unloadUnits(TradeLocationTypes eLocation);
 	void AI_automateSailTo(const SailToHelper& sth);
 	void AI_transportSettler();
+	void AI_unloadPassengers(bool bAll);
+	bool AI_wfTravelByShip(const CvCity& kTarget, CvCity* pPreferredPort);
+	bool AI_canCarryTo(const CvUnit& kPassenger) const; // WTP
+	bool AI_isAfricaWorthy(YieldTypes eYield) const; // WTP
+	bool AI_collectGoodsForAfrica(); // WTP
+	bool AI_isSoldier() const;
+	CvCity* AI_transportDestinationCity() const;
 	bool AI_pickupStranded(UnitAITypes eUnitAI = NO_UNITAI, int iMaxPath = MAX_INT);
 
 	// added so under cheat mode we can call protected functions for testing

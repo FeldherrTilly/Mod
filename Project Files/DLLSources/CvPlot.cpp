@@ -2646,6 +2646,13 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 		}
 		// R&R, ray, one Route Type after the other - START
 
+		// WTP: the colonial AI builds the first road level only, it is enough (its pioneers upgraded roads early and were
+		// missing for the improvements)
+		if (ePlayer != NO_PLAYER && GC.getRouteInfo(eRoute).getValue() > 1 && GET_PLAYER(ePlayer).AI_isWorkforcePlanned())
+		{
+			return false;
+		}
+
 		//WTP, ray, Large Rivers - START
 		// no routes on Large Rivers
 		if (getTerrainType() == TERRAIN_LARGE_RIVERS)
@@ -11101,6 +11108,21 @@ int CvPlot::getTurnDamage() const
 	}
 	
 	return 0;
+}
+
+// WTP: a water plot next to a colony of ePlayer. The AI avoids plots with turn damage (storms), but a damaging feature
+// (e.g. a stone reef) can be the only water access of a colony; ships of the owner may pass such a harbour entrance
+bool CvPlot::isHarbourEntranceOf(PlayerTypes ePlayer) const
+{
+	if (!isWater())
+		return false;
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		const CvPlot* const pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), ((DirectionTypes)iI));
+		if (pAdjacentPlot != NULL && pAdjacentPlot->isCity() && pAdjacentPlot->getOwnerINLINE() == ePlayer)
+			return true;
+	}
+	return false;
 }
 
 EXE_Plot CvPlot::EXE()

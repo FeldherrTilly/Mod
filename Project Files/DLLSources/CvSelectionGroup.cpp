@@ -2711,7 +2711,7 @@ bool CvSelectionGroup::groupDeclareWar(CvPlot* pPlot, bool bForce)
 	{
 		if (ePlotTeam != NO_TEAM && kTeam.AI_isSneakAttackReady(ePlotTeam))
 		{
-			if (kTeam.canDeclareWar(ePlotTeam))
+			if (kTeam.canDeclareWar(ePlotTeam) && kTeam.AI_mayDeclareWarAsNative(ePlotTeam))
 			{
 				kTeam.declareWar(ePlotTeam, true, NO_WARPLAN);
 			}
@@ -3526,21 +3526,50 @@ bool CvSelectionGroup::isAutomated() const
 }
 
 
-void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue)
+void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue, bool bImplicit)
 {
 	FAssert(getOwnerINLINE() != NO_PLAYER);
 
 	if (getAutomateType() != eNewValue)
 	{
+		const AutomateTypes eOldValue = getAutomateType();
 		m_eAutomateType = eNewValue;
 
 		clearMissionQueue();
 		setActivityType(ACTIVITY_AWAKE);
 
+		// WTP: native trade automation: the ship gets its home colony and trade state (a ship that lost the automation on its way
+		// to or from Europe keeps them); it drops them when switched to another automation
+		if (eNewValue == AUTOMATE_NATIVE_TRADE && getHeadUnit() != NULL)
+		{
+			CvUnitAI* const pTrader = static_cast<CvUnitAI*>(getHeadUnit());
+			if (!pTrader->AI_hasNativeTradeAutomation())
+			{
+				pTrader->AI_startNativeTrade();
+			}
+		}
+		else if (eOldValue == AUTOMATE_NATIVE_TRADE && eNewValue != NO_AUTOMATE && getHeadUnit() != NULL)
+		{
+			getHeadUnit()->AI_setUnitAIState(UNITAI_STATE_DEFAULT);
+		}
+		// WTP: native supply automation: the ship gets its home colony (the nearest one) and drops it when switched off
+		if (eNewValue == AUTOMATE_NATIVE_SUPPLY && getHeadUnit() != NULL)
+		{
+			static_cast<CvUnitAI*>(getHeadUnit())->AI_startNativeSupply();
+		}
+		else if (eOldValue == AUTOMATE_NATIVE_SUPPLY && eNewValue != AUTOMATE_NATIVE_TRADE && getHeadUnit() != NULL)
+		{
+			static_cast<CvUnitAI*>(getHeadUnit())->AI_clearNativeTradeHome();
+		}
+
 		// if canceling automation, cancel on cargo as well
 		if (eNewValue == NO_AUTOMATE)
 		{
-			getHeadUnit()->AI_setUnitAIState(UNITAI_STATE_DEFAULT);
+			// WTP: not when a unit only leaves the group (the native trade ship keeps its trade state)
+			if (!bImplicit && getHeadUnit() != NULL)
+			{
+				getHeadUnit()->AI_setUnitAIState(UNITAI_STATE_DEFAULT);
+			}
 
 			CvPlot* pPlot = plot();
 			if (pPlot != NULL)
@@ -3555,7 +3584,8 @@ void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue)
 						CvUnit* pTransportUnit = pCargoUnit->getTransportUnit();
 						if (pTransportUnit != NULL && pTransportUnit->getGroup() == this)
 						{
-							pCargoUnit->getGroup()->setAutomateType(NO_AUTOMATE);
+							// WTP: passengers keep their tasks (colonists with the job automation keep their job)
+							pCargoUnit->getGroup()->setAutomateType(NO_AUTOMATE, true);
 						}
 					}
 				}
@@ -3683,6 +3713,7 @@ int CvSelectionGroup::getPathLength() const
 // generatePath and thus attempting to access the internal pf state to get the nodes will be invalid!
 bool CvSelectionGroup::generatePath(const CvPlot* pFromPlot, const CvPlot* pToPlot, int iFlags, bool bReuse, int* piPathTurns, int iMaxPath, bool bUseTempFinder, bool bCalledFromPython) const
 {
+	MOD_PROFILE("CvSelectionGroup::generatePath");
 	PROFILE("CvSelectionGroup::generatePath()");
 
 	if (pFromPlot == NULL || pToPlot == NULL) {
@@ -3818,7 +3849,7 @@ CLLNode<IDInfo>* CvSelectionGroup::deleteUnitNode(CLLNode<IDInfo>* pNode)
 
 	if (getOwnerINLINE() != NO_PLAYER)
 	{
-		setAutomateType(NO_AUTOMATE);
+		setAutomateType(NO_AUTOMATE, true); // WTP: implicit (the unit keeps its task)
 		clearMissionQueue();
 
 		switch (getActivityType())
