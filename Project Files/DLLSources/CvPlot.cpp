@@ -4152,6 +4152,12 @@ PlayerTypes CvPlot::calculateCulturalOwner() const
 			PlayerTypes ePlayer = (PlayerTypes)iI;
 			int iCulture = getCulture(ePlayer);
 			int iFortStrength = getFortCultureStrength(ePlayer);
+			// WTP: natives can't win back land that was bought from them
+			if (isBoughtFromNatives() && GET_PLAYER((PlayerTypes)iI).isNative())
+			{
+				continue;
+			}
+
 
 			if (iCulture > 0 || iFortStrength > 0)
 			{
@@ -5496,6 +5502,16 @@ void CvPlot::changeForceUnownedTimer(int iChange)
 	setForceUnownedTimer(getForceUnownedTimer() + iChange);
 }
 
+bool CvPlot::isBoughtFromNatives() const
+{
+	return m_bBoughtFromNatives;
+}
+
+void CvPlot::setBoughtFromNatives(bool bNewValue)
+{
+	m_bBoughtFromNatives = bNewValue;
+}
+
 
 int CvPlot::getCityRadiusCount() const
 {
@@ -5908,6 +5924,12 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits)
 		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_PLOT_OWNER_CHANGE, eNewValue, (char*)NULL, getX_INLINE(), getY_INLINE());
 
 		setOwnershipDuration(0);
+
+		// WTP: once the buyer loses the land, natives may claim it again
+		if (eNewValue == NO_PLAYER || GET_PLAYER(eNewValue).isNative())
+		{
+			setBoughtFromNatives(false);
+		}
 
 		if (isOwned())
 		{
@@ -7993,6 +8015,12 @@ void CvPlot::setCulture(PlayerTypes eIndex, int iNewValue, bool bUpdate)
 
 void CvPlot::changeCulture(PlayerTypes eIndex, int iChange, bool bUpdate)
 {
+	// WTP: no native culture grows on land bought from natives
+	if (iChange > 0 && isBoughtFromNatives() && GET_PLAYER(eIndex).isNative())
+	{
+		return;
+	}
+
 	if (0 != iChange)
 	{
 		setCulture(eIndex, (getCulture(eIndex) + iChange), bUpdate);
@@ -8024,6 +8052,13 @@ int CvPlot::getBuyPrice(PlayerTypes ePlayer) const
 		if (iBuyCultureAmount > iFullCulturePriceThreshold)
 		{
 			iBuyCultureAmount = iFullCulturePriceThreshold + (iBuyCultureAmount - iFullCulturePriceThreshold) / 5;
+		}
+
+		// WTP: the cost from the natives' culture (above the minimum price) is halved
+		const int iMinCulture = GC.getDefineINT("BUY_PLOT_MIN_CULTURE") * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getGrowthPercent() / 100;
+		if (iBuyCultureAmount > iMinCulture)
+		{
+			iBuyCultureAmount = iMinCulture + (iBuyCultureAmount - iMinCulture) / 2;
 		}
 	}
 	// WTP, Schmiddie, Native Land Price Scaling - END
@@ -8059,6 +8094,13 @@ int CvPlot::getBuyPrice(PlayerTypes ePlayer) const
 
 	iBuyPrice *= std::max(0, iModifier);
 	iBuyPrice /= 100;
+
+	// WTP: the natives' land of a colony (3x3 plots) never costs more than 4000 gold
+	static const int NATIVE_LAND_MAX_COLONY_PRICE = 4000;
+	if (getOwnerINLINE() != NO_PLAYER && GET_PLAYER(getOwnerINLINE()).isNative())
+	{
+		iBuyPrice = std::min(iBuyPrice, NATIVE_LAND_MAX_COLONY_PRICE / NUM_CITY_PLOTS_1_PLOT);
+	}
 
 	return iBuyPrice;
 }

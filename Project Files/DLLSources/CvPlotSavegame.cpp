@@ -29,6 +29,7 @@ const bool defaultHills = false;
 const bool defaultNOfRiver = false;
 const bool defaultWOfRiver = false;
 const bool defaultPotentialCityWork = false;
+const bool defaultBoughtFromNatives = false;
 
 const PlotTypes defaultePlotType = PLOT_OCEAN;
 const TerrainTypes defaulteTerrainType = NO_TERRAIN;
@@ -113,6 +114,8 @@ enum SavegameVariableTypes
 
 	Save_NotCulture,
 
+	Save_BoughtFromNatives,
+
 	NUM_SAVE_ENUM_VALUES,
 };
 
@@ -191,6 +194,8 @@ const char* getSavedEnumNamePlot(SavegameVariableTypes eType)
 	case Save_Units: return "Save_Units";
 
 	case Save_NotCulture: return "Save_NotCulture";
+
+	case Save_BoughtFromNatives: return "Save_BoughtFromNatives";
 	}
 	FAssertMsg(0, "Missing case");
 	return "";
@@ -228,6 +233,7 @@ void CvPlot::resetSavedData()
 	m_bNOfRiver = defaultNOfRiver;
 	m_bWOfRiver = defaultWOfRiver;
 	m_bPotentialCityWork = defaultPotentialCityWork;
+	m_bBoughtFromNatives = defaultBoughtFromNatives;
 
 	m_ePlotType = defaultePlotType;
 	m_eTerrainType = defaulteTerrainType;
@@ -305,6 +311,7 @@ void CvPlot::read(CvSavegameReader reader)
 		case Save_NOfRiver:                m_bNOfRiver             = reader.ReadBitfield(m_bNOfRiver                ); break;
 		case Save_WOfRiver:                m_bWOfRiver             = reader.ReadBitfield(m_bWOfRiver                ); break;
 		case Save_PotentialCityWork:       m_bPotentialCityWork    = reader.ReadBitfield(m_bPotentialCityWork       ); break;
+		case Save_BoughtFromNatives:       m_bBoughtFromNatives    = reader.ReadBitfield(m_bBoughtFromNatives       ); break;
 
 		case Save_ePlotType:               m_ePlotType             = reader.ReadBitfield(m_ePlotType                ); break;
 		case Save_eTerrainType:            m_eTerrainType          = reader.ReadBitfield(m_eTerrainType             ); break;
@@ -439,6 +446,7 @@ void CvPlot::write(CvSavegameWriter writer)
 	writer.Write(Save_NOfRiver, m_bNOfRiver, defaultNOfRiver);
 	writer.Write(Save_WOfRiver, m_bWOfRiver, defaultWOfRiver);
 	writer.Write(Save_PotentialCityWork, m_bPotentialCityWork, defaultPotentialCityWork);
+	writer.Write(Save_BoughtFromNatives, m_bBoughtFromNatives, defaultBoughtFromNatives);
 
 	writer.Write(Save_ePlotType, m_ePlotType, defaultePlotType);
 	writer.Write(Save_eTerrainType, m_eTerrainType, defaulteTerrainType);

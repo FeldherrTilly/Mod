@@ -21209,20 +21209,25 @@ void CvPlayer::doImmigrant(int iIndex, bool shortmessage)
 	}
 }
 
-void CvPlayer::buyLand(CvPlot* pPlot, bool bFree)
+bool CvPlayer::buyLand(CvPlot* pPlot, bool bFree)
 {
 	int iCulture = pPlot->getBuyCultureAmount(getID());
 	int iGoldCost = bFree ? 0 : pPlot->getBuyPrice(getID());
 
 	if (getGold() < iGoldCost)
 	{
-		return;
+		return false;
 	}
 
 	PlayerTypes eOldOwner = pPlot->getOwnerINLINE();
 	if (eOldOwner != NO_PLAYER)
 	{
 		pPlot->setCulture(eOldOwner, 0, false);
+		// WTP: bought land stays ours, native culture can't flip it back
+		if (GET_PLAYER(eOldOwner).isNative() && !isNative())
+		{
+			pPlot->setBoughtFromNatives(true);
+		}
 		if (!GET_TEAM(pPlot->getTeam()).isAtWar(getTeam()))
 		{
 			OOS_LOG("buy land war", pPlot->getTeam());
@@ -21234,6 +21239,7 @@ void CvPlayer::buyLand(CvPlot* pPlot, bool bFree)
 	OOS_LOG("buy land", iGoldCost);
 	pPlot->changeCulture(getID(), iCulture, true);
 	changeGold(-iGoldCost);
+	return true;
 }
 
 int CvPlayer::getNumTradeMessages() const
