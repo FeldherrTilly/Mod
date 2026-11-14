@@ -1859,7 +1859,7 @@
 			<bGoodyForSpawningHostileNatives>0</bGoodyForSpawningHostileNatives>
 			<bGoodyForSpawningHostileCriminals>0</bGoodyForSpawningHostileCriminals>
 			<bPermanent>0</bPermanent>
-			<bUseLSystem>0</bUseLSystem>
+			<bUseLSystem>1</bUseLSystem>
 			<iAdvancedStartCost>24</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
 			<iTilesPerGoody>0</iTilesPerGoody>
@@ -4401,7 +4401,7 @@
 			<bGoodyForSpawningHostileNatives>0</bGoodyForSpawningHostileNatives>
 			<bGoodyForSpawningHostileCriminals>0</bGoodyForSpawningHostileCriminals>
 			<bPermanent>0</bPermanent>
-			<bUseLSystem>0</bUseLSystem>
+			<bUseLSystem>1</bUseLSystem>
 			<iAdvancedStartCost>24</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
 			<iTilesPerGoody>0</iTilesPerGoody>
@@ -7382,7 +7382,7 @@
 			<bGoodyForSpawningHostileNatives>0</bGoodyForSpawningHostileNatives>
 			<bGoodyForSpawningHostileCriminals>0</bGoodyForSpawningHostileCriminals>
 			<bPermanent>0</bPermanent>
-			<bUseLSystem>0</bUseLSystem>
+			<bUseLSystem>1</bUseLSystem>
 			<iAdvancedStartCost>36</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
 			<iTilesPerGoody>0</iTilesPerGoody>

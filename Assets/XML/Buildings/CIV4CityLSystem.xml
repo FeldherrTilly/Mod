@@ -44,472 +44,551 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_euro_early.nif::1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_euro_early.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_euro_early.nif::1x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_early.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_early.nif::1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_early.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_early.nif::1x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 1x1 EARLY RUSSIA COLONIAL GENERICS ##[Schmiddie]-->
 		<ArtRef Name="generic:colony_russia.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia.nif::1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia.nif::1x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 <!-- LEAF 1x1 LATE DUTCH COLONIAL GENERICS ##[Melcher]-->
 		<ArtRef Name="generic:colony_DUTCH_late.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_DUTCH</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_DUTCH_late.nif::1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_DUTCH</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_DUTCH_late.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_DUTCH</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_DUTCH_late.nif::1x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_DUTCH</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 1x1 LATE COLONIAL FRANCE GENERICS ##[Melcher]-->
 		<ArtRef Name="generic:colony_FRANCE_late.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_FRANCE_late.nif::1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_FRANCE_late.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_FRANCE_late.nif::1x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 <!-- LEAF 1x1 LATE COLONIAL GENERICS ENGLAND ##[Melcher]  -->
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::1x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 1x1 LATE COLONIAL GENERICS DENMARK ##[Melcher]-->
 		<ArtRef Name="generic:colony_denmark_late.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_late.nif::1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_late.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_late.nif::1x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 1x1 EARLY MEDICOLONIAL GENERICS  ##[Melcher] -->
 		<ArtRef Name="generic:colony_medi_early.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early.nif::1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early.nif::1x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 1x1 EARLY MEDICOLONIAL GENERICS  ##[Melcher] -->
 		<ArtRef Name="generic:colony_medi_early_portugal.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early_portugal.nif::1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early_portugal.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early_portugal.nif::1x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 1x1 LATE COLONIAL GENERICS PORTUGAL ##[Melcher]  -->
 		<ArtRef Name="generic:colony_portugal_late.nif::1x1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_portugal_late.nif::1x1x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_portugal_late.nif::1x1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_portugal_late.nif::1x1x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_portugal_late.nif::1x1x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 1x1 LATE COLONIAL GENERICS Spain ##[Melcher]  -->
 		<ArtRef Name="generic:colony_spain_late.nif::1x1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_spain_late.nif::1x1x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_spain_late.nif::1x1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_spain_late.nif::1x1x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_spain_late.nif::1x1x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 <!-- LEAF 1x1 LATE COLONIAL GENERICS Russia ##[Schmiddie]  -->
 		<ArtRef Name="generic:colony_russia_late.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia_late.nif::1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia_late.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia_late.nif::1x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 <!-- LEAF 1x1 NATIVES EAST GENERICS -->
 		<ArtRef Name="generic:nativeamerican_east.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_east.nif::1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_east.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_east.nif::1x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 1x1 NATIVES WEST GENERICS -->
 		<ArtRef Name="generic:nativeamerican_plains.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_plains.nif::1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_plains.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_plains.nif::1x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 1x1 NATIVES SOUTH GENERICS -->
 		<ArtRef Name="generic:Meso-American_City.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SOUTH</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Meso-American_City.nif::1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SOUTH</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Meso-American_City.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SOUTH</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Meso-American_City.nif::1x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SOUTH</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 1x1 NATIVES IROQUOIS GENERICS ##[Melcher] -->
 		<ArtRef Name="generic:nativeamerican_iro.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_iro.nif::1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_iro.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_iro.nif::1x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 1x1 NATIVES TEHUELCHE GENERICS ##[Melcher] -->
 		<ArtRef Name="generic:Tehuelche.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_TEHUELCHE</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Tehuelche.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_TEHUELCHE</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Tehuelche.nif::1x1_05">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_TEHUELCHE</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Tehuelche.nif::1x1_06">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_TEHUELCHE</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Tehuelche.nif::1x1_07">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_TEHUELCHE</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Tehuelche.nif::1x1_08">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_TEHUELCHE</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Tehuelche.nif::1x1_09">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_TEHUELCHE</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:shuar.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SHUAR</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:shuar.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SHUAR</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:shuar.nif::1x1_05">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SHUAR</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:shuar.nif::1x1_06">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SHUAR</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:shuar.nif::1x1_07">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SHUAR</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:shuar.nif::1x1_08">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SHUAR</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:shuar.nif::1x1_09">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SHUAR</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- RaR, New Native Nations -->
 		<ArtRef Name="generic:nativeamerican_inu.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_inu.nif::1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_inu.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_inu.nif::1x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::1x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::1x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::1x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::1x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::1x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::1x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 1x1 BUILDINGS -->
 		<ArtRef Name="building:LSYSTEM_1x1">
-			<Scale>1.0</Scale>
+			<Scale>0.85</Scale>
 		</ArtRef>
 	</LNode>
 	<LNode Name="Leaf_2x1">
@@ -521,48 +600,56 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_euro_early.nif::2x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_euro_early.nif::2x1_03">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_euro_early.nif::2x1_04">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_euro_early.nif::1x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_euro_early.nif::1x2_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_euro_early.nif::1x2_03">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_euro_early.nif::1x2_04">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x1 EARLY DENMARK COLONIAL GENERICS [Melcher]##-->
 		<ArtRef Name="generic:colony_denmark_early.nif::2x1_01">
@@ -570,48 +657,56 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_early.nif::2x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_early.nif::2x1_03">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_early.nif::2x1_04">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_early.nif::1x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_early.nif::1x2_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_early.nif::1x2_03">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_early.nif::1x2_04">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x1 EARLY Russia COLONIAL GENERICS [Schmiddie]##-->			
 		<ArtRef Name="generic:colony_russia.nif::2x1_01">
@@ -619,55 +714,56 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia.nif::2x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia.nif::2x1_03">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia.nif::2x1_04">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia.nif::1x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia.nif::1x2_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia.nif::1x2_03">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia.nif::1x2_04">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 <!-- LEAF 2x1 LATE COLONIAL DUTCH GENERICS [Melcher]##-->
 		<ArtRef Name="generic:colony_DUTCH_late.nif::2x1_01">
@@ -675,42 +771,49 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_DUTCH</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_DUTCH_late.nif::2x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DUTCH</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_DUTCH_late.nif::2x1_04">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DUTCH</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_DUTCH_late.nif::1x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DUTCH</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_DUTCH_late.nif::1x2_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DUTCH</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_DUTCH_late.nif::1x2_03">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DUTCH</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_DUTCH_late.nif::1x2_04">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DUTCH</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x1 LATE COLONIAL FRANCE GENERICS [Melcher]##-->
 		<ArtRef Name="generic:colony_FRANCE_late.nif::2x1_01">
@@ -718,56 +821,56 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_FRANCE_late.nif::2x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_FRANCE_late.nif::2x1_03">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_FRANCE_late.nif::2x1_04">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_FRANCE_late.nif::1x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_FRANCE_late.nif::1x2_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_FRANCE_late.nif::1x2_03">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_FRANCE_late.nif::1x2_04">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 <!-- LEAF 2x1 LATE MEDICOLONIAL ENGLAND GENERICS [Melcher]## -->
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::2x1_01">
@@ -775,62 +878,70 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_england_colonial.nif::2x1_01">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_COLONIAL</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 			</ArtRef>
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::2x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::2x1_03">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::2x1_04">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::1x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_england_colonial.nif::1x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_COLONIAL</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 			</ArtRef>
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::1x2_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::1x2_03">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::1x2_04">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x1 LATE COLONIAL DENMARK GENERICS [Melcher]##-->
 		<ArtRef Name="generic:colony_denmark_late.nif::2x1_01">
@@ -838,48 +949,56 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_late.nif::2x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_late.nif::2x1_03">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_late.nif::2x1_04">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_late.nif::1x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_late.nif::1x2_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_late.nif::1x2_03">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_late.nif::1x2_04">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x1 LATE COLONIAL Russia GENERICS [Schmiddie]##-->
 		<ArtRef Name="generic:colony_russia_late.nif::2x1_01">
@@ -887,48 +1006,56 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia_late.nif::2x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia_late.nif::2x1_03">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia_late.nif::1x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia_late.nif::1x2_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia_late.nif::1x2_03">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia_late.nif::1x2_04">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia_late.nif::1x2_05">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x1 EARLY MEDICOLONIAL GENERICS [Melcher]## -->
 		<ArtRef Name="generic:colony_medi_early_portugal.nif::2x1_01">
@@ -936,48 +1063,56 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early_portugal.nif::2x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early_portugal.nif::2x1_03">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early_portugal.nif::2x1_04">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early_portugal.nif::1x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+				<Scale>0.85</Scale>
 			</ArtRef>
 		<ArtRef Name="generic:colony_medi_early_portugal.nif::1x2_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early_portugal.nif::1x1_05">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early_portugal.nif::1x1_06">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x1 EARLY MEDICOLONIAL GENERICS [Melcher]## -->
 		<ArtRef Name="generic:colony_medi_early.nif::2x1_01">
@@ -985,48 +1120,56 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early.nif::2x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early.nif::2x1_03">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early.nif::2x1_04">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early.nif::1x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+				<Scale>0.85</Scale>
 			</ArtRef>
 		<ArtRef Name="generic:colony_medi_early.nif::1x2_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early.nif::1x1_05">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early.nif::1x1_06">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x1 LATE MEDICOLONIAL PORTUGAL GENERICS [Melcher]## -->
 		<ArtRef Name="generic:colony_portugal_late.nif::2x1x2_01">
@@ -1034,48 +1177,56 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_portugal_late.nif::2x1x2_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_portugal_late.nif::2x1x2_03">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_portugal_late.nif::2x1x2_04">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_portugal_late.nif::1x2x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_portugal_late.nif::1x2x2_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_portugal_late.nif::2x2x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_portugal_late.nif::1x2x2_04">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x1 LATE COLONIAL SPAIN GENERICS [Melcher]## -->
 		<ArtRef Name="generic:colony_SPAIN_late.nif::2x1x2_01">
@@ -1083,394 +1234,465 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_SPAIN_late.nif::2x1x2_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_SPAIN_late.nif::2x1x2_03">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_SPAIN_late.nif::2x1x2_04">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_SPAIN_late.nif::1x2x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_SPAIN_late.nif::1x2x2_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_SPAIN_late.nif::2x2x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_SPAIN_late.nif::1x2x2_04">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 <!-- LEAF 2x1 NATIVES EAST GENERICS -->
 		<ArtRef Name="generic:nativeamerican_east.nif::2x1_01">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_east.nif::2x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_east.nif::2x1_03">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_east.nif::2x1_04">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_east.nif::1x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_east.nif::1x2_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_east.nif::1x2_03">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_east.nif::1x2_04">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x1 NATIVES WEST GENERICS -->
 		<ArtRef Name="generic:nativeamerican_plains.nif::2x1_01">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_plains.nif::2x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_plains.nif::2x1_03">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_plains.nif::2x1_04">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_plains.nif::1x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_plains.nif::1x2_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_plains.nif::1x2_03">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_plains.nif::1x2_04">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x1 NATIVES SOUTH GENERICS -->
 		<ArtRef Name="generic:Meso-American_City.nif::2x1_01">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SOUTH</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Meso-American_City.nif::2x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SOUTH</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Meso-American_City.nif::2x1_03">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SOUTH</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Meso-American_City.nif::2x1_04">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SOUTH</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Meso-American_City.nif::1x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SOUTH</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Meso-American_City.nif::1x2_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SOUTH</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Meso-American_City.nif::1x2_3">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SOUTH</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x1 NATIVES IROQUOIS GENERICS ##[Melcher] -->
 		<ArtRef Name="generic:nativeamerican_iro.nif::2x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_iro.nif::2x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_iro.nif::2x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_iro.nif::2x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_iro.nif::1x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_iro.nif::1x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_iro.nif::1x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_iro.nif::1x2_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x1 NATIVES TEHUELCHE GENERICS ##[Melcher] -->
 		<ArtRef Name="generic:Tehuelche.nif::2x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_TEHUELCHE</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Tehuelche.nif::2x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_TEHUELCHE</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Tehuelche.nif::2x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_TEHUELCHE</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Tehuelche.nif::1x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_TEHUELCHE</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:shuar.nif::2x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SHUAR</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:shuar.nif::2x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SHUAR</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:shuar.nif::2x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SHUAR</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:shuar.nif::1x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SHUAR</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- RaR, New Native Nations -->
 		<ArtRef Name="generic:nativeamerican_inu.nif::2x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_inu.nif::2x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_inu.nif::2x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_inu.nif::2x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_inu.nif::1x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_inu.nif::1x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_inu.nif::1x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_inu.nif::1x2_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::2x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::2x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::2x1_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::2x1_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::1x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::1x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::1x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::1x2_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::2x1_01">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::2x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::2x1_03">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::2x1_04">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::1x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::1x2_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::1x2_03">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::1x2_04">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::2x1_01">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::2x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::2x1_03">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::2x1_04">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::1x2_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::1x2_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::1x2_03">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::1x2_04">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x1 BUILDINGS -->
 		<ArtRef Name="building:LSYSTEM_2x1">
 			<Attribute Class="Rotation">0,180</Attribute>
-			<Scale>1.0</Scale>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="building:LSYSTEM_1x2">
 			<Attribute Class="Rotation">90,270</Attribute>
-			<Scale>1.0</Scale>
+			<Scale>0.85</Scale>
 		</ArtRef>
 	</LNode>
 <!-- LEAF 3x1 BUILDINGS -->
@@ -1483,76 +1705,84 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_euro_early.nif::3x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_euro_early.nif::1x3_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_euro_early.nif::1x3_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_early.nif::3x1_01">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_early.nif::3x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_early.nif::1x3_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_early.nif::1x3_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia.nif::3x1_01">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia.nif::3x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia.nif::1x3_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia.nif::1x3_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 <!-- LEAF 3x1 LATE COLONIAL DUTCH GENERICS ##[Melcher]-->
 		<ArtRef Name="generic:colony_DUTCH_late.nif::3x1_01">
@@ -1560,18 +1790,21 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_DUTCH</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_DUTCH_late.nif::3x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DUTCH</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_DUTCH_late.nif::1x3_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DUTCH</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 3x1 LATE COLONIAL FRANCE GENERICS ##[Melcher]-->
 		<ArtRef Name="generic:colony_FRANCE_late.nif::3x1_01">
@@ -1579,71 +1812,71 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_FRANCE_late.nif::3x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_FRANCE_late.nif::1x3_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_FRANCE_late.nif::1x3_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 <!-- LEAF 3x1 LATE COLONIAL ENGLAND GENERICS  ##[Melcher]  -->
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::3x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>1.0</Scale>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_england_colonial.nif::3x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_COLONIAL</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::3x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>1.0</Scale>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::1x3_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>1.0</Scale>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_england_colonial.nif::1x3_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_COLONIAL</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::1x3_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>1.0</Scale>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_england_colonial.nif::1x3_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_COLONIAL</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 <!-- LEAF 3x1 LATE COLONIAL DENMARK GENERICS ##[Melcher]-->
 		<ArtRef Name="generic:colony_denmark_late.nif::3x1_01">
@@ -1651,24 +1884,27 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_late.nif::3x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_late.nif::1x3_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_late.nif::1x3_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>1.0</Scale>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 3x1 LATE COLONIAL Russia GENERICS ##[Schmiddie]-->
 		<ArtRef Name="generic:colony_russia_late.nif::3x1_01">
@@ -1676,12 +1912,14 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia_late.nif::3x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 3x1 EARLY MEDICOLONIAL GENERICS  ##[Melcher] -->
 		<ArtRef Name="generic:colony_medi_early.nif::3x1_01">
@@ -1689,12 +1927,14 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early.nif::1x3_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 3x1 EARLY MEDICOLONIAL GENERICS  ##[Melcher] -->
 		<ArtRef Name="generic:colony_medi_early_portugal.nif::3x1_01">
@@ -1702,223 +1942,267 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_medi_early_portugal.nif::1x3_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x2 LATE COLONIAL PORTUGAL GENERICS  ##[Melcher]  -->
 		<ArtRef Name="generic:colony_PORTUGAL_late.nif::2x2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_PORTUGAL_late.nif::2x2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_PORTUGAL_late.nif::1x2x2_05">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_PORTUGAL_late.nif::1x2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_PORTUGAL_late.nif::1x2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x2 LATE COLONIAL SPAIN GENERICS  ##[Melcher]  -->
 		<ArtRef Name="generic:colony_SPAIN_late.nif::2x2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_SPAIN_late.nif::1x2x2_05">
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 3x1 NATIVES EAST GENERICS -->
 		<ArtRef Name="generic:nativeamerican_east.nif::3x1_01">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_east.nif::3x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_east.nif::1x3_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_east.nif::1x3_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 3x1 NATIVES WEST GENERICS -->
 		<ArtRef Name="generic:nativeamerican_plains.nif::3x1_01">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_plains.nif::3x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_plains.nif::1x3_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_plains.nif::1x3_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 3x1 NATIVES SOUTH GENERICS -->
 		<ArtRef Name="generic:Meso-American_City.nif::2x2x4_01">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SOUTH</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Meso-American_City.nif::2x2x4_01">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SOUTH</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Meso-American_City.nif::2x2x3_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SOUTH</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 3x1 NATIVES IROQUOIS GENERICS ##[Melcher] -->
 		<ArtRef Name="generic:nativeamerican_iro.nif::3x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_iro.nif::3x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_iro.nif::1x3_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_iro.nif::1x3_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 3x1 NATIVES TEHUELCHE GENERICS ##[Melcher] -->
 		<ArtRef Name="generic:Tehuelche.nif::3x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_TEHUELCHE</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Tehuelche.nif::1x3_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_TEHUELCHE</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 				<ArtRef Name="generic:shuar.nif::3x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SHUAR</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:shuar.nif::1x3_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SHUAR</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- RaR, New Native Nations -->
 		<ArtRef Name="generic:nativeamerican_inu.nif::3x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_inu.nif::3x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_inu.nif::1x3_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_inu.nif::1x3_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::3x1_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::3x1_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::1x3_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::1x3_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::3x1_01">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::3x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::1x3_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::1x3_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::3x1_01">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::3x1_02">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::1x3_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::1x3_02">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 3x1 BUILDINGS -->
 		<ArtRef Name="building:LSYSTEM_3x1">
 			<Attribute Class="Rotation">0,180</Attribute>
-			<Scale>1.0</Scale>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="building:LSYSTEM_1x3">
 			<Attribute Class="Rotation">90,270</Attribute>
-			<Scale>1.0</Scale>
+			<Scale>0.85</Scale>
 		</ArtRef>
 	</LNode>
 	<LNode Name="Leaf_2x2">
@@ -1929,398 +2213,462 @@
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_euro_early.nif::2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_euro_early.nif::2x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_euro_early.nif::2x2_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND,ARTSTYLE_DUTCH,ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x2 EARLY COLONIAL GENERICS ##[Melcher] -->
 		<ArtRef Name="generic:colony_denmark_early.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_early.nif::2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_early.nif::2x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_early.nif::2x2_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia.nif::2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia.nif::2x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia.nif::2x2_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x2 LATE COLONIAL DUTCH GENERICS ##[Melcher]-->
 		<ArtRef Name="generic:colony_DUTCH_late.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_DUTCH</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_DUTCH_late.nif::2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_DUTCH</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_DUTCH_late.nif::2x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_DUTCH</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x2 LATE COLONIAL FRANCE GENERICS  ##[Melcher] -->
 		<ArtRef Name="generic:colony_FRANCE_late.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_FRANCE_late.nif::2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_FRANCE_late.nif::2x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_FRANCE_late.nif::2x2_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_FRANCE</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 <!-- LEAF 2x2 LATE COLONIAL ENGLAND GENERICS  ##[Melcher]  -->
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::2x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_ENGLAND_late.nif::2x2_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_england_colonial.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_COLONIAL</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 			</ArtRef>
 		<ArtRef Name="generic:colony_england_colonial.nif::2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_COLONIAL</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 			</ArtRef>
 		<ArtRef Name="generic:colony_england_colonial.nif::2x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_COLONIAL</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 			</ArtRef>
 		<ArtRef Name="generic:colony_england_colonial.nif::2x2_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_ENGLAND</Attribute>
 			<Attribute Class="Era">ERA_COLONIAL</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 			</ArtRef>
 <!-- LEAF 2x2 LATE COLONIAL DENMARK GENERICS  ##[Melcher] -->
 		<ArtRef Name="generic:colony_denmark_late.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_late.nif::2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_late.nif::2x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_denmark_late.nif::2x2_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_DENMARK</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.9</Scale>
+			<Scale>0.77</Scale>
 		</ArtRef>
 <!-- LEAF 2x2 LATE COLONIAL Russia GENERICS  ##[Schmiddie] -->
 		<ArtRef Name="generic:colony_russia_late.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia_late.nif::2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia_late.nif::2x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia_late.nif::2x2_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_russia_late.nif::2x2_05">
 			<Attribute Class="ArtStyle">ARTSTYLE_RUSSIA</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x2 EARLY MEDICOLONIAL GENERICS  ##[Melcher] -->
 		<ArtRef Name="generic:colony_medi_early.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x2 EARLY MEDICOLONIAL GENERICS  ##[Melcher] -->
 		<ArtRef Name="generic:colony_medi_early_portugal.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_DISCOVERY,ERA_EXPANSION</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x2 LATE COLONIAL PORTUGAL GENERICS  ##[Melcher]  -->
 		<ArtRef Name="generic:colony_PORTUGAL_late.nif::2x2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_PORTUGAL_late.nif::2x2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_PORTUGAL_late.nif::1x2x2_05">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_PORTUGAL_late.nif::1x2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_PORTUGAL_late.nif::1x2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_PORTUGAL</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x2 LATE COLONIAL SPAIN GENERICS  ##[Melcher]  -->
 		<ArtRef Name="generic:colony_SPAIN_late.nif::2x2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:colony_SPAIN_late.nif::2x2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_SPAIN</Attribute>
 			<Attribute Class="Era">ERA_ALL,!ERA_DISCOVERY</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:1</Attribute>
-			<Scale>0.8</Scale>
+			<Scale>0.68</Scale>
 		</ArtRef>
 <!-- LEAF 2x2 NATIVES EAST GENERICS -->
 		<ArtRef Name="generic:nativeamerican_east.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_east.nif::2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_east.nif::2x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_east.nif::2x2_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_EAST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x2 NATIVES WEST GENERICS -->
 		<ArtRef Name="generic:nativeamerican_plains.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_plains.nif::2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_plains.nif::2x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_plains.nif::2x2_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_WEST</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x2 NATIVES SOUTH GENERICS -->
 		<ArtRef Name="generic:Meso-American_City.nif::2x2x4_01">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SOUTH</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Meso-American_City.nif::2x2x4_01">
 			<Attribute Class="Rotation">0,180</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SOUTH</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:Meso-American_City.nif::2x2x3_01">
 			<Attribute Class="Rotation">90,270</Attribute>
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SOUTH</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x2 NATIVES IROQUOIS GENERICS ##[Melcher] -->
 		<ArtRef Name="generic:nativeamerican_iro.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_iro.nif::2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_iro.nif::2x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_iro.nif::2x2_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_IROQUOIS</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x2 NATIVES TEHUELCHE GENERICS ##[Melcher] -->
 		<ArtRef Name="generic:Tehuelche.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_TEHUELCHE</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:shuar.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_SHUAR</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- RaR, New Native Nations -->
 		<ArtRef Name="generic:nativeamerican_inu.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_inu.nif::2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_inu.nif::2x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_inu.nif::2x2_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_INUIT</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::2x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:nativeamerican_hur.nif::2x2_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_HURON</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::2x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:central_american.nif::2x2_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CENTRALAMERICA</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::2x2_01">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::2x2_02">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::2x2_03">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="generic:caribbean.nif::2x2_04">
 			<Attribute Class="ArtStyle">ARTSTYLE_NATIVES_CARIBBEAN</Attribute>
 			<Attribute Class="Scalar">iBatchGroup:0</Attribute>
+			<Scale>0.85</Scale>
 		</ArtRef>
 <!-- LEAF 2x2 BUILDINGS -->
 		<ArtRef Name="building:LSYSTEM_2x2">
-			<Scale>1.0</Scale>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="building:LSYSTEM_2x2_NO_ROTATE">
-			<Scale>1.0</Scale>
+			<Scale>0.85</Scale>
 			<Attribute Class="Scalar">bNoRotateCivilopedia:1</Attribute>
 		</ArtRef>
 	</LNode>
@@ -2330,11 +2678,11 @@
 <!-- LEAF 3x2 BUILDINGS -->
 		<ArtRef Name="building:LSYSTEM_3x2">
 			<Attribute Class="Rotation">0,180</Attribute>
-			<Scale>1.0</Scale>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="building:LSYSTEM_2x3">
 			<Attribute Class="Rotation">90,270</Attribute>
-			<Scale>1.0</Scale>
+			<Scale>0.85</Scale>
 		</ArtRef>
 	</LNode>
 	<LNode Name="Leaf_4x2">
@@ -2343,11 +2691,11 @@
 <!-- LEAF 4x2 BUILDINGS -->
 		<ArtRef Name="building:LSYSTEM_4x2">
 			<Attribute Class="Rotation">0,180</Attribute>
-			<Scale>1.0</Scale>
+			<Scale>0.85</Scale>
 		</ArtRef>
 		<ArtRef Name="building:LSYSTEM_2x4">
 			<Attribute Class="Rotation">90,270</Attribute>
-			<Scale>1.0</Scale>
+			<Scale>0.85</Scale>
 		</ArtRef>
 	</LNode>
 	<LNode Name="Leaf_3x3">
@@ -2355,7 +2703,7 @@
 		<Height>3</Height>
 		<!-- LEAF 3x3 BUILDINGS -->
 		<ArtRef Name="building:LSYSTEM_3x3">
-			<Scale>1.0</Scale>
+			<Scale>0.85</Scale>
 		</ArtRef>
 	</LNode>
 	<LNode Name="Leaf_4x4">
@@ -2363,7 +2711,7 @@
 		<Height>4</Height>
 		<!-- LEAF 4x4 BUILDINGS -->
 		<ArtRef Name="building:LSYSTEM_4x4">
-			<Scale>1.0</Scale>
+			<Scale>0.85</Scale>
 		</ArtRef>
 	</LNode>
 	<LNode Name="Emergency_Overflow">
