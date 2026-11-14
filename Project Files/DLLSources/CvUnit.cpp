@@ -1,6 +1,7 @@
 // unit.cpp
 
 #include "CvGameCoreDLL.h"
+#include "CvHumanLog.h"
 #include "CombatOdds.h"
 #include "CvUnit.h"
 #include "CvArea.h"
@@ -1687,6 +1688,8 @@ void CvUnit::updateCombat(bool bQuick)
 		pDefender->setCombatUnit(NULL);
 		NotifyEntity(MISSION_DAMAGE);
 		pDefender->NotifyEntity(MISSION_DAMAGE);
+
+		HumanLog::combat(*this, *pDefender, *pPlot, isDead() ? "lost" : (pDefender->isDead() ? "won" : "withdrew"));
 
 		// WTP: war AI log: the outcome of a land combat for the AI colonial nations (attacker and defender side)
 		if (gUnitLogLevel >= 1 && getDomainType() == DOMAIN_LAND)

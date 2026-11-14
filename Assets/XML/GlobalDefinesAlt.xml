@@ -1887,6 +1887,12 @@
 		<DefineName>SIEGE_AI_WAGON_MIN_POWDER</DefineName>
 		<iDefineIntVal>30</iDefineIntVal>
 	</Define>
+	<!-- WTP: 1 logs every action of the human players with its situation (WTP_P00_<civ>_human.log in the game's log folder),
+		as data to tune the AI by; 0 turns this log off -->
+	<Define>
+		<DefineName>WTP_LOG_HUMAN_ACTIONS</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
 	<Define>
 		<!--
 			trade counter. The higher it is, the more likely a negative price change (drops for exports and increase for imports.

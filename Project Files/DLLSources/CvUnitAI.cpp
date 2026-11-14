@@ -25029,6 +25029,29 @@ bool CvUnitAI::AI_doTravel()
 	return false;
 }
 
+		int iBestApproach = 0; // (for the log)
+		int iBestSail = 0;
+		int iShips = 0;
+			++iShips;
+						iBestApproach = iApproach;
+						iBestSail = iSail;
+		}
+		// WTP (user 2026-10-24): why the unit walks
+		if (gUnitLogLevel >= 1)
+		{
+			const CvUnit* const pBestShip = (iShipID >= 0) ? kOwner.getUnit(iShipID) : NULL;
+			if (pBestShip != NULL)
+			{
+				logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S walks to %d,%d (%d turns): the best ship %S would take %d turns (there in %d turns from %d,%d, %d at sea, ashore at %d,%d), a ship needs to save 2",
+					getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pTarget->getX_INLINE(), pTarget->getY_INLINE(), iWalk,
+					pBestShip->getName().GetCString(), iBestTotal, iBestApproach, pPickup->getX_INLINE(), pPickup->getY_INLINE(), iBestSail, pDrop->getX_INLINE(), pDrop->getY_INLINE());
+			}
+			else
+			{
+				logWTP(WTP_LOG_SHIP, getOwnerINLINE(), "WTP ship: Player %d (%S) turn %d %S walks to %d,%d (%d turns): no ship (%d automated transports, %d ports, %d landing plots)",
+					getOwnerINLINE(), kOwner.getCivilizationDescription(0), GC.getGameINLINE().getGameTurn(), getName().GetCString(), pTarget->getX_INLINE(), pTarget->getY_INLINE(), iWalk,
+					iShips, (int)aPorts.size(), (int)aDrops.size());
+			}
 // carry out the task; returns true if a mission was pushed or the unit was replaced
 // WTP: an automated transport (AUTOMATE_TRANSPORT_FULL) of a human player, the colonists with the job automation and the units
 // transported to a city or plot (see AI_travelStep): those aboard are brought to the plot where they go ashore (the ship

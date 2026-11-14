@@ -1,6 +1,7 @@
 // player.cpp
 
 #include "CvGameCoreDLL.h"
+#include "CvHumanLog.h"
 #include "CvGlobals.h"
 #include "CvArea.h"
 #include "CvGameAI.h"
@@ -2178,6 +2179,8 @@ void CvPlayer::doTurn()
 	PROFILE_FUNC();
 
 	EXTRA_POWER_CHECK
+
+	HumanLog::turnStart(*this);
 
 	CvCity* pLoopCity;
 	int iLoop;
