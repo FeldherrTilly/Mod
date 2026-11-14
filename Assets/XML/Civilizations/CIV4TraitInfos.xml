@@ -152,7 +152,7 @@
 			<iNativeAngerModifier>-50</iNativeAngerModifier>
 			<iLearnTimeModifier>-50</iLearnTimeModifier>
 			<iNativeCombatModifier>0</iNativeCombatModifier>
-			<iMissionaryModifier>100</iMissionaryModifier>
+			<iMissionaryModifier>75</iMissionaryModifier>
 			<iNativeTradeModifier>0</iNativeTradeModifier>
 			<iRebelCombatModifier>0</iRebelCombatModifier>
 			<iTaxRateThresholdModifier>0</iTaxRateThresholdModifier>
@@ -226,7 +226,7 @@
 			<iAfricaSellProfitModifierInPercent>0</iAfricaSellProfitModifierInPercent>
 			<iPortRoyalSellProfitModifierInPercent>0</iPortRoyalSellProfitModifierInPercent>
 			<iDomesticMarketProfitModifierInPercent>0</iDomesticMarketProfitModifierInPercent>
-			<iTreasureModifier>25</iTreasureModifier>
+			<iTreasureModifier>50</iTreasureModifier>
 			<iGoodUniqueGoodyChanceModifierLand>0</iGoodUniqueGoodyChanceModifierLand>
 			<iGoodUniqueGoodyChanceModifierWater>0</iGoodUniqueGoodyChanceModifierWater>
 			<iUnhappinessFromSlavesModifier>25</iUnhappinessFromSlavesModifier>
@@ -1921,7 +1921,7 @@
 			<iAfricaSellProfitModifierInPercent>0</iAfricaSellProfitModifierInPercent>
 			<iPortRoyalSellProfitModifierInPercent>0</iPortRoyalSellProfitModifierInPercent>
 			<iDomesticMarketProfitModifierInPercent>0</iDomesticMarketProfitModifierInPercent>
-			<iTreasureModifier>100</iTreasureModifier>
+			<iTreasureModifier>200</iTreasureModifier>
 			<iGoodUniqueGoodyChanceModifierLand>0</iGoodUniqueGoodyChanceModifierLand>
 			<iGoodUniqueGoodyChanceModifierWater>0</iGoodUniqueGoodyChanceModifierWater>
 			<iUnhappinessFromSlavesModifier>0</iUnhappinessFromSlavesModifier>
@@ -2257,7 +2257,7 @@
 			<iNativeAngerModifier>0</iNativeAngerModifier>
 			<iLearnTimeModifier>0</iLearnTimeModifier>
 			<iNativeCombatModifier>0</iNativeCombatModifier>
-			<iMissionaryModifier>150</iMissionaryModifier>
+			<iMissionaryModifier>75</iMissionaryModifier>
 			<iNativeTradeModifier>10</iNativeTradeModifier>
 			<iRebelCombatModifier>0</iRebelCombatModifier>
 			<iTaxRateThresholdModifier>0</iTaxRateThresholdModifier>

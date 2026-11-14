@@ -319,6 +319,12 @@ void CvPlayer::initFreeState()
 	iStartingGold *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getStoragePercent();
 	iStartingGold /= 100;
 
+	// WTP, natives start poorer
+	if (isNative())
+	{
+		iStartingGold = iStartingGold * GLOBAL_DEFINE_NATIVE_STARTING_GOLD_PERCENT / 100;
+	}
+
 	changeGold(iStartingGold);
     // Barthoze : Time is the issue - END
 }
@@ -12642,7 +12648,8 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, Coordinat
 	switch (eAction)
 	{
 	case ADVANCEDSTARTACTION_EXIT:
-		changeGold(getAdvancedStartPoints());
+		// WTP, natives keep only part of their unspent start points as gold
+		changeGold(isNative() ? getAdvancedStartPoints() * GLOBAL_DEFINE_NATIVE_STARTING_GOLD_PERCENT / 100 : getAdvancedStartPoints());
 		setAdvancedStartPoints(-1);
 		if (GC.getGameINLINE().getActivePlayer() == getID())
 		{
@@ -20266,6 +20273,30 @@ void CvPlayer::setMissionarySuccessPercent(int iValue)
 int CvPlayer::getNativeTradePostSuccessPercent() const
 {
 	return m_iNativeTradePostSuccessPercent;
+}
+
+// WTP (user 2026-10-24): the chance of a new trade post falls with the player's trade posts: 1% for each of the first 7,
+// 2% for each from the 8th on
+int CvPlayer::getTradePostCountPenalty() const
+{
+	int iPosts = 0;
+	for (PlayerTypes eNative = FIRST_PLAYER; eNative < NUM_PLAYER_TYPES; ++eNative)
+	{
+		const CvPlayer& kNative = GET_PLAYER(eNative);
+		if (!kNative.isAlive() || !kNative.isNative())
+		{
+			continue;
+		}
+		int iLoop;
+		for (const CvCity* pCity = kNative.firstCity(&iLoop); pCity != NULL; pCity = kNative.nextCity(&iLoop))
+		{
+			if (pCity->getTradePostPlayer() == getID())
+			{
+				++iPosts;
+			}
+		}
+	}
+	return std::min(iPosts, 7) + 2 * std::max(0, iPosts - 7);
 }
 
 void CvPlayer::setNativeTradePostSuccessPercent(int iValue)

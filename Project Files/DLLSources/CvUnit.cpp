@@ -7224,7 +7224,9 @@ int CvUnit::getNativeTradePostSuccessPercent() const
 	if (pCity == NULL || !pCity->isNative())
 	{
 		//Old Code
-		return GET_PLAYER(getOwnerINLINE()).getNativeTradePostSuccessPercent() * (100 + (getUnitInfo().getNativeTradeRateModifier() * GLOBAL_DEFINE_TRADER_RATE_EFFECT_ON_SUCCESS / 100)) / 100;
+		// WTP: less with every trade post of the player (CvPlayer::getTradePostCountPenalty)
+		return std::max(0, GET_PLAYER(getOwnerINLINE()).getNativeTradePostSuccessPercent() * (100 + (getUnitInfo().getNativeTradeRateModifier() * GLOBAL_DEFINE_TRADER_RATE_EFFECT_ON_SUCCESS / 100)) / 100
+			- GET_PLAYER(getOwnerINLINE()).getTradePostCountPenalty());
 	}
 
 	// 1. Find out how many missions already exist at this Native-Nation -> Missioning Rate
@@ -7276,6 +7278,8 @@ int CvUnit::getNativeTradePostSuccessPercent() const
 	totalChance = totalChance + attitudeChanceImprovement * (attitudeNativeToTradePostPlayer - attitudeNativeToOldTradePostPlayer);
 	//now substract the penalty for exising trade post
 	totalChance = totalChance - penaltyExisingTradePost;
+	// WTP (user 2026-10-24): less with every trade post the player has already (1% each, 2% each from the 8th on)
+	totalChance = totalChance - GET_PLAYER(getOwnerINLINE()).getTradePostCountPenalty();
 
 	if (totalChance > maxChance)
 	{
@@ -9117,7 +9121,13 @@ bool CvUnit::build(BuildTypes eBuild)
 	OOS_LOG("CvUnit::build", getTypeStr(eBuild));
 	GET_PLAYER(getOwnerINLINE()).changeGold(-(GET_PLAYER(getOwnerINLINE()).getBuildCost(plot(), eBuild)));
 
-	bFinished = plot()->changeBuildProgress(eBuild, workRate(false), getTeam());
+	// WTP: the first turn of a build counts twice, so a pioneer needs one turn less
+	int iWork = workRate(false);
+	if (plot()->getBuildProgress(eBuild) == 0)
+	{
+		iWork *= 2;
+	}
+	bFinished = plot()->changeBuildProgress(eBuild, iWork, getTeam());
 
 	finishMoves(); // needs to be at bottom because movesLeft() can affect workRate()...
 
