@@ -360,6 +360,11 @@ bool CvUnitAI::AI_update()
 				{
 					AI_nativeTradeShipMove();
 				}
+				// WTP: the king's transports (galleons) land his troops like the royal troop ships
+				else if (kOwner.AI_isKing())
+				{
+					AI_imperialTransportMove();
+				}
 				else if (AI_getUnitAIState() == UNITAI_STATE_EXPLORER_SHIP)
 				{
 					AI_explorerShipMove();
@@ -6046,7 +6051,9 @@ void CvUnitAI::AI_transportSeaMove()
 		// TAC - AI Improved Naval AI - koma13 - START
 		//if ((GET_PLAYER(getOwnerINLINE()).getNumEuropeUnits() > 0) || isFull())
 		// WTP: goods aboard go to Europe (collecting more on the way in the sail state)
-		if (bPickupUnitsFromEurope || isFull() || hasCargo())
+		// (not again if this move started in the sail state: it found nothing to do there, and switching back without a
+		// mission looped forever; a king's galleon full of troops crashed the game)
+		if ((bPickupUnitsFromEurope || isFull() || hasCargo()) && eStartingState != UNITAI_STATE_SAIL)
 			// TAC - AI Improved Naval AI - koma13 - END
 		{
 			FAssert(AI_getUnitAIState() != UNITAI_STATE_SAIL);
@@ -6091,6 +6098,40 @@ void CvUnitAI::AI_transportSeaMove()
 		getGroup()->pushMission(MISSION_SKIP);
 		return;
 	}
+}
+
+// WTP: the king's transports (galleons): with troops aboard they land them near a rebel colony (like the royal troop
+// ships); empty they fetch new troops in Europe. They used the colonial transport AI before: it found no port for the
+// troops, fled from danger and sailed the troops back to Europe, again and again.
+void CvUnitAI::AI_imperialTransportMove()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	if (getGroup()->hasCargo())
+	{
+		if (GET_TEAM(getTeam()).getAnyWarPlanCount() > 0 && AI_imperialSeaAssault())
+		{
+			return;
+		}
+		if (AI_retreatToCity())
+		{
+			return;
+		}
+		if (AI_safety())
+		{
+			return;
+		}
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
+	}
+	if (kOwner.getNumEuropeUnits() > 0 && AI_sailToEurope())
+	{
+		return;
+	}
+	if (AI_retreatToCity())
+	{
+		return;
+	}
+	getGroup()->pushMission(MISSION_SKIP);
 }
 
 // Attempt to determine if a great admiral is waiting in a city
@@ -8187,13 +8228,18 @@ bool CvUnitAI::AI_sailTo(const SailToHelper& sth, bool bMove, bool bIgnoreDanger
 	int iBestDelayedRemainingMoves = INT_MAX;
 
 	// WTP: the candidate Europe plots, the nearest (by distance in turns plus the travel time off the map) first; paths are
-	// searched to the nearest 8 only (a path to every Europe plot of the map took several percent of the AI's time)
+	// searched to the nearest 8 (a path to every Europe plot of the map took several percent of the AI's time), and on to the
+	// next ones while none of them can be reached (an enemy ship in the way: the "sail to Europe" button did nothing). Plots
+	// in another body of water are left out
 	std::vector<std::pair<int, int> > aCandidates;
 	const int iShipMoves = std::max(1, baseMoves());
+	const CvArea* const pWaterArea = plot()->isWater() ? plot()->area() : NULL;
 	for (int iI = 0; iI < GC.getMap().numPlotsINLINE(); iI++)
 	{
 		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(iI);
 		if (!pLoopPlot->isRevealed(getTeam(), false))
+			continue;
+		if (pWaterArea != NULL && pLoopPlot->area() != pWaterArea)
 			continue;
 		if (!pLoopPlot->isEurope())
 			continue;
@@ -8207,7 +8253,7 @@ bool CvUnitAI::AI_sailTo(const SailToHelper& sth, bool bMove, bool bIgnoreDanger
 	}
 	std::sort(aCandidates.begin(), aCandidates.end());
 	// Loop over candidate Europe plots.
-	for (uint iCandidate = 0; iCandidate < aCandidates.size() && iCandidate < 8; ++iCandidate)
+	for (uint iCandidate = 0; iCandidate < aCandidates.size() && (iCandidate < 8 || (pBestImmediatePlot == NULL && pBestDelayedPlot == NULL)); ++iCandidate)
 	{
 		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(aCandidates[iCandidate].second);
 
@@ -8344,6 +8390,13 @@ bool CvUnitAI::AI_sailTo(const SailToHelper& sth, bool bMove, bool bIgnoreDanger
 // TAC - AI Improved Naval AI - koma13 - START
 CvPlot* CvUnitAI::findNearbyOceanPlot(const CvPlot& kPlot) const
 {
+	// WTP: the Europe plot nearest by sea (findEuropeArrivalPlot), if the ship finds a path from there; else the old search below
+	CvPlot* const pArrival = findEuropeArrivalPlot(kPlot);
+	if (pArrival != NULL && AI_plotValid(pArrival) && getGroup()->generatePath(&kPlot, pArrival, 0, true))
+	{
+		return pArrival;
+	}
+
 	CvPlot* pBestPlot = NULL;
 	int iBestValue = 0;
 
@@ -8386,7 +8439,8 @@ CvPlot* CvUnitAI::findNearbyOceanPlot(const CvPlot& kPlot) const
 		}
 	}
 	std::sort(aCandidates.begin(), aCandidates.end());
-	for (uint i = 0; i < aCandidates.size() && i < 8; ++i)
+	// the nearest 8, and on while none of them can be reached
+	for (uint i = 0; i < aCandidates.size() && (i < 8 || pBestPlot == NULL); ++i)
 	{
 		CvPlot* const pLoopPlot = GC.getMap().plotByIndexINLINE(aCandidates[i].second);
 		int iPathTurns;

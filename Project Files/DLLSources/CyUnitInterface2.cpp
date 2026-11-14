@@ -75,6 +75,7 @@ void CyUnitPythonInterface2(python::class_<CyUnit>& x)
 		.def("at", &CyUnit::at, "bool (int iX, int iY)")
 		.def("atPlot", &CyUnit::atPlot, "bool (CyPlot* pPlot)")
 		.def("plot", &CyUnit::plot, python::return_value_policy<python::manage_new_object>(), "CyPlot* ()")
+		.def("findEuropeArrivalPlot", &CyUnit::findEuropeArrivalPlot, python::return_value_policy<python::manage_new_object>(), "CyPlot* (CyPlot* pTarget)") // WTP
 		.def("area", &CyUnit::area, python::return_value_policy<python::manage_new_object>(), "CyArea* ()")
 		.def("getGameTurnCreated", &CyUnit::getGameTurnCreated, "int ()")
 		.def("getDamage", &CyUnit::getDamage, "int ()")
