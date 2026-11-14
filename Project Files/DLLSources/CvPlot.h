@@ -148,6 +148,7 @@ public:
 	bool canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam = NO_TEAM, bool bPotential = false, bool bIgnoreFeature = false) const; // build feature removal detection - Nightinggale
 
 	bool canBuild(BuildTypes eBuild, PlayerTypes ePlayer = NO_PLAYER, bool bTestVisible = false) const;
+	bool canBuildFortOnNativeLand(ImprovementTypes eImprovement) const;
 	int getBuildTime(BuildTypes eBuild) const;
 	int getBuildTurnsLeft(BuildTypes eBuild, int iNowExtra, int iThenExtra) const;
 	int getFeatureYield(BuildTypes eBuild, YieldTypes eYield, TeamTypes eTeam, CvCity** ppCity) const;
@@ -190,6 +191,7 @@ public:
 	int movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,														// Exposed to Python
 		bool bAssumeRevealed = false) const; // advc.001i, WTP: default is false rather than true
 	int navalControlMovementCost(const CvUnit* pMovingUnit) const; // WTP, Schmiddie, Naval Control Movement
+	int fortZoneMovementCost(const CvUnit* pMovingUnit) const; // WTP: occupied forts slow down their enemies around them
 	
 	bool isAdjacentOwned() const;
 	bool isAdjacentPlayer(PlayerTypes ePlayer, bool bLandOnly = false) const;

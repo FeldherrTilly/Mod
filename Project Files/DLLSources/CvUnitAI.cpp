@@ -17635,6 +17635,12 @@ bool CvUnitAI::AI_yieldNativeDestination(int iMaxPath)
 					{
 						CvPlot* pLoopPlot = pCity->plot();
 
+						// WTP, forts block foreign trade
+						if (pCity->getTradeBlockingFortOwner(getOwnerINLINE()) != NO_PLAYER)
+						{
+							continue;
+						}
+
 						if (!atPlot(pLoopPlot) && pLoopPlot->isRevealed(getTeam(), false))
 						{
 

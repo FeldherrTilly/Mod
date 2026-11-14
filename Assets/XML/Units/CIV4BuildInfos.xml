@@ -3941,7 +3941,7 @@
 			<Description>TXT_KEY_BUILD_FORT</Description>
 			<Help>TXT_KEY_BUILD_FORT_HELP</Help>
 			<iTime>1000</iTime>
-			<iCost>500</iCost>
+			<iCost>300</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_FORT</ImprovementType>
 			<PrereqTerrainType>NONE</PrereqTerrainType>
