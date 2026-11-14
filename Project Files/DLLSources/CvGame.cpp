@@ -7617,7 +7617,7 @@ void CvGame::changeYieldBoughtTotal(TradeLocationTypes eLocation, PlayerTypes eM
 			}
 
 			//affect non-mercantile amounts
-			kEuropePlayer.changeYieldTradedTaxCounter(eLocation, eYield, iChange * iMercantilePercent / 100);
+			kEuropePlayer.changeYieldTradedTaxCounter(eLocation, eYield, iChange * iMercantilePercent / 100, false);
 		}
 	}
 }

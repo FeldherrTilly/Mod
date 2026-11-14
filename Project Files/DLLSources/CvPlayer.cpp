@@ -2355,6 +2355,7 @@ void CvPlayer::doTurn()
 		doPrices();
 		doAfricaPrices(); // R&R, ray, Africa
 		doPortRoyalPrices(); // R&R, ray, Port Royal
+		refreshHumanQuestMessages();
 		doTaxRaises();
 	}
 	EXTRA_POWER_CHECK
@@ -19382,7 +19383,7 @@ int CvPlayer::getHighestStoredYieldCityId(YieldTypes eYield) const
 	return iBestCityId;
 }
 
-void CvPlayer::changeYieldTradedTaxCounter(TradeLocationTypes eLocation, YieldTypes eYield, int iAmountSold)
+void CvPlayer::changeYieldTradedTaxCounter(TradeLocationTypes eLocation, YieldTypes eYield, int iAmountSold, bool bRefreshQuests)
 {
 	const int MAX = 2000000000;
 
@@ -19409,6 +19410,16 @@ void CvPlayer::changeYieldTradedTaxCounter(TradeLocationTypes eLocation, YieldTy
 		}
 	}
 
+	if (bRefreshQuests)
+	{
+		refreshHumanQuestMessages();
+	}
+}
+
+// WTP: the quest texts are rebuilt with python calls, so the price decay of the kings (every yield, every
+// trade location, every king) refreshes them once per turn instead of once per counter change
+void CvPlayer::refreshHumanQuestMessages()
+{
 	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
 	{
 		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
