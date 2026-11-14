@@ -4816,6 +4816,14 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 		}
 		break;
 
+	// WTP: patrol: a human player's military unit or warship on the map (not aboard a ship)
+	case AUTOMATE_PATROL:
+		if (!isHuman() || isNative() || !isOnMap_() || isCargo() || !canAttack() || (getDomainType() != DOMAIN_LAND && getDomainType() != DOMAIN_SEA))
+		{
+			return false;
+		}
+		break;
+
 	// WTP: native supply automation: a human player's coastal ship (cargo, no fishing or whaling boat) on the map
 	case AUTOMATE_NATIVE_SUPPLY:
 		if (!isHuman() || isNative() || getDomainType() != DOMAIN_SEA || !isOnMap_() || cargoSpace() == 0 || getUnitInfo().isGatherBoat()

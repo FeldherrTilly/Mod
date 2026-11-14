@@ -3634,6 +3634,11 @@ void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue, bool bImplicit)
 		}
 		}
 
+		// WTP: patrol around the plot where it is switched on
+		if (eNewValue == AUTOMATE_PATROL && getHeadUnit() != NULL)
+		{
+			static_cast<CvUnitAI*>(getHeadUnit())->AI_setPatrolCenter(getHeadUnit()->plot());
+		}
 		// if canceling automation, cancel on cargo as well
 		if (eNewValue == NO_AUTOMATE)
 		{
