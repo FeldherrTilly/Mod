@@ -676,7 +676,7 @@
 			<bCtrlDownAlt>0</bCtrlDownAlt>
 			<iHotKeyPriorityAlt>0</iHotKeyPriorityAlt>
 			<bVisible>1</bVisible>
-			<Button>Art/Interface/Game Hud/Actions/Go_to_city_high_res.dds</Button>
+			<Button>Art/Interface/Game Hud/Actions/transport_to_city_high_res.dds</Button>
 		</CommandInfo>
 		<CommandInfo>
 			<Type>COMMAND_ASSIGN_JOB</Type>
@@ -693,7 +693,7 @@
 			<bCtrlDownAlt>0</bCtrlDownAlt>
 			<iHotKeyPriorityAlt>0</iHotKeyPriorityAlt>
 			<bVisible>0</bVisible>
-			<Button>Art/Interface/Game Hud/Actions/automate_city_high_res.dds</Button>
+			<Button>Art/Interface/Game Hud/Actions/assign_job_high_res.dds</Button>
 		</CommandInfo>
 	</CommandInfos>
 </Civ4CommandInfos>

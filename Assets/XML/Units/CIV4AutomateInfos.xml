@@ -252,7 +252,7 @@
 			<Command>COMMAND_AUTOMATE</Command>
 			<Automate>AUTOMATE_ASSIGN_JOB</Automate>
 			<bVisible>1</bVisible>
-			<Button>Art/Interface/Game Hud/Actions/automate_city_high_res.dds</Button>
+			<Button>Art/Interface/Game Hud/Actions/assign_job_high_res.dds</Button>
 		</AutomateInfo>
 		<AutomateInfo>
 			<Type>AUTOMATE_TRAVEL</Type>
@@ -271,7 +271,7 @@
 			<Command>COMMAND_AUTOMATE</Command>
 			<Automate>AUTOMATE_TRAVEL</Automate>
 			<bVisible>0</bVisible>
-			<Button>Art/Interface/Game Hud/Actions/automate_transport_high_res.dds</Button>
+			<Button>Art/Interface/Game Hud/Actions/transport_to_plot_high_res.dds</Button>
 		</AutomateInfo>
 	</AutomateInfos>
 </Civ4AutomateInfos>
