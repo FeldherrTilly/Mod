@@ -325,6 +325,21 @@ public:
 	void setNeverLost(bool bNewValue);
 
 	bool isBombarded() const;
+
+	// WTP: siege: started by a stack of enemy soldiers beside the city (COMMAND_SIEGE), it lasts while they are at least as
+	// strong as the soldiers in the city
+	static bool isSiegeUnit(const CvUnit& kUnit, TeamTypes eCityTeam);
+	static int getSiegeStackSize(const CvPlot& kPlot, TeamTypes eTeam, TeamTypes eCityTeam);
+	bool canBeBesiegedBy(TeamTypes eTeam) const;
+	int getSiegeDefenderStrength() const;
+	int getSiegeLevel() const; // 0: none, 1: half besieged (sea side open), 2: besieged
+	bool isBesieged() const;
+	bool isFullSiege() const;
+	bool isNavalBlockade() const; // enemy warships before the port, also without a siege on land
+	PlayerTypes getBesieger() const; // the player who started the siege, also while it is broken until the owner's turn ends
+	void startSiege(PlayerTypes eBesieger);
+	void endSiege();
+	void updateSiegeCamps(); // the siege art (works, camps) on the plots beside the city
 	void setBombarded(bool bNewValue);
 
 	void setAllCitizensAutomated(bool bAutomated);
@@ -928,6 +943,7 @@ protected:
 	mutable EnumMap<YieldTypes,int,-1> m_em_iYieldRank;
 	mutable EnumMap<YieldTypes,bool> m_em_bYieldRankValid;
 
+	PlayerTypes m_eBesieger; // WTP: siege: the player who started it, NO_PLAYER: none
 	bool m_bHasHurried; // Needed to remember (cache) if a hurry was conducted and we should complete the current build
 	int m_iSlaveWorkerProductionBonus;
 

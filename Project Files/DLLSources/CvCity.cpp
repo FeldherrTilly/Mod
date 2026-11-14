@@ -508,9 +508,22 @@ void CvCity::doTurn()
 
 	PROFILE_FUNC();
 
-	if (!isBombarded())
+	// WTP: siege: it ends when the besiegers are gone, too few or weaker than the soldiers in the city (checked at the end of
+	// the owner's turn, so besiegers killed in that turn do not count any more); while it lasts the defense does not recover
+	// and the besiegers wear it down by SIEGE_DEFENSE_DAMAGE_PER_TURN percent each turn
+	const bool bBesieged = isBesieged();
+	if (!bBesieged && m_eBesieger != NO_PLAYER)
+	{
+		endSiege();
+	}
+
+	if (!isBombarded() && !bBesieged)
 	{
 		changeDefenseDamage(-(GC.getDefineINT("CITY_DEFENSE_DAMAGE_HEAL_RATE")));
+	}
+	if (bBesieged)
+	{
+		changeDefenseDamage(GC.getMAX_CITY_DEFENSE_DAMAGE() * GLOBAL_DEFINE_SIEGE_DEFENSE_DAMAGE_PER_TURN / 100);
 	}
 
 	setLastDefenseDamage(getDefenseDamage());
@@ -3972,6 +3985,200 @@ void CvCity::setLastDefenseDamage(int iNewValue)
 	m_iLastDefenseDamage = iNewValue;
 }
 
+
+// WTP: siege
+// a unit that can besiege a city of this team: an enemy land unit that can attack (no animal)
+bool CvCity::isSiegeUnit(const CvUnit& kUnit, TeamTypes eCityTeam)
+{
+	return kUnit.getDomainType() == DOMAIN_LAND && !kUnit.isCargo() && !kUnit.getUnitInfo().isAnimal() && kUnit.canAttack() && GET_TEAM(kUnit.getTeam()).isAtWar(eCityTeam);
+}
+
+// the soldiers of team eTeam on kPlot that can besiege a city of team eCityTeam
+int CvCity::getSiegeStackSize(const CvPlot& kPlot, TeamTypes eTeam, TeamTypes eCityTeam)
+{
+	if (kPlot.isWater())
+	{
+		return 0;
+	}
+	int iCount = 0;
+	CLLNode<IDInfo>* pUnitNode = kPlot.headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		const CvUnit* pLoopUnit = kPlot.getUnitNodeLoop(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit->getTeam() == eTeam && isSiegeUnit(*pLoopUnit, eCityTeam))
+		{
+			++iCount;
+		}
+	}
+	return iCount;
+}
+
+// team eTeam can besiege the city (or keep besieging it): at war, a native village only with a wall, at least
+// SIEGE_MIN_STACK_SIZE of its soldiers on one plot beside the city, and the land soldiers in the city not stronger than all
+// enemy soldiers beside it (unmodified strength, no ships)
+bool CvCity::canBeBesiegedBy(TeamTypes eTeam) const
+{
+	if (eTeam == NO_TEAM || !GET_TEAM(eTeam).isAtWar(getTeam()))
+	{
+		return false;
+	}
+	if (isNative() && getBuildingDefense() <= 0)
+	{
+		return false;
+	}
+	bool bStack = false;
+	int iBesiegerStrength = 0;
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		const CvPlot* pLoopPlot = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
+		if (pLoopPlot == NULL || pLoopPlot->isWater())
+		{
+			continue;
+		}
+		int iStack = 0;
+		CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
+		while (pUnitNode != NULL)
+		{
+			const CvUnit* pLoopUnit = pLoopPlot->getUnitNodeLoop(pUnitNode);
+			if (pLoopUnit != NULL && isSiegeUnit(*pLoopUnit, getTeam()))
+			{
+				iBesiegerStrength += pLoopUnit->baseCombatStr();
+				if (pLoopUnit->getTeam() == eTeam)
+				{
+					++iStack;
+				}
+			}
+		}
+		if (iStack >= GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE)
+		{
+			bStack = true;
+		}
+	}
+	if (!bStack)
+	{
+		return false;
+	}
+	return getSiegeDefenderStrength() <= iBesiegerStrength;
+}
+
+// the unmodified strength of the land soldiers in the city (compared with the besiegers)
+int CvCity::getSiegeDefenderStrength() const
+{
+	int iDefenderStrength = 0;
+	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		const CvUnit* pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+		if (pLoopUnit != NULL && pLoopUnit->getTeam() == getTeam() && pLoopUnit->getDomainType() == DOMAIN_LAND && !pLoopUnit->isCargo() && pLoopUnit->canAttack())
+		{
+			iDefenderStrength += pLoopUnit->baseCombatStr();
+		}
+	}
+	return iDefenderStrength;
+}
+
+// 0: not besieged; 1: half besieged (a coastal city, its sea side open: ships and their cargo can come and go, the sea plots
+// produce); 2: besieged (an inland city, or a coastal one with at least SIEGE_BLOCKADE_SHIPS enemy ships that can attack
+// within SIEGE_BLOCKADE_RANGE plots)
+int CvCity::getSiegeLevel() const
+{
+	if (m_eBesieger == NO_PLAYER || !canBeBesiegedBy(GET_PLAYER(m_eBesieger).getTeam()))
+	{
+		return 0;
+	}
+	if (!plot()->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN()) || isNavalBlockade())
+	{
+		return 2;
+	}
+	return 1;
+}
+
+// naval blockade: at least SIEGE_BLOCKADE_SHIPS enemy ships that can attack within SIEGE_BLOCKADE_RANGE plots of the city (with
+// or without a siege on land)
+bool CvCity::isNavalBlockade() const
+{
+	const int iRange = GLOBAL_DEFINE_SIEGE_BLOCKADE_RANGE;
+	int iShips = 0;
+	for (int iDX = -iRange; iDX <= iRange; ++iDX)
+	{
+		for (int iDY = -iRange; iDY <= iRange; ++iDY)
+		{
+			const CvPlot* pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
+			if (pLoopPlot == NULL || !pLoopPlot->isWater())
+			{
+				continue;
+			}
+			CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
+			while (pUnitNode != NULL)
+			{
+				const CvUnit* pLoopUnit = pLoopPlot->getUnitNodeLoop(pUnitNode);
+				if (pLoopUnit != NULL && pLoopUnit->getDomainType() == DOMAIN_SEA && pLoopUnit->canAttack() && pLoopUnit->getTeam() != getTeam()
+					&& (GET_TEAM(pLoopUnit->getTeam()).isAtWar(getTeam()) || pLoopUnit->getUnitInfo().isHiddenNationality()))
+				{
+					if (++iShips >= GLOBAL_DEFINE_SIEGE_BLOCKADE_SHIPS)
+					{
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool CvCity::isBesieged() const
+{
+	return getSiegeLevel() > 0;
+}
+
+bool CvCity::isFullSiege() const
+{
+	return getSiegeLevel() == 2;
+}
+
+PlayerTypes CvCity::getBesieger() const
+{
+	return m_eBesieger;
+}
+
+void CvCity::startSiege(PlayerTypes eBesieger)
+{
+	FAssert(eBesieger != NO_PLAYER);
+	m_eBesieger = eBesieger;
+	setYieldRateDirty();
+	setBillboardDirty(true);
+	updateSiegeCamps();
+	gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_CITY_BESIEGED", getNameKey()), "AS2D_CITYCAPTURED", MESSAGE_TYPE_MAJOR_EVENT, NULL, COLOR_RED, getX_INLINE(), getY_INLINE(), true, true);
+	gDLL->UI().addPlayerMessage(eBesieger, false, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_CITY_BESIEGED_ENEMY", getNameKey()), "AS2D_CITYCAPTURED", MESSAGE_TYPE_MAJOR_EVENT, NULL, COLOR_GREEN, getX_INLINE(), getY_INLINE(), true, true);
+}
+
+void CvCity::endSiege()
+{
+	if (m_eBesieger == NO_PLAYER)
+	{
+		return;
+	}
+	const PlayerTypes eBesieger = m_eBesieger;
+	m_eBesieger = NO_PLAYER;
+	setYieldRateDirty();
+	setBillboardDirty(true);
+	updateSiegeCamps();
+	const CvWString szBuffer = gDLL->getText("TXT_KEY_CITY_SIEGE_ENDED", getNameKey());
+	gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_MAJOR_EVENT, NULL, COLOR_GREEN, getX_INLINE(), getY_INLINE(), true, true);
+	gDLL->UI().addPlayerMessage(eBesieger, false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CITY_REVOLT", MESSAGE_TYPE_MAJOR_EVENT, NULL, COLOR_RED, getX_INLINE(), getY_INLINE(), true, true);
+}
+
+void CvCity::updateSiegeCamps()
+{
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		CvPlot* pLoopPlot = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
+		if (pLoopPlot != NULL)
+		{
+			pLoopPlot->updateSiegeCamp();
+		}
+	}
+}
 
 bool CvCity::isBombardable(const CvUnit* pUnit) const
 {
@@ -7787,6 +7994,10 @@ void CvCity::doGrowth()
 
 			gDLL->getEventReporterIFace()->cityGrowth(this, getOwnerINLINE());
 		}
+	}
+	else if (getFood() < 0 && isBesieged())
+	{
+		setFood(0); // WTP: siege: a besieged colony does not lose citizens to starvation
 	}
 	else if (getFood() < 0)
 	{

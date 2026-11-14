@@ -1247,6 +1247,13 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, 
 				szString.append(NEWLINE);
 				szString.append(gDLL->getText("TXT_KEY_UNIT_BOMBARD_RATE", ((pUnit->bombardRate() * 100) / GC.getMAX_CITY_DEFENSE_DAMAGE()), GC.getSymbolID(BOMBARD_CHAR)));
 			}
+
+			// WTP: black powder of land artillery
+			if (pUnit->isPowderArtillery() && !pUnit->isPowderExempt())
+			{
+				szString.append(NEWLINE);
+				szString.append(gDLL->getText("TXT_KEY_UNIT_POWDER_STORED", pUnit->getPowderStored() / 100, pUnit->getPowderCapacity() / 100));
+			}
 		}
 
 		if (pUnit->getUnitInfo().isTreasure())
@@ -2369,6 +2376,11 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			if (!(pDefender->noDefensiveBonus()))
 			{
 				iModifier = pPlot->defenseModifier(pDefender->getTeam());
+				// WTP: siege: besieging soldiers get only half the defense bonus of the plot (as in CvUnit::maxCombatStr)
+				if (iModifier > 0 && pDefender->isBesieging(pPlot))
+				{
+					iModifier /= 2;
+				}
 
 				if (iModifier != 0)
 				{
@@ -3413,6 +3425,14 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity)
 	PROFILE_FUNC();
 
 	szString.append(pCity->getName());
+
+	// WTP: siege
+	const int iSiegeLevel = pCity->getSiegeLevel();
+	if (iSiegeLevel > 0)
+	{
+		szString.append(NEWLINE);
+		szString.append(gDLL->getText(iSiegeLevel == 2 ? "TXT_KEY_CITY_BAR_BESIEGED" : "TXT_KEY_CITY_BAR_HALF_BESIEGED", GLOBAL_DEFINE_SIEGE_DEFENSE_DAMAGE_PER_TURN));
+	}
 
 	bool bFirst = true;
 	CvWStringBuffer szTempBuffer;

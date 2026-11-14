@@ -650,6 +650,17 @@ bool CyCity::isBombarded()
 	return m_pCity ? m_pCity->isBombarded(): false;
 }
 
+// WTP: siege
+bool CyCity::isBesieged()
+{
+	return m_pCity ? m_pCity->isBesieged() : false;
+}
+
+int CyCity::getSiegeLevel()
+{
+	return m_pCity ? m_pCity->getSiegeLevel() : 0;
+}
+
 void CyCity::setBombarded(int iNewValue)
 {
 	if (m_pCity)

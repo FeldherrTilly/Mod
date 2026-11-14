@@ -2562,6 +2562,9 @@ class CvMainInterface:
 				szBuffer += u"%s: %d" %(pHeadSelectedCity.getName(), pHeadSelectedCity.getPopulation())
 				if (pHeadSelectedCity.isOccupation()):
 					szBuffer += u" (%c:%d)" %(CyGame().getSymbolID(FontSymbols.OCCUPATION_CHAR), pHeadSelectedCity.getOccupationTimer())
+				# WTP: siege
+				if (pHeadSelectedCity.isBesieged()):
+					szBuffer += localText.getText("TXT_KEY_CITY_BESIEGED_SHORT", ())
 				# Robert Surcouf, moved VET NewCapacity
 
 				szBuffer += u"</font>"

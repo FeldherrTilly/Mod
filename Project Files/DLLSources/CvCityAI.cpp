@@ -89,6 +89,7 @@ void CvCityAI::AI_reset()
 	m_iNativeAssignPopulation = -1;
 	m_iNativeAssignIdle = -1;
 	m_iCacheAngryNativeTurn = -1;
+	m_iWarDefenseShift = 0;
 	m_iCacheAngryNativeDefenders = 0;
 	m_iFoodShortageTurn = -100;
 	m_iWfFoodRequestTurn = -100;
@@ -193,6 +194,22 @@ void CvCityAI::AI_assignWorkingPlots()
 
 	if (getPopulation() == 0)
 	{
+		return;
+	}
+
+	// WTP: siege: the citizens of a besieged city keep their jobs (no reassignment, nobody is put out of the city); only a
+	// citizen without a job gets the best free one
+	if (isBesieged())
+	{
+		for (uint i = 0; i < m_aPopulationUnits.size(); ++i)
+		{
+			CvUnit* const pCitizen = m_aPopulationUnits[i];
+			if (pCitizen != NULL && pCitizen->getProfession() == NO_PROFESSION)
+			{
+				AI_assignFreeJob(*pCitizen);
+			}
+		}
+		AI_setAssignWorkDirty(false);
 		return;
 	}
 
@@ -2034,7 +2051,8 @@ int CvCityAI::AI_neededDefenders() const
 		}
 	}
 	iDefenders += m_iCacheAngryNativeDefenders;
-	return iDefenders;
+	// WTP: war defense: defenders moved from colonies far from the enemy to those near it, and more against enemies close by
+	return std::max(1, iDefenders + m_iWarDefenseShift);
 }
 
 int CvCityAI::AI_numDefenders(bool bDefenseOnly, bool bIncludePotential) const
@@ -2542,6 +2560,38 @@ BuildingTypes CvCityAI::AI_urgentHurryBuilding(int& iCost)
 	return eBest;
 }
 
+// WTP: siege: the gold this colony needs to finish the wagon train an attacking stack is waiting for, -1 if it does not
+// build one or if Europe does not sell a resource for it
+int CvCityAI::AI_siegeWagonHurryCost() const
+{
+	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	if (kOwner.AI_getSiegeWagonShortfall() <= 0 || kOwner.AI_isEarlyPhaseActive() || getProductionUnit() == NO_UNIT || getProductionUnitAI() != UNITAI_WAGON)
+	{
+		return -1;
+	}
+	for (int i = FIRST_HURRY; i < GC.getNumHurryInfos(); ++i)
+	{
+		const HurryTypes eHurry = (HurryTypes)i;
+		if (GC.getHurryInfo(eHurry).getGoldPerProduction() <= 0)
+		{
+			continue;
+		}
+		if (!canHurry(eHurry, true))
+		{
+			return -1;
+		}
+		for (YieldTypes eYield = FIRST_YIELD; eYield < NUM_YIELD_TYPES; ++eYield)
+		{
+			if (GC.getYieldInfo(eYield).isCargo() && getHurryYieldDeficit(eHurry, eYield) > 0 && !kOwner.isYieldEuropeTradable(eYield))
+			{
+				return -1;
+			}
+		}
+		return hurryGold(eHurry);
+	}
+	return -1;
+}
+
 void CvCityAI::AI_doHurry(bool bForce)
 {
 	PROFILE_FUNC();
@@ -2562,6 +2612,17 @@ void CvCityAI::AI_doHurry(bool bForce)
 			eGoldHurry = (HurryTypes)i;
 			break;
 		}
+	}
+
+	// WTP: siege: the wagon train of a stack is hurried at once, with missing hammers as well, and also while the player saves
+	const int iWagonCost = AI_siegeWagonHurryCost();
+	if (iWagonCost >= 0 && eGoldHurry != NO_HURRY && canHurry(eGoldHurry))
+	{
+		if (gCityLogLevel >= 1) logWTP(WTP_LOG_BUY, getOwnerINLINE(), " WTP buy: Player %S City %S hurries the wagon train of a stack for %d gold (gold before %d)", GET_PLAYER(getOwnerINLINE()).getCivilizationDescription(),
+			getName().GetCString(), iWagonCost, GET_PLAYER(getOwnerINLINE()).getGold());
+		hurry(eGoldHurry);
+		m_bHasHurried = true;
+		return;
 	}
 
 	const BuildingTypes eCurrentBuilding = getProductionBuilding();

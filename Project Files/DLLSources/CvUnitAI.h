@@ -301,6 +301,7 @@ protected:
 	bool AI_routeCityNear(int iMaxDistance);
 	bool AI_wfImproveStages(); // WTP
 	void AI_logPioneer(const char* szReason); // WTP
+	void AI_logStack(const char* szReason); // WTP
 
 	bool AI_requestPickup(int iMaxPath = MAX_INT);
 	void AI_wakeTransportForPickup(const CvPlot* pPickupPlot); // WTP
@@ -393,6 +394,14 @@ protected:
 	// TAC - AI Attack City - koma13, jdog5000(BBAI) - END
 
 	bool AI_bombardCity();
+	// WTP: siege
+	bool AI_canBesiege(const CvCity* pCity) const;
+	bool AI_siegeBlockade();
+	bool AI_siegeSupply();
+public:
+	int AI_siegeArtilleryCount() const;
+	bool AI_isSiegeArtilleryNear() const;
+protected:
 	bool AI_cityAttack(int iRange, int iOddsThreshold, bool bFollow = false);
 	// TAC - AI Attack City - koma13 - START
 	//bool AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack = 0, bool bFollow = false);
@@ -401,6 +410,9 @@ protected:
 	bool AI_adjacentSeaAttack(int iOddsThreshold); // WTP, Schmiddie, Naval AI adjacent attack
 	bool AI_smartAttack(int iRange, int iLowOddsThreshold, int iHighOddsThreshold, CvPlot* pHintPlot);
 	bool AI_leaveAttack(int iRange, int iThreshold, int iStrengthThreshold);
+	bool AI_defendTeritory(int iThreshold, int iFlags, int iMaxPathTurns, bool bLocal = false); // K-Mod
+	bool AI_stackVsStack(int iSearchRange, int iAttackThreshold, int iRiskThreshold, int iFlags); // K-Mod
+	bool AI_siegeMuster(); // WTP: siege
 	bool AI_seaBombardRange(int iMaxRange);
 	bool AI_blockade(int iRange);
 	bool AI_pillage();
@@ -485,6 +497,12 @@ protected:
 	bool AI_plotValid(const CvPlot* pPlot) const;
 
 	int AI_finalOddsThreshold(CvPlot* pPlot, int iOddsThreshold);
+	// K-Mod: attack odds weighted by the worth of the units, wounds, the defensive terrain and a last city defender
+	int AI_getWeightedOdds(CvPlot* pPlot, bool bPotentialEnemy = false);
+	int AI_combatWorth(const CvUnit& kUnit) const;
+	bool AI_isWeightedOdds() const;
+	int AI_attackOddsToCompare(CvPlot* pPlot);
+	void AI_logAttackDecision(const char* szFunction, const CvPlot& kTarget, int iOdds) const; // WTP: war AI log
 
 	int AI_stackOfDoomExtra();
 

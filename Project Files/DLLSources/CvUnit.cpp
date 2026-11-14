@@ -417,6 +417,7 @@ void CvUnit::convert(CvUnit* pUnit, bool bKill)
 	}
 	// WTP, Attached Land Leader - END
 
+	const int iPowderUsed = pUnit->m_iPowderUsed; // WTP: the converted artillery keeps its black powder
 	if (bKill)
 	{
 		ProfessionTypes eProfession = pUnit->getProfession();
@@ -443,6 +444,8 @@ void CvUnit::convert(CvUnit* pUnit, bool bKill)
 			setHasRealPromotion(ePromotion, true);
 		}
 	}
+	m_iPowderUsed = isPowderArtillery() ? iPowderUsed : 0; // WTP
+	updatePowderPromotions();
 
 	pTransportUnit = pUnit->getTransportUnit();
 
@@ -1008,6 +1011,13 @@ void CvUnit::doTurn()
 	FAssert(getGroup() != NULL || GET_PLAYER(getOwnerINLINE()).getPopulationUnitCity(getID()) != NULL);
 
 	testPromotionReady();
+
+	// WTP: the AI reloads the black powder of its artillery by itself (the human player with the button)
+	if (m_iPowderUsed > 0 && !isHuman() && canReloadPowder())
+	{
+		reloadPowder();
+	}
+	updatePowderPromotions();
 
 	// R&R, Robert Surcouf, Damage on Storm plots, Start
 	// R&R, bugfix: we only damage ships on Sea and not the transported units, ray, START
@@ -1677,6 +1687,27 @@ void CvUnit::updateCombat(bool bQuick)
 		pDefender->setCombatUnit(NULL);
 		NotifyEntity(MISSION_DAMAGE);
 		pDefender->NotifyEntity(MISSION_DAMAGE);
+
+		// WTP: war AI log: the outcome of a land combat for the AI colonial nations (attacker and defender side)
+		if (gUnitLogLevel >= 1 && getDomainType() == DOMAIN_LAND)
+		{
+			const char* const szOutcome = isDead() ? "lost" : (pDefender->isDead() ? "won" : "withdrew");
+			const PlayerTypes aeSides[2] = { getOwnerINLINE(), pDefender->getOwnerINLINE() };
+			for (int iSide = 0; iSide < 2; ++iSide)
+			{
+				const CvPlayer& kSide = GET_PLAYER(aeSides[iSide]);
+				if (!kSide.isHuman() && kSide.isColonialNation())
+				{
+					logWTP(WTP_LOG_MILITARY, aeSides[iSide], "WTP combat: turn %d: %S %S (unitAI %s, group of %d) of player %d at %d,%d attacked %S %S (unitAI %s) of player %d at %d,%d: attacker %s",
+						GC.getGameINLINE().getGameTurn(), getName().GetCString(), (getProfession() != NO_PROFESSION) ? GC.getProfessionInfo(getProfession()).getDescription() : L"",
+						(AI_getUnitAIType() != NO_UNITAI) ? GC.getUnitAIInfo(AI_getUnitAIType()).getType() : "none", (getGroup() != NULL) ? getGroup()->getNumUnits() : 1,
+						getOwnerINLINE(), getX_INLINE(), getY_INLINE(),
+						pDefender->getName().GetCString(), (pDefender->getProfession() != NO_PROFESSION) ? GC.getProfessionInfo(pDefender->getProfession()).getDescription() : L"",
+						(pDefender->AI_getUnitAIType() != NO_UNITAI) ? GC.getUnitAIInfo(pDefender->AI_getUnitAIType()).getType() : "none",
+						pDefender->getOwnerINLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE(), szOutcome);
+				}
+			}
+		}
 
 		// case: Attacker died, defender won
 		if (isDead())
@@ -3050,6 +3081,29 @@ bool CvUnit::canDoCommand(CommandTypes eCommand, int iData1, int iData2, bool bT
 		}
 		break;
 
+	// WTP: reload the black powder of land artillery
+	case COMMAND_RELOAD_POWDER:
+		if (canReloadPowder())
+		{
+			return true;
+		}
+		break;
+
+	// WTP: siege
+	case COMMAND_SIEGE:
+		if (getSiegeTargetCity() != NULL)
+		{
+			return true;
+		}
+		break;
+
+	case COMMAND_LIFT_SIEGE:
+		if (getLiftSiegeCity() != NULL)
+		{
+			return true;
+		}
+		break;
+
 	// TAC - Goto Menu - koma13 - START
 	case COMMAND_GOTO_MENU:
 		if (getTransportUnit() == NULL || plot()->isValidDomainForAction(getUnitType()))
@@ -3501,6 +3555,20 @@ void CvUnit::doCommand(CommandTypes eCommand, int iData1, int iData2)
 			setHotKeyNumber(iData1);
 			break;
 
+
+		// WTP: reload the black powder of land artillery
+		case COMMAND_RELOAD_POWDER:
+			reloadPowderGroup();
+			break;
+
+		// WTP: siege
+		case COMMAND_SIEGE:
+			getSiegeTargetCity()->startSiege(getOwnerINLINE());
+			break;
+
+		case COMMAND_LIFT_SIEGE:
+			getLiftSiegeCity()->endSiege();
+			break;
 		// TAC - Goto Menu - koma13 - START
 		case COMMAND_GOTO_MENU:
 			if (getOwnerINLINE() == GC.getGameINLINE().getActivePlayer() && gDLL->getInterfaceIFace()->getHeadSelectedUnit() == this)
@@ -3769,6 +3837,56 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 	if (atPlot(&kPlot))
 	{
 		return false;
+	}
+
+	// WTP: siege: a military unit of the besieged team that has moved this turn (cheaply, on the plots beside its besieged
+	// city) can not leave those plots again in the same turn; it may still attack and enter the city
+	if (getMoves() > 0 && canAttack() && plot() != NULL && plot()->isBesiegedCityRing(getTeam()) && !kPlot.isBesiegedCityRing(getTeam())
+		&& !(kPlot.isCity() && kPlot.getTeam() == getTeam()) && !(bAttack && kPlot.isVisibleEnemyDefender(this)))
+	{
+		return false;
+	}
+
+	// WTP: siege: land units can not leave a besieged city (they may only attack the enemies beside it) and no other land
+	// units can enter it; ships and their cargo can come and go while the city is only half besieged
+	{
+		const CvCity* const pFromCity = (plot() != NULL) ? plot()->getPlotCity() : NULL;
+		const CvCity* const pToCity = kPlot.getPlotCity();
+		if (getDomainType() == DOMAIN_LAND)
+		{
+			if (pFromCity != NULL && !GET_TEAM(getTeam()).isAtWar(pFromCity->getTeam()) && pFromCity->isBesieged())
+			{
+				if (!bAttack || !kPlot.isVisibleEnemyDefender(this))
+				{
+					return false;
+				}
+			}
+			if (pToCity != NULL && !GET_TEAM(getTeam()).isAtWar(pToCity->getTeam()) && pToCity->isBesieged() && !(isCargo() && !pToCity->isFullSiege()))
+			{
+				return false;
+			}
+		}
+		else if (getDomainType() == DOMAIN_SEA)
+		{
+			if (pToCity != NULL && !GET_TEAM(getTeam()).isAtWar(pToCity->getTeam()) && pToCity->isFullSiege())
+			{
+				return false;
+			}
+			if (pFromCity != NULL && !GET_TEAM(getTeam()).isAtWar(pFromCity->getTeam()) && hasCargo() && pFromCity->isFullSiege())
+			{
+				bool bLandCargo = false;
+				CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+				while (pUnitNode != NULL && !bLandCargo)
+				{
+					const CvUnit* pLoopUnit = plot()->getUnitNodeLoop(pUnitNode);
+					bLandCargo = (pLoopUnit != NULL && pLoopUnit->getTransportUnit() == this && !pLoopUnit->isGoods());
+				}
+				if (bLandCargo)
+				{
+					return false;
+				}
+			}
+		}
 	}
 
 	// R&R, ray, changes to Wild Animals - START
@@ -7694,6 +7812,12 @@ bool CvUnit::canBombard(const CvPlot* pPlot) const
 		return false;
 	}
 
+	// WTP: land artillery needs black powder for a bombardment
+	if (isPowderArtillery() && !hasPowderForShot())
+	{
+		return false;
+	}
+
 	if (isMadeAttack())
 	{
 		return false;
@@ -7756,11 +7880,65 @@ bool CvUnit::bombard()
 	setMoves(maxMoves());
 	// WTP, ray, issue #892 - bombard should set movement points to 0 - END
 
+	// WTP: artillery duel: land artillery uses black powder, and the enemy artillery in the target lowers the effect of
+	// the bombardment (all artillery with black powder on both plots counts). The attacker uses one shot, the defenders
+	// one shot together, or only the attacker's share of it if they are stronger.
+	int iDamagePercent = 100;
+	if (isPowderArtillery())
+	{
+		int iAttackStrength = 0;
+		CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
+		while (pUnitNode != NULL)
+		{
+			CvUnit* pLoopUnit = pPlot->getUnitNodeLoop(pUnitNode);
+			if (pLoopUnit != NULL && pLoopUnit->getOwnerINLINE() == getOwnerINLINE() && !pLoopUnit->isCargo() && pLoopUnit->isPowderArtillery() && pLoopUnit->hasPowderForShot())
+			{
+				iAttackStrength += pLoopUnit->getArtilleryDuelStrength();
+			}
+		}
+
+		std::vector<CvUnit*> apDefenders;
+		std::vector<int> aiDefenderStrength;
+		int iDefenseStrength = 0;
+		pUnitNode = pTargetPlot->headUnitNode();
+		while (pUnitNode != NULL)
+		{
+			CvUnit* pLoopUnit = pTargetPlot->getUnitNodeLoop(pUnitNode);
+			if (pLoopUnit != NULL && isEnemy(pLoopUnit->getTeam()) && !pLoopUnit->isCargo() && pLoopUnit->isPowderArtillery() && pLoopUnit->hasPowderForShot())
+			{
+				apDefenders.push_back(pLoopUnit);
+				aiDefenderStrength.push_back(pLoopUnit->getArtilleryDuelStrength());
+				iDefenseStrength += aiDefenderStrength.back();
+			}
+		}
+
+		iDamagePercent = getBombardDamagePercent(iAttackStrength, iDefenseStrength, true);
+
+		const int iShot = GC.getDefineINT("ARTILLERY_POWDER_PER_SHOT") * 100;
+		changePowderUsed(iShot);
+		if (iDefenseStrength > 0)
+		{
+			const int iDefenseUse = (iShot * std::min(iAttackStrength, iDefenseStrength)) / iDefenseStrength;
+			for (uint i = 0; i < apDefenders.size(); ++i)
+			{
+				apDefenders[i]->changePowderUsed((iDefenseUse * aiDefenderStrength[i]) / iDefenseStrength);
+			}
+
+			const wchar* szTarget = (pBombardCity != NULL) ? pBombardCity->getNameKey() : GC.getImprovementInfo(pTargetPlot->getImprovementType()).getTextKeyWide();
+			const CvWString szBuffer = gDLL->getText("TXT_KEY_BOMBARD_ARTILLERY_DUEL", szTarget, iAttackStrength / 100, iDefenseStrength / 100, iDamagePercent);
+			gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARD", MESSAGE_TYPE_INFO, getButton(), (iDamagePercent > 0) ? COLOR_GREEN : COLOR_RED, pTargetPlot->getX_INLINE(), pTargetPlot->getY_INLINE());
+			if (pTargetPlot->getOwnerINLINE() != NO_PLAYER)
+			{
+				gDLL->UI().addPlayerMessage(pTargetPlot->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, getButton(), (iDamagePercent > 0) ? COLOR_RED : COLOR_GREEN, pTargetPlot->getX_INLINE(), pTargetPlot->getY_INLINE());
+			}
+		}
+	}
+
 	// Super Forts begin *bombard* *text*
 	//R&R mod, vetiarvind, super forts merge ..invert if clause and let R&R code be the case when pBombardCity != null
 	if(pBombardCity == NULL)
 	{
-		pTargetPlot->changeDefenseDamage(bombardRate());
+		pTargetPlot->changeDefenseDamage((bombardRate() * iDamagePercent) / 100);
 
 		CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_DEFENSES_IN_CITY_REDUCED_TO", GC.getImprovementInfo(pTargetPlot->getImprovementType()).getText(),
 			(GC.getImprovementInfo(pTargetPlot->getImprovementType()).getDefenseModifier()-pTargetPlot->getDefenseDamage()), GET_PLAYER(getOwnerINLINE()).getNameKey());
@@ -7772,7 +7950,7 @@ bool CvUnit::bombard()
 	}
 	else
 	{
-		pBombardCity->changeDefenseModifier(-(bombardRate() * std::max(0, 100 - pBombardCity->getBuildingBombardDefense())) / 100);
+		pBombardCity->changeDefenseModifier(-(((bombardRate() * std::max(0, 100 - pBombardCity->getBuildingBombardDefense())) / 100) * iDamagePercent) / 100);
 
 		CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_DEFENSES_IN_CITY_REDUCED_TO", pBombardCity->getNameKey(), pBombardCity->getDefenseModifier(), GET_PLAYER(getOwnerINLINE()).getNameKey());
 		gDLL->UI().addPlayerMessage(pBombardCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, getButton(), COLOR_RED, pBombardCity->getX_INLINE(), pBombardCity->getY_INLINE(), true, true);
@@ -7805,6 +7983,281 @@ bool CvUnit::bombard()
 	return true;
 }
 
+
+// WTP: black powder of land artillery
+bool CvUnit::isPowderArtillery() const
+{
+	return getDomainType() == DOMAIN_LAND && bombardRate() > 0;
+}
+
+// the king's artillery needs no black powder
+bool CvUnit::isPowderExempt() const
+{
+	return getOwnerINLINE() == NO_PLAYER || GET_PLAYER(getOwnerINLINE()).isEurope();
+}
+
+int CvUnit::getPowderCapacity() const
+{
+	return GC.getDefineINT("ARTILLERY_POWDER_CAPACITY") * 100;
+}
+
+int CvUnit::getPowderStored() const
+{
+	return std::max(0, getPowderCapacity() - m_iPowderUsed);
+}
+
+int CvUnit::getPowderShortfall() const
+{
+	if (m_iPowderUsed <= 0)
+	{
+		return 0;
+	}
+	return (std::min(m_iPowderUsed, getPowderCapacity()) + 99) / 100;
+}
+
+bool CvUnit::hasPowderForShot() const
+{
+	return isPowderExempt() || getPowderStored() >= GC.getDefineINT("ARTILLERY_POWDER_PER_SHOT") * 100;
+}
+
+// not enough black powder for a bombardment: the artillery fights with a tenth of its strength
+bool CvUnit::isOutOfPowder() const
+{
+	return m_iPowderUsed > 0 && isPowderArtillery() && !hasPowderForShot();
+}
+
+void CvUnit::changePowderUsed(int iChange)
+{
+	if (iChange != 0 && !isPowderExempt())
+	{
+		m_iPowderUsed = range(m_iPowderUsed + iChange, 0, getPowderCapacity());
+		updatePowderPromotions();
+	}
+}
+
+void CvUnit::resetPowder()
+{
+	m_iPowderUsed = 0;
+	updatePowderPromotions();
+}
+
+// the promotions only show the black powder: 'Powder Supply' or 'Out of Powder' (its strength malus is in maxCombatStr)
+void CvUnit::updatePowderPromotions()
+{
+	static const PromotionTypes ePowderSupply = (PromotionTypes)GC.getInfoTypeForString("PROMOTION_POWDER_SUPPLY");
+	static const PromotionTypes ePowderEmpty = (PromotionTypes)GC.getInfoTypeForString("PROMOTION_POWDER_EMPTY");
+	if (ePowderSupply == NO_PROMOTION || ePowderEmpty == NO_PROMOTION || getOwnerINLINE() == NO_PLAYER)
+	{
+		return;
+	}
+	const bool bArtillery = isPowderArtillery() && !isPowderExempt();
+	const bool bEmpty = bArtillery && !hasPowderForShot();
+	setHasRealPromotion(ePowderSupply, bArtillery && !bEmpty);
+	setHasRealPromotion(ePowderEmpty, bEmpty);
+}
+
+// strength in the artillery duel (in hundredths): bombard rate times base strength, with the strength modifiers, the modifier
+// against artillery and a bonus on hills; no terrain, city or fortification bonuses
+int CvUnit::getArtilleryDuelStrength() const
+{
+	int iModifier = getExtraCombatPercent();
+	if (getUnitCombatType() != NO_UNITCOMBAT)
+	{
+		iModifier += unitCombatModifier(getUnitCombatType());
+	}
+	if (plot() != NULL && plot()->isHills())
+	{
+		iModifier += GC.getDefineINT("BOMBARD_ARTILLERY_HILLS_BONUS");
+	}
+	return std::max(1, bombardRate() * baseCombatStr() * std::max(10, 100 + iModifier));
+}
+
+// percent of the normal bombardment effect: no enemy artillery 100%; enemy artillery as strong or stronger: a small
+// chance of the full effect; else linear between 1x, 2x, 4x and 8x superiority (more than 8x like 8x)
+int CvUnit::getBombardDamagePercent(int iAttackStrength, int iDefenseStrength, bool bRandom)
+{
+	if (iDefenseStrength <= 0)
+	{
+		return 100;
+	}
+	const int iEqualChance = GC.getDefineINT("BOMBARD_ARTILLERY_EQUAL_CHANCE");
+	if (iAttackStrength <= iDefenseStrength)
+	{
+		if (!bRandom)
+		{
+			return iEqualChance;
+		}
+		return (GC.getGameINLINE().getSorenRandNum(100, "Bombard artillery duel") < iEqualChance) ? 100 : 0;
+	}
+	const int aiRatio[4] = { 100, 200, 400, 800 };
+	const int aiPercent[4] = { iEqualChance, GC.getDefineINT("BOMBARD_ARTILLERY_PERCENT_2X"), GC.getDefineINT("BOMBARD_ARTILLERY_PERCENT_4X"), GC.getDefineINT("BOMBARD_ARTILLERY_PERCENT_8X") };
+	const int iRatio = (iAttackStrength * 100) / iDefenseStrength;
+	for (int i = 1; i < 4; ++i)
+	{
+		if (iRatio <= aiRatio[i])
+		{
+			return aiPercent[i - 1] + ((aiPercent[i] - aiPercent[i - 1]) * (iRatio - aiRatio[i - 1])) / (aiRatio[i] - aiRatio[i - 1]);
+		}
+	}
+	return aiPercent[3];
+}
+
+bool CvUnit::canReloadPowder() const
+{
+	return isPowderArtillery() && !isPowderExempt() && isOnMap_() && !isCargo() && getPowderShortfall() > 0 && getPowderSupply() > 0;
+}
+
+// black powder this artillery can reload here
+int CvUnit::getPowderSupply() const
+{
+	return const_cast<CvUnit*>(this)->takePowder(MAX_INT, false);
+}
+
+// takes (or with bTake false only counts) up to iWanted black powder: from the own colony on this plot, then from a
+// ship on this or an adjacent plot, then from a land transport (wagon train) on this plot
+int CvUnit::takePowder(int iWanted, bool bTake)
+{
+	int iLoaded = 0;
+	CvCity* pCity = plot()->getPlotCity();
+	if (pCity != NULL && pCity->getOwnerINLINE() == getOwnerINLINE())
+	{
+		const int iTake = std::min(iWanted, pCity->getYieldStored(YIELD_BLACK_POWDER));
+		if (iTake > 0)
+		{
+			if (bTake)
+			{
+				pCity->changeYieldStored(YIELD_BLACK_POWDER, -iTake);
+			}
+			iLoaded += iTake;
+		}
+	}
+
+	for (int iPass = 0; iPass < 2 && iLoaded < iWanted; ++iPass)
+	{
+		const DomainTypes eTransportDomain = (iPass == 0) ? DOMAIN_SEA : DOMAIN_LAND;
+		const int iLastDirection = (iPass == 0) ? NUM_DIRECTION_TYPES : 0; // land transports only on this plot
+		for (int iI = -1; iI < iLastDirection && iLoaded < iWanted; ++iI)
+		{
+			CvPlot* pLoopPlot = (iI < 0) ? plot() : plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
+			if (pLoopPlot == NULL)
+			{
+				continue;
+			}
+			std::vector<CvUnit*> apPowder;
+			CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
+			while (pUnitNode != NULL)
+			{
+				CvUnit* pLoopUnit = pLoopPlot->getUnitNodeLoop(pUnitNode);
+				const CvUnit* pTransport = (pLoopUnit != NULL) ? pLoopUnit->getTransportUnit() : NULL;
+				if (pTransport != NULL && pLoopUnit->getOwnerINLINE() == getOwnerINLINE() && pLoopUnit->getYield() == YIELD_BLACK_POWDER && pTransport->getDomainType() == eTransportDomain)
+				{
+					apPowder.push_back(pLoopUnit);
+				}
+			}
+			for (uint i = 0; i < apPowder.size() && iLoaded < iWanted; ++i)
+			{
+				const int iTake = std::min(iWanted - iLoaded, apPowder[i]->getYieldStored());
+				if (iTake > 0)
+				{
+					if (bTake)
+					{
+						apPowder[i]->setYieldStored(apPowder[i]->getYieldStored() - iTake);
+					}
+					iLoaded += iTake;
+				}
+			}
+		}
+	}
+	return iLoaded;
+}
+
+// reloads up to iMaxAmount black powder (-1: all that is missing); returns the black powder loaded
+int CvUnit::reloadPowder(int iMaxAmount)
+{
+	if (!isPowderArtillery() || isPowderExempt() || !isOnMap_() || isCargo())
+	{
+		return 0;
+	}
+	const int iWanted = (iMaxAmount < 0) ? getPowderShortfall() : std::min(getPowderShortfall(), iMaxAmount);
+	if (iWanted <= 0)
+	{
+		return 0;
+	}
+	const int iLoaded = takePowder(iWanted, true);
+	if (iLoaded > 0)
+	{
+		changePowderUsed(-iLoaded * 100);
+	}
+	return iLoaded;
+}
+
+// the reload button: all artillery of the group (the selected units) reloads the same amount, as much as the black
+// powder here allows (an artillery that misses less takes only what it misses)
+void CvUnit::reloadPowderGroup()
+{
+	std::vector<CvUnit*> apUnits;
+	CvSelectionGroup* pGroup = getGroup();
+	if (pGroup != NULL)
+	{
+		CLLNode<IDInfo>* pUnitNode = pGroup->headUnitNode();
+		while (pUnitNode != NULL)
+		{
+			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+			pUnitNode = pGroup->nextUnitNode(pUnitNode);
+			if (pLoopUnit != NULL && pLoopUnit->canReloadPowder())
+			{
+				apUnits.push_back(pLoopUnit);
+			}
+		}
+	}
+	if (apUnits.empty() && canReloadPowder())
+	{
+		apUnits.push_back(this);
+	}
+	if (apUnits.empty())
+	{
+		return;
+	}
+
+	// the largest equal share the black powder here is enough for (all units of a group are on the same plot)
+	const int iSupply = apUnits[0]->getPowderSupply();
+	int iMaxShortfall = 0;
+	for (uint i = 0; i < apUnits.size(); ++i)
+	{
+		iMaxShortfall = std::max(iMaxShortfall, apUnits[i]->getPowderShortfall());
+	}
+	int iShare = 0;
+	for (int iTry = 1; iTry <= iMaxShortfall; ++iTry)
+	{
+		int iTotal = 0;
+		for (uint i = 0; i < apUnits.size(); ++i)
+		{
+			iTotal += std::min(iTry, apUnits[i]->getPowderShortfall());
+		}
+		if (iTotal > iSupply)
+		{
+			break;
+		}
+		iShare = iTry;
+	}
+
+	if (iShare <= 0)
+	{
+		const CvWString szBuffer = gDLL->getText("TXT_KEY_POWDER_NOT_ENOUGH_TO_SHARE", iSupply, (int)apUnits.size());
+		gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_ERROR", MESSAGE_TYPE_INFO, GC.getYieldInfo(YIELD_BLACK_POWDER).getButton(), COLOR_RED, getX_INLINE(), getY_INLINE());
+		return;
+	}
+
+	for (uint i = 0; i < apUnits.size(); ++i)
+	{
+		const int iLoaded = apUnits[i]->reloadPowder(iShare);
+		if (iLoaded > 0)
+		{
+			const CvWString szBuffer = gDLL->getText("TXT_KEY_POWDER_RELOADED", apUnits[i]->getNameOrProfessionKey(), iLoaded, apUnits[i]->getPowderStored() / 100, apUnits[i]->getPowderCapacity() / 100);
+			gDLL->UI().addPlayerMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, GC.getYieldInfo(YIELD_BLACK_POWDER).getButton(), COLOR_GREEN, apUnits[i]->getX_INLINE(), apUnits[i]->getY_INLINE());
+		}
+	}
+}
 
 bool CvUnit::canPillage(const CvPlot* pPlot) const
 {
@@ -10174,6 +10627,11 @@ int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDet
 		if (!noDefensiveBonus())
 		{
 			iExtraModifier = pPlot->defenseModifier(getTeam());
+			// WTP: siege: besieging soldiers get only half the defense bonus of the plot
+			if (iExtraModifier > 0 && isBesieging(pPlot))
+			{
+				iExtraModifier /= 2;
+			}
 			iModifier += iExtraModifier;
 			if (pCombatDetails != NULL)
 			{
@@ -10402,6 +10860,12 @@ int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDet
 	else
 	{
 		iCombat = ((baseCombatStr() * 10000) / (100 - iModifier));
+	}
+
+	// WTP: artillery without black powder (not enough for a bombardment) loses most of its strength
+	if (isOutOfPowder())
+	{
+		iCombat = (iCombat * std::max(0, 100 - GC.getDefineINT("ARTILLERY_NO_POWDER_COMBAT_MALUS"))) / 100;
 	}
 
 	if (pCombatDetails != NULL)
@@ -13052,6 +13516,20 @@ bool CvUnit::setProfession(ProfessionTypes eProfession, bool bForce, bool bRemov
 		processProfession(getProfession(), -1, false, bRemoveYieldsFromCity);
 		const ProfessionTypes eOldProfession = getProfession();
 
+		// WTP: artillery gives back its black powder less what it has fired
+		if (bRemoveYieldsFromCity && eOldProfession != NO_PROFESSION && getPowderShortfall() > 0 && !gDLL->GetWorldBuilderMode())
+		{
+			CvCity* pCity = GET_PLAYER(getOwnerINLINE()).getPopulationUnitCity(getID());
+			if (pCity == NULL && plot() != NULL)
+			{
+				pCity = plot()->getPlotCity();
+			}
+			if (pCity != NULL && pCity->getOwnerINLINE() == getOwnerINLINE() && !pCity->AI_isWorkforceHack())
+			{
+				pCity->changeYieldStored(YIELD_BLACK_POWDER, -std::min(getPowderShortfall(), GET_PLAYER(getOwnerINLINE()).getYieldEquipmentAmount(eOldProfession, YIELD_BLACK_POWDER)));
+			}
+		}
+
 		// actually change profession
 		m_eProfession = eProfession;
 
@@ -13061,6 +13539,7 @@ bool CvUnit::setProfession(ProfessionTypes eProfession, bool bForce, bool bRemov
 			setPromotions();
 		}
 		processProfession(getProfession(), 1, true, bRemoveYieldsFromCity);
+		resetPowder(); // WTP: new artillery starts with full black powder
 
 		bool shouldReloadEntity = true;
 		if (eOldProfession != NO_PROFESSION && m_eProfession != NO_PROFESSION)
@@ -13200,7 +13679,11 @@ bool CvUnit::canHaveProfession(ProfessionTypes eProfession, bool bBumpOther, con
 			{
 				for (YieldTypes eYieldType = FIRST_YIELD; eYieldType < NUM_YIELD_TYPES; ++eYieldType)
 				{
-					const int iYieldCarried  = kOwner.getYieldEquipmentAmountSecure(getProfession(), eYieldType); // cache CvPlayer::getYieldEquipmentAmount - Nightinggale
+					int iYieldCarried  = kOwner.getYieldEquipmentAmountSecure(getProfession(), eYieldType); // cache CvPlayer::getYieldEquipmentAmount - Nightinggale
+					if (eYieldType == YIELD_BLACK_POWDER)
+					{
+						iYieldCarried = std::max(0, iYieldCarried - getPowderShortfall()); // WTP: fired black powder of artillery
+					}
 					const int iYieldRequired = kOwner.getYieldEquipmentAmount(eProfession, eYieldType);
 					if (iYieldRequired > 0)
 					{
@@ -13531,6 +14014,10 @@ int CvUnit::getProfessionChangeYieldRequired(ProfessionTypes eProfession, YieldT
 	if (getProfession() != NO_PROFESSION)
 	{
 		iYieldCarried += kOwner.getYieldEquipmentAmount(getProfession(), eYield);
+		if (eYield == YIELD_BLACK_POWDER)
+		{
+			iYieldCarried = std::max(0, iYieldCarried - getPowderShortfall()); // WTP: fired black powder of artillery
+		}
 	}
 	return (kOwner.getYieldEquipmentAmount(eProfession, eYield) - iYieldCarried);
 }
@@ -14956,10 +15443,79 @@ bool CvUnit::potentialWarAction(const CvPlot* pPlot) const
 
 // Protected Functions...
 
+// WTP: siege: this unit on pPlot is one of the besiegers of a city beside it
+bool CvUnit::isBesieging(const CvPlot* pPlot) const
+{
+	if (pPlot == NULL || getDomainType() != DOMAIN_LAND)
+	{
+		return false;
+	}
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		const CvPlot* pCityPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), (DirectionTypes)iI);
+		const CvCity* pCity = (pCityPlot != NULL) ? pCityPlot->getPlotCity() : NULL;
+		if (pCity != NULL && CvCity::isSiegeUnit(*this, pCity->getTeam()) && pCity->isBesieged())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+// WTP: siege: the city beside this unit it can put under siege (COMMAND_SIEGE): at least SIEGE_MIN_STACK_SIZE soldiers of its
+// team on its plot, no movement needed
+CvCity* CvUnit::getSiegeTargetCity() const
+{
+	if (getDomainType() != DOMAIN_LAND || isCargo() || plot() == NULL || plot()->isWater())
+	{
+		return NULL;
+	}
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		CvPlot* pCityPlot = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
+		CvCity* pCity = (pCityPlot != NULL) ? pCityPlot->getPlotCity() : NULL;
+		if (pCity == NULL || !CvCity::isSiegeUnit(*this, pCity->getTeam()) || pCity->isBesieged())
+		{
+			continue;
+		}
+		if (CvCity::getSiegeStackSize(*plot(), getTeam(), pCity->getTeam()) >= GLOBAL_DEFINE_SIEGE_MIN_STACK_SIZE && pCity->canBeBesiegedBy(getTeam()))
+		{
+			return pCity;
+		}
+	}
+	return NULL;
+}
+
+// WTP: siege: the city beside this unit its owner besieges (COMMAND_LIFT_SIEGE)
+CvCity* CvUnit::getLiftSiegeCity() const
+{
+	if (getDomainType() != DOMAIN_LAND || plot() == NULL)
+	{
+		return NULL;
+	}
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		CvPlot* pCityPlot = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
+		CvCity* pCity = (pCityPlot != NULL) ? pCityPlot->getPlotCity() : NULL;
+		if (pCity != NULL && pCity->getBesieger() == getOwnerINLINE())
+		{
+			return pCity;
+		}
+	}
+	return NULL;
+}
+
 bool CvUnit::canAdvance(const CvPlot* pPlot, int iThreshold) const
 {
 	FAssert(canFight());
 	FAssert(getDomainType() != DOMAIN_IMMOBILE);
+
+	// WTP: siege: the defenders of a besieged city attack without leaving it
+	const CvCity* const pCity = plot()->getPlotCity();
+	if (pCity != NULL && !GET_TEAM(getTeam()).isAtWar(pCity->getTeam()) && pCity->isBesieged())
+	{
+		return false;
+	}
 
 	if (pPlot->getNumVisibleEnemyDefenders(this) > iThreshold)
 	{

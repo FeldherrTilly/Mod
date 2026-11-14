@@ -6604,7 +6604,7 @@
 			<bUnarmed>0</bUnarmed>
 			<bNoDefensiveBonus>0</bNoDefensiveBonus>
 			<iCombatChange>5</iCombatChange>
-			<iBombardRateChangeProfession>10</iBombardRateChangeProfession>
+			<iBombardRateChangeProfession>18</iBombardRateChangeProfession>
 			<iBarracksSpaceNeededChange>1</iBarracksSpaceNeededChange>
 			<iMovesChange>0</iMovesChange>
 			<bMoveIntoPeak>0</bMoveIntoPeak>
@@ -6665,7 +6665,7 @@
 			<bUnarmed>0</bUnarmed>
 			<bNoDefensiveBonus>1</bNoDefensiveBonus>
 			<iCombatChange>7</iCombatChange>
-			<iBombardRateChangeProfession>20</iBombardRateChangeProfession>
+			<iBombardRateChangeProfession>35</iBombardRateChangeProfession>
 			<iBarracksSpaceNeededChange>2</iBarracksSpaceNeededChange>
 			<iMovesChange>0</iMovesChange>
 			<bMoveIntoPeak>0</bMoveIntoPeak>
@@ -6726,7 +6726,7 @@
 			<bUnarmed>0</bUnarmed>
 			<bNoDefensiveBonus>1</bNoDefensiveBonus>
 			<iCombatChange>9</iCombatChange>
-			<iBombardRateChangeProfession>30</iBombardRateChangeProfession>
+			<iBombardRateChangeProfession>53</iBombardRateChangeProfession>
 			<iBarracksSpaceNeededChange>2</iBarracksSpaceNeededChange>
 			<iMovesChange>0</iMovesChange>
 			<bMoveIntoPeak>0</bMoveIntoPeak>

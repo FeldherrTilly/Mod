@@ -306,6 +306,9 @@ public:
 
     int AI_getOurPlotStrength(CvPlot* pPlot, int iRange, bool bDefensiveBonuses, bool bTestMoves) const;
     int AI_getEnemyPlotStrength(CvPlot* pPlot, int iRange, bool bDefensiveBonuses, bool bTestMoves);
+	// K-Mod: strength of the units within iRange plots that can defend / attack pPlot
+	int AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eDefenceTeam, DomainTypes eDomainType = DOMAIN_LAND, int iRange = 0, bool bAtTarget = true, bool bCheckMoves = false, bool bNoCache = false) const;
+	int AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAttackTeam, DomainTypes eDomainType = DOMAIN_LAND, int iRange = 2, bool bUseTarget = true, bool bCheckMoves = false, bool bCheckCanAttack = false) const;
 
 	int AI_goldToUpgradeAllUnits(int iExpThreshold = 0);
 
@@ -749,6 +752,17 @@ protected:
 	std::vector<WfOpenOpportunity> m_aWfOpenOpportunities;
 	int m_iWfIdleCount; // WTP: colonists without a job in the last plan (not saved)
 	int m_iEuropeFallbackTurn; // WTP: the turn the idle transports in Europe were last checked (not saved)
+	int m_iSiegeArtilleryCount; // WTP: siege: own land artillery units, counted every turn (not saved)
+	int m_iSiegeWagonShortfall; // WTP: siege: attacking stacks with artillery minus wagon trains (not saved)
+	int m_iSiegePowderGold; // WTP: siege: gold a waiting wagon train needs for its powder (not saved)
+	int m_iSiegePowderTurn; // WTP: siege: the turn it asked for it (not saved)
+	std::set<int> m_setSiegeCounterIDs; // WTP: siege: offensive units made counter units against a siege stack (saved)
+	// WTP: siege: the counter units gather against the siege stack threatening the most valuable colony (AI_doWarDefense, every
+	// turn, not saved): the colony, the plot beside it where they gather and the plot of the siege stack (plot indices, -1: none)
+	int m_iSiegeMusterCityID;
+	int m_iSiegeMusterPlot;
+	int m_iSiegeMusterThreatPlot;
+	int m_iSiegeMusterAttackTurn; // WTP: siege: the turn the gathered counter units attacked the siege stack (not saved)
 	int m_iWfFoodCityID; // WTP: the colony that needs a food provider most (not saved), -1
 	bool m_bWfFoodWater; // WTP: ... a fisherman (else a farmer or an African slave)
 	bool AI_buyExpertForOpportunity();
@@ -777,6 +791,30 @@ protected:
 	void AI_doMilitaryStrategy();
 	void AI_doSuppressRevolution();
 	int AI_siegePowderGold(int iAmount) const;
+	void AI_doSieges(); // WTP: siege
+	void AI_doWarDefense(); // WTP: siege
+	void AI_setSiegeMuster(const std::vector<struct SiegeThreat>& aThreats, int iOldCityID, int iOldPlot); // WTP: siege
+	bool AI_isSiegeMusterPlotValid(const CvPlot& kPlot, const CvCity& kCity) const; // WTP: siege
+	CvPlot* AI_findSiegeMusterPlot(const CvCity& kCity, const CvPlot& kThreatPlot) const; // WTP: siege
+public:
+	// WTP: siege
+	int AI_siegeArtilleryNeeded(int iGroupSize) const;
+	bool AI_isSiegeThreatened(const CvPlot& kStackPlot, const CvCity& kCity) const;
+	int AI_getSiegeArtilleryCount() const { return m_iSiegeArtilleryCount; }
+	enum { SIEGE_MAX_WAGONS = 2 }; // WTP: black powder wagon trains of a player, for its largest stacks
+	int AI_getSiegeWagonShortfall() const { return m_iSiegeWagonShortfall; }
+	void AI_setSiegePowderGold(int iGold);
+	CvCity* AI_getSiegeMusterCity() const;
+	CvPlot* AI_getSiegeMusterPlot() const;
+	CvPlot* AI_getSiegeMusterThreatPlot() const;
+	int AI_siegeMusterStrengthPercent(const CvPlot& kMusterPlot, const CvPlot& kThreatPlot) const;
+	int AI_getSiegeMusterAttackTurn() const { return m_iSiegeMusterAttackTurn; }
+	void AI_setSiegeMusterAttackTurn(int iTurn) { m_iSiegeMusterAttackTurn = iTurn; }
+	bool AI_isSiegePowderPort(const CvCity& kCity) const;
+	bool AI_canBuySiegePowder(const CvCity& kCity, int iAmount) const;
+	void AI_buySiegePowder(CvCity& kCity, int iAmount);
+	int AI_siegePowderGold(int iAmount) const;
+protected:
 	void AI_doUnitAIWeights();
 	void AI_doEmotions();
 	void AI_doStrategy();
